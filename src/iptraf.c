@@ -58,6 +58,9 @@ details.
 #include "logvars.h"
 #include "getpath.h"
 
+
+#include "config.h"
+
 #define WITHALL 1
 #define WITHOUTALL 0
 

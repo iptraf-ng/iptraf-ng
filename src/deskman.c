@@ -26,6 +26,7 @@ details.
 #include <msgboxes.h>
 #include "deskman.h"
 
+#include "config.h"
 /* Attribute variables */
 
 int STDATTR;
