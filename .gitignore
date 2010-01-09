@@ -1,0 +1,11 @@
+\#*
+*.o
+*.lo
+*.la
+*~
+.*.swp
+cscope.out
+src/iptraf
+src/rawtime
+src/rvnamed
+support/libtextbox.a
