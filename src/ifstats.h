@@ -6,7 +6,7 @@ ifstats.h - structure definitions for interface counts
 ***/
 
 struct iflist {
-    char ifname[8];
+    char ifname[18];
     unsigned int encap;
     unsigned long long iptotal;
     unsigned long long ip6total;

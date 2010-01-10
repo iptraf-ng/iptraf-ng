@@ -44,7 +44,7 @@ struct othptabent {
     int s_fstat;
     int d_fstat;
     unsigned int protocol;
-    char iface[8];
+    char iface[18];
     unsigned int pkt_length;
 
     union {

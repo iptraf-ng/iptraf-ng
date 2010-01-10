@@ -24,6 +24,7 @@ details.
 #include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <linux/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
@@ -127,8 +128,7 @@ int ifinlist(struct iflist *list, char *ifname)
 void initiflist(struct iflist **list)
 {
     FILE *fd;
-    char buf[161];
-    char ifname[10];
+    char ifname[18];
     struct iflist *itmp = NULL;
     struct iflist *tail = NULL;
     unsigned int index = 0;
@@ -142,9 +142,7 @@ void initiflist(struct iflist **list)
         return;
     }
 
-    do {
-        strcpy(buf, "");
-        get_next_iface(fd, ifname);
+    while (get_next_iface(fd, ifname, 12)) {
         if (strcmp(ifname, "") != 0) {
             if (!(iface_supported(ifname)))
                 continue;
@@ -182,7 +180,7 @@ void initiflist(struct iflist **list)
             tail = itmp;
             itmp->next_entry = NULL;
         }
-    } while (strcmp(ifname, "") != 0);
+    }
 
     fclose(fd);
 }
@@ -438,7 +436,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
     FILE *logfile = NULL;
 
     int br;
-    char ifname[10];
+    char ifname[18];
 
     int ch;
 
@@ -784,7 +782,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
     char *tpacket;
     unsigned int iphlen;
 
-    char ifname[10];
+    char ifname[18];
     struct sockaddr_ll fromaddr;
     unsigned short linktype;
 

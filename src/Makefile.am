@@ -1,6 +1,6 @@
-bin_PROGRAMS = iptraf-ng rvnamed-ng rawtime-ng
+bin_PROGRAMS = iptraf rvnamed rawtime
 
-iptraf_ng_SOURCES = iptraf.c		\
+iptraf_SOURCES = iptraf.c		\
 					itrafmon.c		\
 					packet.c		\
 					tcptable.c		\
@@ -34,25 +34,25 @@ iptraf_ng_SOURCES = iptraf.c		\
 					bar.c			\
 					parseproto.c
 
-iptraf_ng_CFLAGS =	$(CFLAGS) \
+iptraf_CFLAGS =	$(CFLAGS) \
 					-Wall \
 					-std=gnu99 \
 					-pedantic \
 					-I$(srcdir)/../support
 
-iptraf_ng_LDFLAGS = $(ncurses_LIBS) $(libpanel_LIBS) ../support/libtextbox.la
+iptraf_LDFLAGS = $(ncurses_LIBS) $(libpanel_LIBS) ../support/libtextbox.la
 
-rvnamed_ng_SOURCES = rvnamed.c getpath.c
+rvnamed_SOURCES = rvnamed.c getpath.c
 
-rvnamed_ng_CFLAGS = $(CFLAGS) \
+rvnamed_CFLAGS = $(CFLAGS) \
 					-Wall \
 					-std=gnu99 \
 					-pedantic \
 					-I$(srcdir)/../support
 
-rawtime_ng_SOURCES = rawtime.c
+rawtime_SOURCES = rawtime.c
 
-rawtime_ng_CFLAGS = $(CFLAGS) \
+rawtime_CFLAGS = $(CFLAGS) \
 					-Wall \
 					-std=gnu99 \
 					-pedantic \

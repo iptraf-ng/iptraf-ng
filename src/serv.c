@@ -33,6 +33,7 @@ details.
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <netinet/udp.h>
+#include <linux/types.h>
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
 #include <listbox.h>
@@ -740,7 +741,7 @@ void servmon(char *ifname, struct porttab *ports,
     unsigned short linktype;
     int br;
 
-    char iface[8];
+    char iface[18];
     unsigned int idx = 1;
 
     unsigned int sport = 0;

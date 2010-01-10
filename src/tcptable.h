@@ -66,7 +66,7 @@ struct tcptableent {
     unsigned long finack;
     int partial;
     int finsent;
-    char ifname[8];
+    char ifname[18];
     unsigned int index;
     int reused;
     int timedout;

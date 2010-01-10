@@ -2,7 +2,7 @@
 
 ifaces.c - routine that determines whether a given interface is supported
 		by IPTraf
-		
+
 Copyright (c) Gerard Paul Java 1998, 2003
 
 This software is open source; you can redistribute it and/or modify
@@ -27,19 +27,21 @@ details.
 #include <net/if.h>
 #include <fcntl.h>
 #include <string.h>
+#include <linux/types.h>
 #include <linux/if_packet.h>
 #include "links.h"
 #include "error.h"
 
 extern int accept_unsupported_interfaces;
-#define NUM_SUPPORTED_IFACES 26
+#define NUM_SUPPORTED_IFACES 39
 
 extern int daemonized;
 
 char ifaces[][6] =
-    { "lo", "eth", "sl", "ppp", "ippp", "plip", "fddi", "isdn", "dvb",
-    "pvc", "hdlc", "ipsec", "sbni", "tr", "wvlan", "wlan", "sm2", "sm3",
-    "pent", "lec", "brg", "tun", "tap", "cipcb", "tunl", "vlan"
+    { "lo", "eth", "sl", "ppp", "ippp", "plip", "fddi", "isdn", "dvb", "pvc",
+      "hdlc", "ipsec", "sbni", "tr", "wvlan", "wlan", "sm2", "sm3", "pent", "lec",
+      "brg", "tun", "tap", "cipcb", "tunl", "vlan", "hsi", "ctc", "ath", "bond",
+      "ra", "bnep", "dsl", "modem", "ni", "br", "tap", "dummy", "vmnet"
 };
 
 char *ltrim(char *buf)
@@ -80,19 +82,23 @@ FILE *open_procnetdev(void)
 /*
  * Get the next interface from /proc/net/dev.
  */
-void get_next_iface(FILE * fd, char *ifname)
+int get_next_iface(FILE * fd, char *ifname, int n)
 {
     char buf[161];
+
+    strcpy(ifname, "");
 
     if (!feof(fd)) {
         strcpy(buf, "");
         fgets(buf, 160, fd);
-        if (strcmp(buf, "") != 0)
-            strcpy(ifname, ltrim(strtok(buf, ":")));
-        else
-            strcpy(ifname, "");
-    } else
-        strcpy(ifname, "");
+        if (strcmp(buf, "") != 0) {
+            strncpy(ifname, ltrim(strtok(buf, ":")), n);
+            if (ifname[n - 1] != '\0')
+                strcpy(ifname, "");
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /*

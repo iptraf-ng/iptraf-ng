@@ -76,7 +76,7 @@ void ipmonhelp()
                     STATUSBARATTR);
     tx_printkeyhelp("S", "-sort TCP  ", stdscr, HIGHATTR, STATUSBARATTR);
     stdexitkeyhelp();
-};
+}
 
 void uniq_help(int what)
 {
@@ -609,7 +609,7 @@ void ipmon(struct OPTIONS *options,
     int curwin = 0;
 
     int readlen;
-    char ifname[10];
+    char ifname[18];
 
     unsigned long long total_pkts = 0;
 

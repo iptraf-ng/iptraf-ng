@@ -6,7 +6,7 @@ ifaces.h - prototype declaration for interface support determination
 ***/
 
 FILE *open_procnetdev(void);
-void get_next_iface(FILE * fd, char *ifname);
+int get_next_iface(FILE * fd, char *ifname, int n);
 int iface_supported(char *iface);
 int iface_up(char *iface);
 void err_iface_unsupported(void);

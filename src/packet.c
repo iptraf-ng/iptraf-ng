@@ -103,10 +103,32 @@ unsigned short getlinktype(unsigned short family, char *ifname,
         else if (strncmp(ifname, "tun", 3) == 0)
             result = LINK_ETHERNET;
         else if (strncmp(ifname, "vlan", 3) == 0)
-            result = LINK_VLAN;
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "bond", 4) == 0)
+            result = LINK_ETHERNET;
         else if (strncmp(ifname, "brg", 3) == 0)
             result = LINK_ETHERNET;
         else if (strncmp(ifname, "tap", 3) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "ctc", 3) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "hsi", 3) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "ath", 3) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "ra", 2) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "bnep", 4) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "ni", 2) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "tap", 3) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "dummy", 5) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "br", 2) == 0)
+            result = LINK_ETHERNET;
+        else if (strncmp(ifname, "vmnet", 5) == 0)
             result = LINK_ETHERNET;
         else if ((strncmp(ifname, "isdn", 4) == 0) && (isdn_fd != -1)) {
             isdnent = isdn_table_lookup(isdnlist, ifname, isdn_fd);
@@ -236,6 +258,7 @@ void adjustpacket(char *tpacket, unsigned short family,
          */
         memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
         *packet = aligned_buf;
+        break;
     default:
         *packet = (char *) NULL;        /* return a NULL packet to signal */
         break;                  /* an unrecognized link protocol */
@@ -346,9 +369,14 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
      * Get IPTraf link type based on returned information and move past
      * data link header.
      */
-    *linktype =
-        getlinktype(fromaddr->sll_hatype, ifname, isdnfd, &isdntable);
     fromaddr->sll_protocol = ntohs(fromaddr->sll_protocol);
+    if (fromaddr->sll_protocol != ETH_P_8021Q)
+        *linktype =
+            getlinktype(fromaddr->sll_hatype, ifname, isdnfd, &isdntable);
+    else {
+        *linktype = LINK_VLAN;
+        fromaddr->sll_protocol = ntohs(*((unsigned short*)(tpacket+ETH_HLEN+2)));
+    }
     adjustpacket(tpacket, *linktype, packet, aligned_buf, br);
 
     if (*packet == NULL)

@@ -569,8 +569,13 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
                 case ICMP6_DST_UNREACH_ADMIN:
                     strcpy(additional, "admin");
                     break;
+#ifdef ICMP6_DST_UNREACH_NOTNEIGHBOR
+                case ICMP6_DST_UNREACH_NOTNEIGHBOR:
+                    strcpy(additional, "not neigh");
+#else
                 case ICMP6_DST_UNREACH_BEYONDSCOPE:
                     strcpy(additional, "not beyondsp");
+#endif
                     break;
                 case ICMP6_DST_UNREACH_ADDR:
                     strcpy(additional, "unreach addr");
@@ -601,6 +606,21 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
             case ND_ROUTER_ADVERT:
                 strcpy(description, "router adv");
                 break;
+#ifdef ICMP6_MEMBERSHIP_QUERY
+            case ICMP6_MEMBERSHIP_QUERY:
+                strcpy(description, "mbrship query");
+                break;
+#endif
+#ifdef ICMP6_MEMBERSHIP_REPORT
+            case ICMP6_MEMBERSHIP_REPORT:
+                strcpy(description, "mbrship report");
+                break;
+#endif
+#ifdef ICMP6_MEMBERSHIP_REDUCTION
+            case ICMP6_MEMBERSHIP_REDUCTION:
+                strcpy(description, "mbrship reduc");
+                break;
+#endif
             case ND_NEIGHBOR_SOLICIT:
                 strcpy(description, "neigh sol");
                 break;

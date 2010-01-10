@@ -30,6 +30,7 @@ details.
 #include <panel.h>
 #include <signal.h>
 #include <string.h>
+#include <locale.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -237,7 +238,7 @@ void program_interface(struct OPTIONS *options,
     struct filterstate ofilter;
     struct ffnode *fltfiles;
 
-    char ifname[10];
+    char ifname[18];
     char *ifptr = NULL;
     struct porttab *ports;
 
@@ -413,7 +414,7 @@ void commandhelp()
 {
     printf("\nSyntax:\n");
     printf
-        ("    iptraf [ -f ] [ { -i iface | -g | -d iface | -s iface | -z iface |\n");
+        ("    iptraf [ -f ] [ -u ] [ { -i iface | -g | -d iface | -s iface | -z iface |\n");
     printf
         ("           -l iface } [ -t timeout ] [ -B ] [ -L logfile ] [-I interval] ] \n\n");
     printf
@@ -448,6 +449,8 @@ void commandhelp()
         ("-f          - clear all locks and counters.  Use with great caution.\n");
     printf
         ("              Normally used to recover from an abnormal termination.\n\n");
+    printf
+        ("-u          - allow use of unsupported interfaces as ethernet devices.\n");
     printf("IPTraf %s Copyright (c) Gerard Paul Java 1997-2004\n",
            VERSION);
 }
@@ -501,6 +504,8 @@ int main(int argc, char **argv)
         exit(1);
     }
 #endif
+
+    setlocale(LC_ALL, "");
 
     strcpy(current_logfile, "");
     strcpy(graphing_logfile, "");
@@ -619,6 +624,18 @@ int main(int argc, char **argv)
     freopen("/dev/null", "r", stdin);
     freopen("/dev/null", "w", stderr);
 #endif
+
+    /* Check whether LOCKDIR exists (/var/run is on a tmpfs in Ubuntu) */
+    if(access(LOCKDIR,F_OK) != 0) {
+	if(mkdir(LOCKDIR, 0700) == -1) {
+	    fprintf(stderr, "Cannot create %s: %s", LOCKDIR, strerror(errno));
+	    exit(1);
+        }
+	if(chown(LOCKDIR, 0, 0) == -1) {
+	    fprintf(stderr, "Cannot change owner of %s: %s", LOCKDIR, strerror(errno));
+	    exit(1);
+	}
+    }
 
     initscr();
 

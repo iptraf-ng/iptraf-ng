@@ -7,9 +7,9 @@
 */.deps/
 */.libs/
 cscope.out
-src/iptraf-ng
-src/rawtime-ng
-src/rvnamed-ng
+src/iptraf
+src/rawtime
+src/rvnamed
 support/libtextbox.a
 Makefile
 Makefile.in

@@ -711,7 +711,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
     int is_ip;
     int ch;
 
-    char ifname[10];
+    char ifname[18];
 
     struct timeval tv;
     unsigned long starttime;

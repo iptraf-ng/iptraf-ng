@@ -2,7 +2,7 @@
 
 promisc.c	- handles the promiscuous mode flag for the Ethernet/FDDI/
               Token Ring interfaces
-		  
+
 Written by Gerard Paul Java
 Copyright (c) Gerard Paul Java 1997, 2002
 
@@ -49,7 +49,7 @@ void init_promisc_list(struct promisc_states **list)
 {
     FILE *fd;
     int ifd;
-    char buf[8];
+    char buf[18];
     struct promisc_states *ptmp;
     struct promisc_states *tail = NULL;
     struct ifreq ifr;
@@ -61,9 +61,7 @@ void init_promisc_list(struct promisc_states **list)
     *list = NULL;
     fd = open_procnetdev();
 
-    do {
-        get_next_iface(fd, buf);
-
+    while (get_next_iface(fd, buf, 12)) {
         if (strcmp(buf, "") != 0) {
             ptmp = malloc(sizeof(struct promisc_states));
             strcpy(ptmp->params.ifname, buf);
@@ -80,12 +78,21 @@ void init_promisc_list(struct promisc_states **list)
              * Retrieve and save interface flags
              */
 
-            if ((strncmp(buf, "eth", 3) == 0) ||
-                (strncmp(buf, "fddi", 4) == 0) ||
-                (strncmp(buf, "tr", 2) == 0) ||
-                (strncmp(ptmp->params.ifname, "wvlan", 4) == 0) ||
-                (strncmp(ptmp->params.ifname, "lec", 3) == 0) ||
-                (accept_unsupported_interfaces)) {
+            if ((strncmp(buf, "eth", 3) == 0)
+                || (strncmp(buf, "ra", 2) == 0)
+                || (strncmp(buf, "fddi", 4) == 0)
+                || (strncmp(buf, "tr", 2) == 0)
+                || (strncmp(buf, "ath", 3) == 0)
+                || (strncmp(buf, "bnep", 4) == 0)
+                || (strncmp(buf, "ni", 2) == 0)
+                || (strncmp(buf, "tap", 3) == 0)
+                || (strncmp(buf, "dummy", 5) == 0)
+                || (strncmp(buf, "br", 2) == 0)
+                || (strncmp(buf, "vmnet", 5) == 0)
+                || (strncmp(ptmp->params.ifname, "wvlan", 4) == 0)
+                || (strncmp(ptmp->params.ifname, "lec", 3) == 0)
+                || (accept_unsupported_interfaces))
+            {
                 strcpy(ifr.ifr_name, buf);
 
                 istat = ioctl(ifd, SIOCGIFFLAGS, &ifr);
@@ -102,7 +109,7 @@ void init_promisc_list(struct promisc_states **list)
                 }
             }
         }
-    } while (strcmp(buf, "") != 0);
+    }
 }
 
 /*
@@ -197,6 +204,8 @@ void srpromisc(int mode, struct promisc_states *list)
         if (((strncmp(ptmp->params.ifname, "eth", 3) == 0) ||
              (strncmp(ptmp->params.ifname, "fddi", 4) == 0) ||
              (strncmp(ptmp->params.ifname, "tr", 2) == 0) ||
+             (strncmp(ptmp->params.ifname, "ra", 2) == 0) ||
+             (strncmp(ptmp->params.ifname, "ath", 3) == 0) ||
              (strncmp(ptmp->params.ifname, "wvlan", 4) == 0) ||
              (strncmp(ptmp->params.ifname, "lec", 3) == 0)) &&
             (ptmp->params.state_valid)) {
