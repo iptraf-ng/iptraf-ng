@@ -29,3 +29,5 @@ extern int ARPATTR;
 extern int GREATTR;
 extern int UNKNIPATTR;
 extern int UNKNATTR;
+extern int IPV6ATTR;
+extern int ICMPV6ATTR;

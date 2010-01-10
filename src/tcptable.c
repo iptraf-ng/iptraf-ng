@@ -14,7 +14,7 @@ This program is distributed WITHOUT ANY WARRANTY; without even the
 implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License in the included COPYING file for
 details.
-   
+
 ***/
 
 #include <winops.h>
@@ -59,8 +59,8 @@ void setlabels(WINDOW * win, int mode)
  * The hash function for the TCP hash table
  */
 
-unsigned int tcp_hash(unsigned long saddr, unsigned int sport,
-                      unsigned long daddr, unsigned int dport,
+unsigned int tcp_hash(unsigned long saddr, uint32_t *s6addr, unsigned int sport,
+                      unsigned long daddr, uint32_t *d6addr, unsigned int dport,
                       char *ifname)
 {
     int i;
@@ -68,6 +68,13 @@ unsigned int tcp_hash(unsigned long saddr, unsigned int sport,
 
     for (i = 0; i <= strlen(ifname) - 1; i++)
         ifsum += ifname[i];
+
+    if (s6addr != 0 && d6addr != 0) {
+       for (i = 0; i < 4; i++) {
+               saddr ^= s6addr[i];
+               daddr ^= d6addr[i];
+       }
+    }
 
     return ((ifsum + (4 * saddr) + (3 * sport) +
              (2 * daddr) + dport) % ENTRIES_IN_HASH_TABLE);
@@ -139,8 +146,8 @@ int add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry)
     unsigned int hp;            /* hash position in table */
     struct tcp_hashentry *ptmp;
 
-    hp = tcp_hash(entry->saddr.s_addr, entry->sport,
-                  entry->daddr.s_addr, entry->dport, entry->ifname);
+    hp = tcp_hash(entry->saddr.s_addr, entry->s6addr.s6_addr32, entry->sport,
+                  entry->daddr.s_addr, entry->d6addr.s6_addr32, entry->dport, entry->ifname);
 
     ptmp = malloc(sizeof(struct tcp_hashentry));
     bzero(ptmp, sizeof(struct tcp_hashentry));
@@ -155,7 +162,7 @@ int add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry)
 
     entry->hash_node = ptmp;
 
-    /* 
+    /*
      * Update hash node and add it to list.
      */
 
@@ -215,6 +222,8 @@ void del_tcp_hash_node(struct tcptable *table, struct tcptableent *entry)
 struct tcptableent *addentry(struct tcptable *table,
                              unsigned long int saddr,
                              unsigned long int daddr,
+                             uint8_t *s6addr,
+                             uint8_t *d6addr,
                              unsigned int sport, unsigned int dport,
                              int protocol,
                              char *ifname, int *rev_lookup,
@@ -223,7 +232,7 @@ struct tcptableent *addentry(struct tcptable *table,
     struct tcptableent *new_entry;
     struct closedlist *ctemp;
 
-    /* 
+    /*
      * Allocate and attach a new node if no closed entries found
      */
 
@@ -305,14 +314,28 @@ struct tcptableent *addentry(struct tcptable *table,
         del_tcp_hash_node(table, new_entry->oth_connection);
     }
 
-    /* 
+    /*
      * Fill in address fields with raw IP addresses
      */
 
     new_entry->saddr.s_addr = new_entry->oth_connection->daddr.s_addr =
         saddr;
+    if (s6addr == NULL) {
+        memset(&new_entry->s6addr, 0, 16);
+	memset(&new_entry->oth_connection->d6addr, 0, 16);
+    } else {
+        memcpy(&new_entry->s6addr, s6addr, 16);
+        memcpy(&new_entry->oth_connection->d6addr, s6addr, 16);
+    }
     new_entry->daddr.s_addr = new_entry->oth_connection->saddr.s_addr =
         daddr;
+    if (d6addr == NULL) {
+       memset(&new_entry->d6addr, 0, 16);
+       memset(&new_entry->oth_connection->s6addr, 0, 16);
+    } else {
+       memcpy(&new_entry->d6addr, d6addr, 16);
+       memcpy(&new_entry->oth_connection->s6addr, d6addr, 16);
+    }
     new_entry->protocol = protocol;
 
     /*
@@ -349,9 +372,10 @@ struct tcptableent *addentry(struct tcptable *table,
 
     new_entry->stat = new_entry->oth_connection->stat = 0;
 
-    new_entry->s_fstat = revname(rev_lookup, &(new_entry->saddr),
+    new_entry->s_fstat = revname(rev_lookup, &(new_entry->saddr), &new_entry->s6addr,
                                  new_entry->s_fqdn, rvnfd);
-    new_entry->d_fstat = revname(rev_lookup, &(new_entry->daddr),
+
+    new_entry->d_fstat = revname(rev_lookup, &(new_entry->daddr), &new_entry->d6addr,
                                  new_entry->d_fqdn, rvnfd);
 
     /*
@@ -490,7 +514,8 @@ void write_timeout_log(int logging, FILE * logfile,
 }
 
 struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
-                             unsigned long daddr, unsigned int sport,
+                             unsigned long daddr, uint8_t *s6addr,
+                             uint8_t *d6addr, unsigned int sport,
                              unsigned int dport, char *ifname,
                              int logging, FILE * logfile,
                              int *nomem, struct OPTIONS *opts)
@@ -502,6 +527,9 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
 
     time_t now;
     time_t timeout;
+
+    int sfree = 0;
+    int dfree = 0;
 
     if (opts != NULL)
         timeout = opts->timeout;
@@ -515,12 +543,24 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
      * Determine hash table index for this set of addresses and ports
      */
 
-    hp = tcp_hash(saddr, sport, daddr, dport, ifname);
+    hp = tcp_hash(saddr, (uint32_t*) s6addr, sport, daddr, (uint32_t*) d6addr, dport, ifname);
     hashptr = table->hash_table[hp];
 
+    if (s6addr == NULL) {
+       s6addr = malloc(sizeof(struct in6_addr));
+       memset(s6addr, 0, 16);
+       sfree = 1;
+    }
+    if (d6addr == NULL) {
+       d6addr = malloc(sizeof(struct in6_addr));
+       memset(d6addr, 0, 16);
+       dfree = 1;
+    }
     while (hashptr != NULL) {
         if ((hashptr->tcpnode->saddr.s_addr == saddr) &&
+            (!memcmp(&hashptr->tcpnode->s6addr.s6_addr, s6addr, 16)) &&
             (hashptr->tcpnode->daddr.s_addr == daddr) &&
+            (!memcmp(&hashptr->tcpnode->d6addr.s6_addr, d6addr, 16)) &&
             (hashptr->tcpnode->sport == sport) &&
             (hashptr->tcpnode->dport == dport) &&
             (strcmp(hashptr->tcpnode->ifname, ifname) == 0))
@@ -548,6 +588,9 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
         }
         hashptr = hashptr->next_entry;
     }
+
+    if (sfree) free(s6addr);
+    if (dfree) free(d6addr);
 
     if (hashptr != NULL) {      /* needed to avoid SIGSEGV */
         if ((((hashptr->tcpnode->finsent == 2) &&
@@ -579,13 +622,13 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
     char newmacaddr[15];
 
     if (tableentry->s_fstat != RESOLVED) {
-        tableentry->s_fstat = revname(revlook, &(tableentry->saddr),
+        tableentry->s_fstat = revname(revlook, &(tableentry->saddr), &(tableentry->s6addr),
                                       tableentry->s_fqdn, rvnfd);
         strcpy(tableentry->oth_connection->d_fqdn, tableentry->s_fqdn);
         tableentry->oth_connection->d_fstat = tableentry->s_fstat;
     }
     if (tableentry->d_fstat != RESOLVED) {
-        tableentry->d_fstat = revname(revlook, &(tableentry->daddr),
+       tableentry->d_fstat = revname(revlook, &(tableentry->daddr), &(tableentry->d6addr),
                                       tableentry->d_fqdn, rvnfd);
         strcpy(tableentry->oth_connection->s_fqdn, tableentry->d_fqdn);
         tableentry->oth_connection->s_fstat = tableentry->d_fstat;

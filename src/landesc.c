@@ -116,7 +116,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
 
     fclose(fd);
 
-    /* 
+    /*
      * Loads MAC addresses defined in /etc/ethers.  Contributed by
      * Debian maintainter Frederic Peters <fpeters@debian.org>.  Thanks
      * Frederic!
@@ -150,7 +150,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
         bzero(etherline, 140);
         fgets(etherline, 140, fd);
 
-        /* 
+        /*
          * Convert /etc/ethers line to a descline
          */
         if (etherline[0] == '#' || etherline[0] == '\n'
@@ -170,7 +170,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
         }
         descline[j] = ':';
 
-        /* 
+        /*
          * Skip over whitespace between MAC address and IP addr/host name
          */
 
@@ -208,7 +208,7 @@ void savedesclist(struct desclist *list, unsigned int linktype)
     else if (linktype == LINK_FDDI)
         fd = fopen(FDDIFILE, "w");
 
-    if (fd < 0) {
+    if (fd <= 0) {
         etherr();
         return;
     }

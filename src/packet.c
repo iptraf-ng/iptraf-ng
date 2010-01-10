@@ -2,7 +2,7 @@
 
 packet.c - routines to open the raw socket, read socket data and
            adjust the initial packet pointer
-           
+
 Written by Gerard Paul Java
 Copyright (c) Gerard Paul Java 1997-2002
 
@@ -28,6 +28,7 @@ details.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <sys/time.h>
 #include <net/if_arp.h>
@@ -209,7 +210,7 @@ void adjustpacket(char *tpacket, unsigned short family,
         break;
     case LINK_TR:
         /*
-         * Token Ring patch supplied by Tomas Dvorak 
+         * Token Ring patch supplied by Tomas Dvorak
          */
 
         /*
@@ -303,6 +304,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 {
     static char aligned_buf[ALIGNED_BUF_LEN];
     struct iphdr *ip;
+    struct ip6_hdr *ip6;
     int hdr_check;
     register int ip_checksum;
     register int iphlen;
@@ -356,7 +358,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
      * Apply non-IP packet filter
      */
 
-    if (fromaddr->sll_protocol != ETH_P_IP) {
+    if ((fromaddr->sll_protocol != ETH_P_IP) && (fromaddr->sll_protocol != ETH_P_IPV6)) {
         if ((fromaddr->sll_protocol == ETH_P_ARP) ||
             (fromaddr->sll_protocol == ETH_P_RARP)) {
             if (!nonipfilter(filter, fromaddr->sll_protocol)) {
@@ -370,9 +372,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
         return PACKET_OK;
     }
 
-    /*
-     * TODO: Insert IPv6 processing code here
-     */
+    if (fromaddr->sll_protocol == ETH_P_IP) {
 
     /*
      * At this point, we're now processing IP packets.  Start by getting
@@ -381,7 +381,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
     ip = (struct iphdr *) (*packet);
     iphlen = ip->ihl * 4;
 
-    /* 
+    /*
      * Compute and verify IP header checksum.
      */
 
@@ -389,7 +389,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
     ip->check = 0;
     hdr_check = in_cksum((u_short *) ip, iphlen);
 
-    if (hdr_check != ip_checksum)
+    if ((hdr_check != ip_checksum))
         return CHECKSUM_ERROR;
 
     if ((ip->protocol == IPPROTO_TCP || ip->protocol == IPPROTO_UDP) &&
@@ -453,9 +453,28 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
                                            ip->protocol, match_opposite,
                                            &(filter->fl))))
             return PACKET_FILTERED;
-    }
-
-    return PACKET_OK;
+      }
+      return PACKET_OK;
+     }
+     else if (fromaddr->sll_protocol == ETH_P_IPV6) {
+       ip6 = (struct ip6_hdr *) (*packet);
+       iphlen = 40;
+       //TODO: Filter packets
+       if (ip6->ip6_nxt == IPPROTO_TCP) {
+           in_ip.tcp = (struct tcphdr *) ((char *) ip6 + iphlen);
+           if (sport != NULL)
+               *sport = in_ip.tcp->source;
+           if (dport != NULL)
+               *dport = in_ip.tcp->dest;
+       } else if (ip6->ip6_nxt == IPPROTO_UDP) {
+           in_ip.udp = (struct udphdr *) ((char *) ip6 + iphlen);
+           if (sport != NULL)
+               *sport = in_ip.udp->source;
+           if (dport != NULL)
+               *dport = in_ip.udp->dest;
+       }
+     }
+     return PACKET_OK;
 }
 
 void pkt_cleanup(void)

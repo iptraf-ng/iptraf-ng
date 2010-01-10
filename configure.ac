@@ -29,6 +29,8 @@ AC_CHECK_HEADERS([sys/time.h])
 dnl checks for types
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT8_T
 
 dnl checks for library functions
 AC_FUNC_FORK

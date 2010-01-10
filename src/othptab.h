@@ -34,6 +34,8 @@ Copyright (c) Gerard Paul Java 1997
 struct othptabent {
     unsigned long int saddr;
     unsigned long int daddr;
+    struct in6_addr s6addr;
+    struct in6_addr d6addr;
     char smacaddr[15];
     char dmacaddr[15];
     unsigned short linkproto;
@@ -69,6 +71,10 @@ struct othptabent {
             char src_mac_address[6];
             char dest_mac_address[6];
         } rarp;
+        struct {
+            uint8_t     type;
+            uint8_t     code;
+        } icmp6;
     } un;
     unsigned int type;
     unsigned int code;
@@ -133,9 +139,9 @@ void process_dest_unreach(struct tcptable *table, char *packet,
 struct othptabent *add_othp_entry(struct othptable *table,
                                   struct tcptable *tcptab,
                                   unsigned long saddr,
-                                  unsigned long daddr, int is_ip,
-                                  int protocol, unsigned short linkproto,
-                                  char *packet, char *netpacket,
+                                  unsigned long daddr, struct in6_addr *s6addr,
+				  struct in6_addr *d6addr, int is_ip, int protocol, 
+				  unsigned short linkproto, char *packet, char *netpacket,
                                   unsigned int br, char *ifname,
                                   int *rev_lookup, int rvnamedon,
                                   unsigned int tm, int logging,

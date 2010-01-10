@@ -1,4 +1,3 @@
-
 /***
 
 ifstats.c	- the interface statistics module
@@ -14,7 +13,6 @@ This program is distributed WITHOUT ANY WARRANTY; without even the
 implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License in the included COPYING file for
 details.
-	
 ***/
 
 #include <curses.h>
@@ -34,6 +32,7 @@ details.
 #include <linux/if_packet.h>
 #include <net/if.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <linux/if_ether.h>
@@ -252,7 +251,7 @@ void updaterates(struct iftab *table, int unit, time_t starttime,
 
     wattrset(table->statwin, HIGHATTR);
     do {
-        wmove(table->statwin, ptmp->index - idx, 52 * COLS / 80);
+	wmove(table->statwin, ptmp->index - idx, 60 * COLS / 80);
         if (unit == KBITS) {
             ptmp->rate =
                 ((float) (ptmp->spanbr * 8 / 1000)) /
@@ -286,13 +285,15 @@ void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
     wmove(win, target_row, 1);
     wprintw(win, "%s", ptmp->ifname);
     wattrset(win, HIGHATTR);
-    wmove(win, target_row, 12 * COLS / 80);
+    wmove(win, target_row, 9  * COLS / 80);
     printlargenum(ptmp->total, win);
-    wmove(win, target_row, 22 * COLS / 80);
+    wmove(win, target_row, 19 * COLS / 80);
     printlargenum(ptmp->iptotal, win);
-    wmove(win, target_row, 32 * COLS / 80);
+    wmove(win, target_row, 29 * COLS / 80);
+    printlargenum(ptmp->ip6total, win);
+    wmove(win, target_row, 39 * COLS / 80);
     printlargenum(ptmp->noniptotal, win);
-    wmove(win, target_row, 42 * COLS / 80);
+    wmove(win, target_row, 49 * COLS / 80);
     wprintw(win, "%8lu", ptmp->badtotal);
 }
 
@@ -320,15 +321,17 @@ void labelstats(WINDOW * win)
 {
     wmove(win, 0, 1);
     wprintw(win, " Iface ");
-    wmove(win, 0, 16 * COLS / 80);
+    wmove(win, 0, 12 * COLS / 80);
     wprintw(win, " Total ");
-    wmove(win, 0, 29 * COLS / 80);
-    wprintw(win, " IP ");
-    wmove(win, 0, 36 * COLS / 80);
+    wmove(win, 0, 22 * COLS / 80);
+    wprintw(win, " IPv4 ");
+    wmove(win, 0, 32 * COLS / 80);
+    wprintw(win, " IPv6 ");
+    wmove(win, 0, 42 * COLS / 80);
     wprintw(win, " NonIP ");
-    wmove(win, 0, 45 * COLS / 80);
+    wmove(win, 0, 52 * COLS / 80);
     wprintw(win, " BadIP ");
-    wmove(win, 0, 55 * COLS / 80);
+    wmove(win, 0, 65 * COLS / 80);
     wprintw(win, " Activity ");
 }
 
@@ -421,6 +424,8 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
     char buf[MAX_PACKET_SIZE];
     char *packet;
     int pkt_result = 0;
+
+    unsigned int iphlen;
 
     struct sockaddr_ll fromaddr;
     unsigned short linktype;
@@ -590,6 +595,18 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
                     && pkt_result != MORE_FRAGMENTS)
                     continue;
 
+		        if ((options->v6inv4asv6) && (fromaddr.sll_protocol == ETH_P_IP)
+                    && ((struct iphdr *) packet)->protocol == IPPROTO_IPV6 ) {
+	                    iphlen = ((struct iphdr *) packet)->ihl * 4;
+	                    fromaddr.sll_protocol = htons(ETH_P_IPV6);
+                        memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
+                        // Reprocess the IPv6 packet
+                        pkt_result = processpacket(buf, &packet, &br, NULL, NULL, NULL,
+                                  &fromaddr, &linktype, ofilter, MATCH_OPPOSITE_USECONFIG, ifname, NULL);
+
+                        if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
+                            continue;
+                }
                 positionptr(&table, &ptmp, ifname);
 
                 ptmp->total++;
@@ -604,6 +621,8 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
                         (ptmp->badtotal)++;
                         continue;
                     }
+                } else if (fromaddr.sll_protocol == ETH_P_IPV6) {
+                    ptmp->ip6total++;
                 } else {
                     (ptmp->noniptotal)++;
                 }
@@ -654,19 +673,20 @@ void printdetlabels(WINDOW * win, struct iftotals *totals)
               "Packets      Bytes     Packets      Bytes     Packets      Bytes");
     wattrset(win, STDATTR);
     mvwprintw(win, 4, 2, "Total:");
-    mvwprintw(win, 5, 2, "IP:");
-    mvwprintw(win, 6, 2, "TCP:");
-    mvwprintw(win, 7, 2, "UDP:");
-    mvwprintw(win, 8, 2, "ICMP:");
-    mvwprintw(win, 9, 2, "Other IP:");
-    mvwprintw(win, 10, 2, "Non-IP:");
-    mvwprintw(win, 13, 2, "Total rates:");
-    mvwprintw(win, 16, 2, "Incoming rates:");
-    mvwprintw(win, 19, 2, "Outgoing rates:");
+    mvwprintw(win, 5, 2, "IPv4:");
+    mvwprintw(win, 6, 2, "IPv6:");
+    mvwprintw(win, 7, 2, "TCP:");
+    mvwprintw(win, 8, 2, "UDP:");
+    mvwprintw(win, 9, 2, "ICMP:");
+    mvwprintw(win, 10, 2, "Other IP:");
+    mvwprintw(win, 11, 2, "Non-IP:");
+    mvwprintw(win, 14, 2, "Total rates:");
+    mvwprintw(win, 17, 2, "Incoming rates:");
+    mvwprintw(win, 20, 2, "Outgoing rates:");
 
-    mvwprintw(win, 13, 45, "Broadcast packets:");
-    mvwprintw(win, 14, 45, "Broadcast bytes:");
-    mvwprintw(win, 18, 45, "IP checksum errors:");
+    mvwprintw(win, 14, 45, "Broadcast packets:");
+    mvwprintw(win, 15, 45, "Broadcast bytes:");
+    mvwprintw(win, 19, 45, "IP checksum errors:");
 
     update_panels();
     doupdate();
@@ -707,38 +727,41 @@ void printdetails(struct iftotals *totals, WINDOW * win)
                  totals->iptotal_in, totals->ipbtotal_in,
                  totals->iptotal_out, totals->ipbtotal_out);
 
-    printstatrow(win, 6, totals->tcptotal, totals->tcpbtotal,
-                 totals->tcptotal_in, totals->tcpbtotal_in,
-                 totals->tcptotal_out, totals->tcpbtotal_out);
+    printstatrow(win, 6, totals->ip6total, totals->ip6btotal,
+                 totals->ip6total_in, totals->ip6btotal_in,
+                 totals->ip6total_out, totals->ip6btotal_out);
 
-    printstatrow(win, 7, totals->udptotal, totals->udpbtotal,
+    printstatrow(win, 7, totals->tcptotal, totals->tcpbtotal,
+                 totals->tcptotal_in, totals->tcpbtotal_in,
+		 totals->tcptotal_out, totals->tcpbtotal_out);
+
+    printstatrow(win, 8, totals->udptotal, totals->udpbtotal,
                  totals->udptotal_in, totals->udpbtotal_in,
                  totals->udptotal_out, totals->udpbtotal_out);
 
-    printstatrow(win, 8, totals->icmptotal, totals->icmpbtotal,
+    printstatrow(win, 9, totals->icmptotal, totals->icmpbtotal,
                  totals->icmptotal_in, totals->icmpbtotal_in,
                  totals->icmptotal_out, totals->icmpbtotal_out);
 
-    printstatrow(win, 9, totals->othtotal, totals->othbtotal,
+    printstatrow(win, 10, totals->othtotal, totals->othbtotal,
                  totals->othtotal_in, totals->othbtotal_in,
                  totals->othtotal_out, totals->othbtotal_out);
 
     /* Print non-IP totals */
 
-    printstatrow(win, 10, totals->noniptotal, totals->nonipbtotal,
+    printstatrow(win, 11, totals->noniptotal, totals->nonipbtotal,
                  totals->noniptotal_in, totals->nonipbtotal_in,
                  totals->noniptotal_out, totals->nonipbtotal_out);
 
     /* Broadcast totals */
-
-    wmove(win, 13, 67);
-    printlargenum(totals->bcast, win);
     wmove(win, 14, 67);
+    printlargenum(totals->bcast, win);
+    wmove(win, 15, 67);
     printlargenum(totals->bcastbytes, win);
 
     /* Bad packet count */
 
-    mvwprintw(win, 18, 68, "%8lu", totals->badtotal);
+    mvwprintw(win, 19, 68, "%8lu", totals->badtotal);
 }
 
 
@@ -757,6 +780,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
     char buf[MAX_PACKET_SIZE];
     char *packet;
     struct iphdr *ipacket = NULL;
+    struct ip6_hdr *ip6packet = NULL;
     char *tpacket;
     unsigned int iphlen;
 
@@ -962,15 +986,15 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
             starttime = now;
 
             wattrset(statwin, HIGHATTR);
-            mvwprintw(statwin, 13, 19, "%8.1f %s/sec", activity,
+            mvwprintw(statwin, 14, 19, "%8.1f %s/sec", activity,
                       unitstring);
-            mvwprintw(statwin, 14, 19, "%8.1f packets/sec", pps);
-            mvwprintw(statwin, 16, 19, "%8.1f %s/sec", activity_in,
+            mvwprintw(statwin, 15, 19, "%8.1f packets/sec", pps);
+            mvwprintw(statwin, 17, 19, "%8.1f %s/sec", activity_in,
                       unitstring);
-            mvwprintw(statwin, 17, 19, "%8.1f packets/sec", pps_in);
-            mvwprintw(statwin, 19, 19, "%8.1f %s/sec", activity_out,
+            mvwprintw(statwin, 18, 19, "%8.1f packets/sec", pps_in);
+            mvwprintw(statwin, 20, 19, "%8.1f %s/sec", activity_out,
                       unitstring);
-            mvwprintw(statwin, 20, 19, "%8.1f packets/sec", pps_out);
+            mvwprintw(statwin, 21, 19, "%8.1f packets/sec", pps_out);
 
             if (activity > peakactivity)
                 peakactivity = activity;
@@ -1076,6 +1100,18 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
             if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
                 continue;
+
+            if ((options->v6inv4asv6) && (fromaddr.sll_protocol == ETH_P_IP)
+                && ((struct iphdr *) packet)->protocol == IPPROTO_IPV6 ) {
+                    iphlen = ((struct iphdr *) packet)->ihl * 4;
+                    fromaddr.sll_protocol = htons(ETH_P_IPV6);
+                    memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
+                    // Reprocess the IPv6 packet
+                    pkt_result = processpacket(buf, &packet, &br, NULL, NULL, NULL,
+                              &fromaddr, &linktype, ofilter, MATCH_OPPOSITE_USECONFIG, ifname, NULL);
+                    if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
+                        continue;
+            }
 
             totals.total++;
             totals.bytestotal += framelen;
@@ -1185,8 +1221,73 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
                     }
                     break;
                 }
+            } else if (fromaddr.sll_protocol == ETH_P_IPV6) {
+
+                ip6packet = (struct ip6_hdr *) packet;
+                iplen = ntohs(ip6packet->ip6_plen);
+
+                totals.ip6total++;
+                totals.ip6btotal += iplen;
+
+                if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+                    totals.ip6total_out++;
+                    totals.ip6btotal_out += iplen;
+                } else {
+                    totals.ip6total_in++;
+                    totals.ip6btotal_in += iplen;
+                }
+
+                switch (ip6packet->ip6_nxt) {
+                case IPPROTO_TCP:
+                    totals.tcptotal++;
+                    totals.tcpbtotal += iplen;
+
+                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+                        totals.tcptotal_out++;
+                        totals.tcpbtotal_out += iplen;
+                    } else {
+                        totals.tcptotal_in++;
+                        totals.tcpbtotal_in += iplen;
+                    }
+                    break;
+                case IPPROTO_UDP:
+                    totals.udptotal++;
+                    totals.udpbtotal += iplen;
+
+                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+                        totals.udptotal_out++;
+                        totals.udpbtotal_out += iplen;
+                    } else {
+                        totals.udptotal_in++;
+                        totals.udpbtotal_in += iplen;
+                    }
+                    break;
+                case IPPROTO_ICMPV6:
+                    totals.icmptotal++;
+                    totals.icmpbtotal += iplen;
+                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+                        totals.icmptotal_out++;
+                        totals.icmpbtotal_out += iplen;
+                    } else {
+                        totals.icmptotal_in++;
+                        totals.icmpbtotal_in += iplen;
+                    }
+                    break;
+                default:
+                    totals.othtotal++;
+                    totals.othbtotal += iplen;
+
+                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+                        totals.othtotal_out++;
+                        totals.othbtotal_out += iplen;
+                    } else {
+                        totals.othtotal_in++;
+                        totals.othbtotal_in += iplen;
+                    }
+                    break;
+                }
             } else {
-                totals.noniptotal++;
+		 totals.noniptotal++;
                 totals.nonipbtotal += br;
 
                 if (fromaddr.sll_pkttype == PACKET_OUTGOING) {

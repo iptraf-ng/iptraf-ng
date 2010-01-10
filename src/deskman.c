@@ -57,7 +57,8 @@ int GREATTR;
 int ARPATTR;
 int UNKNIPATTR;
 int UNKNATTR;
-
+int IPV6ATTR;
+int ICMPV6ATTR;
 
 /*  draw the basic desktop common to my screen-oriented programs */
 
@@ -90,7 +91,8 @@ void about()
     PANEL *panel;
     int ch;
 
-    win = newwin(15, 50, (LINES - 15) / 2, (COLS - 50) / 2);
+    win = newwin(18, 62, (LINES - 17) / 2, (COLS - 62) / 2);
+
     panel = new_panel(win);
 
     tx_stdwinset(win);
@@ -99,7 +101,7 @@ void about()
     tx_colorwin(win);
     tx_box(win, ACS_VLINE, ACS_HLINE);
     wattrset(win, STDATTR);
-    mvwprintw(win, 1, 2, "IPTraf");
+    mvwprintw(win, 1, 2, PACKAGE);
     mvwprintw(win, 2, 2, "An IP Network Statistics Utility");
     mvwprintw(win, 3, 2, "Version %s", VERSION);
     mvwprintw(win, 5, 2, "Written by Gerard Paul Java");
@@ -109,9 +111,12 @@ void about()
     mvwprintw(win, 10, 2,
               "Public License Version 2 or any later version.");
     mvwprintw(win, 11, 2, "See the included LICENSE file for details.");
+    mvwprintw(win, 13, 2, "IPv6 support by Markus Ullmann <mail@markus-ullmann.de>");
+    mvwprintw(win, 14, 2, "inspired by 2.7.0 diff by Guy Martin <gmsoft@tuxicoman.be>");
 
     wattrset(win, HIGHATTR);
-    mvwprintw(win, 13, 2, ANYKEY_MSG);
+
+    mvwprintw(win, 16, 2, ANYKEY_MSG);
 
     update_panels();
     doupdate();
@@ -253,6 +258,8 @@ void standardcolors(int color)
         ARPATTR = COLOR_PAIR(5) | A_BOLD;
         GREATTR = COLOR_PAIR(1);
         UNKNIPATTR = COLOR_PAIR(19) | A_BOLD;
+	ICMPV6ATTR = COLOR_PAIR(19) | A_BOLD;
+	IPV6ATTR = COLOR_PAIR(19);
         UNKNATTR = COLOR_PAIR(4) | A_BOLD;
     } else {
         STDATTR = A_REVERSE;
@@ -282,6 +289,7 @@ void standardcolors(int color)
         ARPATTR = A_BOLD;
         GREATTR = A_BOLD;
         UNKNIPATTR = A_BOLD;
+	ICMPV6ATTR = A_REVERSE;
         UNKNATTR = A_BOLD;
     }
 

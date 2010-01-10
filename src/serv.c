@@ -31,6 +31,7 @@ details.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/udp.h>
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
@@ -157,7 +158,7 @@ struct portlistent *addtoportlist(struct portlist *list,
     ptemp->protocol = protocol;
     ptemp->port = port;         /* This is used in checks later. */
 
-    /* 
+    /*
      * Obtain appropriate service name
      */
 
@@ -1032,6 +1033,8 @@ void servmon(char *ifname, struct porttab *ports,
             if (pkt_result != PACKET_OK)
                 continue;
 
+	    if (fromaddr.sll_protocol == ETH_P_IP) {
+
             if ((((struct iphdr *) ipacket)->protocol == IPPROTO_TCP)
                 || (((struct iphdr *) ipacket)->protocol == IPPROTO_UDP)) {
                 updateportent(&list, ((struct iphdr *) ipacket)->protocol,
@@ -1048,6 +1051,26 @@ void servmon(char *ifname, struct porttab *ports,
                     list.baridx = 1;
                 }
             }
+        } else {
+            if ((((struct ip6_hdr *) ipacket)->ip6_nxt == IPPROTO_TCP)
+                || (((struct ip6_hdr *) ipacket)->ip6_nxt ==
+                    IPPROTO_UDP)) {
+                updateportent(&list, ((struct ip6_hdr *) ipacket)->ip6_nxt,
+                    ntohs(sport),
+                    ntohs(((struct ip6_hdr *) ipacket)->ip6_plen + 40),
+                    idx, 0, ports, options->servnames);
+                updateportent(&list, ((struct ip6_hdr *) ipacket)->ip6_nxt,
+                    ntohs(dport),
+                    ntohs(((struct ip6_hdr *) ipacket)->ip6_plen + 40),
+                    idx, 1, ports, options->servnames);
+                if ((list.barptr == NULL) && (list.head != NULL)) {
+                    set_barptr((char **) &(list.barptr), (char *) list.head,
+                        &(list.head->starttime), (char *) &(list.head->spans),
+                        sizeof(struct serv_spans), statwin, &statcleared, statx);
+                    list.baridx = 1;
+                }
+            }
+        }
         }
     }
 

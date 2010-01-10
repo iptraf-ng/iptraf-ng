@@ -55,6 +55,7 @@ details.
 
 struct hosts {
     unsigned long addr;
+    uint8_t addr6[16];
     char fqdn[45];
     int ready;
 };
@@ -93,12 +94,17 @@ void process_rvn_packet(struct rvn *rvnpacket)
 
     ccfd = socket(PF_UNIX, SOCK_DGRAM, 0);
 
-    he = gethostbyaddr((char *) &(rvnpacket->saddr),
-                       sizeof(struct in_addr), AF_INET);
+    if (rvnpacket->saddr.s_addr != 0)
+       he = gethostbyaddr((char *) &(rvnpacket->saddr), sizeof(struct in_addr), AF_INET);
+    else
+       he = gethostbyaddr((char *) &(rvnpacket->s6addr), sizeof(struct in6_addr), AF_INET6);
 
-    if (he == NULL)
+    if (he == NULL) {
+      if (rvnpacket->saddr.s_addr != 0)
         strcpy(rvnpacket->fqdn, inet_ntoa(rvnpacket->saddr));
-    else {
+      else
+           inet_ntop(AF_INET6, &(rvnpacket->s6addr), rvnpacket->fqdn, sizeof(rvnpacket->fqdn));
+    } else {
         bzero(rvnpacket->fqdn, 45);
         strncpy(rvnpacket->fqdn, he->h_name, 44);
     }
@@ -122,10 +128,14 @@ int name_resolved(struct rvn *rvnpacket, struct hosts *hostlist,
     unsigned int i = 0;
 
     while (i != lastfree) {
+        if (rvnpacket->saddr.s_addr != 0) {
         if ((rvnpacket->saddr.s_addr == hostlist[i].addr)
             && (hostlist[i].ready == RESOLVED))
             return i;
-
+        } else {
+            if (!memcmp(rvnpacket->s6addr.s6_addr, hostlist[i].addr6, sizeof(hostlist[i].addr6)))
+            return i;
+        }
         i++;
     }
 
@@ -300,7 +310,8 @@ int main(void)
                 hi = 0;
 
                 while (hi <= lastfree) {
-                    if (hostlist[hi].addr == rvnpacket.saddr.s_addr)
+                    if ((hostlist[hi].addr == rvnpacket.saddr.s_addr) &&
+                        !memcmp(rvnpacket.s6addr.s6_addr, hostlist[hi].addr6, sizeof(hostlist[hi].addr6)))
                         break;
                     hi++;
                 }
@@ -313,6 +324,7 @@ int main(void)
                         hostindex = 0;
 
                     hostlist[hi].addr = rvnpacket.saddr.s_addr;
+                    memcpy(hostlist[hi].addr6, rvnpacket.s6addr.s6_addr, sizeof(hostlist[hi].addr6));
                 }
                 strncpy(hostlist[hi].fqdn, rvnpacket.fqdn, 44);
 
@@ -370,7 +382,7 @@ int main(void)
                                     strlen(fromaddr.sun_path));
                     } else {
 
-                        /* 
+                        /*
                          * Add this IP address to the cache if this is a
                          * new one.
                          */
@@ -400,6 +412,8 @@ int main(void)
                                  */
                                 hostlist[hostindex].addr =
                                     rvnpacket.saddr.s_addr;
+                                memcpy(hostlist[hostindex].addr6, rvnpacket.s6addr.s6_addr,
+                                        sizeof(hostlist[hostindex].addr6));
                                 hostlist[hostindex].ready = RESOLVING;
 
                                 maxlogged = 0;
@@ -455,7 +469,10 @@ int main(void)
                         }
                         rvnpacket.type = RVN_REPLY;
                         bzero(rvnpacket.fqdn, 45);
+                        if (rvnpacket.saddr.s_addr != 0)
                         strcpy(rvnpacket.fqdn, inet_ntoa(rvnpacket.saddr));
+                        else
+                            inet_ntop(AF_INET6, &rvnpacket.s6addr, rvnpacket.fqdn, sizeof(rvnpacket.fqdn));
                         rvnpacket.ready = RESOLVING;
 
                         br = sendto(ifd, &rvnpacket, sizeof(struct rvn), 0,

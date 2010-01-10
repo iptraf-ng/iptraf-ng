@@ -2,13 +2,14 @@
 /***
 
 ifstats.h - structure definitions for interface counts
-	
+
 ***/
 
 struct iflist {
     char ifname[8];
     unsigned int encap;
     unsigned long long iptotal;
+    unsigned long long ip6total;
     unsigned long badtotal;
     unsigned long long noniptotal;
     unsigned long long total;
@@ -48,6 +49,13 @@ struct iftotals {
     unsigned long long iptotal_out;
     unsigned long long ipbtotal_in;
     unsigned long long ipbtotal_out;
+
+    unsigned long long ip6total;
+    unsigned long long ip6btotal;
+    unsigned long long ip6total_in;
+    unsigned long long ip6total_out;
+    unsigned long long ip6btotal_in;
+    unsigned long long ip6btotal_out;
 
     unsigned long long noniptotal;
     unsigned long long nonipbtotal;

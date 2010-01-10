@@ -153,7 +153,7 @@ void close_rvn_socket(int fd)
     }
 }
 
-int revname(int *lookup, struct in_addr *saddr, char *target, int rvnfd)
+int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr, char *target, int rvnfd)
 {
     struct hostent *he;
     struct rvn rpkt;
@@ -172,6 +172,11 @@ int revname(int *lookup, struct in_addr *saddr, char *target, int rvnfd)
 
             rpkt.type = RVN_REQUEST;
             rpkt.saddr.s_addr = saddr->s_addr;
+
+           if (s6addr != NULL)
+               memcpy(rpkt.s6addr.s6_addr, s6addr->s6_addr, 16);
+           else
+               memset(rpkt.s6addr.s6_addr, 0, 4);
 
             sendto(rvnfd, &rpkt, sizeof(struct rvn), 0,
                    (struct sockaddr *) &su,
@@ -197,7 +202,10 @@ int revname(int *lookup, struct in_addr *saddr, char *target, int rvnfd)
             } while ((br < 0) && (errno == EINTR));
 
             if (br < 0) {
+                if (saddr->s_addr != 0)
                 strcpy(target, inet_ntoa(*saddr));
+                else
+                    inet_ntop(AF_INET6, s6addr, target, 44);
                 printipcerr();
                 *lookup = 0;
                 return RESOLVED;
@@ -205,18 +213,26 @@ int revname(int *lookup, struct in_addr *saddr, char *target, int rvnfd)
             strncpy(target, rpkt.fqdn, 44);
             return (rpkt.ready);
         } else {
-            he = gethostbyaddr((char *) saddr,
-                               sizeof(struct in_addr), AF_INET);
+           if (saddr->s_addr != 0)
+               he = gethostbyaddr((char *) saddr, sizeof(struct in_addr), AF_INET);
+           else
+               he = gethostbyaddr((char *) s6addr, sizeof(struct in6_addr), AF_INET6);
 
-            if (he == NULL)
+            if (he == NULL) {
+                if (saddr->s_addr != 0)
                 strcpy(target, inet_ntoa(*saddr));
             else
+                inet_ntop(AF_INET6, s6addr, target, 44);
+            } else {
                 strncpy(target, he->h_name, 44);
+            }
 
             return RESOLVED;
         }
     } else {
-        strcpy(target, inet_ntoa(*saddr));
-        return RESOLVED;
+        if (saddr->s_addr != 0 || s6addr == NULL)
+            strcpy(target, inet_ntoa(*saddr));
+        else
+            inet_ntop(AF_INET6, s6addr, target, 44);
     }
 }

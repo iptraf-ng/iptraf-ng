@@ -23,6 +23,8 @@ details.
 #include <ctype.h>
 #include <winops.h>
 #include <labels.h>
+#include <netinet/ip6.h>
+#include <netinet/icmp6.h>
 #include "options.h"
 #include "tcptable.h"
 #include "othptab.h"
@@ -130,7 +132,7 @@ void show_stats(WINDOW * win, unsigned long long total)
 }
 
 
-/* 
+/*
  * Scrolling and paging routines for the upper (TCP) window
  */
 
@@ -451,7 +453,7 @@ void quicksort_tcp_entries(struct tcptable *table, struct tcptableent *low,
     }
 }
 
-/* 
+/*
  * This function sorts the TCP window.  The old exchange sort has been
  * replaced with a Quicksort algorithm.
  */
@@ -510,7 +512,7 @@ int checkrvnamed(void)
         if ((cpid = fork()) == 0) {
             execstat = execl(RVNDFILE, NULL);
 
-            /* 
+            /*
              * execl() never returns, so if we reach this point, we have
              * a problem.
              */
@@ -564,7 +566,7 @@ void update_flowrate(WINDOW * win, struct tcptableent *entry, time_t now,
     *cleared = 0;
 }
 
-/* 
+/*
  * The IP Traffic Monitor
  */
 
@@ -578,6 +580,9 @@ void ipmon(struct OPTIONS *options,
     char tpacket[MAX_PACKET_SIZE];      /* raw packet data */
     char *packet = NULL;        /* network packet ptr */
     struct iphdr *ippacket;
+    struct ip6_hdr *ip6packet;
+    unsigned int protocol;
+    unsigned int frag_off;
     struct tcphdr *transpacket; /* IP-encapsulated packet */
     unsigned int sport = 0, dport = 0;  /* TCP/UDP port values */
     char sp_buf[10];
@@ -643,7 +648,7 @@ void ipmon(struct OPTIONS *options,
 
     const int statx = COLS * 47 / 80;
 
-    /* 
+    /*
      * Mark this instance of the traffic monitor
      */
 
@@ -1046,9 +1051,9 @@ void ipmon(struct OPTIONS *options,
             if (pkt_result != PACKET_OK)
                 continue;
 
-            if (fromaddr.sll_protocol != ETH_P_IP) {
+            if ((fromaddr.sll_protocol != ETH_P_IP) && (fromaddr.sll_protocol != ETH_P_IPV6)) {
                 othpent = add_othp_entry(&othptbl, &table,
-                                         0, 0, NOT_IP,
+                                         0, 0, NULL, NULL, NOT_IP,
                                          fromaddr.sll_protocol,
                                          linktype, (char *) tpacket,
                                          (char *) packet, br, ifname, 0, 0,
@@ -1056,23 +1061,54 @@ void ipmon(struct OPTIONS *options,
                                          options->servnames, 0, &nomem);
                 continue;
             } else {
+                if ((options->v6inv4asv6) && (fromaddr.sll_protocol == ETH_P_IP)
+                    && ((struct iphdr *) packet)->protocol == IPPROTO_IPV6 ) {
+                        iphlen = ((struct iphdr *) packet)->ihl * 4;
+                        fromaddr.sll_protocol = htons(ETH_P_IPV6);
+                        memmove(tpacket, tpacket + iphlen, MAX_PACKET_SIZE - iphlen);
+                        // Reprocess the ipv6 packet
+                        pkt_result = processpacket((char *) tpacket, &packet, &readlen,
+                                        &br, &sport, &dport, &fromaddr,
+                                        &linktype, ofilter, MATCH_OPPOSITE_ALWAYS, ifname, ifptr);
+                        if (pkt_result != PACKET_OK)
+                            continue;
+                }
+                if (fromaddr.sll_protocol == ETH_P_IP) {
                 ippacket = (struct iphdr *) packet;
                 iphlen = ippacket->ihl * 4;
+                    ip6packet = NULL;
+                    protocol = ippacket->protocol;
+                    frag_off = ippacket->frag_off;
+                } else {
+                    ip6packet = (struct ip6_hdr *) packet;
+                    iphlen = 40;
+                    ippacket = NULL;
+                    protocol = ip6packet->ip6_nxt;
+                    frag_off = 0;
+                }
                 transpacket = (struct tcphdr *) (packet + iphlen);
 
-                if (ippacket->protocol == IPPROTO_TCP) {
+                if (protocol == IPPROTO_TCP) {
 
+                    if (ippacket != NULL) {
                     tcpentry =
                         in_table(&table, ippacket->saddr, ippacket->daddr,
-                                 ntohs(sport), ntohs(dport), ifname,
-                                 logging, logfile, &nomem, options);
+                            NULL , NULL,
+                            ntohs(sport), ntohs(dport), ifname,
+                            logging, logfile, &nomem, options);
+                    }
+                    else {
+                        tcpentry = in_table(&table, 0, 0, (uint8_t*)(&ip6packet->ip6_src.s6_addr), (uint8_t*)(&ip6packet->ip6_dst.s6_addr),
+                             ntohs(sport), ntohs(dport), ifname,
+                             logging, logfile, &nomem, options);
+                    }
 
-                    /* 
-                     * Add a new entry if it doesn't exist, and, 
+                    /*
+                     * Add a new entry if it doesn't exist, and,
                      * to reduce the chances of stales, not a FIN.
                      */
 
-                    if ((ntohs(ippacket->frag_off) & 0x3fff) == 0) {    /* first frag only */
+                    if ((ntohs(frag_off) & 0x3fff) == 0) {  /* first frag only */
                         totalhlen = iphlen + transpacket->doff * 4;
 
                         if ((tcpentry == NULL) && (!(transpacket->fin))) {
@@ -1084,17 +1120,26 @@ void ipmon(struct OPTIONS *options,
 
                             if (!nomem) {
                                 wasempty = (table.head == NULL);
+                                if (ippacket != NULL)
                                 tcpentry = addentry(&table, (unsigned long)
                                                     ippacket->saddr,
                                                     (unsigned long)
-                                                    ippacket->daddr, sport,
+                                                    ippacket->daddr,
+                                                    NULL, NULL, sport,
                                                     dport,
                                                     ippacket->protocol,
                                                     ifname, &revlook,
                                                     rvnfd,
                                                     options->servnames,
                                                     &nomem);
-
+                                else
+                                    tcpentry = addentry(&table, 0, 0,
+                                                 (uint8_t*)(&ip6packet->ip6_src.s6_addr),
+                                                 (uint8_t*)(&ip6packet->ip6_dst.s6_addr),
+                                                 sport, dport, ip6packet->ip6_nxt,
+                                                 ifname, &revlook,
+                                                 rvnfd, options->servnames,
+                                                 &nomem);
                                 if (tcpentry != NULL) {
                                     printentry(&table,
                                                tcpentry->oth_connection,
@@ -1134,14 +1179,14 @@ void ipmon(struct OPTIONS *options,
                             }
                         }
                     }
-                    /* 
+                    /*
                      * If we had an addentry() success, we should have no
                      * problem here.  Same thing if we had a table lookup
                      * success.
                      */
 
                     if (tcpentry != NULL) {
-                        /* 
+                        /*
                          * Don't bother updating the entry if the connection
                          * has been previously reset.  (Does this really
                          * happen in practice?)
@@ -1152,12 +1197,18 @@ void ipmon(struct OPTIONS *options,
                                 p_sstat = tcpentry->s_fstat;
                                 p_dstat = tcpentry->d_fstat;
                             }
+                            if (ippacket != NULL)
                             updateentry(&table, tcpentry, transpacket,
                                         tpacket, linktype, readlen, br,
                                         ippacket->frag_off, logging,
                                         &revlook, rvnfd, options, logfile,
                                         &nomem);
-
+                            else
+                            updateentry(&table, tcpentry, transpacket, tpacket,
+                                     linktype, readlen,
+                                     readlen, 0, logging,
+                                     &revlook, rvnfd, options, logfile,
+                                     &nomem);
                             /*
                              * Log first packet of a TCP connection except if
                              * it's a RST, which was already logged earlier in
@@ -1190,7 +1241,7 @@ void ipmon(struct OPTIONS *options,
 
                             /*
                              * Special cases: Update other direction if it's
-                             * an ACK in response to a FIN. 
+                             * an ACK in response to a FIN.
                              *
                              *         -- or --
                              *
@@ -1213,7 +1264,7 @@ void ipmon(struct OPTIONS *options,
                                            screen_idx, mode);
                         }
                     }
-                } else {        /* now for the other IP protocols */
+	            } else if (ippacket != NULL) {
                     fragment = ((ntohs(ippacket->frag_off) & 0x1fff) != 0);
 
                     if (ippacket->protocol == IPPROTO_ICMP) {
@@ -1234,7 +1285,7 @@ void ipmon(struct OPTIONS *options,
 
                     othpent =
                         add_othp_entry(&othptbl, &table, ippacket->saddr,
-                                       ippacket->daddr, IS_IP,
+                                       ippacket->daddr, NULL, NULL, IS_IP,
                                        ippacket->protocol, linktype,
                                        (char *) tpacket,
                                        (char *) transpacket, readlen,
@@ -1242,6 +1293,21 @@ void ipmon(struct OPTIONS *options,
                                        options->timeout, logging, logfile,
                                        options->servnames, fragment,
                                        &nomem);
+
+            } else {
+                if (ip6packet->ip6_nxt == IPPROTO_ICMPV6) {
+                    if (((struct icmp6_hdr *) transpacket)->icmp6_type == ICMP6_DST_UNREACH)
+                        process_dest_unreach(&table, (char *) transpacket,
+                            ifname, &nomem);
+                }
+                othpent =
+                    add_othp_entry(&othptbl, &table, 0, 0, &ip6packet->ip6_src,
+                                   &ip6packet->ip6_dst, IS_IP,
+                                   ip6packet->ip6_nxt, linktype,
+                                   (char *) tpacket, (char *) transpacket,
+                                   readlen, ifname, &revlook,
+                                   rvnfd, options->timeout, logging, logfile,
+                                   options->servnames, fragment, &nomem);
                 }
             }
         }

@@ -20,6 +20,8 @@ details.
 #include <linux/if_ether.h>
 #include <linux/if_tr.h>
 #include <linux/if_fddi.h>
+#include <netinet/ip6.h>
+#include <netinet/icmp6.h>
 #include <winops.h>
 #include "arphdr.h"
 #include "options.h"
@@ -79,26 +81,36 @@ void process_dest_unreach(struct tcptable *table, char *packet,
                           char *ifname, int *nomem)
 {
     struct iphdr *ip;
+    struct ip6_hdr *ip6;
     struct tcphdr *tcp;
     struct tcptableent *tcpentry;
 
     ip = (struct iphdr *) (packet + 8);
 
-    if (ip->protocol != IPPROTO_TCP)
-        return;
-
-    tcp = (struct tcphdr *) (packet + 8 + (ip->ihl * 4));
-
-    /* 
+    /*
      * We really won't be making use of nomem here.  Timeout checking
      * won't be performed either, so we just pass NULL as the pointer
      * to the configuration structure.  in_table() will recognize this
      * and set its internal timeout variable to 0.
      */
 
-    tcpentry = in_table(table, ip->saddr, ip->daddr,
-                        ntohs(tcp->source), ntohs(tcp->dest), ifname,
-                        0, NULL, nomem, NULL);
+     if (ip->version == 6)
+     {
+        ip6 = (struct ip6_hdr *) (packet + 8);
+        if (ip6->ip6_nxt != IPPROTO_TCP)
+            return;
+        tcp = (struct tcphdr *) (packet + 48);
+        tcpentry = in_table(table, 0, 0, ip6->ip6_src.s6_addr, ip6->ip6_dst.s6_addr,
+                         ntohs(tcp->source), ntohs(tcp->dest), ifname,
+                         0, NULL, nomem, NULL);
+     } else {
+         if (ip->protocol != IPPROTO_TCP)
+             return;
+         tcp = (struct tcphdr *) (packet + 8 + (ip->ihl * 4));
+         tcpentry = in_table(table, ip->saddr, ip->daddr, NULL, NULL,
+                         ntohs(tcp->source), ntohs(tcp->dest), ifname,
+                         0, NULL, nomem, NULL);
+     }
 
     if (tcpentry != NULL) {
         tcpentry->stat = tcpentry->oth_connection->stat = FLAG_RST;
@@ -109,6 +121,7 @@ void process_dest_unreach(struct tcptable *table, char *packet,
 struct othptabent *add_othp_entry(struct othptable *table,
                                   struct tcptable *tcptab,
                                   unsigned long saddr, unsigned long daddr,
+				                  struct in6_addr *s6addr, struct in6_addr *d6addr,
                                   int is_ip, int protocol,
                                   unsigned short linkproto, char *packet,
                                   char *packet2, unsigned int br,
@@ -156,8 +169,18 @@ struct othptabent *add_othp_entry(struct othptable *table,
         new_entry->saddr = isaddr.s_addr = saddr;
         new_entry->daddr = idaddr.s_addr = daddr;
 
-        revname(rev_lookup, &isaddr, new_entry->s_fqdn, rvnfd);
-        revname(rev_lookup, &idaddr, new_entry->d_fqdn, rvnfd);
+        if (s6addr != NULL)
+            memcpy(&new_entry->s6addr, s6addr, 16);
+        else
+            memset(&new_entry->s6addr, 0, 16);
+
+        if (d6addr != NULL)
+            memcpy(&new_entry->d6addr, d6addr, 16);
+        else
+            memset(&new_entry->s6addr, 0, 16);
+
+        revname(rev_lookup, &isaddr, s6addr, new_entry->s_fqdn, rvnfd);
+        revname(rev_lookup, &idaddr, d6addr, new_entry->d_fqdn, rvnfd);
 
         if (!fragment) {
             if (protocol == IPPROTO_ICMP) {
@@ -165,7 +188,12 @@ struct othptabent *add_othp_entry(struct othptable *table,
                     ((struct icmphdr *) packet2)->type;
                 new_entry->un.icmp.code =
                     ((struct icmphdr *) packet2)->code;
-            } else if (protocol == IPPROTO_UDP) {
+            } else if (protocol == IPPROTO_ICMPV6) {
+                new_entry->un.icmp6.type =
+                    ((struct icmp6_hdr *) packet2)->icmp6_type;
+                new_entry->un.icmp6.code =
+                    ((struct icmp6_hdr *) packet2)->icmp6_code;
+            }else if (protocol == IPPROTO_UDP) {
                 servlook(servnames, ((struct udphdr *) packet2)->source,
                          IPPROTO_UDP, new_entry->un.udp.s_sname, 10);
                 servlook(servnames, ((struct udphdr *) packet2)->dest,
@@ -417,6 +445,14 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
         wattrset(table->othpwin, GREATTR);
         strcpy(protname, "GRE");
         break;
+    case IPPROTO_ICMPV6:
+       wattrset(table->othpwin, ICMPV6ATTR);
+       strcpy(protname, "ICMPv6");
+       break;
+    case IPPROTO_IPV6:
+       wattrset(table->othpwin, IPV6ATTR);
+       strcpy(protname, "IPv6 tun");
+       break;
     default:
         wattrset(table->othpwin, UNKNIPATTR);
         protptr = getprotobynumber(entry->protocol);
@@ -522,7 +558,62 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
                 strcpy(description, "bad/unkn");
                 break;
             }
-
+        } else if (entry->protocol == IPPROTO_ICMPV6) {
+            switch (entry->un.icmp6.type) {
+            case ICMP6_DST_UNREACH:
+                strcpy(description, "dest unrch");
+                switch (entry->un.icmp6.code) {
+                case ICMP6_DST_UNREACH_NOROUTE:
+                    strcpy(additional, "no route");
+                    break;
+                case ICMP6_DST_UNREACH_ADMIN:
+                    strcpy(additional, "admin");
+                    break;
+                case ICMP6_DST_UNREACH_BEYONDSCOPE:
+                    strcpy(additional, "not beyondsp");
+                    break;
+                case ICMP6_DST_UNREACH_ADDR:
+                    strcpy(additional, "unreach addr");
+                    break;
+                case ICMP6_DST_UNREACH_NOPORT:
+                    strcpy(additional, "no port");
+                    break;
+                }
+                break;
+            case ICMP6_PACKET_TOO_BIG:
+                strcpy(description, "pkt too big");
+                break;
+	        case ICMP6_TIME_EXCEEDED:
+                strcpy(description, "time exceeded");
+                break;
+            case ICMP6_PARAM_PROB:
+	            strcpy(description, "param prob");
+                break;
+            case ICMP6_ECHO_REQUEST:
+                strcpy(description, "echo req");
+                break;
+            case ICMP6_ECHO_REPLY:
+                strcpy(description, "echo rply");
+                break;
+            case ND_ROUTER_SOLICIT:
+                strcpy(description, "router sol");
+                break;
+            case ND_ROUTER_ADVERT:
+                strcpy(description, "router adv");
+                break;
+            case ND_NEIGHBOR_SOLICIT:
+                strcpy(description, "neigh sol");
+                break;
+            case ND_NEIGHBOR_ADVERT:
+                strcpy(description, "neigh adv");
+                break;
+            case ND_REDIRECT:
+                strcpy(description, "redirect");
+                break;
+            default:
+                strcpy(description, "bad/unkn");
+                break;
+            }
         } else if (entry->protocol == IPPROTO_OSPFIGP) {
             switch (entry->un.ospf.type) {
             case OSPF_TYPE_HELLO:
@@ -566,11 +657,11 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
     strcat(msgstring, scratchpad);
 
     if ((entry->protocol == IPPROTO_UDP) && (!(entry->fragment))) {
-        sprintf(scratchpad, "from %.25s:%s to %.25s:%s",
+        sprintf(scratchpad, "from %.40s:%s to %.40s:%s",
                 entry->s_fqdn, entry->un.udp.s_sname,
                 entry->d_fqdn, entry->un.udp.d_sname);
     } else {
-        sprintf(scratchpad, "from %.25s to %.25s", entry->s_fqdn,
+        sprintf(scratchpad, "from %.40s to %.40s", entry->s_fqdn,
                 entry->d_fqdn);
     }
 
