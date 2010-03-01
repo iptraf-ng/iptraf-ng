@@ -1,3 +1,20 @@
+Fork IPTraf-ng 1.0.0
+==============================
+* Mon Mar 01 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.0
+- compile with -std=gnu99 -pedantic -Wall -Werror
+- add support for devices(used patches from gentoo, debian and fedora):
+
+- add support for devices(used patches from gentoo, debian and fedora):
+        vlan, hsi, ctc, ath, bond, ra, bnep, dsl, modem, ni, br, tap, dummy,  vmnet
+  add longer intefaces names(18 chars)
+  add iptraf -u - show unsupported interfaces(fpeters@debian.org)
+  check if macro is defined ICMP6_DST_UNREACH_NOTNEIGHBOR(jer@gentoo.org)
+
+- add ipv6 support
+- remove wierd Setup compilation and replaced it by autotools
+- import original iptraf-3.0.0
+==============================
+==============================
 CHANGES File for IPTraf 3.0.0
 
 Changes to IPTraf 2.7.0 and new features in IPTraf 3.0.0
