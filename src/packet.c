@@ -238,7 +238,7 @@ void adjustpacket(char *tpacket, unsigned short family,
         /*
          * Get the start of the IP packet from the Token Ring frame.
          */
-        dataoffset = get_tr_ip_offset(tpacket);
+        dataoffset = get_tr_ip_offset((unsigned char*)tpacket);
         *packet = tpacket + dataoffset;
         *readlen -= dataoffset;
         /*
@@ -272,7 +272,7 @@ void adjustpacket(char *tpacket, unsigned short family,
 void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr,
                int *ch, int *br, char *ifname, WINDOW * win)
 {
-    int fromlen;
+    socklen_t fromlen;
     fd_set set;
     struct timeval tv;
     int ss;

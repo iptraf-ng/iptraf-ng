@@ -335,7 +335,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
         }
         if (br > 0) {
             pkt_result =
-                processpacket(buf, &ipacket, &br, NULL, NULL, NULL,
+                processpacket(buf, &ipacket, (unsigned int*)&br, NULL, NULL, NULL,
                               &fromaddr, &linktype, ofilter,
                               MATCH_OPPOSITE_USECONFIG, iface, ifname);
 

@@ -41,7 +41,7 @@ details.
 #include <winops.h>
 #include <input.h>
 #include <msgboxes.h>
-#include "tcphdr.h"
+#include <netinet/tcp.h>
 #include "dirs.h"
 #include "ipcsum.h"
 #include "deskman.h"
@@ -923,7 +923,7 @@ void servmon(char *ifname, struct porttab *ports,
                             printportent(&list, serv_tmp, idx);
 
                             if (list.baridx == 1) {
-                                scrollservwin(&list, SCROLLDOWN, &idx);
+                                scrollservwin(&list, SCROLLDOWN, (int*)&idx);
                             } else
                                 list.baridx--;
 
@@ -946,7 +946,7 @@ void servmon(char *ifname, struct porttab *ports,
                             printportent(&list, serv_tmp, idx);
 
                             if (list.baridx == list.imaxy) {
-                                scrollservwin(&list, SCROLLUP, &idx);
+                                scrollservwin(&list, SCROLLUP, (int*)&idx);
                             } else
                                 list.baridx++;
 
@@ -957,7 +957,7 @@ void servmon(char *ifname, struct porttab *ports,
                 case KEY_PPAGE:
                 case '-':
                     if (list.barptr != NULL) {
-                        pageservwin(&list, SCROLLDOWN, &idx);
+                        pageservwin(&list, SCROLLDOWN, (int*)&idx);
 
                         set_barptr((char **) &(list.barptr),
                                    (char *) (list.lastvisible),
@@ -973,7 +973,7 @@ void servmon(char *ifname, struct porttab *ports,
                 case KEY_NPAGE:
                 case ' ':
                     if (list.barptr != NULL) {
-                        pageservwin(&list, SCROLLUP, &idx);
+                        pageservwin(&list, SCROLLUP, (int*)&idx);
 
                         set_barptr((char **) &(list.barptr),
                                    (char *) (list.firstvisible),
@@ -1007,7 +1007,7 @@ void servmon(char *ifname, struct porttab *ports,
             } else if (keymode == 1) {
                 del_panel(sortpanel);
                 delwin(sortwin);
-                sortportents(&list, &idx, ch);
+                sortportents(&list, (int*)&idx, ch);
                 keymode = 0;
                 if (list.barptr != NULL) {
                     set_barptr((char **) &(list.barptr),
@@ -1025,7 +1025,7 @@ void servmon(char *ifname, struct porttab *ports,
         }
 
         if (br > 0) {
-            pkt_result = processpacket(buf, &ipacket, &br, &tot_br,
+            pkt_result = processpacket(buf, &ipacket, (unsigned int*)&br, &tot_br,
                                        &sport, &dport, &fromaddr,
                                        &linktype, ofilter,
                                        MATCH_OPPOSITE_USECONFIG, iface,
@@ -1108,7 +1108,7 @@ void servmon(char *ifname, struct porttab *ports,
     strcpy(current_logfile, "");
 }
 
-void portdlg(unsigned int *port_min, int *port_max, int *aborted, int mode)
+void portdlg(unsigned int *port_min, unsigned int *port_max, int *aborted, int mode)
 {
     WINDOW *bw;
     PANEL *bp;
@@ -1371,7 +1371,7 @@ void delport(struct porttab **table, struct porttab *ptmp)
 
 void removeaport(struct porttab **table)
 {
-    unsigned int aborted;
+    int aborted;
     struct porttab *ptmp;
 
     selectport(table, &ptmp, &aborted);

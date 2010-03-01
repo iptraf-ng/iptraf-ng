@@ -59,7 +59,7 @@ void gethostparams(struct hostparams *data, char *init_saddr,
     struct FIELDLIST fields;
     struct FIELD *fieldptr;
 
-    int rangeproto1, rangeproto2;
+    unsigned int rangeproto1, rangeproto2;
     int parse_result;
     char *bptr, *cptr;
     int i, doagain;

@@ -37,6 +37,12 @@ details.
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
 
+/*
+* A trick to suppress uninitialized variable warning without generating any
+* code
+*/
+#define uninitialized_var(x) x = x
+
 void convmacaddr(char *addr, char *result);     /* external; from hostmon.c */
 void writeothplog(int logging, FILE * fd, char *protname,
                   char *description, char *additional, int is_ip,
@@ -148,19 +154,19 @@ struct othptabent *add_othp_entry(struct othptable *table,
 
     if ((table->mac) || (!is_ip)) {
         if ((linkproto == LINK_ETHERNET) || (linkproto == LINK_PLIP)) {
-            convmacaddr(((struct ethhdr *) packet)->h_source,
+            convmacaddr((char*)(((struct ethhdr *) packet)->h_source),
                         new_entry->smacaddr);
-            convmacaddr(((struct ethhdr *) packet)->h_dest,
+            convmacaddr((char*)(((struct ethhdr *) packet)->h_dest),
                         new_entry->dmacaddr);
         } else if (linkproto == LINK_FDDI) {
-            convmacaddr(((struct fddihdr *) packet)->saddr,
+            convmacaddr((char*)(((struct fddihdr *) packet)->saddr),
                         new_entry->smacaddr);
-            convmacaddr(((struct fddihdr *) packet)->daddr,
+            convmacaddr((char*)(((struct fddihdr *) packet)->daddr),
                         new_entry->dmacaddr);
         } else if (linkproto == LINK_TR) {
-            convmacaddr(((struct trh_hdr *) packet)->saddr,
+            convmacaddr((char*)(((struct trh_hdr *) packet)->saddr),
                         new_entry->smacaddr);
-            convmacaddr(((struct trh_hdr *) packet)->daddr,
+            convmacaddr((char*)(((struct trh_hdr *) packet)->daddr),
                         new_entry->dmacaddr);
         }
     }
@@ -323,7 +329,8 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 
     char *packet_type;
 
-    struct in_addr saddr;
+    struct in_addr uninitialized_var(saddr);
+
     char rarp_mac_addr[15];
 
     unsigned int unknown = 0;

@@ -510,7 +510,7 @@ int checkrvnamed(void)
         indicate("Starting reverse lookup server");
 
         if ((cpid = fork()) == 0) {
-            execstat = execl(RVNDFILE, NULL);
+            execstat = execl(RVNDFILE, "", (char*)NULL);
 
             /*
              * execl() never returns, so if we reach this point, we have
@@ -1042,7 +1042,7 @@ void ipmon(struct OPTIONS *options,
             total_pkts++;
             show_stats(statwin, total_pkts);
 
-            pkt_result = processpacket((char *) tpacket, &packet, &readlen,
+            pkt_result = processpacket((char *) tpacket, &packet, (unsigned int*)&readlen,
                                        &br, &sport, &dport, &fromaddr,
                                        &linktype, ofilter,
                                        MATCH_OPPOSITE_ALWAYS, ifname,
@@ -1067,7 +1067,7 @@ void ipmon(struct OPTIONS *options,
                         fromaddr.sll_protocol = htons(ETH_P_IPV6);
                         memmove(tpacket, tpacket + iphlen, MAX_PACKET_SIZE - iphlen);
                         // Reprocess the ipv6 packet
-                        pkt_result = processpacket((char *) tpacket, &packet, &readlen,
+                        pkt_result = processpacket((char *) tpacket, &packet, (unsigned int*)&readlen,
                                         &br, &sport, &dport, &fromaddr,
                                         &linktype, ofilter, MATCH_OPPOSITE_ALWAYS, ifname, ifptr);
                         if (pkt_result != PACKET_OK)

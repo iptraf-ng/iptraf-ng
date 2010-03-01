@@ -27,8 +27,8 @@
 #include <net/if.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
+#include <netinet/tcp.h>
 #include "servname.h"
-#include "tcphdr.h"
 #include "links.h"
 
 #define max(a, b) (( a > b) ? a : b)

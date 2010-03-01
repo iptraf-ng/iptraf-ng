@@ -22,7 +22,7 @@ struct ethtabent {
         } figs;
 
         struct {
-            char eth_addr[ETH_ALEN];
+            unsigned char eth_addr[ETH_ALEN];
             char ascaddr[15];
             char desc[65];
             char ifname[18];

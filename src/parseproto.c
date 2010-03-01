@@ -162,7 +162,7 @@ void get_next_protorange(char *src, char **cptr,
 int validate_ranges(char *samplestring, int *parse_result,
                     char **badtokenptr)
 {
-    int proto1, proto2;
+    unsigned int proto1, proto2;
     char *cptr = samplestring;
 
     do {

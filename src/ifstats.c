@@ -398,12 +398,12 @@ void pagegstatwin(struct iftab *table, int direction, int *idx)
         while ((i <= LINES - 5)
                && (table->lastvisible->next_entry != NULL)) {
             i++;
-            scrollgstatwin(table, direction, idx);
+            scrollgstatwin(table, direction, (unsigned int*)idx);
         }
     } else {
         while ((i <= LINES - 5) && (table->firstvisible != table->head)) {
             i++;
-            scrollgstatwin(table, direction, idx);
+            scrollgstatwin(table, direction, (unsigned int*)idx);
         }
     }
 }
@@ -561,11 +561,11 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
                     break;
                 case KEY_PPAGE:
                 case '-':
-                    pagegstatwin(&table, SCROLLDOWN, &idx);
+                    pagegstatwin(&table, SCROLLDOWN, (int*)&idx);
                     break;
                 case KEY_NPAGE:
                 case ' ':
-                    pagegstatwin(&table, SCROLLUP, &idx);
+                    pagegstatwin(&table, SCROLLUP, (int*)&idx);
                     break;
                 case 12:
                 case 'l':
@@ -585,7 +585,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
             }
             if (br > 0) {
                 pkt_result =
-                    processpacket(buf, &packet, &br, NULL, NULL, NULL,
+                    processpacket(buf, &packet, (unsigned int*)&br, NULL, NULL, NULL,
                                   &fromaddr, &linktype, ofilter,
                                   MATCH_OPPOSITE_USECONFIG, ifname, NULL);
 
@@ -599,7 +599,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	                    fromaddr.sll_protocol = htons(ETH_P_IPV6);
                         memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
                         // Reprocess the IPv6 packet
-                        pkt_result = processpacket(buf, &packet, &br, NULL, NULL, NULL,
+                        pkt_result = processpacket(buf, &packet, (unsigned int*)&br, NULL, NULL, NULL,
                                   &fromaddr, &linktype, ofilter, MATCH_OPPOSITE_USECONFIG, ifname, NULL);
 
                         if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
@@ -1090,7 +1090,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
         }
         if (br > 0) {
             framelen = br;
-            pkt_result = processpacket(buf, &packet, &br, NULL,
+            pkt_result = processpacket(buf, &packet, (unsigned int*)&br, NULL,
                                        NULL, NULL, &fromaddr,
                                        &linktype, ofilter,
                                        MATCH_OPPOSITE_USECONFIG, ifname,
@@ -1105,7 +1105,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
                     fromaddr.sll_protocol = htons(ETH_P_IPV6);
                     memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
                     // Reprocess the IPv6 packet
-                    pkt_result = processpacket(buf, &packet, &br, NULL, NULL, NULL,
+                    pkt_result = processpacket(buf, &packet, (unsigned int*)&br, NULL, NULL, NULL,
                               &fromaddr, &linktype, ofilter, MATCH_OPPOSITE_USECONFIG, ifname, NULL);
                     if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
                         continue;

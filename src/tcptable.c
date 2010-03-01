@@ -642,11 +642,11 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
         bzero(newmacaddr, 15);
 
         if ((linkproto == LINK_ETHERNET) || (linkproto == LINK_PLIP)) {
-            convmacaddr(((struct ethhdr *) packet)->h_source, newmacaddr);
+            convmacaddr((char*)(((struct ethhdr *) packet)->h_source), newmacaddr);
         } else if (linkproto == LINK_FDDI) {
-            convmacaddr(((struct fddihdr *) packet)->saddr, newmacaddr);
+            convmacaddr((char*)(((struct fddihdr *) packet)->saddr), newmacaddr);
         } else if (linkproto == LINK_TR) {
-            convmacaddr(((struct trh_hdr *) packet)->saddr, newmacaddr);
+            convmacaddr((char*)(((struct trh_hdr *) packet)->saddr), newmacaddr);
         }
 
         if (tableentry->smacaddr[0] != '\0') {

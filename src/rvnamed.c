@@ -203,7 +203,7 @@ int main(void)
 
     struct sockaddr_un csa, isa;        /* child and iptraf comm sockets */
     struct sockaddr_un fromaddr;
-    int fromlen;
+    socklen_t fromlen;
 
     FILE *logfile;
 
@@ -223,7 +223,8 @@ int main(void)
     }
 
     setsid();
-    chdir("/");
+    int i = chdir("/");
+    (void)i;
 #endif
 
     signal(SIGCHLD, childreap);
@@ -301,8 +302,7 @@ int main(void)
          */
 
         if (FD_ISSET(cfd, &sockset)) {
-            fromlen =
-                sizeof(fromaddr.sun_family) + strlen(fromaddr.sun_path);
+            fromlen = sizeof(fromaddr.sun_family) + strlen(fromaddr.sun_path);
             br = recvfrom(cfd, &rvnpacket, sizeof(struct rvn), 0,
                           (struct sockaddr *) &fromaddr, &fromlen);
 

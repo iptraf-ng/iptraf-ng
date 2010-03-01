@@ -493,7 +493,7 @@ int main(int argc, char **argv)
     int command = 0;
     char keyparm[12];
     int facilitytime = 0;
-    int current_log_interval;
+    int current_log_interval = 0;
 
 #ifndef ALLOWUSERS
     if (getuid() != 0) {
@@ -600,10 +600,11 @@ int main(int argc, char **argv)
         switch (fork()) {
         case 0:                /* child */
             setsid();
-            freopen("/dev/null", "w", stdout);  /* redirect std output */
-            freopen("/dev/null", "r", stdin);   /* redirect std input */
-            freopen("/dev/null", "w", stderr);  /* redirect std error */
-            signal(SIGUSR2, (void *) term_usr2_handler);
+            FILE* fd = NULL;
+            fd = freopen("/dev/null", "w", stdout);  /* redirect std output */
+            fd = freopen("/dev/null", "r", stdin);   /* redirect std input */
+            fd = freopen("/dev/null", "w", stderr);  /* redirect std error */
+            signal(SIGUSR2,  term_usr2_handler);
 
             if (graphing_logfile[0] != '\0')
                 options.logging = 0;    /* if raw logging is specified */
@@ -626,15 +627,18 @@ int main(int argc, char **argv)
 #endif
 
     /* Check whether LOCKDIR exists (/var/run is on a tmpfs in Ubuntu) */
-    if(access(LOCKDIR,F_OK) != 0) {
-	if(mkdir(LOCKDIR, 0700) == -1) {
-	    fprintf(stderr, "Cannot create %s: %s", LOCKDIR, strerror(errno));
-	    exit(1);
+    if(access(LOCKDIR,F_OK) != 0)
+    {
+	    if(mkdir(LOCKDIR, 0700) == -1)
+        {
+	        fprintf(stderr, "Cannot create %s: %s", LOCKDIR, strerror(errno));
+	        exit(1);
         }
-	if(chown(LOCKDIR, 0, 0) == -1) {
-	    fprintf(stderr, "Cannot change owner of %s: %s", LOCKDIR, strerror(errno));
-	    exit(1);
-	}
+
+	    if(chown(LOCKDIR, 0, 0) == -1) {
+	        fprintf(stderr, "Cannot change owner of %s: %s", LOCKDIR, strerror(errno));
+	        exit(1);
+	    }
     }
 
     initscr();
@@ -649,9 +653,9 @@ int main(int argc, char **argv)
 
     mark_first_instance();
 
-    signal(SIGTERM, (void *) term_signal_handler);
-    signal(SIGHUP, (void *) term_signal_handler);
-    signal(SIGSEGV, (void *) segvhandler);
+    signal(SIGTERM, term_signal_handler);
+    signal(SIGHUP, term_signal_handler);
+    signal(SIGSEGV, segvhandler);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGINT, SIG_IGN);
     signal(SIGUSR1, SIG_IGN);

@@ -313,7 +313,7 @@ char *pickfilterbyname(struct ffnode *ffiles, char *filtername)
 
     while (ftmp != NULL) {
         if (strcmp(ftmp->ffe.desc, filtername) == 0) {
-            strncmp(filterfile, ftmp->ffe.filename, 40);
+            strncpy(filterfile, ftmp->ffe.filename, 40);
             return filterfile;
         }
 

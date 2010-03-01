@@ -1,3 +1,3 @@
 SUBDIRS = support src
 
-EXTRA_DIST = Documentation/
+EXTRA_DIST = Documentation CHANGES FAQ LICENSE RELEASE-NOTES

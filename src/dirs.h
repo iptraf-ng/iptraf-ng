@@ -26,7 +26,7 @@
  */
 
 #ifndef WORKDIR
-#define WORKDIR		"/var/local/iptraf"
+#define WORKDIR		"/var/lib/iptraf"
 #endif
 
 #ifndef LOGDIR
@@ -34,7 +34,7 @@
 #endif
 
 #ifndef EXECDIR
-#define EXECDIR		"/usr/local/bin"
+#define EXECDIR		"/usr/bin"
 #endif
 
 /*
@@ -46,7 +46,7 @@
  */
 
 #ifndef LOCKDIR
-#define LOCKDIR		"/var/run/iptraf"
+#define LOCKDIR		"/var/lock/iptraf"
 #endif
 
 /***

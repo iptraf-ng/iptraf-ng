@@ -97,7 +97,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
         }
         bzero(ptmp, sizeof(struct desclistent));
         bzero(descline, 140);
-        fgets(descline, 140, fd);
+        char* ii = fgets(descline, 140, fd);
 
         if (strcmp(descline, "") == 0) {
             free(ptmp);
@@ -148,7 +148,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
         bzero(ptmp, sizeof(struct desclistent));
         bzero(descline, 140);
         bzero(etherline, 140);
-        fgets(etherline, 140, fd);
+        (void) fgets(etherline, 140, fd);
 
         /*
          * Convert /etc/ethers line to a descline
@@ -208,11 +208,14 @@ void savedesclist(struct desclist *list, unsigned int linktype)
     else if (linktype == LINK_FDDI)
         fd = fopen(FDDIFILE, "w");
 
-    if (fd <= 0) {
+    if (fd == NULL)
+    {
         etherr();
         return;
     }
-    while (ptmp != NULL) {
+
+    while (ptmp != NULL)
+    {
         fprintf(fd, "%s:%s\n", ptmp->rec.address, ptmp->rec.desc);
         ptmp = ptmp->next_entry;
     }

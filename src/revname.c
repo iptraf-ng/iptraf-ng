@@ -58,7 +58,7 @@ int rvnamedactive(void)
     struct sockaddr_un su;
     int sstat;
     struct timeval tv;
-    int fr;
+    socklen_t fr;
     int br;
     char unix_socket[80];
 
@@ -159,7 +159,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr, char *t
     struct rvn rpkt;
     int br;
     struct sockaddr_un su;
-    int fl;
+    socklen_t fl;
     fd_set sockset;
     struct timeval tv;
     int sstat = 0;
@@ -218,12 +218,15 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr, char *t
            else
                he = gethostbyaddr((char *) s6addr, sizeof(struct in6_addr), AF_INET6);
 
-            if (he == NULL) {
+            if (he == NULL)
+            {
                 if (saddr->s_addr != 0)
-                strcpy(target, inet_ntoa(*saddr));
+                    strcpy(target, inet_ntoa(*saddr));
+                else
+                    inet_ntop(AF_INET6, s6addr, target, 44);
+            }
             else
-                inet_ntop(AF_INET6, s6addr, target, 44);
-            } else {
+            {
                 strncpy(target, he->h_name, 44);
             }
 
@@ -234,5 +237,8 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr, char *t
             strcpy(target, inet_ntoa(*saddr));
         else
             inet_ntop(AF_INET6, s6addr, target, 44);
+
+        return RESOLVED;
     }
+    return NOTRESOLVED;
 }
