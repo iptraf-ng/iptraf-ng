@@ -912,12 +912,10 @@ void servmon(char *ifname, struct porttab *ports,
                     if (list.barptr != NULL) {
                         if (list.barptr->prev_entry != NULL) {
                             serv_tmp = list.barptr;
-                            set_barptr((char **) &(list.barptr),
-                                       (char *) list.barptr->prev_entry,
-                                       &(list.barptr->prev_entry->
-                                         starttime),
-                                       (char *) &(list.barptr->prev_entry->
-                                                  spans),
+                            set_barptr((void *)&(list.barptr),
+                                       list.barptr->prev_entry,
+                                       &(list.barptr->prev_entry->starttime),
+                                       &(list.barptr->prev_entry->spans),
                                        sizeof(struct serv_spans), statwin,
                                        &statcleared, statx);
                             printportent(&list, serv_tmp, idx);
@@ -935,12 +933,10 @@ void servmon(char *ifname, struct porttab *ports,
                     if (list.barptr != NULL) {
                         if (list.barptr->next_entry != NULL) {
                             serv_tmp = list.barptr;
-                            set_barptr((char **) &(list.barptr),
-                                       (char *) list.barptr->next_entry,
-                                       &(list.barptr->next_entry->
-                                         starttime),
-                                       (char *) &(list.barptr->next_entry->
-                                                  spans),
+                            set_barptr((void *)&(list.barptr),
+                                       list.barptr->next_entry,
+                                       &(list.barptr->next_entry->starttime),
+                                       &(list.barptr->next_entry->spans),
                                        sizeof(struct serv_spans), statwin,
                                        &statcleared, statx);
                             printportent(&list, serv_tmp, idx);
@@ -959,10 +955,10 @@ void servmon(char *ifname, struct porttab *ports,
                     if (list.barptr != NULL) {
                         pageservwin(&list, SCROLLDOWN, (int*)&idx);
 
-                        set_barptr((char **) &(list.barptr),
-                                   (char *) (list.lastvisible),
+                        set_barptr((void *)&(list.barptr),
+                                   list.lastvisible,
                                    &(list.lastvisible->starttime),
-                                   (char *) &(list.lastvisible->spans),
+                                   &(list.lastvisible->spans),
                                    sizeof(struct serv_spans), statwin,
                                    &statcleared, statx);
                         list.baridx = list.lastvisible->idx - idx + 1;
@@ -975,10 +971,10 @@ void servmon(char *ifname, struct porttab *ports,
                     if (list.barptr != NULL) {
                         pageservwin(&list, SCROLLUP, (int*)&idx);
 
-                        set_barptr((char **) &(list.barptr),
-                                   (char *) (list.firstvisible),
+                        set_barptr((void *)&(list.barptr),
+                                   list.firstvisible,
                                    &(list.firstvisible->starttime),
-                                   (char *) &(list.firstvisible->spans),
+                                   &(list.firstvisible->spans),
                                    sizeof(struct serv_spans), statwin,
                                    &statcleared, statx);
                         list.baridx = 1;
@@ -1010,10 +1006,10 @@ void servmon(char *ifname, struct porttab *ports,
                 sortportents(&list, (int*)&idx, ch);
                 keymode = 0;
                 if (list.barptr != NULL) {
-                    set_barptr((char **) &(list.barptr),
-                               (char *) list.firstvisible,
+                    set_barptr((void *)&(list.barptr),
+                               list.firstvisible,
                                &(list.firstvisible->starttime),
-                               (char *) &(list.firstvisible->spans),
+                               &(list.firstvisible->spans),
                                sizeof(struct serv_spans), statwin,
                                &statcleared, statx);
                     list.baridx = 1;
@@ -1044,9 +1040,10 @@ void servmon(char *ifname, struct porttab *ports,
                               idx, ports, options->servnames);
 
                 if ((list.barptr == NULL) && (list.head != NULL)) {
-                    set_barptr((char **) &(list.barptr),
-                               (char *) list.head, &(list.head->starttime),
-                               (char *) &(list.head->spans),
+                    set_barptr((void *)&(list.barptr),
+                               list.head,
+                               &(list.head->starttime),
+                               &(list.head->spans),
                                sizeof(struct serv_spans), statwin,
                                &statcleared, statx);
                     list.baridx = 1;
@@ -1065,9 +1062,12 @@ void servmon(char *ifname, struct porttab *ports,
                     ntohs(((struct ip6_hdr *) ipacket)->ip6_plen + 40),
                     idx, 1, ports, options->servnames);
                 if ((list.barptr == NULL) && (list.head != NULL)) {
-                    set_barptr((char **) &(list.barptr), (char *) list.head,
-                        &(list.head->starttime), (char *) &(list.head->spans),
-                        sizeof(struct serv_spans), statwin, &statcleared, statx);
+                    set_barptr((void *)&(list.barptr),
+                               list.head,
+                               &(list.head->starttime),
+                               &(list.head->spans),
+                               sizeof(struct serv_spans), statwin,
+                               &statcleared, statx);
                     list.baridx = 1;
                 }
             }

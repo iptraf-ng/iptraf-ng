@@ -851,13 +851,12 @@ void ipmon(struct OPTIONS *options,
                         if (table.barptr != NULL) {
                             if (table.barptr->prev_entry != NULL) {
                                 tmptcp = table.barptr;
-                                set_barptr((char **) &(table.barptr),
-                                           (char *) table.barptr->
-                                           prev_entry,
+                                set_barptr((void *)&(table.barptr),
+                                           table.barptr->prev_entry,
                                            &(table.barptr->prev_entry->
                                              starttime),
-                                           (char *) &(table.barptr->
-                                                      prev_entry->spanbr),
+                                           &(table.barptr->prev_entry->
+                                             spanbr),
                                            sizeof(unsigned long), statwin,
                                            &statcleared, statx);
 
@@ -882,13 +881,12 @@ void ipmon(struct OPTIONS *options,
                         if (table.barptr != NULL) {
                             if (table.barptr->next_entry != NULL) {
                                 tmptcp = table.barptr;
-                                set_barptr((char **) &(table.barptr),
-                                           (char *) table.barptr->
-                                           next_entry,
+                                set_barptr((void *)&(table.barptr),
+                                           table.barptr->next_entry,
                                            &(table.barptr->next_entry->
                                              starttime),
-                                           (char *) &(table.barptr->
-                                                      next_entry->spanbr),
+                                           &(table.barptr->next_entry->
+                                             spanbr),
                                            sizeof(unsigned long), statwin,
                                            &statcleared, statx);
                                 printentry(&table, tmptcp, screen_idx,
@@ -929,11 +927,10 @@ void ipmon(struct OPTIONS *options,
                         if (table.barptr != NULL) {
                             pageupperwin(&table, SCROLLDOWN, &screen_idx,
                                          mode);
-                            set_barptr((char **) &(table.barptr),
-                                       (char *) table.lastvisible,
+                            set_barptr((void *)&(table.barptr),
+                                       table.lastvisible,
                                        &(table.lastvisible->starttime),
-                                       (char *) &(table.lastvisible->
-                                                  spanbr),
+                                       &(table.lastvisible->spanbr),
                                        sizeof(unsigned long), statwin,
                                        &statcleared, statx);
                             table.baridx =
@@ -951,11 +948,10 @@ void ipmon(struct OPTIONS *options,
                         if (table.barptr != NULL) {
                             pageupperwin(&table, SCROLLUP, &screen_idx,
                                          mode);
-                            set_barptr((char **) &(table.barptr),
-                                       (char *) table.firstvisible,
+                            set_barptr((void *)&(table.barptr),
+                                       table.firstvisible,
                                        &(table.firstvisible->starttime),
-                                       (char *) &(table.firstvisible->
-                                                  spanbr),
+                                       &(table.firstvisible->spanbr),
                                        sizeof(unsigned long), statwin,
                                        &statcleared, statx);
                             table.baridx = 1;
@@ -1022,10 +1018,10 @@ void ipmon(struct OPTIONS *options,
                            options->timeout, &nomem, options);
 
                 if (table.barptr != NULL) {
-                    set_barptr((char **) &(table.barptr),
-                               (char *) table.firstvisible,
+                    set_barptr((void *)&(table.barptr),
+                               table.firstvisible,
                                &(table.firstvisible->starttime),
-                               (char *) &(table.firstvisible->spanbr),
+                               &(table.firstvisible->spanbr),
                                sizeof(unsigned long), statwin,
                                &statcleared, statx);
                     table.baridx = 1;
@@ -1146,15 +1142,12 @@ void ipmon(struct OPTIONS *options,
                                                screen_idx, mode);
 
                                     if (wasempty) {
-                                        set_barptr((char **)
-                                                   &(table.barptr),
-                                                   (char *) table.
-                                                   firstvisible,
+                                        set_barptr((void *)&(table.barptr),
+                                                   table.firstvisible,
                                                    &(table.firstvisible->
                                                      starttime),
-                                                   (char *) &(table.
-                                                              firstvisible->
-                                                              spanbr),
+                                                   &(table.firstvisible->
+                                                     spanbr),
                                                    sizeof(unsigned long),
                                                    statwin, &statcleared,
                                                    statx);
@@ -1164,14 +1157,12 @@ void ipmon(struct OPTIONS *options,
                                     if ((table.barptr == tcpentry) ||
                                         (table.barptr ==
                                          tcpentry->oth_connection))
-                                        set_barptr((char **)
-                                                   &(table.barptr),
-                                                   (char *) table.barptr,
+                                        set_barptr((void *)&(table.barptr),
+                                                   table.barptr,
                                                    &(table.barptr->
                                                      starttime),
-                                                   (char *) &(table.
-                                                              barptr->
-                                                              spanbr),
+                                                   &(table.barptr->
+                                                     spanbr),
                                                    sizeof(unsigned long),
                                                    statwin, &statcleared,
                                                    statx);

@@ -20,9 +20,9 @@
 #include <winops.h>
 #include "attrs.h"
 
-void set_barptr(char **barptr, char *entry,
-                time_t * starttime, char *spanbr, size_t size,
-                WINDOW * win, int *cleared, int x)
+void set_barptr(void **barptr, void *entry,
+                time_t *starttime, void *spanbr, size_t size,
+                WINDOW *win, int *cleared, int x)
 {
     *barptr = entry;
     *starttime = time(NULL);

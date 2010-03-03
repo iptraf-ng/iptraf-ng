@@ -97,7 +97,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
         }
         bzero(ptmp, sizeof(struct desclistent));
         bzero(descline, 140);
-        char* ii = fgets(descline, 140, fd);
+        fgets(descline, 140, fd);
 
         if (strcmp(descline, "") == 0) {
             free(ptmp);
