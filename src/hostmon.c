@@ -181,7 +181,7 @@ struct ethtabent *addethnode(struct ethtab *table, int *nomem)
 void convmacaddr(char *addr, char *result)
 {
     unsigned int i;
-    char *ptmp = addr;
+    u_int8_t *ptmp = addr;
     char hexbyte[3];
 
     strcpy(result, "");
@@ -193,7 +193,7 @@ void convmacaddr(char *addr, char *result)
 }
 
 struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
-                              char *ifname, unsigned char *addr, int *nomem,
+                              char *ifname, char *addr, int *nomem,
                               struct desclist *list)
 {
     struct ethtabent *ptemp;
@@ -206,7 +206,7 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
     ptemp->type = 0;
     memcpy(&(ptemp->un.desc.eth_addr), addr, ETH_ALEN);
     strcpy(ptemp->un.desc.desc, "");
-    convmacaddr((char*)addr, ptemp->un.desc.ascaddr);
+    convmacaddr(addr, ptemp->un.desc.ascaddr);
     ptemp->un.desc.linktype = linktype;
     ethlook(list, ptemp->un.desc.ascaddr, ptemp->un.desc.desc);
     strcpy(ptemp->un.desc.ifname, ifname);
@@ -241,7 +241,7 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
 }
 
 struct ethtabent *in_ethtable(struct ethtab *table, unsigned int linktype,
-                              unsigned char *addr)
+                              char *addr)
 {
     struct ethtabent *ptemp = table->head;
 
@@ -705,8 +705,8 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 
     int br;
     char buf[MAX_PACKET_SIZE];
-    unsigned char scratch_saddr[ETH_ALEN];
-    unsigned char scratch_daddr[ETH_ALEN];
+    char scratch_saddr[ETH_ALEN];
+    char scratch_daddr[ETH_ALEN];
     unsigned int idx = 1;
     int is_ip;
     int ch;
@@ -853,18 +853,18 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
             if (keymode == 0) {
                 switch (ch) {
                 case KEY_UP:
-                    scrollethwin(&table, SCROLLDOWN, (int*)&idx);
+                    scrollethwin(&table, SCROLLDOWN, &idx);
                     break;
                 case KEY_DOWN:
-                    scrollethwin(&table, SCROLLUP, (int*)&idx);
+                    scrollethwin(&table, SCROLLUP, &idx);
                     break;
                 case KEY_PPAGE:
                 case '-':
-                    pageethwin(&table, SCROLLDOWN, (int*)&idx);
+                    pageethwin(&table, SCROLLDOWN, &idx);
                     break;
                 case KEY_NPAGE:
                 case ' ':
-                    pageethwin(&table, SCROLLUP, (int*)&idx);
+                    pageethwin(&table, SCROLLUP, &idx);
                     break;
                 case 12:
                 case 'l':
@@ -887,12 +887,12 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
             } else if (keymode == 1) {
                 del_panel(sortpanel);
                 delwin(sortwin);
-                sort_hosttab(&table, (int*)&idx, ch);
+                sort_hosttab(&table, &idx, ch);
                 keymode = 0;
             }
         }
         if (br > 0) {
-            pkt_result = processpacket(buf, &ipacket, (unsigned int*)&br, NULL,
+            pkt_result = processpacket(buf, &ipacket, &br, NULL,
                                        NULL, NULL, &fromaddr, &linktype,
                                        ofilter, MATCH_OPPOSITE_USECONFIG,
                                        ifname, ifptr);
@@ -914,26 +914,23 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
                  */
 
                 if ((linktype == LINK_ETHERNET) || (linktype == LINK_PLIP)
-                    || (linktype == LINK_VLAN)
-                    )
-                {
-                    struct ethhdr* hdr_eth = (struct ethhdr *)buf;
-                    memcpy(scratch_saddr, hdr_eth->h_source, ETH_ALEN);
-                    memcpy(scratch_daddr, hdr_eth->h_dest, ETH_ALEN);
+                    || (linktype == LINK_VLAN)) {
+                    memcpy(scratch_saddr,
+                           ((struct ethhdr *) buf)->h_source, ETH_ALEN);
+                    memcpy(scratch_daddr, ((struct ethhdr *) buf)->h_dest,
+                           ETH_ALEN);
                     list = &elist;
-                }
-                else if (linktype == LINK_FDDI)
-                {
-                    struct fddihdr * hdr_fddi = (struct fddihdr *)buf;
-                    memcpy(scratch_saddr, hdr_fddi->saddr, FDDI_K_ALEN);
-                    memcpy(scratch_daddr, hdr_fddi->daddr, FDDI_K_ALEN);
+                } else if (linktype == LINK_FDDI) {
+                    memcpy(scratch_saddr, ((struct fddihdr *) buf)->saddr,
+                           FDDI_K_ALEN);
+                    memcpy(scratch_daddr, ((struct fddihdr *) buf)->daddr,
+                           FDDI_K_ALEN);
                     list = &flist;
-                }
-                else if (linktype == LINK_TR)
-                {
-                    struct trh_hdr * hdr_trh = (struct trh_hdr *)buf;
-                    memcpy(scratch_saddr, hdr_trh->saddr, TR_ALEN);
-                    memcpy(scratch_daddr, hdr_trh->daddr, TR_ALEN);
+                } else if (linktype == LINK_TR) {
+                    memcpy(scratch_saddr, ((struct trh_hdr *) buf)->saddr,
+                           TR_ALEN);
+                    memcpy(scratch_daddr, ((struct trh_hdr *) buf)->daddr,
+                           TR_ALEN);
                     list = &flist;
                 }
 
