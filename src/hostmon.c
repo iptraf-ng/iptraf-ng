@@ -181,7 +181,7 @@ struct ethtabent *addethnode(struct ethtab *table, int *nomem)
 void convmacaddr(char *addr, char *result)
 {
     unsigned int i;
-    u_int8_t *ptmp = addr;
+    u_int8_t *ptmp = (u_int8_t *)addr;
     char hexbyte[3];
 
     strcpy(result, "");
