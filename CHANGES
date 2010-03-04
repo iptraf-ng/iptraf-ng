@@ -1,5 +1,20 @@
-Fork IPTraf-ng 1.0.0
+Fork IPTraf-ng
 ==============================
+* Thu Mar 04 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.1
+- remove dereferencing type-punned pointer will break strict-aliasing rules
+- convmacaddr(): fix assignment casting. One more warning gone.
+- ipmon(), servmon(): unnecessary casting is gone. Fixes strict-aliasing.
+    
+    gcc will no longer warn about type-punned pointers that break
+    strict-aliasing
+- Fix compilation issues and crash within LAN station monitor
+    reorder includes to successfully compile on older kernels
+    
+    embrace changes from Debian patch iptraf_3.0.0-6.diff:
+    - convmacaddr(): fix string to numeric format conversion
+	(fixes the crash)
+    - remove superfluous casting
+------------------------------------------------------------------
 * Mon Mar 01 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.0
 - compile with -std=gnu99 -pedantic -Wall -Werror
 - add support for devices(used patches from gentoo, debian and fedora):
