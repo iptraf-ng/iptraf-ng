@@ -900,10 +900,13 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
             if (pkt_result != PACKET_OK)
                 continue;
 
-            if ((linktype == LINK_ETHERNET) || (linktype == LINK_FDDI)
-                || (linktype == LINK_PLIP) || (linktype == LINK_TR) ||
-                (linktype == LINK_VLAN)) {
-
+            if ((linktype == LINK_ETHERNET)
+		|| (linktype == LINK_FDDI)
+		|| (linktype == LINK_PLIP)
+		|| (linktype == LINK_TR)
+		|| (linktype == LINK_VLAN)
+		)
+	    {
                 if (fromaddr.sll_protocol == htons(ETH_P_IP))
                     is_ip = 1;
                 else
@@ -913,24 +916,27 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
                  * Check source address entry
                  */
 
-                if ((linktype == LINK_ETHERNET) || (linktype == LINK_PLIP)
-                    || (linktype == LINK_VLAN)) {
-                    memcpy(scratch_saddr,
-                           ((struct ethhdr *) buf)->h_source, ETH_ALEN);
-                    memcpy(scratch_daddr, ((struct ethhdr *) buf)->h_dest,
-                           ETH_ALEN);
+                if ((linktype == LINK_ETHERNET)
+		    || (linktype == LINK_PLIP)
+		    || (linktype == LINK_VLAN)
+		    )
+		{
+		    struct ethhdr* hdr_eth = (struct ethhdr *) buf;
+                    memcpy(scratch_saddr, (hdr_eth)->h_source, ETH_ALEN);
+                    memcpy(scratch_daddr, (hdr_eth)->h_dest, ETH_ALEN);
                     list = &elist;
-                } else if (linktype == LINK_FDDI) {
-                    memcpy(scratch_saddr, ((struct fddihdr *) buf)->saddr,
-                           FDDI_K_ALEN);
-                    memcpy(scratch_daddr, ((struct fddihdr *) buf)->daddr,
-                           FDDI_K_ALEN);
+                }
+		else if (linktype == LINK_FDDI)
+		{
+		    struct fddihdr* hdr_fddi = (struct fddihdr *) buf;
+                    memcpy(scratch_saddr, (hdr_fddi)->saddr, FDDI_K_ALEN);
+                    memcpy(scratch_daddr, (hdr_fddi)->daddr, FDDI_K_ALEN);
                     list = &flist;
-                } else if (linktype == LINK_TR) {
-                    memcpy(scratch_saddr, ((struct trh_hdr *) buf)->saddr,
-                           TR_ALEN);
-                    memcpy(scratch_daddr, ((struct trh_hdr *) buf)->daddr,
-                           TR_ALEN);
+                } else if (linktype == LINK_TR)
+		{
+		    struct trh_hdr* hdr_trh = (struct trh_hdr *) buf;
+                    memcpy(scratch_saddr, (hdr_trh)->saddr, TR_ALEN);
+                    memcpy(scratch_daddr, (hdr_trh)->daddr, TR_ALEN);
                     list = &flist;
                 }
 

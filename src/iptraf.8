@@ -2,22 +2,22 @@
 .SH NAME
 iptraf \- Interactive Colorful IP LAN Monitor
 .SH SYNOPSIS
-.BR iptraf " { [ " -f " ] [ " -q " ] [ { " -i 
+.BR iptraf " { [ " \-f " ] [ " \-q " ] [ " \-u " ] [ { " \-i 
 .IR iface " | " 
-.BR -g " | " -d
+.BR \-g " | " \-d
 .IR iface " | "
-.BR -s
+.BR \-s
 .IR iface " | "
-.BR -z
+.BR \-z
 .IR iface " | "
-.BR -l 
+.BR \-l 
 .IR iface " } [ " 
-.BR -t
+.BR \-t
 .IR timeout " ] [ "
-.BR -B " [ "
-.BR -L
+.BR \-B " [ "
+.BR \-L
 .IR logfile " ] ] ] | [ "
-.BR -h " ] }"
+.BR \-h " ] }"
 .br
 .SH DESCRIPTION
 .B iptraf
@@ -30,38 +30,38 @@ command is issued without any command-line options, the program comes up in inte
 .SH OPTIONS
 These options can also be supplied to the command:
 .TP
-.BI "-i " iface
+.BI "\-i " iface
 immediately start the IP traffic monitor on the specified interface, or
-all interfaces if "-i all" is specified
+all interfaces if "\-i all" is specified
 .TP
-.B "-g"
+.B "\-g"
 immediately start the general interface statistics
 .TP
-.BI "-d " iface
+.BI "\-d " iface
 allows you to immediately start the detailed on the indicated interface (iface)
 .TP
-.BI "-s " iface
+.BI "\-s " iface
 allows you to immediately monitor TCP and UDP traffic on the specified interface (iface)
 .TP
-.BI "-z " iface
+.BI "\-z " iface
 shows packet counts by size on the specified interface
 .TP
-.BI "-l " iface
+.BI "\-l " iface
 start the LAN station monitor on the specified interface, or all LAN
-interfaces if "-l all" is specified
+interfaces if "\-l all" is specified
 .TP
-.BI "-t " timeout
+.BI "\-t " timeout
 tells IPTraf to run the specified facility for only
 .I timeout
 minutes.  This option is used only with one of the above parameters.
 .TP
-.B "-B"
+.B "\-B"
 redirect standard output to /dev/null, closes standard input, and forks
 the program into the background.  Can be used only with one of the
 facility invocation parameters above.  Send the backgrounded process a
 USR2 signal to terminate.
 .TP
-.B "-L logfile"
+.B "\-L logfile"
 allows you to specify an alternate log file name.  The default log file
 name is based on either the interface selected (detailed interface
 statistics, TCP/UDP service statistics, packet size breakdown), or the
@@ -69,15 +69,19 @@ instance of the facility (IP traffic monitor, LAN station monitor).  If a
 path is not specified, the log file is placed in
 .B /var/log/iptraf
 .TP
-.B "-f"
+.B "\-f"
 clears all locks and counters, causing this instance of IPTraf to think
 it's the first one running.  This should only be used to recover from
 an abnormal termination or system crash.
 .TP
-.BI "-q"
+.B "\-u"
+allow use of unsupported interfaces as ethernet devices.  This is needed if
+you changed the name of an interface (ex: ip link set eth0 name foo0)
+.TP
+.BI "\-q"
 no longer needed, maintained only for compatibility.
 .TP
-.B "-h"
+.B "\-h"
 shows a command summary
 .SH SIGNALS
 
@@ -86,7 +90,7 @@ shows a command summary
 
 .SH FILES
  /var/log/iptraf/*.log - log file
- /var/local/iptraf/* - important IPTraf data files
+ /var/lib/iptraf/* - important IPTraf data files
 
 .SH SEE ALSO
  Documentation/* - complete documentation written by the author
@@ -96,6 +100,6 @@ shows a command summary
 Gerard Paul Java (riker@mozcom.com)
 
 .SH MANUAL AUTHOR
-Frederic Peters (fpeters@debian.org), using iptraf --help
+Frederic Peters (fpeters@debian.org), using iptraf \-h
 General manual page modifications by Gerard Paul Java (riker@mozcom.com)
 

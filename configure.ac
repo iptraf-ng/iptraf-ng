@@ -1,4 +1,4 @@
-AC_INIT([iptraf-ng], [1.0.0], [iptraf-ng@fedorahosted.org])
+AC_INIT([iptraf-ng], [1.0.1], [iptraf-ng@fedorahosted.org])
 AC_CONFIG_HEADERS([config.h])
 
 dnl checks for system type
