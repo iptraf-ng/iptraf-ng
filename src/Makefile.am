@@ -53,7 +53,6 @@ rvnamed_CFLAGS = $(CFLAGS)		\
 					-Wall		\
 					-std=gnu99	\
 					-pedantic	\
-					-Werror		\
 					-I$(srcdir)/../support
 
 rawtime_SOURCES = rawtime.c
@@ -62,7 +61,6 @@ rawtime_CFLAGS = $(CFLAGS)		\
 					-Wall		\
 					-std=gnu99	\
 					-pedantic	\
-					-Werror		\
 					-I$(srcdir)/../support
 
 EXTRA_DIST = $(man_MANS)
