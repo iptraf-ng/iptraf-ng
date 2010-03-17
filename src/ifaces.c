@@ -51,7 +51,7 @@ char *ltrim(char *buf)
     while ((*tmp == ' ') || (*tmp == '\t'))
         tmp++;
 
-    strcpy(buf, tmp);
+    memmove(buf, tmp, strlen(buf));
     return buf;
 }
 
