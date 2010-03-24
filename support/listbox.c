@@ -105,7 +105,7 @@ void tx_operate_listbox(struct scroll_list *list,
     doupdate();
     
     while (!exitloop) {
-        snprintf(sp_buf, 9, "%%%dc", list->width - strlen(list->textptr->text) - 3);
+        snprintf(sp_buf, 9, "%%%zuc", list->width - strlen(list->textptr->text) - 3);
         snprintf(padding, MAX_TEXT_LENGTH - 1, sp_buf, ' ');
         wattrset(list->win, list->selectattr);
         mvwprintw(list->win, row, 0, " %s%s", list->textptr->text, padding);
