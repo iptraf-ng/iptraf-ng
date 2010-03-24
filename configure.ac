@@ -15,6 +15,9 @@ dnl checks for libraries
 PKG_CHECK_MODULES([ncurses],[ncurses])
 PKG_CHECK_MODULES([libpanel],[panel])
 
+AC_SUBST([ncurses_CFLAGS])
+AC_SUBST([libpanel_CFLAGS])
+
 dnl checks for header files
 AC_CHECK_HEADERS([arpa/inet.h])
 AC_CHECK_HEADERS([fcntl.h])
