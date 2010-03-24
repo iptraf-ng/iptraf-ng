@@ -46,12 +46,9 @@ char ifaces[][6] =
 
 char *ltrim(char *buf)
 {
-    char *tmp = buf;
+    while ((*buf == ' ') || (*buf == '\t'))
+        buf++;
 
-    while ((*tmp == ' ') || (*tmp == '\t'))
-        tmp++;
-
-    memmove(buf, tmp, strlen(buf));
     return buf;
 }
 
