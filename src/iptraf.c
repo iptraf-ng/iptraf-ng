@@ -496,7 +496,7 @@ int main(int argc, char **argv)
     int current_log_interval = 0;
 
 #ifndef ALLOWUSERS
-    if (getuid() != 0) {
+    if (geteuid() != 0) {
         fprintf(stderr, "\nIPTraf Version %s\n", VERSION);
         fprintf(stderr, "Copyright (c) Gerard Paul Java 1997-2004l\n\n");
         fprintf(stderr,
