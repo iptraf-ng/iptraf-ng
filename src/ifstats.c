@@ -1349,7 +1349,7 @@ void selectiface(char *ifname, int withall, int *aborted)
 
     if ((withall) && (list != NULL)) {
         ptmp = malloc(sizeof(struct iflist));
-        strcpy(ptmp->ifname, "All interfaces");
+        strncpy(ptmp->ifname, "All interfaces", sizeof (ptmp->ifname));
 
         ptmp->prev_entry = NULL;
         list->prev_entry = ptmp;
