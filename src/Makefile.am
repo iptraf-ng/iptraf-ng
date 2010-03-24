@@ -40,10 +40,9 @@ iptraf_CFLAGS =	$(CFLAGS)		\
 					-Wall		\
 					-std=gnu99	\
 					-pedantic	\
-					-I$(srcdir)/../support \
-					$(libpanel_CFLAGS)
+					-I$(srcdir)/../support
 
-iptraf_LDFLAGS = $(ncurses_LIBS) $(libpanel_LIBS)
+iptraf_LDFLAGS = -l$(ncurses_lib) -l$(panel_lib)
 iptraf_LDADD   = ../support/libtextbox.la
 
 man_MANS = iptraf.8 rvnamed.8

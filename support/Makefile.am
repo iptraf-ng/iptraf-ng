@@ -4,8 +4,6 @@ NULL=
 
 libtextbox_la_CFLAGS = \
 		-Wall -std=gnu99 -pedantic \
-		$(libpanel_CFLAGS) \
-		$(ncurses_CFLAGS) \
 		$(NULL)
 
 libtextbox_la_LDFLAGS = -avoid-version
@@ -16,6 +14,6 @@ libtextbox_la_SOURCES = input.c		input.h		\
 			menurt.c	menurt.h	\
 			msgboxes.c	msgboxes.h	\
 			txbox.c		txbox.h		\
-			winops.c    winops.h		\
+			winops.c    winops.h	\
 			textbox.h			\
 			$(NULL)

@@ -11,12 +11,22 @@ AC_LANG_C
 AC_HEADER_STDC
 AC_PROG_LIBTOOL
 
-dnl checks for libraries
-PKG_CHECK_MODULES([ncurses],[ncurses])
-PKG_CHECK_MODULES([libpanel],[panel])
+dnl checks for libraries ncursesw/ncurses
+AC_CHECK_LIB(ncursesw, initscr, [ ncurses_lib="ncursesw" ])
+if test -z "${ncurses_lib}"; then
+    AC_CHECK_LIB(ncurses, initscr, [ ncurses_lib="ncurses" ])
+fi
+if test -z "${ncurses_lib}"; then
+    AC_MSG_ERROR(At least one of ncursesw/ncurses library must be present)
+fi
 
-AC_SUBST([ncurses_CFLAGS])
-AC_SUBST([libpanel_CFLAGS])
+AC_CHECK_LIB(panel, update_panels, [ panel_lib="panel" ])
+if test -z "${panel_lib}"; then
+    AC_MSG_ERROR(panel library must be present)
+fi
+
+AC_SUBST([ncurses_lib])
+AC_SUBST([panel_lib])
 
 dnl checks for header files
 AC_CHECK_HEADERS([arpa/inet.h])
@@ -28,6 +38,8 @@ AC_CHECK_HEADERS([netinet/in.h])
 AC_CHECK_HEADERS([sys/ioctl.h])
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/time.h])
+AC_CHECK_HEADERS([locale.h])
+AC_CHECK_HEADERS([curses.h],, [AC_MSG_ERROR(curses.h header must be present)])
 
 dnl checks for types
 AC_TYPE_PID_T
@@ -53,6 +65,8 @@ AC_CHECK_FUNCS([strcasecmp])
 AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([strerror])
 AC_CHECK_FUNCS([strtoul])
+AC_CHECK_FUNCS([mkdir])
+AC_CHECK_FUNCS([setlocale])
 
 
 AC_CONFIG_FILES([
