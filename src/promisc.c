@@ -49,7 +49,7 @@ void init_promisc_list(struct promisc_states **list)
 {
     FILE *fd;
     int ifd;
-    char buf[18];
+    char buf[IF_NAMESIZE];
     struct promisc_states *ptmp;
     struct promisc_states *tail = NULL;
     struct ifreq ifr;
