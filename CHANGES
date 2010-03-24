@@ -1,15 +1,29 @@
 Fork IPTraf-ng
 ==============================
+
+* Wed Mar 24 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.2
+- remove warnings
+- rif of PKG_CHECK_MODULES
+- tx_operate_listbox(): use proper format string for size_t in snprintf
+- ltrim(): simplify function and fix situation when strings overlap in strcpy
+- build: pass libpanel_CFLAGS and ncurses_CFLAGS to compiler
+- selectiface(): use strncpy to prevent buffer overflow and thus avoid gcc warning
+- init_promisc_list(): use IF_NAMESIZE as size of buffer for interface name
+- main(): allow regular users to run iptraf if the sticky-bit is set
+- fix strcpy overlap memory
+- remove -Werror option
+
+
 * Thu Mar 04 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.1
 - remove dereferencing type-punned pointer will break strict-aliasing rules
 - convmacaddr(): fix assignment casting. One more warning gone.
 - ipmon(), servmon(): unnecessary casting is gone. Fixes strict-aliasing.
-    
+
     gcc will no longer warn about type-punned pointers that break
     strict-aliasing
 - Fix compilation issues and crash within LAN station monitor
     reorder includes to successfully compile on older kernels
-    
+
     embrace changes from Debian patch iptraf_3.0.0-6.diff:
     - convmacaddr(): fix string to numeric format conversion
 	(fixes the crash)
