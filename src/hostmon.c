@@ -853,18 +853,18 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
             if (keymode == 0) {
                 switch (ch) {
                 case KEY_UP:
-                    scrollethwin(&table, SCROLLDOWN, &idx);
+                    scrollethwin(&table, SCROLLDOWN, (int*)&idx);
                     break;
                 case KEY_DOWN:
-                    scrollethwin(&table, SCROLLUP, &idx);
+                    scrollethwin(&table, SCROLLUP, (int*)&idx);
                     break;
                 case KEY_PPAGE:
                 case '-':
-                    pageethwin(&table, SCROLLDOWN, &idx);
+                    pageethwin(&table, SCROLLDOWN, (int*)&idx);
                     break;
                 case KEY_NPAGE:
                 case ' ':
-                    pageethwin(&table, SCROLLUP, &idx);
+                    pageethwin(&table, SCROLLUP, (int*)&idx);
                     break;
                 case 12:
                 case 'l':
@@ -887,12 +887,12 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
             } else if (keymode == 1) {
                 del_panel(sortpanel);
                 delwin(sortwin);
-                sort_hosttab(&table, &idx, ch);
+                sort_hosttab(&table, (int*)&idx, ch);
                 keymode = 0;
             }
         }
         if (br > 0) {
-            pkt_result = processpacket(buf, &ipacket, &br, NULL,
+            pkt_result = processpacket(buf, &ipacket, (unsigned int*)&br, NULL,
                                        NULL, NULL, &fromaddr, &linktype,
                                        ofilter, MATCH_OPPOSITE_USECONFIG,
                                        ifname, ifptr);
