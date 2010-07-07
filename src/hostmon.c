@@ -58,6 +58,8 @@ details.
 #include "promisc.h"
 #include "error.h"
 
+#include "xfuncs.h"
+
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 
@@ -150,13 +152,8 @@ struct ethtabent *addethnode(struct ethtab *table, int *nomem)
 {
     struct ethtabent *ptemp;
 
-    ptemp = malloc(sizeof(struct ethtabent));
+    ptemp = xmalloc(sizeof(struct ethtabent));
 
-    if (ptemp == NULL) {
-        printnomem();
-        *nomem = 1;
-        return NULL;
-    }
     if (table->head == NULL) {
         ptemp->prev_entry = NULL;
         table->head = ptemp;

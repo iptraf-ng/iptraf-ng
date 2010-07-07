@@ -40,6 +40,8 @@ details.
 #include "landesc.h"
 #include "links.h"
 
+#include "xfuncs.h"
+
 void etherr(void)
 {
     int resp;
@@ -90,11 +92,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
         return;
     }
     while (!feof(fd)) {
-        ptmp = malloc(sizeof(struct desclistent));
-        if (ptmp == NULL) {
-            printnomem();
-            return;
-        }
+        ptmp = xmalloc(sizeof(struct desclistent));
         bzero(ptmp, sizeof(struct desclistent));
         bzero(descline, 140);
         fgets(descline, 140, fd);
@@ -140,11 +138,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
         return;
 
     while (!feof(fd)) {
-        ptmp = malloc(sizeof(struct desclistent));
-        if (ptmp == NULL) {
-            printnomem();
-            return;
-        }
+        ptmp = xmalloc(sizeof(struct desclistent));
         bzero(ptmp, sizeof(struct desclistent));
         bzero(descline, 140);
         bzero(etherline, 140);
@@ -418,7 +412,7 @@ void addethdesc(struct desclist *list)
     descdlg(&rec, "", "", &aborted);
 
     if (!aborted) {
-        ptmp = malloc(sizeof(struct desclistent));
+        ptmp = xmalloc(sizeof(struct desclistent));
         if (list->head == NULL) {
             list->head = ptmp;
             ptmp->prev_entry = NULL;

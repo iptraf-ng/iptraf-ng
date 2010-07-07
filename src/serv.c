@@ -65,6 +65,8 @@ details.
 #include "bar.h"
 #include "mode.h"
 
+#include "xfuncs.h"
+
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 
@@ -136,13 +138,7 @@ struct portlistent *addtoportlist(struct portlist *list,
 {
     struct portlistent *ptemp;
 
-    ptemp = malloc(sizeof(struct portlistent));
-
-    if (ptemp == NULL) {
-        printnomem();
-        *nomem = 1;
-        return NULL;
-    }
+    ptemp = xmalloc(sizeof(struct portlistent));
     if (list->head == NULL) {
         ptemp->prev_entry = NULL;
         list->head = ptemp;
@@ -1221,7 +1217,7 @@ void addmoreports(struct porttab **table)
         if (dup_portentry(*table, port_min, port_max))
             tx_errbox("Duplicate port/range entry", ANYKEY_MSG, &resp);
         else {
-            ptmp = malloc(sizeof(struct porttab));
+            ptmp = xmalloc(sizeof(struct porttab));
 
             ptmp->port_min = port_min;
             ptmp->port_max = port_max;
@@ -1254,7 +1250,7 @@ void loadaddports(struct porttab **table)
         return;
 
     do {
-        ptemp = malloc(sizeof(struct porttab));
+        ptemp = xmalloc(sizeof(struct porttab));
 
         br = read(fd, &(ptemp->port_min), sizeof(unsigned int));
         br = read(fd, &(ptemp->port_max), sizeof(unsigned int));

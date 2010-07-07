@@ -40,6 +40,8 @@ details.
 #include "promisc.h"
 #include "dirs.h"
 
+#include "xfuncs.h"
+
 #define PROMISC_MSG_MAX 80
 
 extern int daemonized;
@@ -63,7 +65,7 @@ void init_promisc_list(struct promisc_states **list)
 
     while (get_next_iface(fd, buf, 12)) {
         if (strcmp(buf, "") != 0) {
-            ptmp = malloc(sizeof(struct promisc_states));
+            ptmp = xmalloc(sizeof(struct promisc_states));
             strcpy(ptmp->params.ifname, buf);
 
             if (*list == NULL) {
@@ -161,7 +163,7 @@ void load_promisc_list(struct promisc_states **list)
     }
 
     do {
-        ptmp = malloc(sizeof(struct promisc_states));
+        ptmp = xmalloc(sizeof(struct promisc_states));
         br = read(fd, &(ptmp->params), sizeof(struct promisc_params));
 
         if (br > 0) {

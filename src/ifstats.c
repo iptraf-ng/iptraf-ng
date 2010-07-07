@@ -61,6 +61,8 @@ details.
 #include "promisc.h"
 #include "error.h"
 
+#include "xfuncs.h"
+
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 
@@ -163,7 +165,7 @@ void initiflist(struct iflist **list)
              * At this point, the interface is now sure to be up and running.
              */
 
-            itmp = malloc(sizeof(struct iflist));
+            itmp = xmalloc(sizeof(struct iflist));
             bzero(itmp, sizeof(struct iflist));
             strcpy(itmp->ifname, ifname);
             index++;
@@ -204,7 +206,7 @@ void positionptr(struct iftab *table, struct iflist **ptmp, char *ifname)
     }
 
     if (*ptmp == NULL) {
-        *ptmp = malloc(sizeof(struct iflist));
+        *ptmp = xmalloc(sizeof(struct iflist));
         bzero(*ptmp, sizeof(struct iflist));
         (*ptmp)->index = plast->index + 1;
         plast->next_entry = *ptmp;
@@ -1348,7 +1350,7 @@ void selectiface(char *ifname, int withall, int *aborted)
     }
 
     if ((withall) && (list != NULL)) {
-        ptmp = malloc(sizeof(struct iflist));
+        ptmp = xmalloc(sizeof(struct iflist));
         strncpy(ptmp->ifname, "All interfaces", sizeof (ptmp->ifname));
 
         ptmp->prev_entry = NULL;

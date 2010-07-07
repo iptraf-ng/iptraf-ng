@@ -23,13 +23,14 @@ details.
 #include <linux/isdn.h>
 #include "isdntab.h"
 
+#include "xfuncs.h"
 
 void add_isdn_entry(struct isdntab *list, char *ifname, int isdn_fd)
 {
     struct isdntabent *new_entry;
     isdn_net_ioctl_cfg isdn_cfg;
 
-    new_entry = malloc(sizeof(struct isdntabent));
+    new_entry = xmalloc(sizeof(struct isdntabent));
 
     strcpy(new_entry->ifname, ifname);
     new_entry->next_entry = NULL;

@@ -34,6 +34,8 @@ details.
 #include "rvnamed.h"
 #include "links.h"
 
+#include "xfuncs.h"
+
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
 
@@ -140,13 +142,7 @@ struct othptabent *add_othp_entry(struct othptable *table,
     struct othptabent *temp;
     struct in_addr isaddr, idaddr;
 
-    new_entry = malloc(sizeof(struct othptabent));
-
-    if (new_entry == NULL) {
-        printnomem();
-        *nomem = 1;
-        return NULL;
-    }
+    new_entry = xmalloc(sizeof(struct othptabent));
     bzero(new_entry, sizeof(struct othptabent));
 
     new_entry->is_ip = is_ip;

@@ -34,6 +34,7 @@ details.
 #include <netinet/tcp.h>
 #include "ipfrag.h"
 
+#include "xfuncs.h"
 
 static struct fragent *fraglist = NULL;
 static struct fragent *fragtail = NULL;
@@ -42,7 +43,7 @@ struct fragent *addnewdgram(struct iphdr *packet)
 {
     struct fragent *ptmp;
 
-    ptmp = malloc(sizeof(struct fragent));
+    ptmp = xmalloc(sizeof(struct fragent));
     if (fraglist == NULL) {
         fraglist = ptmp;
         ptmp->prev_entry = NULL;
@@ -52,7 +53,7 @@ struct fragent *addnewdgram(struct iphdr *packet)
         ptmp->prev_entry = fragtail;
     }
     bzero(ptmp, sizeof(struct fragent));
-    ptmp->fragdesclist = malloc(sizeof(struct fragdescent));
+    ptmp->fragdesclist = xmalloc(sizeof(struct fragdescent));
     ptmp->fragdesclist->min = 0;
     ptmp->fragdesclist->max = 65535;
     ptmp->fragdesclist->next_entry = NULL;
@@ -74,7 +75,7 @@ struct fragdescent *addnewhole(struct fragent *frag)
 {
     struct fragdescent *ptmp;
 
-    ptmp = malloc(sizeof(struct fragdescent));
+    ptmp = xmalloc(sizeof(struct fragdescent));
 
     if (frag->fragdesclist == NULL) {
         frag->fragdesclist = ptmp;

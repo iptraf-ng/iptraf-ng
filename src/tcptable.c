@@ -26,6 +26,8 @@ details.
 #include "revname.h"
 #include "rvnamed.h"
 
+#include "xfuncs.h"
+
 #define MSGSTRING_MAX	320
 
 unsigned int bmaxy = 0;
@@ -149,12 +151,8 @@ int add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry)
     hp = tcp_hash(entry->saddr.s_addr, entry->s6addr.s6_addr32, entry->sport,
                   entry->daddr.s_addr, entry->d6addr.s6_addr32, entry->dport, entry->ifname);
 
-    ptmp = malloc(sizeof(struct tcp_hashentry));
+    ptmp = xmalloc(sizeof(struct tcp_hashentry));
     bzero(ptmp, sizeof(struct tcp_hashentry));
-
-    if (ptmp == NULL)
-        return 1;
-
     /*
      * Add backpointer from screen node to hash node for deletion later
      * (Actually point to its predecessor coz of the header cell).
@@ -237,16 +235,9 @@ struct tcptableent *addentry(struct tcptable *table,
      */
 
     if (table->closedentries == NULL) {
-        new_entry = malloc(sizeof(struct tcptableent));
+        new_entry = xmalloc(sizeof(struct tcptableent));
+        new_entry->oth_connection = xmalloc(sizeof(struct tcptableent));
 
-        if (new_entry != NULL)
-            new_entry->oth_connection = malloc(sizeof(struct tcptableent));
-
-        if ((new_entry->oth_connection == NULL) || (new_entry == NULL)) {
-            printnomem();
-            *nomem = 1;
-            return NULL;
-        }
         new_entry->oth_connection->oth_connection = new_entry;
 
         if (table->head == NULL) {
@@ -436,13 +427,7 @@ void addtoclosedlist(struct tcptable *table, struct tcptableent *entry,
 {
     struct closedlist *ctemp;
 
-    ctemp = malloc(sizeof(struct closedlist));
-
-    if (ctemp == NULL) {
-        printnomem();
-        *nomem = 1;
-        return;
-    }
+    ctemp = xmalloc(sizeof(struct closedlist));
     /*
      * Point to closed entries
      */
@@ -547,12 +532,12 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
     hashptr = table->hash_table[hp];
 
     if (s6addr == NULL) {
-       s6addr = malloc(sizeof(struct in6_addr));
+       s6addr = xmalloc(sizeof(struct in6_addr));
        memset(s6addr, 0, 16);
        sfree = 1;
     }
     if (d6addr == NULL) {
-       d6addr = malloc(sizeof(struct in6_addr));
+       d6addr = xmalloc(sizeof(struct in6_addr));
        memset(d6addr, 0, 16);
        dfree = 1;
     }

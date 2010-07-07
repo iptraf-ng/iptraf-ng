@@ -44,6 +44,8 @@ details.
 #include "error.h"
 #include "cidr.h"
 
+#include "xfuncs.h"
+
 extern int daemonized;
 
 void init_filter_table(struct filterlist *fl)
@@ -76,7 +78,7 @@ int loadfilter(char *filename, struct filterlist *fl, int resolve)
         return 1;
     }
     do {
-        fe = malloc(sizeof(struct filterent));
+        fe = xmalloc(sizeof(struct filterent));
         br = read(pfd, &(fe->hp), sizeof(struct hostparams));
 
         if (br > 0) {
@@ -207,13 +209,7 @@ void update_hp_screen(struct filterlist *fl,
 
 int new_hp_entry(struct filterent **ftemp)
 {
-    int resp;
-    *ftemp = malloc(sizeof(struct filterent));
-    if (*ftemp == NULL) {
-        tx_errbox("No memory for new filter entry", ANYKEY_MSG, &resp);
-        return 0;
-    }
-
+    *ftemp = xmalloc(sizeof(struct filterent));
     memset(*ftemp, 0, sizeof(struct filterent));
     return 1;
 }

@@ -28,7 +28,7 @@ int loadfilter(char *filename, struct filterlist *fl, int resolve)
         return 1;
     }
     do {
-        fe = malloc(sizeof(struct filterent));
+        fe = xmalloc(sizeof(struct filterent));
         br = read(pfd, &(fe->hp), sizeof(struct hostparams));
 
         if (br > 0) {

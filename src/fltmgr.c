@@ -40,6 +40,8 @@ details.
 #include "instances.h"
 #include "error.h"
 
+#include "xfuncs.h"
+
 extern int daemonized;
 
 void makestdfiltermenu(struct MENU *menu)
@@ -146,7 +148,7 @@ int loadfilterlist(struct ffnode **fltfile)
     }
 
     do {
-        ptemp = malloc(sizeof(struct ffnode));
+        ptemp = xmalloc(sizeof(struct ffnode));
         br = read(pfd, &(ptemp->ffe), sizeof(struct filterfileent));
 
         if (br > 0) {
