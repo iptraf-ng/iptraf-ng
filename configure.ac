@@ -68,11 +68,12 @@ AC_CHECK_FUNCS([strtoul])
 AC_CHECK_FUNCS([mkdir])
 AC_CHECK_FUNCS([setlocale])
 
+CFLAGS="$CFLAGS -Wall -std=gnu99 -pedantic"
 
 AC_CONFIG_FILES([
-	Makefile
+    Makefile
     support/Makefile
-	src/Makefile
+    src/Makefile
 ])
 
 AC_OUTPUT
