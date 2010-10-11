@@ -29,8 +29,6 @@ details.
 #include "promisc.h"
 #include "dirs.h"
 
-#include "xfuncs.h"
-
 #define PROMISC_MSG_MAX 80
 
 extern int daemonized;

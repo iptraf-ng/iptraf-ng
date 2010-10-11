@@ -29,8 +29,6 @@ details.
 #include "rvnamed.h"
 #include "links.h"
 
-#include "xfuncs.h"
-
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
 

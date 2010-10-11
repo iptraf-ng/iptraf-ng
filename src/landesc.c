@@ -27,8 +27,6 @@ details.
 #include "landesc.h"
 #include "links.h"
 
-#include "xfuncs.h"
-
 void etherr(void)
 {
     int resp;

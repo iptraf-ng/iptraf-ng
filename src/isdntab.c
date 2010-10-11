@@ -20,7 +20,6 @@ details.
 #include "iptraf-ng-compat.h"
 
 #include "isdntab.h"
-#include "xfuncs.h"
 
 void add_isdn_entry(struct isdntab *list, char *ifname, int isdn_fd)
 {

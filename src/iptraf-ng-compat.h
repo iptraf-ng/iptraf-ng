@@ -65,4 +65,6 @@ details.
 #include "msgboxes.h"
 //#include "txbox.h"
 
+extern void *xmalloc(size_t size);
+
 #endif

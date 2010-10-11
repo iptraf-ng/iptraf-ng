@@ -26,7 +26,6 @@ details.
 #include "iptraf-ng-compat.h"
 
 #include "ipfrag.h"
-#include "xfuncs.h"
 
 static struct fragent *fraglist = NULL;
 static struct fragent *fragtail = NULL;

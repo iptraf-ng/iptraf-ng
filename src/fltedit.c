@@ -28,8 +28,6 @@ details.
 #include "error.h"
 #include "cidr.h"
 
-#include "xfuncs.h"
-
 extern int daemonized;
 
 void init_filter_table(struct filterlist *fl)

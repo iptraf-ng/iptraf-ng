@@ -41,8 +41,6 @@ details.
 #include "bar.h"
 #include "mode.h"
 
-#include "xfuncs.h"
-
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 

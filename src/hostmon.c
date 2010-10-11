@@ -44,8 +44,6 @@ details.
 #include "promisc.h"
 #include "error.h"
 
-#include "xfuncs.h"
-
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 

@@ -27,8 +27,6 @@ details.
 #include "revname.h"
 #include "rvnamed.h"
 
-#include "xfuncs.h"
-
 #define MSGSTRING_MAX	320
 
 unsigned int bmaxy = 0;

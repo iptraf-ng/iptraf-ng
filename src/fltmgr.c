@@ -26,8 +26,6 @@ details.
 #include "instances.h"
 #include "error.h"
 
-#include "xfuncs.h"
-
 extern int daemonized;
 
 void makestdfiltermenu(struct MENU *menu)
