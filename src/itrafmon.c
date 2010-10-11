@@ -16,15 +16,8 @@ details.
 
 ***/
 
-#include <sys/time.h>
-#include <sys/wait.h>
-#include <errno.h>
-#include <signal.h>
-#include <ctype.h>
-#include <winops.h>
-#include <labels.h>
-#include <netinet/ip6.h>
-#include <netinet/icmp6.h>
+#include "iptraf-ng-compat.h"
+
 #include "options.h"
 #include "tcptable.h"
 #include "othptab.h"

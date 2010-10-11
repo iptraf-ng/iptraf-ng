@@ -3,7 +3,9 @@
  *          numeric argument.
  */
 
-#include <string.h>
+// move it to iptraf-ng-compat?
+#include "iptraf-ng-compat.h"
+
 #include "options.h"
 
 void dispmode(int mode, char *result)

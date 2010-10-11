@@ -20,19 +20,8 @@ details.
 
 ***/
 
-#include <stdlib.h>
-#include <netdb.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <errno.h>
-#include <curses.h>
+#include "iptraf-ng-compat.h"
+
 #include "deskman.h"
 #include "getpath.h"
 #include "rvnamed.h"

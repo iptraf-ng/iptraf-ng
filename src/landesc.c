@@ -19,21 +19,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <net/if_arp.h>
-#include <ctype.h>
-#include <winops.h>
-#include <menurt.h>
-#include <input.h>
-#include <labels.h>
-#include <msgboxes.h>
-#include <listbox.h>
+#include "iptraf-ng-compat.h"
+
 #include "deskman.h"
 #include "attrs.h"
 #include "dirs.h"

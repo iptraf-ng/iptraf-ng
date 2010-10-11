@@ -17,12 +17,9 @@ details.
 
 ***/
 
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <linux/isdn.h>
-#include "isdntab.h"
+#include "iptraf-ng-compat.h"
 
+#include "isdntab.h"
 #include "xfuncs.h"
 
 void add_isdn_entry(struct isdntab *list, char *ifname, int isdn_fd)

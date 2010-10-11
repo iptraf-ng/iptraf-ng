@@ -8,11 +8,8 @@
  *      IPTraf 1.4.0 Copyright (c) Gerard Paul Java 1997, 1998
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <string.h>
-#include <unistd.h>
+#include "iptraf-ng-compat.h"
+
 #include "dirs.h"
 
 char *get_path(int dirtype, char *file)

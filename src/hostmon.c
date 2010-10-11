@@ -18,26 +18,12 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
-#include <ctype.h>
-#include <sys/socket.h>
-#include <sys/types.h>
+#include "iptraf-ng-compat.h"
+/*
 #include <asm/types.h>
-#include <netinet/in.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>
-#include <linux/if_fddi.h>
-#include <linux/if_tr.h>
 #include <net/if_arp.h>
-#include <stdlib.h>
-#include <time.h>
-#include <sys/time.h>
-#include <winops.h>
-#include <labels.h>
+*/
+
 #include "dirs.h"
 #include "deskman.h"
 #include "links.h"

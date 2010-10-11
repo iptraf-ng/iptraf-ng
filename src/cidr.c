@@ -13,11 +13,7 @@
  *     Copyright (c) Gerard Paul Java 2003
  */
 
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <string.h>
+#include "iptraf-ng-compat.h"
 
 /*
  * Returns a binary subnet mask based on the number of mask bits.  The

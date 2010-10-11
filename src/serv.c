@@ -16,32 +16,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/time.h>
-#include <netdb.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/ip6.h>
-#include <netinet/udp.h>
-#include <linux/types.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>
-#include <listbox.h>
-#include <labels.h>
-#include <winops.h>
-#include <input.h>
-#include <msgboxes.h>
-#include <netinet/tcp.h>
+#include "iptraf-ng-compat.h"
+
 #include "dirs.h"
 #include "ipcsum.h"
 #include "deskman.h"

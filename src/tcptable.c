@@ -17,7 +17,8 @@ details.
 
 ***/
 
-#include <winops.h>
+#include "iptraf-ng-compat.h"
+
 #include "options.h"
 #include "tcptable.h"
 #include "deskman.h"

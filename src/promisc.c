@@ -21,19 +21,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <linux/if_ether.h>
+#include "iptraf-ng-compat.h"
+
 #include "ifstats.h"
 #include "ifaces.h"
 #include "error.h"

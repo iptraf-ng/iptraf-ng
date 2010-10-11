@@ -17,18 +17,8 @@ details.
 
 ***/
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <fcntl.h>
-#include <string.h>
-#include <linux/types.h>
-#include <linux/if_packet.h>
+#include "iptraf-ng-compat.h"
+
 #include "links.h"
 #include "error.h"
 

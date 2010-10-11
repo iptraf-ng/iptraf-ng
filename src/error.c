@@ -18,10 +18,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <winops.h>
-#include <msgboxes.h>
+#include "iptraf-ng-compat.h"
+
 #include "deskman.h"
 #include "attrs.h"
 #include "error.h"

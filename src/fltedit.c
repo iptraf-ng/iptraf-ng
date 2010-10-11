@@ -16,24 +16,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <time.h>
-#include <menurt.h>
-#include <winops.h>
-#include <labels.h>
-#include <msgboxes.h>
+#include "iptraf-ng-compat.h"
+
 #include "fltdefs.h"
 #include "fltmgr.h"
 #include "ipfilter.h"

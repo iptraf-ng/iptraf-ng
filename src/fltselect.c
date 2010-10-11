@@ -18,6 +18,9 @@ details.
 			
 ***/
 
+#include "iptraf-ng-compat.h"
+
+/*
 #include <curses.h>
 #include <panel.h>
 #include <unistd.h>
@@ -30,6 +33,7 @@ details.
 #include <winops.h>
 #include <menurt.h>
 #include <msgboxes.h>
+*/
 #include "addproto.h"
 #include "dirs.h"
 #include "fltdefs.h"

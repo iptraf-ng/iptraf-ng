@@ -23,17 +23,9 @@ See the GNU General Public License in the included COPYING file for
 details.
 
 ***/
+#include "iptraf-ng-compat.h"
 
-#include <asm/types.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/udp.h>
-#include <netinet/tcp.h>
 #include "ipfrag.h"
-
 #include "xfuncs.h"
 
 static struct fragent *fraglist = NULL;

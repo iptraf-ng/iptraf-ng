@@ -9,7 +9,9 @@
  *      IP header checksum calculation algorithm.
  */
 
-#include <sys/types.h>
+
+// move it to iptraf-ng-compat?
+#include "iptraf-ng-compat.h"
 
 int in_cksum(u_short * addr, int len)
 {

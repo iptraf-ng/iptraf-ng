@@ -17,19 +17,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <unistd.h>
-#include <string.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <linux/if_ether.h>
-#include <linux/if_packet.h>
-#include <winops.h>
+#include "iptraf-ng-compat.h"
+
 #include "attrs.h"
 #include "dirs.h"
 #include "fltdefs.h"

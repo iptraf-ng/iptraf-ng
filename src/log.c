@@ -17,15 +17,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <time.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <linux/if_ether.h>
-#include <net/if_arp.h>
-#include <input.h>
-#include <msgboxes.h>
+#include "iptraf-ng-compat.h"
+
 #include "attrs.h"
 #include "deskman.h"
 #include "dirs.h"

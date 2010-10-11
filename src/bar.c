@@ -14,10 +14,8 @@
  * and accumulator are also reset.
  */
 
-#include <curses.h>
-#include <time.h>
-#include <string.h>
-#include <winops.h>
+#include "iptraf-ng-compat.h"
+
 #include "attrs.h"
 
 void set_barptr(void **barptr, void *entry,

@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "xfuncs.h"
 
-
-
 //#define NORETURN __attribute__ ((noreturn))
 static void die_out_of_memory()
 {

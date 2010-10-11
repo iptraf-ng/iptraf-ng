@@ -15,32 +15,8 @@ See the GNU General Public License in the included COPYING file for
 details.
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <unistd.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <linux/types.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <net/if_arp.h>
-#include <linux/if_packet.h>
-#include <net/if.h>
-#include <netinet/ip.h>
-#include <netinet/ip6.h>
-#include <netinet/tcp.h>
-#include <netinet/udp.h>
-#include <linux/if_ether.h>
-#include <winops.h>
-#include <labels.h>
-#include <listbox.h>
-#include <msgboxes.h>
+#include "iptraf-ng-compat.h"
+
 #include "ifstats.h"
 #include "ifaces.h"
 #include "isdntab.h"

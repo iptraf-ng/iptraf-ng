@@ -16,13 +16,8 @@ details.
 
 ***/
 
-#include <netinet/ip6.h>
-#include <netinet/icmp6.h>
-#include <asm/types.h>
-#include <linux/if_ether.h>
-#include <linux/if_tr.h>
-#include <linux/if_fddi.h>
-#include <winops.h>
+#include "iptraf-ng-compat.h"
+
 #include "arphdr.h"
 #include "options.h"
 #include "tcptable.h"

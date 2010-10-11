@@ -23,23 +23,8 @@ details.
 
 #define MAIN_MODULE
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <curses.h>
-#include <panel.h>
-#include <signal.h>
-#include <string.h>
-#include <locale.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <errno.h>
-#include <menurt.h>
-#include <winops.h>
-#include <msgboxes.h>
+#include "iptraf-ng-compat.h"
+
 #include "dirs.h"
 #include "deskman.h"
 #include "fltdefs.h"

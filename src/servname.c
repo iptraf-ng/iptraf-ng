@@ -17,10 +17,7 @@ details.
 
 ***/
 
-#include <netdb.h>
-#include <stdio.h>
-#include <string.h>
-#include <netinet/in.h>
+#include "iptraf-ng-compat.h"
 
 void servlook(int servnames, unsigned int port, unsigned int protocol,
               char *target, int maxlen)

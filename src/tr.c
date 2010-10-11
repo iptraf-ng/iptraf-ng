@@ -6,9 +6,7 @@
  * Copyright (c) Gerard Paul Java 2002
  */
 
-#include <netinet/in.h>
-#include <asm/types.h>
-#include <linux/if_tr.h>
+#include "iptraf-ng-compat.h"
 
 unsigned int get_tr_ip_offset(unsigned char *pkt)
 {

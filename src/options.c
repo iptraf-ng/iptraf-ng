@@ -16,16 +16,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <winops.h>
-#include <menurt.h>
-#include <input.h>
-#include <msgboxes.h>
+#include "iptraf-ng-compat.h"
+
 #include "links.h"
 #include "serv.h"
 #include "options.h"

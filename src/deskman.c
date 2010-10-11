@@ -17,13 +17,8 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <stdlib.h>
-#include <panel.h>
-#include <string.h>
-#include <labels.h>
-#include <winops.h>
-#include <msgboxes.h>
+#include "iptraf-ng-compat.h"
+
 #include "deskman.h"
 
 #include "config.h"

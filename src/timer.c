@@ -19,8 +19,7 @@ details.
 
 ***/
 
-#include <curses.h>
-#include <time.h>
+#include "iptraf-ng-compat.h"
 
 void printelapsedtime(time_t start, time_t now, int y, int x, WINDOW * win)
 {
