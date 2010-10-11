@@ -4,6 +4,7 @@
 #define NORETURN __attribute__ ((noreturn))
 static NORETURN void die_out_of_memory()
 {
+    fprintf(stderr, "fatal: out of memory\n");
     exit(EXIT_FAILURE);
 }
 

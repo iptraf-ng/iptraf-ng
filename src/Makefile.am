@@ -3,7 +3,7 @@ bin_PROGRAMS = iptraf rvnamed rawtime
 iptraf_SOURCES = \
     iptraf.c \
     itrafmon.c \
-    xfuncs.c \
+    wrapper.c \
     packet.c packet.h \
     tcptable.c tcptable.h \
     othptab.c othptab.h \
