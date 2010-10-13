@@ -72,7 +72,6 @@ CFLAGS="$CFLAGS -Wall -std=gnu99 -pedantic"
 
 AC_CONFIG_FILES([
     Makefile
-    support/Makefile
     src/Makefile
 ])
 
