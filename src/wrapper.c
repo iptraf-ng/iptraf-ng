@@ -1,3 +1,5 @@
+
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,4 +19,31 @@ void *xmalloc(size_t size)
     return ptr;
 }
 
+void *xcalloc(size_t nmemb, size_t size)
+{
+    void *ptr = calloc(nmemb, size);
+    if (!ptr && (!nmemb || !size))
+        die_out_of_memory();
+    return ptr;
+}
+
+void *xrealloc(void *ptr, size_t size)
+{
+    void *ret = realloc(ptr, size);
+    if (!ret && !size)
+        die_out_of_memory();
+    return ptr;
+}
+
+char* xvasprintf(const char *format, va_list p)
+{
+    int r;
+    char *string_ptr;
+
+    // GNU extension
+    r = vasprintf(&string_ptr, format, p);
+    if (r < 0)
+        die_out_of_memory();
+    return string_ptr;
+}
 

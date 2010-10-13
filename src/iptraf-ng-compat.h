@@ -65,5 +65,8 @@
 //#include "txbox.h"
 
 extern void *xmalloc(size_t size);
+extern void *xcalloc(size_t nmemb, size_t size);
+extern void *xrealloc(void *ptr, size_t size);
+extern char* xvasprintf(const char *format, va_list p);
 
 #endif
