@@ -1,7 +1,6 @@
 
 #define _GNU_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
+#include "iptraf-ng-compat.h"
 
 #define NORETURN __attribute__ ((noreturn))
 static NORETURN void die_out_of_memory()
@@ -32,7 +31,7 @@ void *xrealloc(void *ptr, size_t size)
     void *ret = realloc(ptr, size);
     if (!ret && !size)
         die_out_of_memory();
-    return ptr;
+    return ret;
 }
 
 char* xvasprintf(const char *format, va_list p)
