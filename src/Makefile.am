@@ -14,6 +14,7 @@ SUPPORT_C_H += ../support/winops.c ../support/winops.h
 SUPPORT_C_H += ../support/textbox.h
 
 iptraf_SOURCES = \
+    usage.c \
     iptraf.c \
     itrafmon.c \
     wrapper.c \
