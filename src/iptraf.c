@@ -108,34 +108,6 @@ void remove_sockets(void)
 }
 
 /*
- * Handlers for the TERM signal and HUP signals.  There's nothing we can do
- * for the KILL.
- */
-
-void term_signal_handler(int signo)
-{
-    erase();
-    refresh();
-    endwin();
-
-    if (signo != SIGHUP)
-        fprintf(stderr, "IPTraf process %u exiting on signal %d\n\n",
-                getpid(), signo);
-
-    if (active_facility_lockfile[0] != '\0') {
-        unlink(active_facility_lockfile);
-        adjust_instance_count(PROCCOUNTFILE, -1);
-        if (active_facility_countfile[0] != '\0')
-            adjust_instance_count(active_facility_countfile, -1);
-    }
-
-    if (is_first_instance)
-        unlink(IPTIDFILE);
-
-    exit(1);
-}
-
-/*
  * USR2 handler.  Used to normally exit a daemonized facility.
  */
 
@@ -501,8 +473,6 @@ int main(int argc, char **argv)
 
     mark_first_instance();
 
-    signal(SIGTERM, term_signal_handler);
-    signal(SIGHUP, term_signal_handler);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGINT, SIG_IGN);
     signal(SIGUSR1, SIG_IGN);
