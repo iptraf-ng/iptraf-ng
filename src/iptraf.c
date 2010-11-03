@@ -141,48 +141,6 @@ void term_signal_handler(int signo)
     exit(1);
 }
 
-/* 
- * Handler for the SIGSEGV, Segmentation Fault.  Tries to clear the screen
- * and issue a better message than "Segmentation fault".  May not always
- * clean up properly.
- */
-
-void segvhandler()
-{
-    erase();
-    refresh();
-    endwin();
-    fprintf(stderr, "Fatal: memory allocation error\n\n");
-    fprintf(stderr,
-            "If you suspect a bug, please report the exact circumstances under which this\n");
-    fprintf(stderr,
-            "error was generated.  If possible, include gdb or strace data which may point\n");
-    fprintf(stderr,
-            "out where the error occured.  Bug reports may be sent in to iptraf@seul.org.\n\n");
-    fprintf(stderr,
-            "An attempt will be made to clear all lock files, but if stale lock files\n");
-    fprintf(stderr,
-            "remain, exit all other instances of IPTraf and restart with the -f\n");
-    fprintf(stderr, "command-line parameter.\n\n");
-    fprintf(stderr, "IPTraf process %u aborting on signal 11.\n\n",
-            getpid());
-
-    if (active_facility_lockfile[0] != '\0')
-        unlink(active_facility_lockfile);
-
-    if (is_first_instance)
-        unlink(IPTIDFILE);
-
-    if (active_facility_lockfile[0] != '\0') {
-        unlink(active_facility_lockfile);
-        adjust_instance_count(PROCCOUNTFILE, -1);
-        if (active_facility_countfile[0] != '\0')
-            adjust_instance_count(active_facility_countfile, -1);
-    }
-
-    exit(2);
-}
-
 /*
  * USR2 handler.  Used to normally exit a daemonized facility.
  */
@@ -551,7 +509,6 @@ int main(int argc, char **argv)
 
     signal(SIGTERM, term_signal_handler);
     signal(SIGHUP, term_signal_handler);
-    signal(SIGSEGV, segvhandler);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGINT, SIG_IGN);
     signal(SIGUSR1, SIG_IGN);
