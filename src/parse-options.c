@@ -32,7 +32,7 @@ static int parse_opt_size(const struct options *opt)
 #define USAGE_OPTS_WIDTH 24
 #define USAGE_GAP         2
 
-void parse_usage_and_die(const char * const * usage, const struct options *opt)
+void NORETURN parse_usage_and_die(const char * const * usage, const struct options *opt)
 {
 	fprintf(stderr, "usage: %s\n", *usage++);
 
@@ -78,8 +78,7 @@ void parse_usage_and_die(const char * const * usage, const struct options *opt)
 	exit(1);
 }
 
-static int get_value(const struct options *opt, const char *optarg,
-		     const char * const usage[])
+static int get_value(const struct options *opt)
 {
 	char *s = NULL;
 
@@ -159,7 +158,7 @@ void parse_opts(int argc, char **argv, const struct options *opt,
 				continue;
 
 			/* for now it fails only when string is badly converted */
-			if (get_value(curopt, optarg, usage) < 0)
+			if (get_value(curopt) < 0)
 				parse_usage_and_die(usage, opt);
 		}
 	}
