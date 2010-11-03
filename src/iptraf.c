@@ -414,13 +414,8 @@ int main(int argc, char **argv)
     int current_log_interval = 0;
 
 #ifndef ALLOWUSERS
-    if (geteuid() != 0) {
-        fprintf(stderr, "\nIPTraf Version %s\n", VERSION);
-        fprintf(stderr, "Copyright (c) Gerard Paul Java 1997-2004l\n\n");
-        fprintf(stderr,
-                "This program can be run only by the system administrator\n\n");
-        exit(1);
-    }
+    if (geteuid() != 0)
+            die("This program can be run only by the system administrator");
 #endif
 
     /*
@@ -489,11 +484,9 @@ int main(int argc, char **argv)
 
     is_first_instance = first_instance();
 
-    if ((getenv("TERM") == NULL) && (!daemonized)) {
-        fprintf(stderr, "Your TERM variable is not set.\n");
-        fprintf(stderr, "Please set it to an appropriate value.\n");
-        exit(1);
-    }
+    if ((getenv("TERM") == NULL) && (!daemonized))
+        die("Your TERM variable is not set.\n"
+            "Please set it to an appropriate value");
 
 #if 0  /* undocumented feature, will take care of it later */
     if (graphing_logfile[0] != '\0' && graphing_filter[0] == '\0') {
@@ -524,9 +517,7 @@ int main(int argc, char **argv)
                 options.logging = 1;
             break;
         case -1:               /* error */
-            fprintf(stderr,
-                    "\nFork error, IPTraf cannot run in background\n\n");
-            exit(1);
+            die("Fork error, iptraf-ng cannot run in background");
         default:               /* parent */
             exit(0);
         }
@@ -541,26 +532,19 @@ int main(int argc, char **argv)
     /* Check whether LOCKDIR exists (/var/run is on a tmpfs in Ubuntu) */
     if(access(LOCKDIR,F_OK) != 0)
     {
-	    if(mkdir(LOCKDIR, 0700) == -1)
-        {
-	        fprintf(stderr, "Cannot create %s: %s", LOCKDIR, strerror(errno));
-	        exit(1);
-        }
+        if(mkdir(LOCKDIR, 0700) == -1)
+            die("Cannot create %s: %s", LOCKDIR, strerror(errno));
 
-	    if(chown(LOCKDIR, 0, 0) == -1) {
-	        fprintf(stderr, "Cannot change owner of %s: %s", LOCKDIR, strerror(errno));
-	        exit(1);
-	    }
+        if(chown(LOCKDIR, 0, 0) == -1)
+	    die("Cannot change owner of %s: %s", LOCKDIR, strerror(errno));
     }
 
     initscr();
 
     if ((LINES < 24) || (COLS < 80)) {
         endwin();
-        fprintf(stderr,
-                "\nThis program requires a screen size of at least 80 columns by 24 lines\n");
-        fprintf(stderr, "Please resize your window\n\n");
-        exit(1);
+        die("This program requires a screen size of at least 80 columns by 24 lines\n"
+            "Please resize your window");
     }
 
     mark_first_instance();
