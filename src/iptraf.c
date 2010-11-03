@@ -31,18 +31,12 @@ details.
 #include "fltselect.h"
 #include "fltmgr.h"
 #include "fltedit.h"
-#include "ifstats.h"
 #include "serv.h"
 #include "options.h"
-#include "promisc.h"
 #include "externs.h"
-#include "instances.h"
-#include "tcptable.h"
-#include "log.h"
 #include "attrs.h"
 #include "rvnamed.h"
 #include "logvars.h"
-#include "getpath.h"
 
 #include "parse-options.h"
 
