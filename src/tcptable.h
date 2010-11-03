@@ -6,31 +6,6 @@
 
 ***/
 
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <curses.h>
-#include <panel.h>
-#include <netdb.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <net/if_arp.h>
-#include <asm/types.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>
-#include <linux/if_fddi.h>
-#include <linux/if_tr.h>
-#include <net/if.h>
-#include <netinet/ip.h>
-#include <netinet/udp.h>
-#include <netinet/tcp.h>
-#include "servname.h"
-#include "links.h"
-
 #define max(a, b) (( a > b) ? a : b)
 
 #define FLAG_SYN	1

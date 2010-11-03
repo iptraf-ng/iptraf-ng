@@ -26,6 +26,8 @@ details.
 #include "log.h"
 #include "revname.h"
 #include "rvnamed.h"
+#include "servname.h"
+#include "links.h"
 
 #define MSGSTRING_MAX	320
 
