@@ -6,21 +6,6 @@ Copyright (c) Gerard Paul Java 1997
 
 ***/
 
-#include <malloc.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netinet/ip_icmp.h>
-#include <netinet/udp.h>
-#include <curses.h>
-#include <panel.h>
-#include <netdb.h>
-#include <linux/if_ether.h>
-#include "servname.h"
-#include "addproto.h"
-
 #define NONIP -1
 #define IS_IP 1
 #define NOT_IP 0

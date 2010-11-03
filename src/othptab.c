@@ -28,6 +28,8 @@ details.
 #include "revname.h"
 #include "rvnamed.h"
 #include "links.h"
+#include "servname.h"
+#include "addproto.h"
 
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
