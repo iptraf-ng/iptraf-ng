@@ -59,7 +59,6 @@ int ICMPV6ATTR;
 
 void draw_desktop(void)
 {
-    int row;                    /* counter for desktop construction */
     char sp_buf[10];
 
     sprintf(sp_buf, "%%%dc", COLS);
@@ -72,7 +71,7 @@ void draw_desktop(void)
 
     attrset(FIELDATTR);
 
-    for (row = 1; row <= LINES - 2; row++) {    /* draw the background */
+    for (int row = 1; row <= LINES - 2; row++) {    /* draw the background */
         move(row, 0);
         printw(sp_buf, ' ');
     }
@@ -80,6 +79,19 @@ void draw_desktop(void)
     refresh();
 }
 
+void tui_top_panel(WINDOW *win, const char *fmt, ...)
+{
+	va_list params;
+
+	attrset(STATUSBARATTR);
+
+	va_start(params, fmt);
+	move(0, 1);
+	vwprintw(win, fmt, params);
+	va_end(params);
+}
+
+#if 0 /* unused */
 void about()
 {
     WINDOW *win;
@@ -127,6 +139,7 @@ void about()
     update_panels();
     doupdate();
 }
+#endif
 
 void show_sort_statwin(WINDOW ** statwin, PANEL ** panel)
 {
@@ -139,12 +152,6 @@ void show_sort_statwin(WINDOW ** statwin, PANEL ** panel)
 
     wattrset(*statwin, STDATTR);
     mvwprintw(*statwin, 2, 2, "Sorting, please wait...");
-}
-
-void printnomem()
-{
-    attrset(ERRTXTATTR);
-    mvprintw(0, 68, " Memory Low ");
 }
 
 void printipcerr()

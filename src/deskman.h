@@ -6,7 +6,7 @@
  */
 
 void draw_desktop(void);
-void printnomem();
+void tui_top_panel(WINDOW *win, const char *fmt, ...);
 void printipcerr();
 void printkeyhelp(char *keytext, char *desc, WINDOW * win,
                   int highattr, int textattr);
