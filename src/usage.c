@@ -32,7 +32,7 @@ static NORETURN void die_buildin(const char *err, va_list params)
 	exit(129);
 }
 
-static NORETURN void error_buildin(const char *err, va_list params)
+static void error_buildin(const char *err, va_list params)
 {
 	vreportf("error: ", err, params);
 }

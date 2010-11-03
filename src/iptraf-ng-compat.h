@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <netdb.h>
 #include <curses.h>
+#include <assert.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -70,6 +71,12 @@
 #include "msgboxes.h"
 //#include "txbox.h"
 
+#define debug(...) \
+            do { \
+                fprintf(stderr, "%s:%s():%d:", __FILE__, __func__, __LINE__); \
+                fprintf(stderr, __VA_ARGS__); \
+                fprintf(stderr, "\n"); \
+            }while(0)
 
 #define NORETURN __attribute__((noreturn))
 
@@ -78,10 +85,38 @@ extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
 extern char* xvasprintf(const char *format, va_list p);
+extern void* xmallocz(size_t size);
 
 
 extern void die(const char *err, ...);
 extern void error(const char *err, ...);
 
+#if 0
+static inline int strtoul_ui(char const *s, int base, unsigned int *result)
+{
+    unsigned long ul;
+    char *p;
+
+    errno = 0;
+    ul = strtoul(s, &p, base);
+    if (errno || *p || p == s || (unsigned int) ul != ul)
+        return -1;
+    *result = ul;
+    return 0;
+}
+
+static inline int strtol_i(char const *s, int base, int *result)
+{
+    long ul;
+    char *p;
+
+    errno = 0;
+    ul = strtol(s, &p, base);
+    if (errno || *p || p == s || (int) ul != ul)
+        return -1;
+    *result = ul;
+    return 0;
+}
+#endif
 
 #endif

@@ -2,7 +2,6 @@
 #define _GNU_SOURCE
 #include "iptraf-ng-compat.h"
 
-#define NORETURN __attribute__ ((noreturn))
 static NORETURN void die_out_of_memory()
 {
     fprintf(stderr, "fatal: out of memory\n");
@@ -15,6 +14,13 @@ void *xmalloc(size_t size)
     void *ptr = malloc(size);
     if (ptr == NULL && size != 0)
         die_out_of_memory();
+    return ptr;
+}
+
+void* xmallocz(size_t size)
+{
+    void *ptr = xmalloc(size);
+    memset(ptr, 0, size);
     return ptr;
 }
 

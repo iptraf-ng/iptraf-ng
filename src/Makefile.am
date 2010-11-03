@@ -18,6 +18,8 @@ iptraf_SOURCES = \
     iptraf.c \
     itrafmon.c \
     wrapper.c \
+    parse-options.c parse-options.h \
+    strbuf.c strbuf.h \
     packet.c packet.h \
     tcptable.c tcptable.h \
     othptab.c othptab.h \

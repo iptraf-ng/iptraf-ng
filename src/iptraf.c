@@ -44,6 +44,7 @@ details.
 #include "logvars.h"
 #include "getpath.h"
 
+#include "parse-options.h"
 
 #include "config.h"
 
@@ -227,11 +228,6 @@ void program_interface(struct OPTIONS *options,
     char *ifptr = NULL;
     struct porttab *ports;
 
-    draw_desktop();
-
-    attrset(STATUSBARATTR);
-    mvprintw(0, 1, "IPTraf");
-
     /*
      * Load saved filter or graphing filter if specified
      */
@@ -247,41 +243,40 @@ void program_interface(struct OPTIONS *options,
 
     loadaddports(&ports);
 
-    if (opt == 0) {
-        attrset(STATUSBARATTR);
-        mvprintw(LINES - 1, 1, PLATFORM);
-        about();
+    attrset(STATUSBARATTR);
+    mvprintw(LINES - 1, 1, PLATFORM);
+    about();
 
-        tx_initmenu(&menu, 13, 35, (LINES - 14) / 2, (COLS - 35) / 2,
-                    BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
-                    DESCATTR);
+    tx_initmenu(&menu, 13, 35, (LINES - 14) / 2, (COLS - 35) / 2,
+            BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
+            DESCATTR);
 
-        tx_additem(&menu, " IP traffic ^m^onitor",
-                   "Displays current IP traffic information");
-        tx_additem(&menu, " General interface ^s^tatistics",
-                   "Displays some statistics for attached interfaces");
-        tx_additem(&menu, " ^D^etailed interface statistics",
-                   "Displays more statistics for a selected interface");
-        tx_additem(&menu, " Statistical ^b^reakdowns...",
-                   "Facilities for traffic counts by packet size or TCP/UDP port");
-        tx_additem(&menu, " ^L^AN station monitor",
-                   "Displays statistics on detected LAN stations");
-        tx_additem(&menu, NULL, NULL);
-        tx_additem(&menu, " ^F^ilters...",
-                   "Allows you to select traffic display and logging criteria");
-        tx_additem(&menu, NULL, NULL);
-        tx_additem(&menu, " C^o^nfigure...",
-                   "Set various program options");
-        tx_additem(&menu, NULL, NULL);
-        tx_additem(&menu, " E^x^it", "Exits program");
+    tx_additem(&menu, " IP traffic ^m^onitor",
+            "Displays current IP traffic information");
+    tx_additem(&menu, " General interface ^s^tatistics",
+            "Displays some statistics for attached interfaces");
+    tx_additem(&menu, " ^D^etailed interface statistics",
+            "Displays more statistics for a selected interface");
+    tx_additem(&menu, " Statistical ^b^reakdowns...",
+            "Facilities for traffic counts by packet size or TCP/UDP port");
+    tx_additem(&menu, " ^L^AN station monitor",
+            "Displays statistics on detected LAN stations");
+    tx_additem(&menu, NULL, NULL);
+    tx_additem(&menu, " ^F^ilters...",
+            "Allows you to select traffic display and logging criteria");
+    tx_additem(&menu, NULL, NULL);
+    tx_additem(&menu, " C^o^nfigure...",
+            "Set various program options");
+    tx_additem(&menu, NULL, NULL);
+    tx_additem(&menu, " E^x^it", "Exits program");
 
-        endloop = 0;
+    endloop = 0;
 
-        do {
-            tx_showmenu(&menu);
-            tx_operatemenu(&menu, &row, &aborted);
+    do {
+        tx_showmenu(&menu);
+        tx_operatemenu(&menu, &row, &aborted);
 
-            switch (row) {
+        switch (row) {
             case 1:
                 selectiface(ifname, WITHALL, &aborted);
                 if (!aborted) {
@@ -308,19 +303,19 @@ void program_interface(struct OPTIONS *options,
                 tx_operatemenu(&break_menu, &break_row, &break_aborted);
 
                 switch (break_row) {
-                case 1:
-                    selectiface(ifname, WITHOUTALL, &aborted);
-                    if (!aborted)
-                        packet_size_breakdown(options, ifname, 0,
-                                              &ofilter);
-                    break;
-                case 2:
-                    selectiface(ifname, WITHOUTALL, &aborted);
-                    if (!aborted)
-                        servmon(ifname, ports, options, 0, &ofilter);
-                    break;
-                case 4:
-                    break;
+                    case 1:
+                        selectiface(ifname, WITHOUTALL, &aborted);
+                        if (!aborted)
+                            packet_size_breakdown(options, ifname, 0,
+                                    &ofilter);
+                        break;
+                    case 2:
+                        selectiface(ifname, WITHOUTALL, &aborted);
+                        if (!aborted)
+                            servmon(ifname, ports, options, 0, &ofilter);
+                        break;
+                    case 4:
+                        break;
                 }
                 tx_destroymenu(&break_menu);
                 break;
@@ -345,99 +340,15 @@ void program_interface(struct OPTIONS *options,
             case 11:
                 endloop = 1;
                 break;
-            }
-        } while (!endloop);
-
-        tx_destroymenu(&menu);
-    } else {
-        switch (opt) {
-        case 'i':
-            if ((strcmp(optarg, ALLSPEC) == 0)
-                || (strcmp(optarg, "") == 0))
-                ifptr = NULL;
-            else
-                ifptr = optarg;
-
-            ipmon(options, &ofilter, facilitytime, ifptr);
-            break;
-        case 'g':
-            ifstats(options, &ofilter, facilitytime);
-            break;
-        case 'd':
-            detstats(optarg, options, facilitytime, &ofilter);
-            break;
-        case 's':
-            servmon(optarg, ports, options, facilitytime, &ofilter);
-            break;
-        case 'z':
-            packet_size_breakdown(options, optarg, facilitytime, &ofilter);
-            break;
-        case 'l':
-            if ((strcmp(optarg, ALLSPEC) == 0)
-                || (strcmp(optarg, "") == 0))
-                ifptr = NULL;
-            else
-                ifptr = optarg;
-
-            hostmon(options, facilitytime, ifptr, &ofilter);
-            break;
         }
-    }
+    } while (!endloop);
+
+    tx_destroymenu(&menu);
 
     destroyporttab(ports);
     erase();
     update_panels();
     doupdate();
-}
-
-
-/*
- * Command-line help facility.
- */
-
-void commandhelp()
-{
-    printf("\nSyntax:\n");
-    printf
-        ("    iptraf [ -f ] [ -u ] [ { -i iface | -g | -d iface | -s iface | -z iface |\n");
-    printf
-        ("           -l iface } [ -t timeout ] [ -B ] [ -L logfile ] [-I interval] ] \n\n");
-    printf
-        ("Issue the iptraf command with no parameters for menu-driven operation.\n");
-    printf("These options can also be supplied to the command:\n\n");
-    printf
-        ("-i iface    - start the IP traffic monitor (use \"-i all\" for all interfaces)\n");
-    printf("-g          - start the general interface statistics\n");
-    printf
-        ("-d iface    - start the detailed statistics facility on an interface\n");
-    printf
-        ("-s iface    - start the TCP and UDP monitor on an interface\n");
-    printf("-z iface    - shows the packet size counts on an interface\n");
-    printf
-        ("-l iface    - start the LAN station monitor (\"-l all\" for all LAN interfaces)\n");
-    printf
-        ("-B          - run in background (use only with one of the above parameters)\n");
-    printf
-        ("-t timeout  - when used with one of the above parameters, tells\n");
-    printf
-        ("              the facility to run only for the specified number of\n");
-    printf("              minutes (timeout)\n");
-    printf
-        ("-L logfile  - specifies an alternate log file for any direct invocation\n");
-    printf
-        ("              of a facility from the command line.  The log is placed in\n");
-    printf("              %s if path is not specified.\n", LOGDIR);
-    printf
-        ("-I interval - specifies the log interval for all facilities except the IP\n");
-    printf("              traffic monitor.  Value is in minutes.\n");
-    printf
-        ("-f          - clear all locks and counters.  Use with great caution.\n");
-    printf
-        ("              Normally used to recover from an abnormal termination.\n\n");
-    printf
-        ("-u          - allow use of unsupported interfaces as ethernet devices.\n");
-    printf("IPTraf %s Copyright (c) Gerard Paul Java 1997-2004\n",
-           VERSION);
 }
 
 int first_instance()
@@ -467,17 +378,39 @@ void mark_first_instance()
     close(fd);
 }
 
-/*
- * Main routine
- */
+static const char * const iptraf_ng_usage[] = {
+    "iptraf-ng [options]",
+    "iptraf-ng [options] -B [-i <iface> | -d <iface> | -s <iface> | -z <iface> | -l <iface> | -g]",
+    NULL
+};
+
+static int help_opt, f_opt, g_opt, facilitytime, B_opt, I_opt;
+static char *i_opt, *d_opt, *s_opt, *z_opt, *l_opt, *L_opt;
+
+static struct options iptraf_ng_options[] = {
+    OPT__HELP(&help_opt),
+    OPT_GROUP(""),
+    OPT_STRING('i', NULL, &i_opt, "iface", "start the IP traffic monitor (use '-i all' for all interfaces)"),
+    OPT_STRING('d', NULL, &d_opt, "iface", "start the detailed statistics facility on an interface"),
+    OPT_STRING('s', NULL, &s_opt, "iface", "start the TCP and UDP monitor on an interface"),
+    OPT_STRING('z', NULL, &z_opt, "iface", "shows the packet size counts on an interface"),
+    OPT_STRING('l', NULL, &l_opt, "iface", "start the LAN station monitor (use '-l all' for all LAN interfaces)"),
+    OPT_BOOL('g', NULL, &g_opt, "start the general interface statistics"),
+    OPT_GROUP(""),
+    OPT_BOOL('B', NULL, &B_opt, "run in background (use only with one of the above parameters"),
+    OPT_BOOL('f', NULL, &f_opt, "clear all locks and counters" /*. Use with great caution. Normally used to recover from an abnormal termination*/),
+    OPT_BOOL('u', NULL, &accept_unsupported_interfaces, "allow use of unsupported interfaces as ethernet devices"),
+    OPT_INTEGER('t', NULL, &facilitytime, "run only for the specified <n> number of minutes" ),
+    OPT_STRING('L', NULL, &L_opt, "logfile", "specifies an alternate log file"),
+//    OPT_INTEGER('I', NULL, &I_opt, "the log interval for all facilities except the IP traffic monitor. Value is in minutes"),
+    OPT_END()
+};
 
 int main(int argc, char **argv)
 {
     struct OPTIONS options;
-    int opt = 0;
     int command = 0;
     char keyparm[12];
-    int facilitytime = 0;
     int current_log_interval = 0;
 
 #ifndef ALLOWUSERS
@@ -490,77 +423,70 @@ int main(int argc, char **argv)
     }
 #endif
 
+    /*
+     * Parse command line
+     */
+
+    parse_opts(argc, argv, iptraf_ng_options, iptraf_ng_usage);
+
+    if (help_opt)
+        parse_usage_and_die(iptraf_ng_usage, iptraf_ng_options);
+
+    int status = 0;
+
+    status |= (i_opt) ? (1 << 0): 0;
+    status |= (d_opt) ? (1 << 1): 0;
+    status |= (s_opt) ? (1 << 2): 0;
+    status |= (z_opt) ? (1 << 3): 0;
+    status |= (l_opt) ? (1 << 4): 0;
+    status |= (g_opt) ? (1 << 5): 0;
+
+    if (__builtin_popcount(status) > 1)
+        die("only one of -i|-d|-s|-z|-l|-g options must be used");
+
     setlocale(LC_ALL, "");
 
     strcpy(current_logfile, "");
     strcpy(graphing_logfile, "");
     strcpy(graphing_filter, "");
 
-    /*
-     * Parse command line
-     */
+    if (f_opt) {
+        removetags();
+        remove_sockets();
+    }
 
-    if (argc > 1) {
-        do {
-            opterr = 0;
-            opt = getopt(argc, argv, "i:gd:s:z:l:hfqt:BL:uI:G:F:");
+    if (B_opt) {
+        if (!status)
+            die("one of -i|-d|-s|-z|-l|-g option is missing\n");
+        daemonized = 1;
+        setenv("TERM", "linux", 1);
+    }
 
-            if (opt == 'h') {
-                commandhelp();
-                exit(0);
-            } else if (opt == 'f') {
-                removetags();
-                remove_sockets();
-            } else if (opt == 't') {
-                facilitytime = atoi(optarg);
-                if (facilitytime == 0) {
-                    fprintf(stderr, "\nInvalid time value\n\n");
-                    exit(1);
-                }
-            } else if (opt == 'B') {
-                daemonized = 1;
-                setenv("TERM", "linux", 1);
-            } else if (opt == 'L') {
-                if (strchr(optarg, '/') != NULL)
-                    strncpy(current_logfile, optarg, 80);
-                else
-                    strncpy(current_logfile, get_path(T_LOGDIR, optarg),
-                            80);
-            } else if (opt == 'q') {
-                /* -q parameter now ignored, maintained for compatibility */
-            } else if (opt == 'u') {
-                accept_unsupported_interfaces = 1;
+    if (L_opt) {
+        if (strchr(L_opt, '/') != NULL)
+            strncpy(current_logfile, L_opt, 80);
+        else
+            strncpy(current_logfile, get_path(T_LOGDIR, L_opt), 80);
+    }
+
+#if 0  /* this could never work */
+/* origin
             } else if (opt == 'I') {
+		    //this could never work
                 current_log_interval = atoi(optarg);
                 if (current_log_interval == 0)
                     fprintf(stderr, "Invalid log interval value\n");
 
                 exit(1);
             } else if (opt == 'G') {
-                if (strchr(optarg, '/') != NULL)
-                    strncpy(graphing_logfile, optarg, 80);
-                else
-                    strncpy(graphing_logfile, get_path(T_LOGDIR, optarg),
-                            80);
+*/
+    if (I_opt == 0) {
+	    fprintf(stderr, "fatal: Invalid log interval value\n");
+	    exit(1);
+    } else
+	current_log_interval = I_opt;
+#endif
 
-                daemonized = 1;
-            } else if (opt == 'F') {
-                strncpy(graphing_filter, optarg, 80);
-            } else if (opt == '?') {
-                fprintf(stderr,
-                        "\nInvalid option or missing parameter, use iptraf -h for help\n\n");
-                exit(1);
-            } else if (opt != -1) {
-                if (optarg != 0) {
-                    bzero(keyparm, 12);
-                    strncpy(keyparm, optarg, 11);
-                } else
-                    strcpy(keyparm, "");
-
-                command = opt;
-            }
-        } while ((opt != '?') && (opt != -1));
-    }
     is_first_instance = first_instance();
 
     if ((getenv("TERM") == NULL) && (!daemonized)) {
@@ -569,11 +495,12 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+#if 0  /* undocumented feature, will take care of it later */
     if (graphing_logfile[0] != '\0' && graphing_filter[0] == '\0') {
         fprintf(stderr, "Specify an IP filter name with -F\n");
         exit(1);
     }
-
+#endif
     loadoptions(&options);
 
     /*
@@ -675,7 +602,52 @@ int main(int argc, char **argv)
         }
     }
 
-    program_interface(&options, command, keyparm, facilitytime);
+    struct filterstate ofilter;
+    struct ffnode *fltfiles;
+    struct porttab *ports;
+
+    loadaddports(&ports);
+    /*
+     * Load saved filter or graphing filter if specified
+     */
+    if (graphing_logfile[0] != '\0') {
+        loadfilterlist(&fltfiles);
+        memset(&ofilter, 0, sizeof(struct filterstate));
+        loadfilter(pickfilterbyname(fltfiles, graphing_filter),
+                   &(ofilter.fl), FLT_RESOLVE);
+    } else {
+        loadfilters(&ofilter);
+        indicate("");
+    }
+
+    /* bad, bad, bad name draw_desktop()
+     * hide all into tui_top_panel(char *msg)
+     * */
+    draw_desktop();
+    attrset(STATUSBARATTR);
+    mvprintw(0, 1, "iptraf-ng");
+
+    /* simplify */
+    if (g_opt)
+        ifstats(&options, &ofilter, facilitytime);
+    else if (i_opt)
+        if (strcmp(i_opt, "all") == 0)
+            ipmon(&options, &ofilter, facilitytime, NULL);
+        else
+            ipmon(&options, &ofilter, facilitytime, i_opt);
+    else if (l_opt)
+        if (strcmp(l_opt, "all") == 0)
+            hostmon(&options, facilitytime, NULL, &ofilter);
+        else
+            hostmon(&options, facilitytime, l_opt, &ofilter);
+    else if (d_opt)
+        detstats(d_opt, &options, facilitytime, &ofilter);
+    else if (s_opt)
+        servmon(s_opt, ports, &options, facilitytime, &ofilter);
+    else if (z_opt)
+        packet_size_breakdown(&options, z_opt, facilitytime, &ofilter);
+    else
+        program_interface(&options, command, keyparm, facilitytime);
 
     endwin();
 
