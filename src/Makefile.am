@@ -1,60 +1,115 @@
 bin_PROGRAMS = iptraf rvnamed rawtime
 
 NULL =
-SUPPORT_C_H =
+SUPPORT_C =
+SUPPORT_H =
+LIB_H =
+LIB_C =
 
+SUPPORT_H += ../support/input.h
+SUPPORT_H += ../support/labels.h
+SUPPORT_H += ../support/listbox.h
+SUPPORT_H += ../support/menurt.h
+SUPPORT_H += ../support/msgboxes.h
+SUPPORT_H += ../support/txbox.h
+SUPPORT_H += ../support/winops.h
+SUPPORT_H += ../support/textbox.h
 
-SUPPORT_C_H += ../support/input.c ../support/input.h
-SUPPORT_C_H += ../support/labels.c ../support/labels.h
-SUPPORT_C_H += ../support/listbox.c ../support/listbox.h
-SUPPORT_C_H += ../support/menurt.c ../support/menurt.h
-SUPPORT_C_H += ../support/msgboxes.c ../support/msgboxes.h
-SUPPORT_C_H += ../support/txbox.c ../support/txbox.h
-SUPPORT_C_H += ../support/winops.c ../support/winops.h
-SUPPORT_C_H += ../support/textbox.h
+SUPPORT_C += ../support/input.c
+SUPPORT_C += ../support/labels.c
+SUPPORT_C += ../support/listbox.c
+SUPPORT_C += ../support/menurt.c
+SUPPORT_C += ../support/msgboxes.c
+SUPPORT_C += ../support/txbox.c
+SUPPORT_C += ../support/winops.c
+
+LIB_H += iptraf-ng-compat.h
+LIB_H += parse-options.h
+LIB_H += strbuf.h
+LIB_H += packet.h
+LIB_H += tcptable.h
+LIB_H += othptab.h
+LIB_H += ifstats.h
+LIB_H += deskman.h
+LIB_H += ipcsum.h
+LIB_H += hostmon.h
+LIB_H += fltedit.h
+LIB_H += cidr.h
+LIB_H += fltselect.h
+LIB_H += ipfilter.h
+LIB_H += fltmgr.h
+LIB_H += ipfrag.h
+LIB_H += serv.h
+LIB_H += servname.h
+LIB_H += instances.h
+LIB_H += timer.h
+LIB_H += ifaces.h
+LIB_H += error.h
+LIB_H += revname.h
+LIB_H += log.h
+LIB_H += pktsize.h
+LIB_H += mode.h
+LIB_H += landesc.h
+LIB_H += dirs.h
+LIB_H += getpath.h
+LIB_H += isdntab.h
+LIB_H += bar.h
+LIB_H += options.h
+LIB_H += promisc.h
+LIB_H += parseproto.h
+LIB_H += addproto.h
+LIB_H += links.h
+LIB_H += tcptimeout.h
+LIB_H += arphdr.h
+LIB_H += descrec.h
+LIB_H += externs.h
+LIB_H += ospf.h
+LIB_H += attrs.h
+LIB_H += fltdefs.h
+LIB_H += logvars.h
+LIB_H += tr.h
+
+LIB_C += error.c
+LIB_C += log.c
+LIB_C += mode.c
+LIB_C += getpath.c
+LIB_C += bar.c
+LIB_C += parseproto.c
+LIB_C += fltselect.c
+LIB_C += ipfilter.c
+LIB_C += fltmgr.c
+LIB_C += ipfrag.c
+LIB_C += serv.c
+LIB_C += servname.c
+LIB_C += instances.c
+LIB_C += timer.c
+LIB_C += revname.c
+LIB_C += pktsize.c
+LIB_C += landesc.c
+LIB_C += isdntab.c
+LIB_C += options.c
+LIB_C += promisc.c
+LIB_C += ifaces.c
+LIB_C += usage.c
+LIB_C += iptraf.c
+LIB_C += itrafmon.c
+LIB_C += wrapper.c
+LIB_C += parse-options.c
+LIB_C += strbuf.c
+LIB_C += packet.c
+LIB_C += tcptable.c
+LIB_C += othptab.c
+LIB_C += ifstats.c
+LIB_C += deskman.c
+LIB_C += ipcsum.c
+LIB_C += hostmon.c
+LIB_C += fltedit.c
+LIB_C += tr.c
+LIB_C += cidr.c
 
 iptraf_SOURCES = \
-    usage.c \
-    iptraf.c \
-    itrafmon.c \
-    wrapper.c \
-    parse-options.c parse-options.h \
-    strbuf.c strbuf.h \
-    packet.c packet.h \
-    tcptable.c tcptable.h \
-    othptab.c othptab.h \
-    ifstats.c ifstats.h \
-    deskman.c deskman.h \
-    ipcsum.c ipcsum.h \
-    hostmon.c hostmon.h \
-    fltedit.c fltedit.h \
-    tr.c tr.h \
-    cidr.c cidr.h \
-    fltselect.c	fltselect.h \
-    ipfilter.c ipfilter.h \
-    fltmgr.c fltmgr.h \
-    ipfrag.c ipfrag.h \
-    serv.c serv.h \
-    servname.c servname.h \
-    instances.c instances.h \
-    timer.c timer.h \
-    revname.c revname.h	\
-    pktsize.c pktsize.h	\
-    landesc.c landesc.h	\
-    isdntab.c isdntab.h	\
-    options.c options.h	\
-    promisc.c promisc.h	\
-    ifaces.c ifaces.h \
-    error.c error.h \
-    log.c log.h	\
-    mode.c mode.h \
-    getpath.c dirs.h getpath.h \
-    bar.c bar.h	\
-    parseproto.c parseproto.h \
-    addproto.h links.h tcptimeout.h \
-    arphdr.h descrec.h  externs.h \
-    ospf.h attrs.h fltdefs.h logvars.h \
-    $(SUPPORT_C_H)
+    $(SUPPORT_C) $(SUPPORT_H) \
+    $(LIB_C) $(LIB_H) \
     $(NULL)
 
 iptraf_CFLAGS =	-I$(srcdir)/../support
