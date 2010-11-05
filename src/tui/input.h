@@ -9,7 +9,6 @@ Copyright (c) Gerard Paul Java 1997
 
 #include <string.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include "winops.h"
 
 #define CTRL_X 24
