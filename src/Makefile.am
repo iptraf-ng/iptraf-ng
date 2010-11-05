@@ -1,27 +1,27 @@
 bin_PROGRAMS = iptraf rvnamed rawtime
 
 NULL =
-SUPPORT_C =
-SUPPORT_H =
+TUI_C =
+TUI_H =
 LIB_H =
 LIB_C =
 
-SUPPORT_H += ../support/input.h
-SUPPORT_H += ../support/labels.h
-SUPPORT_H += ../support/listbox.h
-SUPPORT_H += ../support/menurt.h
-SUPPORT_H += ../support/msgboxes.h
-SUPPORT_H += ../support/txbox.h
-SUPPORT_H += ../support/winops.h
-SUPPORT_H += ../support/textbox.h
+TUI_H += tui/input.h
+TUI_H += tui/labels.h
+TUI_H += tui/listbox.h
+TUI_H += tui/menurt.h
+TUI_H += tui/msgboxes.h
+TUI_H += tui/txbox.h
+TUI_H += tui/winops.h
+TUI_H += tui/textbox.h
 
-SUPPORT_C += ../support/input.c
-SUPPORT_C += ../support/labels.c
-SUPPORT_C += ../support/listbox.c
-SUPPORT_C += ../support/menurt.c
-SUPPORT_C += ../support/msgboxes.c
-SUPPORT_C += ../support/txbox.c
-SUPPORT_C += ../support/winops.c
+TUI_C += tui/input.c
+TUI_C += tui/labels.c
+TUI_C += tui/listbox.c
+TUI_C += tui/menurt.c
+TUI_C += tui/msgboxes.c
+TUI_C += tui/txbox.c
+TUI_C += tui/winops.c
 
 LIB_H += iptraf-ng-compat.h
 LIB_H += parse-options.h
@@ -108,17 +108,17 @@ LIB_C += tr.c
 LIB_C += cidr.c
 
 iptraf_SOURCES = \
-    $(SUPPORT_C) $(SUPPORT_H) \
+    $(TUI_C) $(TUI_H) \
     $(LIB_C) $(LIB_H) \
     $(NULL)
 
-iptraf_CFLAGS =	-I$(srcdir)/../support
+iptraf_CFLAGS =	-I$(srcdir)/tui
 iptraf_LDFLAGS = -l$(ncurses_lib) -l$(panel_lib)
 
 man_MANS = iptraf.8 rvnamed.8
 
 rvnamed_SOURCES = rvnamed.c rvnamed.h getpath.c dirs.h getpath.h
-rvnamed_CFLAGS = -I$(srcdir)/../support
+rvnamed_CFLAGS = -I$(srcdir)/tui
 
 rawtime_SOURCES = rawtime.c
 
