@@ -2,6 +2,8 @@ SUBDIRS = src
 
 EXTRA_DIST = Documentation CHANGES FAQ LICENSE RELEASE-NOTES
 
+ACLOCAL_AMFLAGS=-I m4
+
 RPM_DIRS = --define "_sourcedir `pwd`" \
 	   --define "_rpmdir `pwd`" \
 	   --define "_specdir `pwd`" \

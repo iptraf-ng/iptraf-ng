@@ -5,7 +5,8 @@ dnl checks for system type
 AC_CANONICAL_SYSTEM
 AC_DEFINE_UNQUOTED([PLATFORM], "${host}", [Define to platform])
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AC_CONFIG_MACRO_DIR([m4])
+
 AC_PROG_CC
 AC_LANG_C
 AC_HEADER_STDC
