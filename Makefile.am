@@ -1,5 +1,7 @@
 SUBDIRS = src
 
+AM_MAKEFLAGS = -srR --no-print-directory
+
 EXTRA_DIST = Documentation CHANGES FAQ LICENSE RELEASE-NOTES
 
 ACLOCAL_AMFLAGS=-I m4
