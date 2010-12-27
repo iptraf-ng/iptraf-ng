@@ -1,16 +1,34 @@
-\#*
+# NOTE! Please use 'git ls-files -i --exclude-standard'
+# command after changing this file, to see if there are
+# any tracked files which get ignored after the change.
+
+# normal rules
+.*
 *.o
 *.lo
 *.la
-*~
-.*.swp
-*/.deps/
-*/.libs/
-cscope.out
+
+# ignore binaries
 src/iptraf
 src/rawtime
 src/rvnamed
-support/libtextbox.a
+
+# don't ignore git files
+!.gitignore
+
+# gnu global files
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+
+# cscope files
+cscope.*
+ncscope.*
+
+# autotools
+*/.deps/
+*/.libs/
 Makefile
 Makefile.in
 m4/
@@ -32,3 +50,7 @@ install-sh
 libtool
 ltmain.sh
 stamp-h1
+
+# misc
+*~
+\#*#
