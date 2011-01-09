@@ -111,7 +111,7 @@ iptraf_SOURCES = \
     $(NULL)
 
 iptraf_CFLAGS =	-I$(srcdir)/tui
-iptraf_LDFLAGS = -l$(ncurses_lib) -l$(panel_lib)
+iptraf_LDFLAGS = $(libncurses_LIBS) $(libpanel_LIBS)
 
 man_MANS = iptraf.8 rvnamed.8
 

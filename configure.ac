@@ -15,21 +15,28 @@ AC_LANG_C
 AC_HEADER_STDC
 
 dnl checks for libraries ncursesw/ncurses
-AC_CHECK_LIB(ncursesw, initscr, [ ncurses_lib="ncursesw" ])
-if test -z "${ncurses_lib}"; then
-    AC_CHECK_LIB(ncurses, initscr, [ ncurses_lib="ncurses" ])
-fi
-if test -z "${ncurses_lib}"; then
-    AC_MSG_ERROR(At least one of ncursesw/ncurses library must be present)
-fi
-
-AC_CHECK_LIB(panel, update_panels, [ panel_lib="panel" ])
-if test -z "${panel_lib}"; then
-    AC_MSG_ERROR(panel library must be present)
-fi
-
-AC_SUBST([ncurses_lib])
-AC_SUBST([panel_lib])
+AC_PATH_PROGS([ncurses_config],
+	[ncursesw6-config ncursesw5-config ncurses6-config ncurses5-config])
+if test -n "$ncurses_config"; then
+	libncurses_CFLAGS=$("$ncurses_config" --cflags);
+	libncurses_LIBS=$("$ncurses_config" --libs);
+else
+	AC_CHECK_LIB([ncursesw], [initscr], [ncurses_LIBS="-lncursesw"])
+	if test -z "$ncurses_LIBS"; then
+		AC_CHECK_LIB([ncurses], [initscr], [ncurses_LIBS="-lncurses"])
+	fi
+	if test -z "$ncurses_LIBS"; then
+		AC_MSG_ERROR([At least one of ncursesw/ncurses library must be present])
+	fi;
+fi;
+if echo "$ncurses_LIBS" | grep -q cursesw; then
+	libpanel_LIBS="-lpanelw";
+else
+	libpanel_LIBS="-lpanel";
+fi;
+AC_SUBST([libncurses_CFLAGS])
+AC_SUBST([libncurses_LIBS])
+AC_SUBST([libpanel_LIBS])
 
 dnl checks for header files
 AC_CHECK_HEADERS([arpa/inet.h])
