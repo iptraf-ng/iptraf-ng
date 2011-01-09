@@ -32,12 +32,12 @@ void tx_colorwin(WINDOW * win)
 
     strcpy(blankpad, "");
 
-    for (ctr = 0; ctr <= win->_maxx; ctr++) {
+    for (ctr = 0; ctr <= getmaxx(win); ctr++) {
 	strcat(blankpad, " ");
     }
 
     scrollok(win, 0);
-    for (ctr = 0; ctr <= win->_maxy; ctr++) {
+    for (ctr = 0; ctr <= getmaxy(win); ctr++) {
 	wmove(win, ctr, 0);
 	wprintw(win, "%s", blankpad);
     }
