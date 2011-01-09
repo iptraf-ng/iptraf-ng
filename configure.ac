@@ -78,7 +78,8 @@ AC_CHECK_FUNCS([strtoul])
 AC_CHECK_FUNCS([mkdir])
 AC_CHECK_FUNCS([setlocale])
 
-CFLAGS="$CFLAGS -Wall -std=gnu99 -pedantic"
+regular_CFLAGS="$CFLAGS -Wall -std=gnu99 -pedantic"
+AC_SUBST([regular_CFLAGS])
 
 AC_CONFIG_FILES([
     Makefile
