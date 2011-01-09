@@ -2,7 +2,7 @@ AC_INIT([iptraf-ng], [1.0.4], [iptraf-ng@fedorahosted.org])
 AC_CONFIG_HEADERS([config.h])
 
 dnl checks for system type
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_HOST
 AC_DEFINE_UNQUOTED([PLATFORM], "${host}", [Define to platform])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
