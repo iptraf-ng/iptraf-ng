@@ -47,8 +47,6 @@ aclocal.m4
 autoscan.log
 depcomp
 install-sh
-libtool
-ltmain.sh
 stamp-h1
 
 # misc
