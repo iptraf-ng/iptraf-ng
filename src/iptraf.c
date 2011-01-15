@@ -275,7 +275,7 @@ void program_interface(struct OPTIONS *options,
 	doupdate();
 }
 
-int first_instance()
+int first_instance(void)
 {
 	int fd;
 
@@ -289,7 +289,7 @@ int first_instance()
 	}
 }
 
-void mark_first_instance()
+void mark_first_instance(void)
 {
 	int fd;
 

@@ -329,7 +329,7 @@ void destroyethtab(struct ethtab *table)
     }
 }
 
-void hostmonhelp()
+void hostmonhelp(void)
 {
     move(LINES - 1, 1);
     scrollkeyhelp();

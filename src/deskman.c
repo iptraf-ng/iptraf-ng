@@ -80,7 +80,7 @@ void draw_desktop(void)
     refresh();
 }
 
-void about()
+void about(void)
 {
     WINDOW *win;
     PANEL *panel;
@@ -141,13 +141,13 @@ void show_sort_statwin(WINDOW ** statwin, PANEL ** panel)
     mvwprintw(*statwin, 2, 2, "Sorting, please wait...");
 }
 
-void printnomem()
+void printnomem(void)
 {
     attrset(ERRTXTATTR);
     mvprintw(0, 68, " Memory Low ");
 }
 
-void printipcerr()
+void printipcerr(void)
 {
     attrset(ERRTXTATTR);
     mvprintw(0, 68, "  IPC Error ");

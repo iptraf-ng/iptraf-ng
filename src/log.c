@@ -41,7 +41,7 @@ char target_logname[TARGET_LOGNAME_MAX];
 char current_logfile[TARGET_LOGNAME_MAX];
 char graphing_logfile[TARGET_LOGNAME_MAX];
 
-void openlogerr()
+void openlogerr(void)
 {
     int resp;
     tx_errbox("Unable to open log file", ANYKEY_MSG, &resp);

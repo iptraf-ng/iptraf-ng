@@ -59,7 +59,7 @@ void rotate_ipmon_log(int s)
 
 /* Hot key indicators for the bottom line */
 
-void ipmonhelp()
+void ipmonhelp(void)
 {
     move(LINES - 1, 1);
     tx_printkeyhelp("Up/Dn/PgUp/PgDn", "-scroll  ", stdscr, HIGHATTR,

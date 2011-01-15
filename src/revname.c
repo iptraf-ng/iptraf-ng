@@ -102,7 +102,7 @@ int rvnamedactive(void)
  * Terminate rvnamed process
  */
 
-void killrvnamed()
+void killrvnamed(void)
 {
     int fd;
     struct sockaddr_un su;

@@ -38,7 +38,7 @@ int suffixcmp(const char *str, const char *suffix)
         return strcmp(str + len_minus_suflen, suffix);
 }
 
-struct strbuf *strbuf_new()
+struct strbuf *strbuf_new(void)
 {
     struct strbuf *buf = xmalloc(sizeof(struct strbuf));
     buf->alloc = 8;
