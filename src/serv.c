@@ -57,7 +57,7 @@ extern void writeutslog(struct portlistent *list, unsigned long nsecs,
  * SIGUSR1 logfile rotation signal handler
  */
 
-void rotate_serv_log()
+void rotate_serv_log(int s)
 {
     rotate_flag = 1;
     strcpy(target_logname, current_logfile);

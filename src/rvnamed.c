@@ -67,7 +67,7 @@ static int max_fork_count = 0;
  * This is the classic zombie-preventer
  */
 
-void childreap()
+void childreap(int s)
 {
     signal(SIGCHLD, childreap);
 
@@ -75,7 +75,7 @@ void childreap()
         fork_count--;
 }
 
-void auto_terminate()
+void auto_terminate(int s)
 {
     exit(2);
 }

@@ -62,7 +62,7 @@ extern char *ltrim(char *buf);
  * SIGUSR1 logfile rotation handler
  */
 
-void rotate_lanlog()
+void rotate_lanlog(int s)
 {
     rotate_flag = 1;
     strcpy(target_logname, current_logfile);

@@ -50,7 +50,7 @@ void writetcplog(int logging, FILE * fd, struct tcptableent *entry,
                  unsigned int pktlen, int mac, char *message);
 void write_tcp_unclosed(int logging, FILE * fd, struct tcptable *table);
 
-void rotate_ipmon_log()
+void rotate_ipmon_log(int s)
 {
     rotate_flag = 1;
     strcpy(target_logname, current_logfile);
