@@ -60,22 +60,6 @@ AC_TYPE_UINT8_T
 dnl checks for library functions
 AC_FUNC_FORK
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([alarm])
-AC_CHECK_FUNCS([gethostbyaddr])
-AC_CHECK_FUNCS([gethostbyname])
-AC_CHECK_FUNCS([gettimeofday])
-AC_CHECK_FUNCS([inet_ntoa])
-AC_CHECK_FUNCS([memmove])
-AC_CHECK_FUNCS([memset])
-AC_CHECK_FUNCS([select])
-AC_CHECK_FUNCS([setenv])
-AC_CHECK_FUNCS([socket])
-AC_CHECK_FUNCS([strcasecmp])
-AC_CHECK_FUNCS([strchr])
-AC_CHECK_FUNCS([strerror])
-AC_CHECK_FUNCS([strtoul])
-AC_CHECK_FUNCS([mkdir])
-AC_CHECK_FUNCS([setlocale])
 
 regular_CFLAGS="$CFLAGS -Wall -std=gnu99 -pedantic"
 AC_SUBST([regular_CFLAGS])
