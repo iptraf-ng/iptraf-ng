@@ -24,7 +24,7 @@ void servlook(int servnames, unsigned int port, unsigned int protocol,
 {
     static struct servent *sve;
 
-    bzero(target, maxlen + 1);
+    memset(target, 0, maxlen + 1);
 
     if (servnames) {
         if (protocol == IPPROTO_TCP)

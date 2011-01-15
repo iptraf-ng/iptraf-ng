@@ -66,7 +66,7 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
     char etherline[140];
     int i, j;                   /* counters used when parsing /etc/ethers */
 
-    bzero(list, sizeof(struct desclist));
+    memset(list, 0, sizeof(struct desclist));
 
     if (linktype == LINK_ETHERNET)
         fd = fopen(ETHFILE, "r");
@@ -78,8 +78,8 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
     }
     while (!feof(fd)) {
         ptmp = xmalloc(sizeof(struct desclistent));
-        bzero(ptmp, sizeof(struct desclistent));
-        bzero(descline, 140);
+        memset(ptmp, 0, sizeof(struct desclistent));
+        memset(descline, 0, 140);
         fgets(descline, 140, fd);
 
         if (strcmp(descline, "") == 0) {
@@ -124,9 +124,9 @@ void loaddesclist(struct desclist *list, unsigned int linktype,
 
     while (!feof(fd)) {
         ptmp = xmalloc(sizeof(struct desclistent));
-        bzero(ptmp, sizeof(struct desclistent));
-        bzero(descline, 140);
-        bzero(etherline, 140);
+        memset(ptmp, 0, sizeof(struct desclistent));
+        memset(descline, 0, 140);
+        memset(etherline, 0, 140);
         (void) fgets(etherline, 140, fd);
 
         /*

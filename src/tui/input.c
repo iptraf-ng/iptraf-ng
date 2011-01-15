@@ -55,7 +55,7 @@ void tx_addfield(struct FIELDLIST *list, unsigned int len,
     newfield->len = len;
     newfield->tlen = strlen(initstr);
     newfield->buf = malloc(len + 1);
-    bzero(newfield->buf, len + 1);
+    memset(newfield->buf, 0, len + 1);
     strncpy(newfield->buf, initstr, len);
 
     if (newfield->tlen > (len))

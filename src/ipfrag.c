@@ -43,7 +43,7 @@ struct fragent *addnewdgram(struct iphdr *packet)
         fragtail->next_entry = ptmp;
         ptmp->prev_entry = fragtail;
     }
-    bzero(ptmp, sizeof(struct fragent));
+    memset(ptmp, 0, sizeof(struct fragent));
     ptmp->fragdesclist = xmalloc(sizeof(struct fragdescent));
     ptmp->fragdesclist->min = 0;
     ptmp->fragdesclist->max = 65535;

@@ -24,7 +24,7 @@ void set_barptr(void **barptr, void *entry,
 {
     *barptr = entry;
     *starttime = time(NULL);
-    bzero(spanbr, size);
+    memset(spanbr, 0, size);
 
     if (!(*cleared)) {
         wattrset(win, IPSTATATTR);

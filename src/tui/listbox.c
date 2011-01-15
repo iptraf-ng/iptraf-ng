@@ -19,7 +19,7 @@ void tx_init_listbox(struct scroll_list *list, int width, int height,
                       int mainattr, int borderattr, int selectattr,
                       int keyattr)
 {
-    bzero(list, sizeof(struct scroll_list));
+    memset(list, 0, sizeof(struct scroll_list));
     list->borderwin = newwin(height, width, starty, startx);
     list->borderpanel = new_panel(list->borderwin);
     wattrset(list->borderwin, borderattr);
@@ -50,7 +50,7 @@ void tx_add_list_entry(struct scroll_list *list, char *node, char *text)
     struct textlisttype *ptmp;
     
     ptmp = malloc(sizeof(struct textlisttype));
-    bzero(ptmp, sizeof(struct textlisttype));
+    memset(ptmp, 0, sizeof(struct textlisttype));
         
     strncpy(ptmp->text, text, MAX_TEXT_LENGTH);
     ptmp->nodeptr = node;

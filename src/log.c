@@ -118,7 +118,7 @@ void opentlog(FILE ** fd, char *logfilename)
 
 void genatime(time_t now, char *atime)
 {
-    bzero(atime, TIME_TARGET_MAX);
+    memset(atime, 0, TIME_TARGET_MAX);
     strncpy(atime, ctime(&now), 26);
     atime[strlen(atime) - 1] = '\0';
 }
@@ -197,7 +197,7 @@ void writeothplog(int logging, FILE * fd, char *protname,
     char scratchpad[MSGSTRING_MAX];
 
     if (logging) {
-        bzero(msgbuffer, MSGSTRING_MAX);
+        memset(msgbuffer, 0, MSGSTRING_MAX);
 
         strcpy(msgbuffer, protname);
         strcat(msgbuffer, "; ");

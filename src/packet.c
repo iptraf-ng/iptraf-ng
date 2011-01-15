@@ -341,7 +341,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
      * Prepare ISDN reference descriptor and table.
      */
 
-    bzero(&isdntable, sizeof(struct isdntab));
+    memset(&isdntable, 0, sizeof(struct isdntab));
     isdn_iface_check(&isdnfd, ifname);
 
     /*

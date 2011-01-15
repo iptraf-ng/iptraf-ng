@@ -153,7 +153,7 @@ int add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry)
                   entry->daddr.s_addr, entry->d6addr.s6_addr32, entry->dport, entry->ifname);
 
     ptmp = xmalloc(sizeof(struct tcp_hashentry));
-    bzero(ptmp, sizeof(struct tcp_hashentry));
+    memset(ptmp, 0, sizeof(struct tcp_hashentry));
     /*
      * Add backpointer from screen node to hash node for deletion later
      * (Actually point to its predecessor coz of the header cell).
@@ -352,8 +352,8 @@ struct tcptableent *addentry(struct tcptable *table,
      * Zero out MAC address fields
      */
 
-    bzero(new_entry->smacaddr, 15);
-    bzero(new_entry->oth_connection->smacaddr, 15);
+    memset(new_entry->smacaddr, 0, 15);
+    memset(new_entry->oth_connection->smacaddr, 0, 15);
 
     /*
      * Set raw port numbers
@@ -625,7 +625,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
     tableentry->spanbr += bcount;
 
     if (opts->mac) {
-        bzero(newmacaddr, 15);
+        memset(newmacaddr, 0, 15);
 
         if ((linkproto == LINK_ETHERNET) || (linkproto == LINK_PLIP)) {
             convmacaddr((char*)(((struct ethhdr *) packet)->h_source), newmacaddr);

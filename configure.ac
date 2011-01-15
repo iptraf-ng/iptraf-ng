@@ -61,7 +61,6 @@ dnl checks for library functions
 AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([alarm])
-AC_CHECK_FUNCS([bzero])
 AC_CHECK_FUNCS([gethostbyaddr])
 AC_CHECK_FUNCS([gethostbyname])
 AC_CHECK_FUNCS([gettimeofday])

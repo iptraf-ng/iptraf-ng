@@ -685,7 +685,7 @@ void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
     mvwprintw(win, 0, 46, "%10.2f", outrate);
     mvwprintw(win, 0, 61, "%10.2f", totalrate);
 
-    bzero(&(list->barptr->spans), sizeof(struct serv_spans));
+    memset(&(list->barptr->spans), 0, sizeof(struct serv_spans));
     list->barptr->starttime = time(NULL);
     *cleared = 0;
 }

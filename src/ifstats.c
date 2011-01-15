@@ -140,7 +140,7 @@ void initiflist(struct iflist **list)
              */
 
             itmp = xmalloc(sizeof(struct iflist));
-            bzero(itmp, sizeof(struct iflist));
+            memset(itmp, 0, sizeof(struct iflist));
             strcpy(itmp->ifname, ifname);
             index++;
             itmp->index = index;
@@ -181,7 +181,7 @@ void positionptr(struct iftab *table, struct iflist **ptmp, char *ifname)
 
     if (*ptmp == NULL) {
         *ptmp = xmalloc(sizeof(struct iflist));
-        bzero(*ptmp, sizeof(struct iflist));
+        memset(*ptmp, 0, sizeof(struct iflist));
         (*ptmp)->index = plast->index + 1;
         plast->next_entry = *ptmp;
         (*ptmp)->prev_entry = plast;
@@ -877,7 +877,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
     update_panels();
     doupdate();
 
-    bzero(&totals, sizeof(struct iftotals));
+    memset(&totals, 0, sizeof(struct iftotals));
 
     if (logging) {
         if (strcmp(current_logfile, "") == 0) {

@@ -105,7 +105,7 @@ void process_rvn_packet(struct rvn *rvnpacket)
       else
            inet_ntop(AF_INET6, &(rvnpacket->s6addr), rvnpacket->fqdn, sizeof(rvnpacket->fqdn));
     } else {
-        bzero(rvnpacket->fqdn, 45);
+        memset(rvnpacket->fqdn, 0, 45);
         strncpy(rvnpacket->fqdn, he->h_name, 44);
     }
 
@@ -317,7 +317,7 @@ int main(void)
                 }
 
                 if (hi == lastfree) {   /* Address not in cache */
-                    bzero(&(hostlist[hi]), sizeof(struct hosts));
+                    memset(&(hostlist[hi]), 0, sizeof(struct hosts));
                     hi = hostindex;
                     hostindex++;
                     if (hostindex == NUM_CACHE_ENTRIES)
@@ -371,7 +371,7 @@ int main(void)
                         name_resolved(&rvnpacket, hostlist, lastfree);
                     if (readyidx >= 0) {
                         rvnpacket.type = RVN_REPLY;
-                        bzero(rvnpacket.fqdn, 45);
+                        memset(rvnpacket.fqdn, 0, 45);
                         strncpy(rvnpacket.fqdn, hostlist[readyidx].fqdn,
                                 44);
                         rvnpacket.ready = RESOLVED;
@@ -468,7 +468,7 @@ int main(void)
                             }
                         }
                         rvnpacket.type = RVN_REPLY;
-                        bzero(rvnpacket.fqdn, 45);
+                        memset(rvnpacket.fqdn, 0, 45);
                         if (rvnpacket.saddr.s_addr != 0)
                         strcpy(rvnpacket.fqdn, inet_ntoa(rvnpacket.saddr));
                         else

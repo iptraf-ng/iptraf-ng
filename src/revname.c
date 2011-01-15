@@ -153,7 +153,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr, char *t
     struct timeval tv;
     int sstat = 0;
 
-    bzero(target, 45);
+    memset(target, 0, 45);
     if (*lookup) {
         if (rvnfd > 0) {
             su.sun_family = AF_UNIX;
