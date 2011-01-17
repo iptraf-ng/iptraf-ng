@@ -1,6 +1,6 @@
 SUBDIRS = src
 
-AM_MAKEFLAGS = -srR --no-print-directory
+AM_MAKEFLAGS = -rR --no-print-directory
 
 EXTRA_DIST = Documentation CHANGES FAQ LICENSE RELEASE-NOTES
 
