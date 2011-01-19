@@ -8,8 +8,6 @@ AC_DEFINE_UNQUOTED([PLATFORM], "${host}", [Define to platform])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-AC_CONFIG_MACRO_DIR([m4])
-
 AC_PROG_CC
 AC_LANG_C
 AC_HEADER_STDC
