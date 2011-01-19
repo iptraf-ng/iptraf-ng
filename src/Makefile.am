@@ -114,13 +114,13 @@ iptraf_SOURCES = \
     $(LIB_C) $(LIB_H) \
     $(NULL)
 
-iptraf_CFLAGS =	${AM_CFLAGS} -I$(srcdir)/tui
+iptraf_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
 iptraf_LDADD = $(libncurses_LIBS) $(libpanel_LIBS)
 
 man_MANS = iptraf.8 rvnamed.8
 
 rvnamed_SOURCES = rvnamed.c rvnamed.h getpath.c dirs.h getpath.h
-rvnamed_CFLAGS = ${AM_CFLAGS} -I$(srcdir)/tui
+rvnamed_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
 
 rawtime_SOURCES = rawtime.c
 
