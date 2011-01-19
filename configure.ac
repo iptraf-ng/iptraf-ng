@@ -61,7 +61,7 @@ dnl checks for library functions
 AC_FUNC_FORK
 AC_FUNC_MALLOC
 
-regular_CFLAGS="$CFLAGS -Wall -std=gnu99 -pedantic"
+regular_CFLAGS="-Wall -std=gnu99 -pedantic"
 AC_SUBST([regular_CFLAGS])
 
 AC_CONFIG_FILES([
