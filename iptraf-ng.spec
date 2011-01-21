@@ -9,8 +9,8 @@ License:        GPLv2+
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:  ncurses-devel
-Obsoletes:	iptraf
-Provides:	iptraf-ng
+Obsoletes:	iptraf > 3.0.1-10
+Provides:	iptraf = %{version}-%{release}
 
 %description
 IPTraf-ng is a console-based network monitoring utility.  IPTraf gathers
@@ -35,35 +35,35 @@ on a wide variety of supported network cards.
 
 %build
 %configure
-%{__make} %{?_smp_mflags}
+make %{?_smp_mflags}
 
 %install
-%{__rm} -rf $RPM_BUILD_ROOT
-%{__make} install DESTDIR=$RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
 
 # remove everything besides the html and pictures in Documentation
 find Documentation -type f | grep -v '\.html$\|\.png$\|/stylesheet' | \
 	xargs rm -f
 
-install -D -m 0644 -p %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/iptraf
+install -D -m 0644 -p %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/iptraf-ng
 
-install -d -m 0755 $RPM_BUILD_ROOT%{_localstatedir}/{lock,log,lib}/iptraf
+install -d -m 0755 $RPM_BUILD_ROOT%{_localstatedir}/{lock,log,lib}/iptraf-ng
 
 %clean
-%{__rm} -rf $RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
 %doc CHANGES FAQ LICENSE INSTALL README* RELEASE-NOTES
 %doc Documentation
-%{_bindir}/iptraf
-%{_bindir}/rvnamed
-%{_mandir}/man8/iptraf.8*
-%{_mandir}/man8/rvnamed.8*
-%{_localstatedir}/lock/iptraf
-%{_localstatedir}/log/iptraf
-%{_localstatedir}/lib/iptraf
-%config(noreplace) %{_sysconfdir}/logrotate.d/iptraf
+%{_bindir}/iptraf-ng
+%{_bindir}/rvnamed-ng
+%{_mandir}/man8/iptraf-ng.8*
+%{_mandir}/man8/rvnamed-ng.8*
+%{_localstatedir}/lock/iptraf-ng
+%{_localstatedir}/log/iptraf-ng
+%{_localstatedir}/lib/iptraf-ng
+%config(noreplace) %{_sysconfdir}/logrotate.d/iptraf-ng
 
 %changelog
 * Thu Apr 8 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.2-3

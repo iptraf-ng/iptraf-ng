@@ -26,11 +26,11 @@
  */
 
 #ifndef WORKDIR
-#define WORKDIR		"/var/lib/iptraf"
+#define WORKDIR		"/var/lib/iptraf-ng"
 #endif
 
 #ifndef LOGDIR
-#define LOGDIR		"/var/log/iptraf"
+#define LOGDIR		"/var/log/iptraf-ng"
 #endif
 
 #ifndef EXECDIR
@@ -46,7 +46,7 @@
  */
 
 #ifndef LOCKDIR
-#define LOCKDIR		"/var/lock/iptraf"
+#define LOCKDIR		"/var/lock/iptraf-ng"
 #endif
 
 /***
@@ -161,13 +161,13 @@
  * The rvnamed program file
  */
 
-#define RVNDFILE	get_path(T_EXECDIR, "rvnamed")
+#define RVNDFILE	get_path(T_EXECDIR, "rvnamed-ng")
 
 /*
  * The rvnamed log file
  */
 
-#define RVNDLOGFILE	get_path(T_LOGDIR, "rvnamed.log")
+#define RVNDLOGFILE	get_path(T_LOGDIR, "rvnamed-ng.log")
 
 /*
  * File to contain the current TCP filter data file name.  UDP filter

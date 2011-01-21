@@ -2,7 +2,7 @@
 
 AM_CFLAGS = ${regular_CFLAGS}
 
-bin_PROGRAMS = iptraf rvnamed
+bin_PROGRAMS = iptraf-ng rvnamed-ng
 
 NULL =
 TUI_C =
@@ -109,19 +109,19 @@ LIB_C += fltedit.c
 LIB_C += tr.c
 LIB_C += cidr.c
 
-iptraf_SOURCES = \
+iptraf_ng_SOURCES = \
     $(TUI_C) $(TUI_H) \
     $(LIB_C) $(LIB_H) \
     $(NULL)
 
-iptraf_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
-iptraf_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
-iptraf_LDADD = $(libncurses_LIBS) $(libpanel_LIBS)
+iptraf_ng_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
+iptraf_ng_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
+iptraf_ng_LDADD = $(libncurses_LIBS) $(libpanel_LIBS)
 
-man_MANS = iptraf.8 rvnamed.8
+man_MANS = iptraf-ng.8 rvnamed-ng.8
 
-rvnamed_SOURCES = rvnamed.c rvnamed.h getpath.c dirs.h getpath.h
-rvnamed_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
-rvnamed_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
+rvnamed_ng_SOURCES = rvnamed.c rvnamed.h getpath.c dirs.h getpath.h
+rvnamed_ng_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
+rvnamed_ng_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
 
 EXTRA_DIST = $(man_MANS)
