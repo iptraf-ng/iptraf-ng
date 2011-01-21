@@ -10,7 +10,6 @@
 
 # ignore binaries
 src/iptraf
-src/rawtime
 src/rvnamed
 
 # don't ignore git files

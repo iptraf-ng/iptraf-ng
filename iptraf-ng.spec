@@ -57,7 +57,6 @@ install -d -m 0755 $RPM_BUILD_ROOT%{_localstatedir}/{lock,log,lib}/iptraf
 %doc CHANGES FAQ LICENSE INSTALL README* RELEASE-NOTES
 %doc Documentation
 %{_bindir}/iptraf
-%{_bindir}/rawtime
 %{_bindir}/rvnamed
 %{_mandir}/man8/iptraf.8*
 %{_mandir}/man8/rvnamed.8*

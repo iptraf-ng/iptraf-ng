@@ -2,7 +2,7 @@
 
 AM_CFLAGS = ${regular_CFLAGS}
 
-bin_PROGRAMS = iptraf rvnamed rawtime
+bin_PROGRAMS = iptraf rvnamed
 
 NULL =
 TUI_C =
@@ -123,7 +123,5 @@ man_MANS = iptraf.8 rvnamed.8
 rvnamed_SOURCES = rvnamed.c rvnamed.h getpath.c dirs.h getpath.h
 rvnamed_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
 rvnamed_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
-
-rawtime_SOURCES = rawtime.c
 
 EXTRA_DIST = $(man_MANS)
