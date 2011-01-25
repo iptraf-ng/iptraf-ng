@@ -11,7 +11,9 @@ RPM_DIRS = --define "_sourcedir `pwd`" \
 	   --define "_srcrpmdir `pwd`"
 
 rpm: dist
+	./gen-version
 	rpmbuild $(RPM_DIRS) -ba iptraf-ng.spec
 
 srpm: dist
+	./gen-version
 	rpmbuild $(RPM_DIRS) -bs iptraf-ng.spec

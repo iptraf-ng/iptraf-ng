@@ -1,0 +1,17 @@
+#!/bin/bash
+
+DEF_VER=1.0.4
+
+if test -d .git -o -f .git
+then
+    VN=$(git describe --tags --match "[0-9]*" --abbrev=4 HEAD 2>/dev/null)
+    git update-index -q --refresh
+    test -z "$(git diff-index --name-only HEAD --)" || VN="$VN-dirty"
+    VN=$(echo "$VN" | sed -e 's/-/./g');
+else
+    VN="$DEF_VER"
+fi
+
+sed -e "s/@@IPTRAF_VERSION@@/$VN/g" < iptraf-ng.spec.in > iptraf-ng.spec
+
+echo -n $VN
