@@ -29,23 +29,23 @@ details.
 
 void etherr(void)
 {
-    int resp;
+	int resp;
 
-    tx_errbox("Unable to open host description file", ANYKEY_MSG, &resp);
+	tx_errbox("Unable to open host description file", ANYKEY_MSG, &resp);
 }
 
 void add_desclist_node(struct desclist *list, struct desclistent *ptmp)
 {
-    if (list->head == NULL) {
-        list->head = ptmp;
-        ptmp->prev_entry = NULL;
-    } else {
-        list->tail->next_entry = ptmp;
-        ptmp->prev_entry = list->tail;
-    }
+	if (list->head == NULL) {
+		list->head = ptmp;
+		ptmp->prev_entry = NULL;
+	} else {
+		list->tail->next_entry = ptmp;
+		ptmp->prev_entry = list->tail;
+	}
 
-    ptmp->next_entry = NULL;
-    list->tail = ptmp;
+	ptmp->next_entry = NULL;
+	list->tail = ptmp;
 }
 
 /*
@@ -59,435 +59,435 @@ void add_desclist_node(struct desclist *list, struct desclistent *ptmp)
 void loaddesclist(struct desclist *list, unsigned int linktype,
                   int withethers)
 {
-    struct desclistent *ptmp = NULL;
-    FILE *fd = NULL;
-    char descline[140];
-    char *desctoken;
-    char etherline[140];
-    int i, j;                   /* counters used when parsing /etc/ethers */
+	struct desclistent *ptmp = NULL;
+	FILE *fd = NULL;
+	char descline[140];
+	char *desctoken;
+	char etherline[140];
+	int i, j;                   /* counters used when parsing /etc/ethers */
 
-    memset(list, 0, sizeof(struct desclist));
+	memset(list, 0, sizeof(struct desclist));
 
-    if (linktype == LINK_ETHERNET)
-        fd = fopen(ETHFILE, "r");
-    else if (linktype == LINK_FDDI)
-        fd = fopen(FDDIFILE, "r");
+	if (linktype == LINK_ETHERNET)
+		fd = fopen(ETHFILE, "r");
+	else if (linktype == LINK_FDDI)
+		fd = fopen(FDDIFILE, "r");
 
-    if (fd == NULL) {
-        return;
-    }
-    while (!feof(fd)) {
-        ptmp = xmalloc(sizeof(struct desclistent));
-        memset(ptmp, 0, sizeof(struct desclistent));
-        memset(descline, 0, 140);
-        fgets(descline, 140, fd);
+	if (fd == NULL) {
+		return;
+	}
+	while (!feof(fd)) {
+		ptmp = xmalloc(sizeof(struct desclistent));
+		memset(ptmp, 0, sizeof(struct desclistent));
+		memset(descline, 0, 140);
+		fgets(descline, 140, fd);
 
-        if (strcmp(descline, "") == 0) {
-            free(ptmp);
-            continue;
-        }
-        strncpy(ptmp->rec.address, strtok(descline, ":"), 12);
-        desctoken = strtok(NULL, "\n");
+		if (strcmp(descline, "") == 0) {
+			free(ptmp);
+			continue;
+		}
+		strncpy(ptmp->rec.address, strtok(descline, ":"), 12);
+		desctoken = strtok(NULL, "\n");
 
-        if (desctoken != NULL)
-            strncpy(ptmp->rec.desc, desctoken, 64);
-        else
-            strcpy(ptmp->rec.desc, "");
+		if (desctoken != NULL)
+			strncpy(ptmp->rec.desc, desctoken, 64);
+		else
+			strcpy(ptmp->rec.desc, "");
 
-        add_desclist_node(list, ptmp);
-    }
+		add_desclist_node(list, ptmp);
+	}
 
-    fclose(fd);
+	fclose(fd);
 
-    /*
-     * Loads MAC addresses defined in /etc/ethers.  Contributed by
-     * Debian maintainter Frederic Peters <fpeters@debian.org>.  Thanks
-     * Frederic!
-     *
-     * Contributor's note:
-     *  loading other ethenet mac addresses from /etc/ethers (used by tcpdump)
-     *
-     * Author's note:
-     *  Moved significantly repeating code to a function.
-     */
+	/*
+	 * Loads MAC addresses defined in /etc/ethers.  Contributed by
+	 * Debian maintainter Frederic Peters <fpeters@debian.org>.  Thanks
+	 * Frederic!
+	 *
+	 * Contributor's note:
+	 *  loading other ethenet mac addresses from /etc/ethers (used by tcpdump)
+	 *
+	 * Author's note:
+	 *  Moved significantly repeating code to a function.
+	 */
 
-    if (!withethers)
-        return;
+	if (!withethers)
+		return;
 
-    if (linktype != LINK_ETHERNET)
-        return;
+	if (linktype != LINK_ETHERNET)
+		return;
 
-    fd = fopen("/etc/ethers", "r");
+	fd = fopen("/etc/ethers", "r");
 
-    if (fd == NULL)
-        return;
+	if (fd == NULL)
+		return;
 
-    while (!feof(fd)) {
-        ptmp = xmalloc(sizeof(struct desclistent));
-        memset(ptmp, 0, sizeof(struct desclistent));
-        memset(descline, 0, 140);
-        memset(etherline, 0, 140);
-        (void) fgets(etherline, 140, fd);
+	while (!feof(fd)) {
+		ptmp = xmalloc(sizeof(struct desclistent));
+		memset(ptmp, 0, sizeof(struct desclistent));
+		memset(descline, 0, 140);
+		memset(etherline, 0, 140);
+		(void) fgets(etherline, 140, fd);
 
-        /*
-         * Convert /etc/ethers line to a descline
-         */
-        if (etherline[0] == '#' || etherline[0] == '\n'
-            || etherline[0] == 0) {
-            free(ptmp);
-            continue;
-        }
+		/*
+		 * Convert /etc/ethers line to a descline
+		 */
+		if (etherline[0] == '#' || etherline[0] == '\n'
+		    || etherline[0] == 0) {
+			free(ptmp);
+			continue;
+		}
 
-        if (strchr(etherline, '\n'))
-            strchr(etherline, '\n')[0] = 0;
+		if (strchr(etherline, '\n'))
+			strchr(etherline, '\n')[0] = 0;
 
-        j = 0;
-        for (i = 0; i < 20 && !isspace(etherline[i]); i++) {
-            if (etherline[i] == ':')
-                continue;
-            descline[j++] = tolower(etherline[i]);
-        }
-        descline[j] = ':';
+		j = 0;
+		for (i = 0; i < 20 && !isspace(etherline[i]); i++) {
+			if (etherline[i] == ':')
+				continue;
+			descline[j++] = tolower(etherline[i]);
+		}
+		descline[j] = ':';
 
-        /*
-         * Skip over whitespace between MAC address and IP addr/host name
-         */
+		/*
+		 * Skip over whitespace between MAC address and IP addr/host name
+		 */
 
-        while (isspace(etherline[i++]));
+		while (isspace(etherline[i++]));
 
-        strncat(descline, etherline + i - 1, 130);
+		strncat(descline, etherline + i - 1, 130);
 
-        if (strcmp(descline, "") == 0) {
-            free(ptmp);
-            continue;
-        }
+		if (strcmp(descline, "") == 0) {
+			free(ptmp);
+			continue;
+		}
 
-        strncpy(ptmp->rec.address, strtok(descline, ":"), 12);
-        desctoken = strtok(NULL, "\n");
+		strncpy(ptmp->rec.address, strtok(descline, ":"), 12);
+		desctoken = strtok(NULL, "\n");
 
-        if (desctoken != NULL)
-            strncpy(ptmp->rec.desc, desctoken, 64);
-        else
-            strcpy(ptmp->rec.desc, "");
+		if (desctoken != NULL)
+			strncpy(ptmp->rec.desc, desctoken, 64);
+		else
+			strcpy(ptmp->rec.desc, "");
 
-        add_desclist_node(list, ptmp);
-    }
+		add_desclist_node(list, ptmp);
+	}
 
-    fclose(fd);
+	fclose(fd);
 }
 
 void savedesclist(struct desclist *list, unsigned int linktype)
 {
-    FILE *fd = NULL;
+	FILE *fd = NULL;
 
-    struct desclistent *ptmp = list->head;
+	struct desclistent *ptmp = list->head;
 
-    if (linktype == LINK_ETHERNET)
-        fd = fopen(ETHFILE, "w");
-    else if (linktype == LINK_FDDI)
-        fd = fopen(FDDIFILE, "w");
+	if (linktype == LINK_ETHERNET)
+		fd = fopen(ETHFILE, "w");
+	else if (linktype == LINK_FDDI)
+		fd = fopen(FDDIFILE, "w");
 
-    if (fd == NULL)
-    {
-        etherr();
-        return;
-    }
+	if (fd == NULL)
+	{
+		etherr();
+		return;
+	}
 
-    while (ptmp != NULL)
-    {
-        fprintf(fd, "%s:%s\n", ptmp->rec.address, ptmp->rec.desc);
-        ptmp = ptmp->next_entry;
-    }
+	while (ptmp != NULL)
+	{
+		fprintf(fd, "%s:%s\n", ptmp->rec.address, ptmp->rec.desc);
+		ptmp = ptmp->next_entry;
+	}
 
-    fclose(fd);
+	fclose(fd);
 }
 
 void displayethdescs(struct desclist *list, WINDOW * win)
 {
-    struct desclistent *ptmp = list->head;
-    short i = 0;
+	struct desclistent *ptmp = list->head;
+	short i = 0;
 
-    do {
-        wmove(win, i, 2);
-        wprintw(win, "%s    %s", ptmp->rec.address, ptmp->rec.desc);
-        i++;
-        ptmp = ptmp->next_entry;
-    } while ((i < 18) && (ptmp != NULL));
+	do {
+		wmove(win, i, 2);
+		wprintw(win, "%s    %s", ptmp->rec.address, ptmp->rec.desc);
+		i++;
+		ptmp = ptmp->next_entry;
+	} while ((i < 18) && (ptmp != NULL));
 
-    update_panels();
-    doupdate();
+	update_panels();
+	doupdate();
 }
 
 void destroydesclist(struct desclist *list)
 {
-    struct desclistent *ptmp = list->head;
-    struct desclistent *ctmp = NULL;
+	struct desclistent *ptmp = list->head;
+	struct desclistent *ctmp = NULL;
 
-    if (list->head != NULL)
-        ctmp = ptmp->next_entry;
+	if (list->head != NULL)
+		ctmp = ptmp->next_entry;
 
-    while (ptmp != NULL) {
-        free(ptmp);
-        ptmp = ctmp;
+	while (ptmp != NULL) {
+		free(ptmp);
+		ptmp = ctmp;
 
-        if (ctmp != NULL)
-            ctmp = ctmp->next_entry;
-    }
+		if (ctmp != NULL)
+			ctmp = ctmp->next_entry;
+	}
 }
 
 void operate_descselect(struct desclist *list, struct desclistent **node,
                         WINDOW * win, int *aborted)
 {
-    int ch = 0;
-    int i = 0;
-    char sp_buf[10];
+	int ch = 0;
+	int i = 0;
+	char sp_buf[10];
 
-    int exitloop = 0;
+	int exitloop = 0;
 
-    *node = list->head;
+	*node = list->head;
 
-    sprintf(sp_buf, "%%%dc", COLS - 2);
+	sprintf(sp_buf, "%%%dc", COLS - 2);
 
-    do {
-        wattrset(win, PTRATTR);
-        wmove(win, i, 1);
-        waddch(win, ACS_RARROW);
-        ch = wgetch(win);
-        wmove(win, i, 1);
-        waddch(win, ' ');
-        wattrset(win, STDATTR);
+	do {
+		wattrset(win, PTRATTR);
+		wmove(win, i, 1);
+		waddch(win, ACS_RARROW);
+		ch = wgetch(win);
+		wmove(win, i, 1);
+		waddch(win, ' ');
+		wattrset(win, STDATTR);
 
-        switch (ch) {
-        case KEY_DOWN:
-            if ((*node)->next_entry != NULL) {
-                *node = (*node)->next_entry;
+		switch (ch) {
+		case KEY_DOWN:
+			if ((*node)->next_entry != NULL) {
+				*node = (*node)->next_entry;
 
-                if (i < 17)
-                    i++;
-                else {
-                    wscrl(win, 1);
-                    scrollok(win, 0);
-                    wmove(win, 17, 0);
-                    wprintw(win, sp_buf, ' ');
-                    scrollok(win, 1);
-                    wmove(win, 17, 2);
-                    wprintw(win, "%s    %s", (*node)->rec.address,
-                            (*node)->rec.desc);
-                }
-            }
-            break;
-        case KEY_UP:
-            if ((*node)->prev_entry != NULL) {
-                *node = (*node)->prev_entry;
+				if (i < 17)
+					i++;
+				else {
+					wscrl(win, 1);
+					scrollok(win, 0);
+					wmove(win, 17, 0);
+					wprintw(win, sp_buf, ' ');
+					scrollok(win, 1);
+					wmove(win, 17, 2);
+					wprintw(win, "%s    %s", (*node)->rec.address,
+						(*node)->rec.desc);
+				}
+			}
+			break;
+		case KEY_UP:
+			if ((*node)->prev_entry != NULL) {
+				*node = (*node)->prev_entry;
 
-                if (i > 0)
-                    i--;
-                else {
-                    wscrl(win, -1);
-                    wmove(win, 0, 0);
-                    wprintw(win, sp_buf, ' ');
-                    wmove(win, 0, 2);
-                    wprintw(win, "%s    %s", (*node)->rec.address,
-                            (*node)->rec.desc);
-                }
-            }
-            break;
-        case 13:
-            exitloop = 1;
-            *aborted = 0;
-            break;
-        case 27:
-        case 24:
-        case 'x':
-        case 'X':
-        case 'q':
-        case 'Q':
-            exitloop = 1;
-            *aborted = 1;
-            break;
-        }
-    } while (!exitloop);
+				if (i > 0)
+					i--;
+				else {
+					wscrl(win, -1);
+					wmove(win, 0, 0);
+					wprintw(win, sp_buf, ' ');
+					wmove(win, 0, 2);
+					wprintw(win, "%s    %s", (*node)->rec.address,
+						(*node)->rec.desc);
+				}
+			}
+			break;
+		case 13:
+			exitloop = 1;
+			*aborted = 0;
+			break;
+		case 27:
+		case 24:
+		case 'x':
+		case 'X':
+		case 'q':
+		case 'Q':
+			exitloop = 1;
+			*aborted = 1;
+			break;
+		}
+	} while (!exitloop);
 }
 
 void selectdesc(struct desclist *list, struct desclistent **node,
                 int *aborted)
 {
-    int resp;
-    struct scroll_list slist;
-    char descline[80];
+	int resp;
+	struct scroll_list slist;
+	char descline[80];
 
-    if (list->head == NULL) {
-        tx_errbox("No descriptions", ANYKEY_MSG, &resp);
-        return;
-    }
+	if (list->head == NULL) {
+		tx_errbox("No descriptions", ANYKEY_MSG, &resp);
+		return;
+	}
 
-    *node = list->head;
-    tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2,
-                    STDATTR, BOXATTR, BARSTDATTR, HIGHATTR);
+	*node = list->head;
+	tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2,
+			STDATTR, BOXATTR, BARSTDATTR, HIGHATTR);
 
-    tx_set_listbox_title(&slist, "Address", 1);
-    tx_set_listbox_title(&slist, "Description", 19);
+	tx_set_listbox_title(&slist, "Address", 1);
+	tx_set_listbox_title(&slist, "Description", 19);
 
-    while (*node != NULL) {
-        snprintf(descline, 80, "%-18s%s", (*node)->rec.address,
-                 (*node)->rec.desc);
-        tx_add_list_entry(&slist, (char *) (*node), descline);
-        (*node) = (*node)->next_entry;
-    }
+	while (*node != NULL) {
+		snprintf(descline, 80, "%-18s%s", (*node)->rec.address,
+			 (*node)->rec.desc);
+		tx_add_list_entry(&slist, (char *) (*node), descline);
+		(*node) = (*node)->next_entry;
+	}
 
-    tx_show_listbox(&slist);
-    tx_operate_listbox(&slist, &resp, aborted);
+	tx_show_listbox(&slist);
+	tx_operate_listbox(&slist, &resp, aborted);
 
-    if (!(*aborted))
-        *node = (struct desclistent *) slist.textptr->nodeptr;
+	if (!(*aborted))
+		*node = (struct desclistent *) slist.textptr->nodeptr;
 
-    tx_close_listbox(&slist);
-    tx_destroy_list(&slist);
+	tx_close_listbox(&slist);
+	tx_destroy_list(&slist);
 
-    update_panels();
-    doupdate();
+	update_panels();
+	doupdate();
 }
 
 void descdlg(struct descrec *rec, char *initaddr, char *initdesc,
              int *aborted)
 {
-    WINDOW *win;
-    PANEL *panel;
-    struct FIELDLIST fieldlist;
+	WINDOW *win;
+	PANEL *panel;
+	struct FIELDLIST fieldlist;
 
-    win = newwin(8, 70, 8, (COLS - 70) / 2);
-    panel = new_panel(win);
+	win = newwin(8, 70, 8, (COLS - 70) / 2);
+	panel = new_panel(win);
 
-    wattrset(win, DLGBOXATTR);
-    tx_colorwin(win);
-    tx_box(win, ACS_VLINE, ACS_HLINE);
-    wmove(win, 6, 2 * COLS / 80);
-    tabkeyhelp(win);
-    wmove(win, 6, 20 * COLS / 80);
-    stdkeyhelp(win);
+	wattrset(win, DLGBOXATTR);
+	tx_colorwin(win);
+	tx_box(win, ACS_VLINE, ACS_HLINE);
+	wmove(win, 6, 2 * COLS / 80);
+	tabkeyhelp(win);
+	wmove(win, 6, 20 * COLS / 80);
+	stdkeyhelp(win);
 
-    wattrset(win, DLGTEXTATTR);
-    wmove(win, 2, 2 * COLS / 80);
-    wprintw(win, "MAC Address:");
-    wmove(win, 4, 2 * COLS / 80);
-    wprintw(win, "Description:");
+	wattrset(win, DLGTEXTATTR);
+	wmove(win, 2, 2 * COLS / 80);
+	wprintw(win, "MAC Address:");
+	wmove(win, 4, 2 * COLS / 80);
+	wprintw(win, "Description:");
 
-    tx_initfields(&fieldlist, 3, 52, 10, (COLS - 52) / 2 + 6 * COLS / 80,
-                  DLGTEXTATTR, FIELDATTR);
-    tx_addfield(&fieldlist, 12, 0, 0, initaddr);
-    tx_addfield(&fieldlist, 50, 2, 0, initdesc);
+	tx_initfields(&fieldlist, 3, 52, 10, (COLS - 52) / 2 + 6 * COLS / 80,
+		      DLGTEXTATTR, FIELDATTR);
+	tx_addfield(&fieldlist, 12, 0, 0, initaddr);
+	tx_addfield(&fieldlist, 50, 2, 0, initdesc);
 
-    tx_fillfields(&fieldlist, aborted);
+	tx_fillfields(&fieldlist, aborted);
 
-    if (!(*aborted)) {
-        strcpy(rec->address, fieldlist.list->buf);
-        strcpy(rec->desc, fieldlist.list->nextfield->buf);
-    }
-    tx_destroyfields(&fieldlist);
-    del_panel(panel);
-    delwin(win);
+	if (!(*aborted)) {
+		strcpy(rec->address, fieldlist.list->buf);
+		strcpy(rec->desc, fieldlist.list->nextfield->buf);
+	}
+	tx_destroyfields(&fieldlist);
+	del_panel(panel);
+	delwin(win);
 }
 
 void addethdesc(struct desclist *list)
 {
-    struct descrec rec;
-    int aborted;
-    struct desclistent *ptmp;
+	struct descrec rec;
+	int aborted;
+	struct desclistent *ptmp;
 
-    descdlg(&rec, "", "", &aborted);
+	descdlg(&rec, "", "", &aborted);
 
-    if (!aborted) {
-        ptmp = xmalloc(sizeof(struct desclistent));
-        if (list->head == NULL) {
-            list->head = ptmp;
-            ptmp->prev_entry = NULL;
-        } else {
-            ptmp->prev_entry = list->tail;
-            list->tail->next_entry = ptmp;
-        }
+	if (!aborted) {
+		ptmp = xmalloc(sizeof(struct desclistent));
+		if (list->head == NULL) {
+			list->head = ptmp;
+			ptmp->prev_entry = NULL;
+		} else {
+			ptmp->prev_entry = list->tail;
+			list->tail->next_entry = ptmp;
+		}
 
-        list->tail = ptmp;
-        ptmp->next_entry = NULL;
-        memcpy(&(ptmp->rec), &rec, sizeof(struct descrec));
-    }
-    update_panels();
-    doupdate();
+		list->tail = ptmp;
+		ptmp->next_entry = NULL;
+		memcpy(&(ptmp->rec), &rec, sizeof(struct descrec));
+	}
+	update_panels();
+	doupdate();
 }
 
 void editethdesc(struct desclist *list)
 {
-    struct desclistent *ptmp;
-    int aborted;
+	struct desclistent *ptmp;
+	int aborted;
 
-    selectdesc(list, &ptmp, &aborted);
+	selectdesc(list, &ptmp, &aborted);
 
-    if (!aborted)
-        descdlg(&(ptmp->rec), ptmp->rec.address, ptmp->rec.desc, &aborted);
+	if (!aborted)
+		descdlg(&(ptmp->rec), ptmp->rec.address, ptmp->rec.desc, &aborted);
 }
 
 void delethdesc(struct desclist *list)
 {
-    struct desclistent *ptmp;
-    int aborted;
+	struct desclistent *ptmp;
+	int aborted;
 
-    selectdesc(list, &ptmp, &aborted);
+	selectdesc(list, &ptmp, &aborted);
 
-    if (!aborted) {
-        if (ptmp->prev_entry != NULL)
-            ptmp->prev_entry->next_entry = ptmp->next_entry;
-        else
-            list->head = ptmp->next_entry;
+	if (!aborted) {
+		if (ptmp->prev_entry != NULL)
+			ptmp->prev_entry->next_entry = ptmp->next_entry;
+		else
+			list->head = ptmp->next_entry;
 
-        if (ptmp->next_entry != NULL)
-            ptmp->next_entry->prev_entry = ptmp->prev_entry;
-        else
-            list->tail = ptmp->prev_entry;
+		if (ptmp->next_entry != NULL)
+			ptmp->next_entry->prev_entry = ptmp->prev_entry;
+		else
+			list->tail = ptmp->prev_entry;
 
-        free(ptmp);
-    }
+		free(ptmp);
+	}
 }
 
 
 void ethdescmgr(unsigned int linktype)
 {
-    struct MENU menu;
-    int row = 1;
-    int aborted;
-    struct desclist list;
+	struct MENU menu;
+	int row = 1;
+	int aborted;
+	struct desclist list;
 
-    loaddesclist(&list, linktype, WITHOUTETCETHERS);
+	loaddesclist(&list, linktype, WITHOUTETCETHERS);
 
-    tx_initmenu(&menu, 7, 31, (LINES - 6) / 2, (COLS - 31) / 2,
-                BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
-                DESCATTR);
-    tx_additem(&menu, " ^A^dd description...",
-               "Adds a description for a MAC address");
-    tx_additem(&menu, " ^E^dit description...",
-               "Modifies an existing MAC address description");
-    tx_additem(&menu, " ^D^elete description...",
-               "Deletes an existing MAC address description");
-    tx_additem(&menu, NULL, NULL);
-    tx_additem(&menu, " E^x^it menu", "Returns to the main menu");
+	tx_initmenu(&menu, 7, 31, (LINES - 6) / 2, (COLS - 31) / 2,
+		    BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
+		    DESCATTR);
+	tx_additem(&menu, " ^A^dd description...",
+		   "Adds a description for a MAC address");
+	tx_additem(&menu, " ^E^dit description...",
+		   "Modifies an existing MAC address description");
+	tx_additem(&menu, " ^D^elete description...",
+		   "Deletes an existing MAC address description");
+	tx_additem(&menu, NULL, NULL);
+	tx_additem(&menu, " E^x^it menu", "Returns to the main menu");
 
-    do {
-        tx_showmenu(&menu);
-        tx_operatemenu(&menu, &row, &aborted);
+	do {
+		tx_showmenu(&menu);
+		tx_operatemenu(&menu, &row, &aborted);
 
-        switch (row) {
-        case 1:
-            addethdesc(&list);
-            break;
-        case 2:
-            editethdesc(&list);
-            break;
-        case 3:
-            delethdesc(&list);
-            break;
-        }
-    } while (row != 5);
+		switch (row) {
+		case 1:
+			addethdesc(&list);
+			break;
+		case 2:
+			editethdesc(&list);
+			break;
+		case 3:
+			delethdesc(&list);
+			break;
+		}
+	} while (row != 5);
 
-    tx_destroymenu(&menu);
-    update_panels();
-    doupdate();
-    savedesclist(&list, linktype);
+	tx_destroymenu(&menu);
+	update_panels();
+	doupdate();
+	savedesclist(&list, linktype);
 }
