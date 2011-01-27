@@ -9,8 +9,8 @@ License:        GPLv2+
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:  ncurses-devel
-Obsoletes:      iptraf <= 3.0.1-10
-Provides:       iptraf = %{version}-%{release}
+Obsoletes:      iptraf < 3.1
+Provides:       iptraf = 3.1
 
 %description
 IPTraf-ng is a console-based network monitoring utility.  IPTraf gathers
