@@ -17,6 +17,7 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "fltdefs.h"
 #include "fltmgr.h"
@@ -103,7 +104,6 @@ void savefilter(char *filename, struct filterlist *fl)
     struct filterent *fe = fl->head;
     int pfd;
     int bw;
-    int resp;
 
     pfd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
 
@@ -111,9 +111,9 @@ void savefilter(char *filename, struct filterlist *fl)
         bw = write(pfd, &(fe->hp), sizeof(struct hostparams));
 
         if (bw < 0) {
-            tx_errbox("Unable to save filter changes", ANYKEY_MSG, &resp);
-            clear_flt_tag();
-            return;
+		tui_error(ANYKEY_MSG, "Unable to save filter changes");
+		clear_flt_tag();
+		return;
         }
         fe = fe->next_entry;
     }
@@ -518,7 +518,6 @@ void definefilter(int *aborted)
 
     int pfd;
     int bw;
-    int resp;
 
     /*
      * Lock facility
@@ -539,10 +538,10 @@ void definefilter(int *aborted)
         open(get_path(T_WORKDIR, fntemp), O_CREAT | O_WRONLY | O_TRUNC,
              S_IRUSR | S_IWUSR);
     if (pfd < 0) {
-        tx_errbox("Cannot create filter data file", ANYKEY_MSG, &resp);
-        *aborted = 1;
-        clear_flt_tag();
-        return;
+	    tui_error(ANYKEY_MSG, "Cannot create filter data file");
+	    *aborted = 1;
+	    clear_flt_tag();
+	    return;
     }
 
     close(pfd);

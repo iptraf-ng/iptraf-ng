@@ -17,6 +17,7 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "links.h"
 #include "serv.h"
@@ -135,18 +136,17 @@ void saveoptions(struct OPTIONS *options)
 {
     int fd;
     int bw;
-    int response;
 
     fd = open(CONFIGFILE, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
 
     if (fd < 0) {
-        tx_errbox("Cannot create config file", ANYKEY_MSG, &response);
-        return;
+	    tui_error(ANYKEY_MSG, "Cannot create config file");
+	    return;
     }
     bw = write(fd, options, sizeof(struct OPTIONS));
 
     if (bw < 0)
-        tx_errbox("Unable to write config file", ANYKEY_MSG, &response);
+	    tui_error(ANYKEY_MSG, "Unable to write config file");
 
     close(fd);
 }
@@ -208,7 +208,6 @@ void settimeout(unsigned int *value, const char *units, int allow_zero,
     WINDOW *dlgwin;
     PANEL *dlgpanel;
     struct FIELDLIST field;
-    int resp;
     unsigned int tmval = 0;
 
     dlgwin = newwin(7, 40, (LINES - 7) / 2, (COLS - 40) / 4);
@@ -234,7 +233,7 @@ void settimeout(unsigned int *value, const char *units, int allow_zero,
         if (!(*aborted)) {
             tmval = atoi(field.list->buf);
             if ((!allow_zero) && (tmval == 0))
-                tx_errbox("Invalid timeout value", ANYKEY_MSG, &resp);
+		    tui_error(ANYKEY_MSG, "Invalid timeout value");
         }
     } while (((!allow_zero) && (tmval == 0)) && (!(*aborted)));
 
@@ -254,7 +253,6 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
     int row = 1;
     int trow = 1;               /* row for timer submenu */
     int aborted;
-    int resp;
 
     struct MENU menu;
     struct MENU timermenu;
@@ -263,9 +261,9 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
     PANEL *statpanel;
 
     if (!is_first_instance) {
-        tx_errbox("Only the first instance of IPTraf can configure",
-                  ANYKEY_MSG, &resp);
-        return;
+	    tui_error(ANYKEY_MSG, "Only the first instance of ipraf-ng"
+		      " can configure");
+	    return;
     }
     makeoptionmenu(&menu);
 

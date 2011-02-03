@@ -19,21 +19,8 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
-/*
-#include <curses.h>
-#include <panel.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <netinet/udp.h>
-#include <netinet/in.h>
-#include <linux/if_ether.h>
-#include <winops.h>
-#include <menurt.h>
-#include <msgboxes.h>
-*/
 #include "addproto.h"
 #include "dirs.h"
 #include "fltdefs.h"
@@ -211,14 +198,13 @@ void savefilters(struct filterstate *filter)
 {
     int pfd;
     int bw;
-    int resp;
 
     if (!facility_active(FLTIDFILE, ""))
         mark_facility(FLTIDFILE, "Filter configuration change", "");
     else {
-        tx_errbox("Filter state file currently in use; try again later",
-                  ANYKEY_MSG, &resp);
-        return;
+	    tui_error(ANYKEY_MSG, "Filter state file currently in use;"
+		      " try again later");
+	    return;
     }
 
     pfd =
@@ -226,8 +212,7 @@ void savefilters(struct filterstate *filter)
              S_IRUSR | S_IWUSR);
     bw = write(pfd, filter, sizeof(struct filterstate));
     if (bw < 1)
-        tx_errbox("Unable to write filter state information", ANYKEY_MSG,
-                  &resp);
+	    tui_error(ANYKEY_MSG, "Unable to write filter state information");
 
     close(pfd);
 

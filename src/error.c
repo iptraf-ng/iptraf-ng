@@ -19,18 +19,15 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
-#include "deskman.h"
-#include "attrs.h"
 #include "error.h"
 #include "log.h"
 
 void write_error(char *msg, int daemonized)
 {
-    int response;
-
-    if (daemonized)
-        write_daemon_err(msg);
-    else
-        tx_errbox(msg, ANYKEY_MSG, &response);
+	if (daemonized)
+		write_daemon_err(msg);
+	else
+		tui_error(ANYKEY_MSG, msg);
 }

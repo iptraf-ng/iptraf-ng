@@ -17,6 +17,7 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "dirs.h"
 #include "ipcsum.h"
@@ -1138,24 +1139,22 @@ void saveportlist(struct porttab *table)
     struct porttab *ptmp = table;
     int fd;
     int bw;
-    int resp;
 
     fd = open(PORTFILE, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR);
 
     if (fd < 0) {
-        tx_errbox("Unable to open port list file", ANYKEY_MSG, &resp);
-        return;
+	    tui_error(ANYKEY_MSG, "Unable to open port list file");
+	    return;
     }
     while (ptmp != NULL) {
         bw = write(fd, &(ptmp->port_min), sizeof(unsigned int));
         bw = write(fd, &(ptmp->port_max), sizeof(unsigned int));
 
         if (bw < 0) {
-            tx_errbox("Unable to write port/range entry", ANYKEY_MSG,
-                      &resp);
-            destroyporttab(table);
-            close(fd);
-            return;
+		tui_error(ANYKEY_MSG, "Unable to write port/range entry");
+		destroyporttab(table);
+		close(fd);
+		return;
         }
         ptmp = ptmp->next_entry;
     }
@@ -1182,14 +1181,13 @@ void addmoreports(struct porttab **table)
 {
     unsigned int port_min, port_max;
     int aborted;
-    int resp;
     struct porttab *ptmp;
 
     portdlg(&port_min, &port_max, &aborted, 0);
 
     if (!aborted) {
         if (dup_portentry(*table, port_min, port_max))
-            tx_errbox("Duplicate port/range entry", ANYKEY_MSG, &resp);
+		tui_error(ANYKEY_MSG, "Duplicate port/range entry");
         else {
             ptmp = xmalloc(sizeof(struct porttab));
 
@@ -1215,7 +1213,6 @@ void loadaddports(struct porttab **table)
     struct porttab *ptemp;
     struct porttab *tail = NULL;
     int br;
-    int resp;
 
     *table = NULL;
 
@@ -1230,10 +1227,10 @@ void loadaddports(struct porttab **table)
         br = read(fd, &(ptemp->port_max), sizeof(unsigned int));
 
         if (br < 0) {
-            tx_errbox("Error reading port list", ANYKEY_MSG, &resp);
-            close(fd);
-            destroyporttab(*table);
-            return;
+		tui_error(ANYKEY_MSG, "Error reading port list");
+		close(fd);
+		destroyporttab(*table);
+		return;
         }
         if (br > 0) {
             if (*table == NULL) {
@@ -1311,11 +1308,9 @@ void operate_portselect(struct porttab **table, struct porttab **node,
 void selectport(struct porttab **table, struct porttab **node,
                 int *aborted)
 {
-    int resp;
-
     if (*table == NULL) {
-        tx_errbox("No custom ports", ANYKEY_MSG, &resp);
-        return;
+	    tui_error(ANYKEY_MSG, "No custom ports");
+	    return;
     }
 
     operate_portselect(table, node, aborted);

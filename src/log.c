@@ -18,6 +18,7 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "attrs.h"
 #include "deskman.h"
@@ -40,12 +41,6 @@ int rotate_flag;
 char target_logname[TARGET_LOGNAME_MAX];
 char current_logfile[TARGET_LOGNAME_MAX];
 char graphing_logfile[TARGET_LOGNAME_MAX];
-
-void openlogerr(void)
-{
-    int resp;
-    tx_errbox("Unable to open log file", ANYKEY_MSG, &resp);
-}
 
 /*
  * Generates a log file based on a template for a particular instance of
@@ -110,7 +105,7 @@ void opentlog(FILE ** fd, char *logfilename)
     *fd = fopen(logfilename, "a");
 
     if (*fd == NULL)
-        openlogerr();
+	    tui_error(ANYKEY_MSG, "Unable to open log file");
 
     rotate_flag = 0;
     strcpy(target_logname, "");

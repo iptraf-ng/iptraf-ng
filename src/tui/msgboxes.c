@@ -31,37 +31,42 @@ void tx_init_info_attrs(int border, int text, int prompt)
     INFO_PROMPT_ATTR = prompt;
 }
 
-void tx_errbox(char *message, char *prompt, int *response)
+void tui_error(const char *prompt, const char *err, ...)
 {
-    WINDOW *win;
-    PANEL *panel;
+	WINDOW *win = newwin(4, 70, (LINES - 4) / 2, (COLS - 70) / 2);
+	PANEL *panel = new_panel(win);
 
-    win = newwin(4, 70, (LINES - 4) / 2, (COLS - 70) / 2);
-    panel = new_panel(win);
+	wattrset(win, ERR_BORDER_ATTR);
+	tx_colorwin(win);
+	tx_box(win, ACS_VLINE, ACS_HLINE);
+	wmove(win, 2, 2);
+	wattrset(win, ERR_PROMPT_ATTR);
+	wprintw(win, "%s", prompt);
 
-    wattrset(win, ERR_BORDER_ATTR);
-    tx_colorwin(win);
-    tx_box(win, ACS_VLINE, ACS_HLINE);
-    wmove(win, 2, 2);
-    wattrset(win, ERR_PROMPT_ATTR);
-    wprintw(win, "%s", prompt);
-    wattrset(win, ERR_TEXT_ATTR);
-    wmove(win, 1, 2);
-    wprintw(win, "%s", message);
-    update_panels();
-    doupdate();
+	wattrset(win, ERR_TEXT_ATTR);
+	wmove(win, 1, 2);
+	va_list params;
+	va_start(params, err);
+	char msg[4096];
+	vsnprintf(msg, sizeof(msg), err, params);
+	wprintw(win, "%s", msg);
+	va_end(params);
 
-    do {
-        *response = wgetch(win);
-        if (*response == 12)
-            tx_refresh_screen();
-    } while (*response == 12);
+	update_panels();
+	doupdate();
 
-    del_panel(panel);
-    delwin(win);
-    update_panels();
-    doupdate();
-}                                
+	int response;
+	do {
+		response = wgetch(win);
+		if (response == 12)
+			tx_refresh_screen();
+	} while (response == 12);
+
+	del_panel(panel);
+	delwin(win);
+	update_panels();
+	doupdate();
+}
 
 void tx_infobox(char *text, char *prompt)
 {

@@ -18,6 +18,7 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "addproto.h"
 #include "dirs.h"
@@ -203,7 +204,7 @@ void gethostparams(struct hostparams *data, char *init_saddr,
                 snprintf(msgstr, 60,
                          "Invalid protocol input at or near token \"%s\"",
                          bptr);
-                tx_errbox(msgstr, ANYKEY_MSG, &i);
+                tui_error(ANYKEY_MSG, msgstr);
                 doagain = 1;
             } else
                 doagain = 0;

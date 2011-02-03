@@ -16,6 +16,7 @@ TUI_H += tui/listbox.h
 TUI_H += tui/menurt.h
 TUI_H += tui/msgboxes.h
 TUI_H += tui/winops.h
+TUI_H += tui/tui.h
 
 TUI_C += tui/input.c
 TUI_C += tui/labels.c

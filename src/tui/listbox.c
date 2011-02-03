@@ -13,6 +13,7 @@
 #include "labels.h"
 #include "listbox.h"
 #include "msgboxes.h"
+#include "tui.h"
 
 void tx_init_listbox(struct scroll_list *list, int width, int height,
                       int startx, int starty,
@@ -93,7 +94,7 @@ void tx_operate_listbox(struct scroll_list *list,
     char sp_buf[10];
     
     if (list->textlist == NULL) {
-        tx_errbox("No list entries", ANYKEY_MSG, &ch);
+	    tui_error(ANYKEY_MSG, "No list entries");
         *aborted = 1;
         return;
     }

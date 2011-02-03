@@ -17,6 +17,7 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "attrs.h"
 #include "deskman.h"
@@ -57,15 +58,11 @@ void genname(unsigned long n, char *m)
 
 int mark_filter_change(void)
 {
-    int resp;
-
     if (!facility_active(OTHIPFLTIDFILE, ""))
         mark_facility(OTHIPFLTIDFILE, "IP filter change", "");
     else {
-        tx_errbox
-            ("IP protocol data file in use; try again later",
-             ANYKEY_MSG, &resp);
-        return 0;
+	    tui_error(ANYKEY_MSG, "IP protocol data file in use; try again later");
+	    return 0;
     }
     return 1;
 }
@@ -336,7 +333,6 @@ void get_filter_description(char *description, int *aborted,
     int dlgwintop;
     WINDOW *dlgwin;
     PANEL *dlgpanel;
-    int resp = 0;
 
     dlgwintop = (LINES - 9) / 2;
     dlgwin = newwin(7, 42, dlgwintop, (COLS - 42) / 2 - 10);
@@ -360,8 +356,9 @@ void get_filter_description(char *description, int *aborted,
         tx_fillfields(&descfield, aborted);
 
         if ((descfield.list->buf[0] == '\0') && (!(*aborted)))
-            tx_errbox("Enter an appropriate description for this filter",
-                      ANYKEY_MSG, &resp);
+		tui_error(ANYKEY_MSG,
+			  "Enter an appropriate description for this filter");
+
     } while ((descfield.list->buf[0] == '\0') && (!(*aborted)));
 
     if (!(*aborted))

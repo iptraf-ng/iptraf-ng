@@ -16,6 +16,7 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "ifstats.h"
 #include "ifaces.h"
@@ -108,14 +109,13 @@ void initiflist(struct iflist **list)
     struct iflist *itmp = NULL;
     struct iflist *tail = NULL;
     unsigned int index = 0;
-    int resp;
 
     *list = NULL;
 
     fd = open_procnetdev();
     if (fd == NULL) {
-        tx_errbox("Unable to obtain interface list", ANYKEY_MSG, &resp);
-        return;
+	    tui_error(ANYKEY_MSG, "Unable to obtain interface list");
+	    return;
     }
 
     while (get_next_iface(fd, ifname, 12)) {

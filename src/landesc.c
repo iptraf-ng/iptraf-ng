@@ -20,19 +20,13 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
+#include "tui/tui.h"
 
 #include "deskman.h"
 #include "attrs.h"
 #include "dirs.h"
 #include "landesc.h"
 #include "links.h"
-
-void etherr(void)
-{
-	int resp;
-
-	tx_errbox("Unable to open host description file", ANYKEY_MSG, &resp);
-}
 
 void add_desclist_node(struct desclist *list, struct desclistent *ptmp)
 {
@@ -189,7 +183,7 @@ void savedesclist(struct desclist *list, unsigned int linktype)
 
 	if (fd == NULL)
 	{
-		etherr();
+		tui_error(ANYKEY_MSG, "Unable to open host description file");
 		return;
 	}
 
@@ -317,7 +311,7 @@ void selectdesc(struct desclist *list, struct desclistent **node,
 	char descline[80];
 
 	if (list->head == NULL) {
-		tx_errbox("No descriptions", ANYKEY_MSG, &resp);
+		tui_error(ANYKEY_MSG, "No descriptions");
 		return;
 	}
 
