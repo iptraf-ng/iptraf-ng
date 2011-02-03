@@ -9,8 +9,8 @@
 *.la
 
 # ignore binaries
-src/iptraf
-src/rvnamed
+src/iptraf-ng
+src/rvnamed-ng
 
 # don't ignore git files
 !.gitignore
