@@ -493,7 +493,6 @@ void sortipents(struct tcptable *table, unsigned long *idx, int ch,
 
 int checkrvnamed(void)
 {
-    int execstat = 0;
     pid_t cpid = 0;
     int cstat;
     extern int errno;
@@ -503,7 +502,7 @@ int checkrvnamed(void)
         indicate("Starting reverse lookup server");
 
         if ((cpid = fork()) == 0) {
-            execstat = execl(RVNDFILE, "", (char*)NULL);
+            execl(RVNDFILE, "", (char*)NULL);
 
             /*
              * execl() never returns, so if we reach this point, we have
@@ -609,7 +608,6 @@ void ipmon(struct OPTIONS *options,
     unsigned int br;            /* bytes read.  Differs from readlen */
     /* only when packets fragmented */
     unsigned int iphlen;
-    unsigned int totalhlen;
 
     struct tcptable table;
     struct tcptableent *tcpentry;
@@ -617,7 +615,6 @@ void ipmon(struct OPTIONS *options,
     int mode = 0;
 
     struct othptable othptbl;
-    struct othptabent *othpent;
 
     int p_sstat = 0, p_dstat = 0;       /* Reverse lookup statuses prior to */
     /* reattempt in updateentry() */
@@ -1041,13 +1038,13 @@ void ipmon(struct OPTIONS *options,
                 continue;
 
             if ((fromaddr.sll_protocol != ETH_P_IP) && (fromaddr.sll_protocol != ETH_P_IPV6)) {
-                othpent = add_othp_entry(&othptbl, &table,
-                                         0, 0, NULL, NULL, NOT_IP,
-                                         fromaddr.sll_protocol,
-                                         linktype, (char *) tpacket,
-                                         (char *) packet, br, ifname, 0, 0,
-                                         0, logging, logfile,
-                                         options->servnames, 0, &nomem);
+		    add_othp_entry(&othptbl, &table,
+				   0, 0, NULL, NULL, NOT_IP,
+				   fromaddr.sll_protocol,
+				   linktype, (char *) tpacket,
+				   (char *) packet, br, ifname, 0, 0,
+				   0, logging, logfile,
+				   options->servnames, 0, &nomem);
                 continue;
             } else {
                 if ((options->v6inv4asv6) && (fromaddr.sll_protocol == ETH_P_IP)
@@ -1098,8 +1095,6 @@ void ipmon(struct OPTIONS *options,
                      */
 
                     if ((ntohs(frag_off) & 0x3fff) == 0) {  /* first frag only */
-                        totalhlen = iphlen + transpacket->doff * 4;
-
                         if ((tcpentry == NULL) && (!(transpacket->fin))) {
 
                             /*
@@ -1266,17 +1261,15 @@ void ipmon(struct OPTIONS *options,
                                                  ifname, &nomem);
 
                     }
-
-                    othpent =
-                        add_othp_entry(&othptbl, &table, ippacket->saddr,
-                                       ippacket->daddr, NULL, NULL, IS_IP,
-                                       ippacket->protocol, linktype,
-                                       (char *) tpacket,
-                                       (char *) transpacket, readlen,
-                                       ifname, &revlook, rvnfd,
-                                       options->timeout, logging, logfile,
-                                       options->servnames, fragment,
-                                       &nomem);
+		    add_othp_entry(&othptbl, &table, ippacket->saddr,
+				   ippacket->daddr, NULL, NULL, IS_IP,
+				   ippacket->protocol, linktype,
+				   (char *) tpacket,
+				   (char *) transpacket, readlen,
+				   ifname, &revlook, rvnfd,
+				   options->timeout, logging, logfile,
+				   options->servnames, fragment,
+				   &nomem);
 
             } else {
                 if (ip6packet->ip6_nxt == IPPROTO_ICMPV6) {
@@ -1284,14 +1277,13 @@ void ipmon(struct OPTIONS *options,
                         process_dest_unreach(&table, (char *) transpacket,
                             ifname, &nomem);
                 }
-                othpent =
-                    add_othp_entry(&othptbl, &table, 0, 0, &ip6packet->ip6_src,
-                                   &ip6packet->ip6_dst, IS_IP,
-                                   ip6packet->ip6_nxt, linktype,
-                                   (char *) tpacket, (char *) transpacket,
-                                   readlen, ifname, &revlook,
-                                   rvnfd, options->timeout, logging, logfile,
-                                   options->servnames, fragment, &nomem);
+		add_othp_entry(&othptbl, &table, 0, 0, &ip6packet->ip6_src,
+			       &ip6packet->ip6_dst, IS_IP,
+			       ip6packet->ip6_nxt, linktype,
+			       (char *) tpacket, (char *) transpacket,
+			       readlen, ifname, &revlook,
+			       rvnfd, options->timeout, logging, logfile,
+			       options->servnames, fragment, &nomem);
                 }
             }
         }

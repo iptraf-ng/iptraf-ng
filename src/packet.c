@@ -255,7 +255,6 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr,
     fd_set set;
     struct timeval tv;
     int ss;
-    int ir;
     struct ifreq ifr;
 
     FD_ZERO(&set);
@@ -288,7 +287,7 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr,
         *br = recvfrom(fd, buf, MAX_PACKET_SIZE, 0,
                        (struct sockaddr *) fromaddr, &fromlen);
         ifr.ifr_ifindex = fromaddr->sll_ifindex;
-        ir = ioctl(fd, SIOCGIFNAME, &ifr);
+        ioctl(fd, SIOCGIFNAME, &ifr);
         strcpy(ifname, ifr.ifr_name);
     }
     if (!daemonized) {

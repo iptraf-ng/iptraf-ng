@@ -208,7 +208,6 @@ int main(void)
     FILE *logfile;
 
     extern int errno;
-    pid_t pid;
 
     /* Daemonization Sequence */
 
@@ -430,7 +429,6 @@ int main(void)
                             case 0:    /* spawned child */
                                 fclose(logfile);        /* no logging in child */
                                 close(ifd);     /* no comm with client */
-                                pid = getpid();
 
                                 /*
                                  * Set auto-terminate timeout

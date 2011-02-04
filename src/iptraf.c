@@ -429,10 +429,9 @@ int main(int argc, char **argv)
 		switch (fork()) {
 			case 0:                /* child */
 				setsid();
-				FILE* fd = NULL;
-				fd = freopen("/dev/null", "w", stdout);  /* redirect std output */
-				fd = freopen("/dev/null", "r", stdin);   /* redirect std input */
-				fd = freopen("/dev/null", "w", stderr);  /* redirect std error */
+				freopen("/dev/null", "w", stdout);  /* redirect std output */
+				freopen("/dev/null", "r", stdin);   /* redirect std input */
+				freopen("/dev/null", "w", stderr);  /* redirect std error */
 				signal(SIGUSR2,  term_usr2_handler);
 
 				if (graphing_logfile[0] != '\0')

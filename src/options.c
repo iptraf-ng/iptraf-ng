@@ -170,7 +170,6 @@ void setdefaultopts(struct OPTIONS *options)
 void loadoptions(struct OPTIONS *options)
 {
     int fd;
-    int br;
 
     setdefaultopts(options);
     fd = open(CONFIGFILE, O_RDONLY);
@@ -178,7 +177,7 @@ void loadoptions(struct OPTIONS *options)
     if (fd < 0)
         return;
 
-    br = read(fd, options, sizeof(struct OPTIONS));
+    read(fd, options, sizeof(struct OPTIONS));
 
     close(fd);
 }

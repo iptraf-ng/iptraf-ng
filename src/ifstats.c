@@ -755,7 +755,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
     char *packet;
     struct iphdr *ipacket = NULL;
     struct ip6_hdr *ip6packet = NULL;
-    char *tpacket;
     unsigned int iphlen;
 
     char ifname[18];
@@ -1118,7 +1117,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
                 ipacket = (struct iphdr *) packet;
                 iphlen = ipacket->ihl * 4;
-                tpacket = packet + iphlen;
                 iplen = ntohs(ipacket->tot_len);
 
                 totals.iptotal++;

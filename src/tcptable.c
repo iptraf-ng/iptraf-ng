@@ -509,8 +509,6 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
     struct tcp_hashentry *hashptr;
     unsigned int hp;
 
-    int hastimeouts = 0;
-
     time_t now;
     time_t timeout;
 
@@ -565,8 +563,6 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
             hashptr->tcpnode->timedout = 1;
             hashptr->tcpnode->oth_connection->timedout = 1;
             addtoclosedlist(table, hashptr->tcpnode, nomem);
-            if (!(*nomem))
-                hastimeouts = 1;
 
             if (logging)
                 write_timeout_log(logging, logfile, hashptr->tcpnode,
