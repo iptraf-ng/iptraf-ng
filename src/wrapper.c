@@ -46,3 +46,17 @@ char* xvasprintf(const char *format, va_list p)
     return string_ptr;
 }
 
+// Die if we can't copy a string to freshly allocated memory.
+char* xstrdup(const char *s)
+{
+	if (!s)
+		return NULL;
+
+	char *t = strdup(s);
+
+	if (!t)
+		die("Out of memory, %s failed", __func__);
+
+	return t;
+}
+

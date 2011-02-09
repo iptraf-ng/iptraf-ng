@@ -69,6 +69,7 @@ void rotate_lanlog(int s)
     signal(SIGUSR1, rotate_lanlog);
 }
 
+/*
 void ethlook(struct desclist *list, char *address, char *target)
 {
     struct desclistent *ptmp = list->head;
@@ -81,6 +82,7 @@ void ethlook(struct desclist *list, char *address, char *target)
         ptmp = ptmp->next_entry;
     }
 }
+*/
 
 void initethtab(struct ethtab *table, int unit)
 {
@@ -175,7 +177,7 @@ void convmacaddr(char *addr, char *result)
 
 struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
                               char *ifname, char *addr, int *nomem,
-                              struct desclist *list)
+                              struct eth_desc *list)
 {
     struct ethtabent *ptemp;
 
@@ -187,9 +189,11 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
     ptemp->type = 0;
     memcpy(&(ptemp->un.desc.eth_addr), addr, ETH_ALEN);
     strcpy(ptemp->un.desc.desc, "");
+
     convmacaddr(addr, ptemp->un.desc.ascaddr);
+
     ptemp->un.desc.linktype = linktype;
-    ethlook(list, ptemp->un.desc.ascaddr, ptemp->un.desc.desc);
+//    ethlook(list, ptemp->un.desc.ascaddr, ptemp->un.desc.desc);
     strcpy(ptemp->un.desc.ifname, ifname);
 
     if (strcmp(ptemp->un.desc.desc, "") == 0)
@@ -702,9 +706,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
     unsigned long updtime = 0;
     unsigned long long updtime_usec = 0;
 
-    struct desclist elist;      /* Ethernet description list */
-    struct desclist flist;      /* FDDI description list */
-    struct desclist *list = NULL;
+    struct eth_desc *list = NULL;
 
     FILE *logfile = NULL;
 
@@ -766,8 +768,12 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
     hostmonhelp();
 
     initethtab(&table, options->actmode);
-    loaddesclist(&elist, LINK_ETHERNET, WITHETCETHERS);
-    loaddesclist(&flist, LINK_FDDI, WITHETCETHERS);
+
+    /* Ethernet description list */
+    struct eth_desc *elist = load_eth_desc(LINK_ETHERNET);
+
+    /* FDDI description list */
+    struct eth_desc *flist = load_eth_desc(LINK_FDDI);
 
     if (logging) {
         if (strcmp(current_logfile, "") == 0) {
@@ -905,20 +911,20 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 		    struct ethhdr* hdr_eth = (struct ethhdr *) buf;
                     memcpy(scratch_saddr, (hdr_eth)->h_source, ETH_ALEN);
                     memcpy(scratch_daddr, (hdr_eth)->h_dest, ETH_ALEN);
-                    list = &elist;
+                    list = elist;
                 }
 		else if (linktype == LINK_FDDI)
 		{
 		    struct fddihdr* hdr_fddi = (struct fddihdr *) buf;
                     memcpy(scratch_saddr, (hdr_fddi)->saddr, FDDI_K_ALEN);
                     memcpy(scratch_daddr, (hdr_fddi)->daddr, FDDI_K_ALEN);
-                    list = &flist;
+                    list = flist;
                 } else if (linktype == LINK_TR)
 		{
 		    struct trh_hdr* hdr_trh = (struct trh_hdr *) buf;
                     memcpy(scratch_saddr, (hdr_trh)->saddr, TR_ALEN);
                     memcpy(scratch_daddr, (hdr_trh)->daddr, TR_ALEN);
-                    list = &flist;
+                    list = flist;
                 }
 
                 entry = in_ethtable(&table, linktype, scratch_saddr);
@@ -984,8 +990,10 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
     update_panels();
     doupdate();
     destroyethtab(&table);
-    destroydesclist(&elist);
-    destroydesclist(&flist);
+
+    free_eth_desc(elist);
+    free_eth_desc(flist);
+
     unmark_facility(LANMONIDFILE, ifptr);
     strcpy(current_logfile, "");
 }

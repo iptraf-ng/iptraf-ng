@@ -21,7 +21,6 @@ void servmon(char *iface, struct porttab *ports,
 void ip_host_breakdown(struct OPTIONS *options, char *iface);
 void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
              struct filterstate *ofilter);
-void ethdescmgr(void);
 void setoptions(struct OPTIONS *options, struct porttab **ports);
 void loadoptions(struct OPTIONS *options);
 void saveoptions(struct OPTIONS *options);

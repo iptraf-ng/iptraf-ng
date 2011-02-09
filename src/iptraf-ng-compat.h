@@ -33,6 +33,7 @@
 #include <netdb.h>
 #include <curses.h>
 #include <assert.h>
+#include <stddef.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -72,25 +73,33 @@
 #include "msgboxes.h"
 //#include "txbox.h"
 
-#define debug(...) \
-            do { \
-                fprintf(stderr, "%s:%s():%d:", __FILE__, __func__, __LINE__); \
-                fprintf(stderr, __VA_ARGS__); \
-                fprintf(stderr, "\n"); \
-            }while(0)
+#define debug(...)							\
+	do {								\
+                fprintf(stderr, "%s:%s():%d:",				\
+			__FILE__, __func__, __LINE__);			\
+                fprintf(stderr, __VA_ARGS__);				\
+                fprintf(stderr, "\n");					\
+	} while(0)
 
 #define NORETURN __attribute__((noreturn))
-
 
 extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
 extern char* xvasprintf(const char *format, va_list p);
 extern void* xmallocz(size_t size);
-
+extern char* xstrdup(const char *s);
 
 extern void die(const char *err, ...);
 extern void error(const char *err, ...);
+
+static inline char* skip_whitespace(const char *str)
+{
+	while (isspace(*str))
+		++str;
+
+	return (char*) str;
+}
 
 #if 0
 static inline int strtoul_ui(char const *s, int base, unsigned int *result)

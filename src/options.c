@@ -367,10 +367,10 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
             removeaport(ports);
             break;
         case 15:
-            ethdescmgr(LINK_ETHERNET);
+		manage_eth_desc(LINK_ETHERNET);
             break;
         case 16:
-            ethdescmgr(LINK_FDDI);
+		manage_eth_desc(LINK_FDDI);
             break;
         }
 
