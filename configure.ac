@@ -15,26 +15,23 @@ AC_PROG_CC
 AC_LANG_C
 AC_HEADER_STDC
 
-dnl checks for libraries ncursesw/ncurses
-AC_PATH_PROGS([ncurses_config],
-	[ncursesw6-config ncursesw5-config ncurses6-config ncurses5-config])
-if test -n "$ncurses_config"; then
-	libncurses_CFLAGS=$("$ncurses_config" --cflags);
-	libncurses_LIBS=$("$ncurses_config" --libs);
+dnl checks for libraries ncurses[5,6]
+dnl removed ncursesw[5,6]; iptraf-ng does not use it
+AC_CHECK_PROG([ncurses5_config], [ncurses5-config], [yes])
+AC_CHECK_PROG([ncurses6_config], [ncurses6-config], [yes])
+
+if test "x$ncurses6_config" = "xyes"; then
+    libncurses_CFLAGS=$("ncurses6-config" --cflags)
+    libncurses_LIBS=$("ncurses6-config" --libs)
+elif test "x$ncurses5_config" = "xyes"; then
+    libncurses_CFLAGS=$("ncurses5-config" --cflags)
+    libncurses_LIBS=$("ncurses5-config" --libs)
 else
-	AC_CHECK_LIB([ncursesw], [initscr], [ncurses_LIBS="-lncursesw"])
-	if test -z "$ncurses_LIBS"; then
-		AC_CHECK_LIB([ncurses], [initscr], [ncurses_LIBS="-lncurses"])
-	fi
-	if test -z "$ncurses_LIBS"; then
-		AC_MSG_ERROR([At least one of ncursesw/ncurses library must be present])
-	fi;
-fi;
-if echo "$ncurses_LIBS" | grep -q cursesw; then
-	libpanel_LIBS="-lpanelw";
-else
-	libpanel_LIBS="-lpanel";
-fi;
+    AC_MSG_ERROR([Install ncurses5-dev or ncurses6-dev])
+fi
+
+libpanel_LIBS="-lpanel"
+
 AC_SUBST([libncurses_CFLAGS])
 AC_SUBST([libncurses_LIBS])
 AC_SUBST([libpanel_LIBS])
@@ -50,7 +47,6 @@ AC_CHECK_HEADERS([sys/ioctl.h])
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/time.h])
 AC_CHECK_HEADERS([locale.h])
-AC_CHECK_HEADERS([curses.h],, [AC_MSG_ERROR(curses.h header must be present)])
 
 dnl checks for types
 AC_TYPE_PID_T
