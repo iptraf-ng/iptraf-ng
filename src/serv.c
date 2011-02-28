@@ -40,7 +40,6 @@ details.
 #include "logvars.h"
 #include "error.h"
 #include "bar.h"
-#include "mode.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -645,11 +644,8 @@ void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
 void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
                        int *cleared)
 {
-    char act_unit[10];
     float inrate, outrate, totalrate;
     time_t now = time(NULL);
-
-    dispmode(actmode, act_unit);
 
     if (actmode == KBITS) {
         inrate =
@@ -677,6 +673,7 @@ void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
                                                                    starttime);
     }
 
+    char *act_unit = dispmode(actmode);
     wattrset(win, IPSTATLABELATTR);
     mvwprintw(win, 0, 1,
               "Protocol data rates (%s/s):           in             out            total",

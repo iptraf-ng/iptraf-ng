@@ -81,6 +81,11 @@
                 fprintf(stderr, "\n");					\
 	} while(0)
 
+#define KBITS 0
+
+#define dispmode(mode)				\
+	((mode) == KBITS) ? "kbits": "kbytes";
+
 #define NORETURN __attribute__((noreturn))
 
 extern void *xmalloc(size_t size);

@@ -51,7 +51,6 @@ LIB_H += error.h
 LIB_H += revname.h
 LIB_H += log.h
 LIB_H += pktsize.h
-LIB_H += mode.h
 LIB_H += landesc.h
 LIB_H += dirs.h
 LIB_H += getpath.h
@@ -74,7 +73,6 @@ LIB_H += list.h
 
 LIB_C += error.c
 LIB_C += log.c
-LIB_C += mode.c
 LIB_C += getpath.c
 LIB_C += bar.c
 LIB_C += parseproto.c

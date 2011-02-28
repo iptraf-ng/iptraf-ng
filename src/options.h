@@ -9,7 +9,5 @@ struct OPTIONS {
     unsigned int closedint;
 };
 
-#define KBITS 0
-#define KBYTES 1
 #define DEFAULT_UPDATE_DELAY 50000      /* usec screen delay if update rate 0 */
 #define HOSTMON_UPDATE_DELAY 100000

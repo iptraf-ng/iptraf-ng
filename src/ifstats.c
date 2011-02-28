@@ -33,7 +33,6 @@ details.
 #include "serv.h"
 #include "timer.h"
 #include "instances.h"
-#include "mode.h"
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
@@ -803,8 +802,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
     float peakpps_in = 0;
     float peakpps_out = 0;
 
-    char unitstring[7];
-
     struct promisc_states *promisc_list;
     char err_msg[80];
 
@@ -918,7 +915,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
     isdnfd = -1;
     exitloop = 0;
-    dispmode(options->actmode, unitstring);
+    char *unitstring = dispmode(options->actmode);
 
     /*
      * Data-gathering loop

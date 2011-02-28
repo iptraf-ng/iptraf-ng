@@ -31,7 +31,6 @@ details.
 #include "pktsize.h"
 #include "hostmon.h"
 #include "links.h"
-#include "mode.h"
 
 #define MSGSTRING_MAX		240
 #define TARGET_LOGNAME_MAX	160
@@ -239,7 +238,6 @@ void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 {
     struct iflist *ptmp = table->head;
     char atime[TIME_TARGET_MAX];
-    char unitstring[7];
 
     genatime(time((time_t *) NULL), atime);
     fprintf(fd, "\n*** General interface statistics log generated %s\n\n",
@@ -253,7 +251,7 @@ void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
                 ptmp->badtotal);
 
         if (nsecs > 5) {
-            dispmode(unit, unitstring);
+		char *unitstring = dispmode(unit);
 
             if (unit == KBITS) {
                 fprintf(fd, ", average activity %.2f %s/s",
@@ -286,9 +284,7 @@ void writedstatlog(char *ifname, int unit, float activity, float pps,
                    struct iftotals *ts, unsigned long nsecs, FILE * fd)
 {
     char atime[TIME_TARGET_MAX];
-    char unitstring[7];
-
-    dispmode(unit, unitstring);
+    char *unitstring = dispmode(unit);
 
     genatime(time((time_t *) NULL), atime);
 
@@ -385,11 +381,10 @@ void writeutslog(struct portlistent *list, unsigned long nsecs, int units,
 {
     char atime[TIME_TARGET_MAX];
     struct portlistent *ptmp = list;
-    char unitstring[10];
     float inrate, outrate, totalrate;
     time_t now = time(NULL);
 
-    dispmode(units, unitstring);
+    char *unitstring = dispmode(units);
 
     genatime(time((time_t *) NULL), atime);
 
@@ -464,9 +459,8 @@ void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 {
     char atime[TIME_TARGET_MAX];
     struct ethtabent *ptmp = list;
-    char unitstring[7];
 
-    dispmode(unit, unitstring);
+    char *unitstring = dispmode(unit);
 
     genatime(time((time_t *) NULL), atime);
 

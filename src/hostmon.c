@@ -39,7 +39,6 @@ details.
 #include "landesc.h"
 #include "options.h"
 #include "instances.h"
-#include "mode.h"
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
@@ -86,8 +85,6 @@ void ethlook(struct desclist *list, char *address, char *target)
 
 void initethtab(struct ethtab *table, int unit)
 {
-    char unitstring[7];
-
     table->head = table->tail = NULL;
     table->firstvisible = table->lastvisible = NULL;
     table->count = table->entcount = 0;
@@ -120,7 +117,7 @@ void initethtab(struct ethtab *table, int unit)
 
     wmove(table->borderwin, LINES - 3, 40);
 
-    dispmode(unit, unitstring);
+    char *unitstring = dispmode(unit);
 
     wprintw(table->borderwin, " InRate and OutRate are in %s/sec ",
             unitstring);
