@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <netdb.h>
 #include <curses.h>
+#include <panel.h>
 #include <assert.h>
 #include <stddef.h>
 
@@ -64,13 +65,12 @@
 #include <net/if_arp.h>
 
 /* move it out! */
-#include "panel.h"
-#include "labels.h"
-#include "listbox.h"
-#include "input.h"
-#include "menurt.h"
-#include "winops.h"
-#include "msgboxes.h"
+#include "tui/labels.h"
+#include "tui/listbox.h"
+#include "tui/input.h"
+#include "tui/menurt.h"
+#include "tui/winops.h"
+#include "tui/msgboxes.h"
 //#include "txbox.h"
 
 #define debug(...)							\

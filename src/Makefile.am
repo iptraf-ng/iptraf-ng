@@ -115,14 +115,14 @@ iptraf_ng_SOURCES = \
     $(LIB_C) $(LIB_H) \
     $(NULL)
 
-iptraf_ng_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
+iptraf_ng_CPPFLAGS = ${AM_CPPFLAGS}
 iptraf_ng_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
 iptraf_ng_LDADD = $(libncurses_LIBS) $(libpanel_LIBS)
 
 man_MANS = iptraf-ng.8 rvnamed-ng.8
 
 rvnamed_ng_SOURCES = rvnamed.c rvnamed.h getpath.c dirs.h getpath.h
-rvnamed_ng_CPPFLAGS = ${AM_CPPFLAGS} -I${srcdir}/tui
+rvnamed_ng_CPPFLAGS = ${AM_CPPFLAGS}
 rvnamed_ng_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
 
 EXTRA_DIST = $(man_MANS)

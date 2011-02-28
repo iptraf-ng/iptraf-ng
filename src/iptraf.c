@@ -40,7 +40,7 @@ details.
 
 #include "parse-options.h"
 
-#include "config.h"
+#include "../config.h"
 
 #define WITHALL 1
 #define WITHOUTALL 0

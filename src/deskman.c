@@ -21,7 +21,7 @@ details.
 
 #include "deskman.h"
 
-#include "config.h"
+#include "../config.h"
 /* Attribute variables */
 
 int STDATTR;
