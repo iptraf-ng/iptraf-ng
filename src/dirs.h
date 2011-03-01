@@ -90,33 +90,13 @@
 #define DSTATIDFILE		get_path(T_LOCKDIR, "iptraf-detstat.tag")
 #define TCPUDPIDFILE		get_path(T_LOCKDIR, "iptraf-tcpudp.tag")
 #define LANMONIDFILE		get_path(T_LOCKDIR, "iptraf-lanmon.tag")
-#define IPHOSTSIDFILE		get_path(T_LOCKDIR, "iptraf-iphosts.tag")
 #define FLTIDFILE		get_path(T_LOCKDIR, "iptraf-filters.tag")
-#define TCPFLTIDFILE		get_path(T_LOCKDIR, "iptraf-tcpfltchg.tag")
-#define UDPFLTIDFILE		get_path(T_LOCKDIR, "iptraf-udpfltchg.tag")
-#define OTHFLTIDFILE		get_path(T_LOCKDIR, "iptraf-othfltchg.tag")
 #define OTHIPFLTIDFILE		get_path(T_LOCKDIR, "iptraf-othipfltchg.tag")
 #define PKTSIZEIDFILE		get_path(T_LOCKDIR, "iptraf-packetsize.tag")
 #define PROCCOUNTFILE		get_path(T_LOCKDIR, "iptraf-processcount.dat")
 #define ITRAFMONCOUNTFILE 	get_path(T_LOCKDIR, "iptraf-itrafmoncount.dat")
 #define LANMONCOUNTFILE		get_path(T_LOCKDIR, "iptraf-lanmoncount.dat")
 #define PROMISCLISTFILE 	get_path(T_WORKDIR, "iptraf-promisclist.tmp")
-
-/*
- * The TCP filter list file
- */
-
-#define TCPFLNAME	get_path(T_WORKDIR, "tcpfilters.dat")
-
-/*
- * The UDP filter list file
- */
-
-#define UDPFLNAME	get_path(T_WORKDIR, "udpfilters.dat")
-
-/*
- * Data file for other IP protocol filters
- */
 
 #define OTHIPFLNAME	get_path(T_WORKDIR, "othipfilters.dat")
 
@@ -168,13 +148,6 @@
  */
 
 #define RVNDLOGFILE	get_path(T_LOGDIR, "rvnamed-ng.log")
-
-/*
- * File to contain the current TCP filter data file name.  UDP filter
- * data is saved with the other protocols.
- */
-
-#define TCPFILTERSAVE   get_path(T_WORKDIR, "tcpfilter.cur")
 
 #ifndef PATH_MAX
 #define PATH_MAX	4095
