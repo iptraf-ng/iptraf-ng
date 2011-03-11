@@ -502,14 +502,14 @@ int checkrvnamed(void)
         indicate("Starting reverse lookup server");
 
         if ((cpid = fork()) == 0) {
-            execl(RVNDFILE, "", (char*)NULL);
+            execl("rvnamed-ng", "", (char*)NULL);
 
             /*
              * execl() never returns, so if we reach this point, we have
              * a problem.
              */
 
-            _exit(1);
+            die("unable execl() rvnamed-ng");
         } else if (cpid == -1) {
             write_error("Can't spawn new process; lookups will block",
                         daemonized);

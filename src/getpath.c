@@ -27,9 +27,6 @@ char *get_path(int dirtype, char *file)
         dir = LOGDIR;
         env = LOGDIR_ENV;
         break;
-    case T_EXECDIR:
-        dir = EXECDIR;
-        break;
     case T_LOCKDIR:
         dir = LOCKDIR;
         break;
@@ -37,8 +34,8 @@ char *get_path(int dirtype, char *file)
         return file;
     }
 
-    if ((dirtype != T_EXECDIR) && (dirtype != T_LOCKDIR) &&
-        (ptr = getenv(env)) != NULL)
+    if ((dirtype != T_LOCKDIR)
+	&& (ptr = getenv(env)) != NULL)
         dir = ptr;
 
     if (dir == NULL || *dir == '\0')

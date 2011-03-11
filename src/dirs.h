@@ -33,10 +33,6 @@
 #define LOGDIR		"/var/log/iptraf-ng"
 #endif
 
-#ifndef EXECDIR
-#define EXECDIR		"/usr/bin"
-#endif
-
 /*
  * Lock directory.
  * 
@@ -138,15 +134,8 @@
 #define FDDIFILE	get_path(T_WORKDIR, "fddi.desc")
 
 /*
- * The rvnamed program file
- */
-
-#define RVNDFILE	get_path(T_EXECDIR, "rvnamed-ng")
-
-/*
  * The rvnamed log file
  */
-
 #define RVNDLOGFILE	get_path(T_LOGDIR, "rvnamed-ng.log")
 
 #ifndef PATH_MAX
