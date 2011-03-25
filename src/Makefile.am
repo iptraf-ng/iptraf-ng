@@ -2,7 +2,7 @@
 
 AM_CFLAGS = ${regular_CFLAGS}
 
-bin_PROGRAMS = iptraf-ng rvnamed-ng
+sbin_PROGRAMS = iptraf-ng rvnamed-ng
 
 NULL =
 TUI_C =
