@@ -32,6 +32,6 @@ void get_filter_description(char *description, int *aborted,
 void genname(unsigned long n, char *m);
 unsigned long int nametoaddr(char *ascname, int *err);
 void listfileerr(int code);
-int mark_filter_change();
-void clear_flt_tag();
+int mark_filter_change(void);
+void clear_flt_tag(void);
 #endif

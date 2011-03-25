@@ -35,7 +35,7 @@ struct strbuf
  * It never returns NULL. The returned pointer must be released by
  * calling the function strbuf_free().
  */
-struct strbuf *strbuf_new();
+struct strbuf *strbuf_new(void);
 
 /**
  * Releases the memory held by the string buffer.

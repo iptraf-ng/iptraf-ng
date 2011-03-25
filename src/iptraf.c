@@ -60,7 +60,7 @@ char active_facility_countfile[64];
 int accept_unsupported_interfaces = 0;
 char graphing_filter[80];
 
-extern void about();
+extern void about(void);
 
 void press_enter_to_continue(void)
 {
