@@ -653,11 +653,6 @@ void ipmon(struct OPTIONS *options,
     }
 
     if (ifptr != NULL) {
-        if (!iface_supported(ifptr)) {
-            err_iface_unsupported();
-            unmark_facility(IPMONIDFILE, ifptr);
-            return;
-        }
         if (!iface_up(ifptr)) {
             err_iface_down();
             unmark_facility(IPMONIDFILE, ifptr);
@@ -750,7 +745,7 @@ void ipmon(struct OPTIONS *options,
     writelog(logging, logfile,
              "******** IP traffic monitor started ********");
 
-    isdnfd = -1;
+    //isdnfd = -1;
     exitloop = 0;
     gettimeofday(&tv, NULL);
     starttime = timeint = closedint = tv.tv_sec;

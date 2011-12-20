@@ -30,7 +30,6 @@ details.
 #include "serv.h"
 #include "pktsize.h"
 #include "hostmon.h"
-#include "links.h"
 
 #define MSGSTRING_MAX		240
 #define TARGET_LOGNAME_MAX	160
@@ -468,12 +467,14 @@ void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 
     while (ptmp != NULL) {
         if (ptmp->type == 0) {
-            if (ptmp->un.desc.linktype == LINK_ETHERNET)
+            if (ptmp->un.desc.linktype == ARPHRD_ETHER)
                 fprintf(fd, "\nEthernet address: %s",
                         ptmp->un.desc.ascaddr);
+/* fix this
             else if (ptmp->un.desc.linktype == LINK_PLIP)
                 fprintf(fd, "\nPLIP address: %s", ptmp->un.desc.ascaddr);
-            else if (ptmp->un.desc.linktype == LINK_FDDI)
+*/
+            else if (ptmp->un.desc.linktype == ARPHRD_FDDI)
                 fprintf(fd, "\nFDDI address: %s", ptmp->un.desc.ascaddr);
 
             if (ptmp->un.desc.withdesc)

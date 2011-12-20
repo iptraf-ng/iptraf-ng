@@ -194,11 +194,6 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
         return;
     }
 
-    if (!iface_supported(ifname)) {
-        err_iface_unsupported();
-        unmark_facility(PKTSIZEIDFILE, ifname);
-        return;
-    }
     if (!iface_up(ifname)) {
         err_iface_down();
         unmark_facility(PKTSIZEIDFILE, ifname);

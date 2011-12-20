@@ -19,7 +19,6 @@ details.
 #include "iptraf-ng-compat.h"
 #include "tui/tui.h"
 
-#include "links.h"
 #include "serv.h"
 #include "options.h"
 #include "deskman.h"
@@ -367,10 +366,10 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
             removeaport(ports);
             break;
         case 15:
-		manage_eth_desc(LINK_ETHERNET);
+		manage_eth_desc(ARPHRD_ETHER);
             break;
         case 16:
-		manage_eth_desc(LINK_FDDI);
+		manage_eth_desc(ARPHRD_FDDI);
             break;
         }
 

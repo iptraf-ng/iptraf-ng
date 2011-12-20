@@ -19,14 +19,9 @@ details.
 ***/
 
 #include "iptraf-ng-compat.h"
-/*
-#include <asm/types.h>
-#include <net/if_arp.h>
-*/
 
 #include "dirs.h"
 #include "deskman.h"
-#include "links.h"
 #include "fltdefs.h"
 #include "fltselect.h"
 #include "isdntab.h"            /* needed by packet.h */
@@ -49,8 +44,8 @@ details.
 extern int exitloop;
 extern int daemonized;
 
-/* 
- * from log.c, applicable only to this module 
+/*
+ * from log.c, applicable only to this module
  */
 
 extern void writeethlog(struct ethtabent *list, int units,
@@ -271,11 +266,13 @@ void printethent(struct ethtab *table, struct ethtabent *entry,
         wmove(table->tabwin, target_row, 1);
         wattrset(table->tabwin, STDATTR);
 
-        if (entry->un.desc.linktype == LINK_ETHERNET)
+        if (entry->un.desc.linktype == ARPHRD_ETHER)
             wprintw(table->tabwin, "Ethernet");
+/* fix me
         else if (entry->un.desc.linktype == LINK_PLIP)
             wprintw(table->tabwin, "PLIP");
-        else if (entry->un.desc.linktype == LINK_FDDI)
+*/
+        else if (entry->un.desc.linktype == ARPHRD_FDDI)
             wprintw(table->tabwin, "FDDI");
 
         wprintw(table->tabwin, " HW addr: %s", entry->un.desc.ascaddr);
@@ -732,11 +729,6 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
     }
 
     if (ifptr != NULL) {
-        if (!iface_supported(ifptr)) {
-            err_iface_unsupported();
-            unmark_facility(LANMONIDFILE, ifptr);
-            return;
-        }
         if (!iface_up(ifptr)) {
             err_iface_down();
             unmark_facility(LANMONIDFILE, ifptr);
@@ -767,10 +759,10 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
     initethtab(&table, options->actmode);
 
     /* Ethernet description list */
-    struct eth_desc *elist = load_eth_desc(LINK_ETHERNET);
+    struct eth_desc *elist = load_eth_desc(ARPHRD_ETHER);
 
     /* FDDI description list */
-    struct eth_desc *flist = load_eth_desc(LINK_FDDI);
+    struct eth_desc *flist = load_eth_desc(ARPHRD_FDDI);
 
     if (logging) {
         if (strcmp(current_logfile, "") == 0) {
@@ -884,13 +876,15 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
             if (pkt_result != PACKET_OK)
                 continue;
 
-            if ((linktype == LINK_ETHERNET)
-		|| (linktype == LINK_FDDI)
-		|| (linktype == LINK_PLIP)
-		|| (linktype == LINK_TR)
-		|| (linktype == LINK_VLAN)
-		)
-	    {
+            if ((linktype == ARPHRD_ETHER)
+                || (linktype == ARPHRD_FDDI)
+/* fix me
+                || (linktype == LINK_PLIP)
+                || (linktype == LINK_VLAN)
+*/
+                || (linktype == ARPHRD_IEEE802_TR)
+                || (linktype == ARPHRD_IEEE802))
+            {
                 if (fromaddr.sll_protocol == htons(ETH_P_IP))
                     is_ip = 1;
                 else
@@ -900,25 +894,28 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
                  * Check source address entry
                  */
 
-                if ((linktype == LINK_ETHERNET)
-		    || (linktype == LINK_PLIP)
-		    || (linktype == LINK_VLAN)
-		    )
-		{
-		    struct ethhdr* hdr_eth = (struct ethhdr *) buf;
+                if ((linktype == ARPHRD_ETHER)
+/* fix me
+                    || (linktype == LINK_PLIP)
+                    || (linktype == LINK_VLAN)
+*/
+                    || (linktype == ARPHRD_IEEE802_TR)
+                    || (linktype == ARPHRD_IEEE802))
+                {
+                    struct ethhdr* hdr_eth = (struct ethhdr *) buf;
                     memcpy(scratch_saddr, (hdr_eth)->h_source, ETH_ALEN);
                     memcpy(scratch_daddr, (hdr_eth)->h_dest, ETH_ALEN);
                     list = elist;
                 }
-		else if (linktype == LINK_FDDI)
-		{
-		    struct fddihdr* hdr_fddi = (struct fddihdr *) buf;
+                else if (linktype == ARPHRD_FDDI)
+                {
+                    struct fddihdr* hdr_fddi = (struct fddihdr *) buf;
                     memcpy(scratch_saddr, (hdr_fddi)->saddr, FDDI_K_ALEN);
                     memcpy(scratch_daddr, (hdr_fddi)->daddr, FDDI_K_ALEN);
                     list = flist;
-                } else if (linktype == LINK_TR)
-		{
-		    struct trh_hdr* hdr_trh = (struct trh_hdr *) buf;
+                } else if ((linktype == ARPHRD_IEEE802_TR) || (linktype == ARPHRD_IEEE802))
+                {
+                    struct trh_hdr* hdr_trh = (struct trh_hdr *) buf;
                     memcpy(scratch_saddr, (hdr_trh)->saddr, TR_ALEN);
                     memcpy(scratch_daddr, (hdr_trh)->daddr, TR_ALEN);
                     list = flist;

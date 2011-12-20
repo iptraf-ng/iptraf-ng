@@ -23,7 +23,6 @@ details.
 #include "deskman.h"
 #include "error.h"
 #include "options.h"
-#include "links.h"
 #include "fltdefs.h"
 #include "fltselect.h"
 #include "isdntab.h"
@@ -33,12 +32,20 @@ details.
 #include "ipfrag.h"
 #include "tr.h"
 
+
+/* Reimplement again
+ * Removed PPP, LINK_ISDN, VLAN, PLIP
+ */
+
 extern int daemonized;
 extern int accept_unsupported_interfaces;
 
+/*
 int isdnfd;
 struct isdntab isdntable;
+*/
 
+/* replace by xsocket  */
 void open_socket(int *fd)
 {
     *fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
@@ -49,120 +56,6 @@ void open_socket(int *fd)
     }
 }
 
-unsigned short getlinktype(unsigned short family, char *ifname,
-                           int isdn_fd, struct isdntab *isdnlist)
-{
-    unsigned short result = 0;
-    struct isdntabent *isdnent;
-
-    switch (family) {
-    case ARPHRD_ETHER:
-        if (strncmp(ifname, "eth", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "plip", 4) == 0)
-            result = LINK_PLIP;
-        else if (strncmp(ifname, "fddi", 4) == 0)       /* For some Ethernet- */
-            result = LINK_ETHERNET;     /* emulated FDDI ifaces */
-        else if (strncmp(ifname, "dvb", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "sbni", 4) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "ipsec", 5) == 0)
-            result = LINK_ETHERNET;
-        else if ((strncmp(ifname, "wvlan", 5) == 0)
-                 || (strncmp(ifname, "wlan", 4) == 0))
-            result = LINK_ETHERNET;
-        else if ((strncmp(ifname, "sm2", 3) == 0)
-                 || (strncmp(ifname, "sm3", 3) == 0))
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "pent", 4) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "lec", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "tun", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "vlan", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "bond", 4) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "brg", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "tap", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "ctc", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "hsi", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "ath", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "ra", 2) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "bnep", 4) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "ni", 2) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "tap", 3) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "dummy", 5) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "br", 2) == 0)
-            result = LINK_ETHERNET;
-        else if (strncmp(ifname, "vmnet", 5) == 0)
-            result = LINK_ETHERNET;
-        else if ((strncmp(ifname, "isdn", 4) == 0) && (isdn_fd != -1)) {
-            isdnent = isdn_table_lookup(isdnlist, ifname, isdn_fd);
-
-            switch (isdnent->encap) {
-            case ISDN_NET_ENCAP_RAWIP:
-                result = LINK_ISDN_RAWIP;
-                break;
-            case ISDN_NET_ENCAP_CISCOHDLC:
-                result = LINK_ISDN_CISCOHDLC;
-                break;
-            default:
-                result = LINK_INVALID;
-                break;
-            }
-        } else if (accept_unsupported_interfaces)
-            result = LINK_ETHERNET;
-        break;
-    case ARPHRD_LOOPBACK:
-        result = LINK_LOOPBACK;
-        break;
-    case ARPHRD_SLIP:
-    case ARPHRD_CSLIP:
-    case ARPHRD_SLIP6:
-    case ARPHRD_CSLIP6:
-        result = LINK_SLIP;
-        break;
-    case ARPHRD_PPP:
-        result = LINK_PPP;
-        break;
-    case ARPHRD_FDDI:
-        result = LINK_FDDI;
-        break;
-    case ARPHRD_IEEE802:
-    case ARPHRD_IEEE802_TR:
-        result = LINK_TR;
-        break;
-    case ARPHRD_FRAD:
-        result = LINK_FRAD;
-        break;
-    case ARPHRD_DLCI:
-        result = LINK_DLCI;
-        break;
-    case ARPHRD_HDLC:
-        result = LINK_CISCOHDLC;
-        break;
-    case ARPHRD_TUNNEL:
-        result = LINK_IPIP;
-        break;
-    default:
-        result = LINK_INVALID;
-        break;
-    }
-    return result;
-}
 
 void adjustpacket(char *tpacket, unsigned short family,
                   char **packet, char *aligned_buf, unsigned int *readlen)
@@ -170,9 +63,8 @@ void adjustpacket(char *tpacket, unsigned short family,
     unsigned int dataoffset;
 
     switch (family) {
-    case LINK_ETHERNET:
-    case LINK_LOOPBACK:
-    case LINK_PLIP:
+    case ARPHRD_ETHER:
+    case ARPHRD_LOOPBACK:
         *packet = tpacket + ETH_HLEN;
         *readlen -= ETH_HLEN;
 
@@ -185,18 +77,18 @@ void adjustpacket(char *tpacket, unsigned short family,
         memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
         *packet = aligned_buf;
         break;
-    case LINK_PPP:
-    case LINK_SLIP:
-    case LINK_ISDN_RAWIP:
+    case ARPHRD_SLIP:
+    case ARPHRD_CSLIP:
+    case ARPHRD_SLIP6:
+    case ARPHRD_CSLIP6:
         *packet = tpacket;
         break;
-    case LINK_ISDN_CISCOHDLC:
-    case LINK_FRAD:
-    case LINK_DLCI:
+    case ARPHRD_FRAD:
+    case ARPHRD_DLCI:
         *packet = tpacket + 4;
         *readlen -= 4;
         break;
-    case LINK_FDDI:
+    case ARPHRD_FDDI:
         *packet = tpacket + sizeof(struct fddihdr);
         *readlen -= sizeof(struct fddihdr);
 
@@ -209,7 +101,8 @@ void adjustpacket(char *tpacket, unsigned short family,
         memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
         *packet = aligned_buf;
         break;
-    case LINK_TR:
+    case ARPHRD_IEEE802_TR:
+    case ARPHRD_IEEE802:
         /*
          * Token Ring patch supplied by Tomas Dvorak
          */
@@ -226,10 +119,13 @@ void adjustpacket(char *tpacket, unsigned short family,
         memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
         *packet = aligned_buf;
         break;
-    case LINK_IPIP:
+    case ARPHRD_TUNNEL:
         *packet = tpacket;
         break;
-    case LINK_VLAN:
+
+    /* 0x8100 802.1Q VLAN Extended Header  */
+#if 0 /* fix me */
+    case ETH_P_8021Q:
         *packet = tpacket + VLAN_ETH_HLEN;
         readlen -= VLAN_ETH_HLEN;
         /*
@@ -238,6 +134,7 @@ void adjustpacket(char *tpacket, unsigned short family,
         memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
         *packet = aligned_buf;
         break;
+#endif
     default:
         *packet = (char *) NULL;        /* return a NULL packet to signal */
         break;                  /* an unrecognized link protocol */
@@ -321,41 +218,34 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
     } in_ip;
 
     /*
-     * Is interface supported?
-     */
-    if (!iface_supported(ifname))
-        return INVALID_PACKET;
-
-    /*
      * Does returned interface (ifname) match the specified interface name
      * (ifptr)?
      */
-    if (ifptr != NULL) {
-        if (strcmp(ifptr, ifname) != 0) {
+    if (ifptr != NULL)
+        if (strcmp(ifptr, ifname) != 0)
             return INVALID_PACKET;
-        }
-    }
 
+#if 0 /* reenable isdn*/
     /*
      * Prepare ISDN reference descriptor and table.
      */
 
     memset(&isdntable, 0, sizeof(struct isdntab));
     isdn_iface_check(&isdnfd, ifname);
-
+#endif
     /*
      * Get IPTraf link type based on returned information and move past
      * data link header.
      */
     fromaddr->sll_protocol = ntohs(fromaddr->sll_protocol);
-    if (fromaddr->sll_protocol != ETH_P_8021Q)
-        *linktype =
-            getlinktype(fromaddr->sll_hatype, ifname, isdnfd, &isdntable);
+
+#if 0 /* 0x8100 802.1Q VLAN Extended Header */
     else {
         *linktype = LINK_VLAN;
         fromaddr->sll_protocol = ntohs(*((unsigned short*)(tpacket+ETH_HLEN+2)));
     }
-    adjustpacket(tpacket, *linktype, packet, aligned_buf, br);
+#endif
+    adjustpacket(tpacket, fromaddr->sll_hatype, packet, aligned_buf, br);
 
     if (*packet == NULL)
         return INVALID_PACKET;
@@ -485,8 +375,8 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 
 void pkt_cleanup(void)
 {
-    close(isdnfd);
-    isdnfd = -1;
+	// close(isdnfd);
+	// isdnfd = -1;
     destroyfraglist();
-    destroy_isdn_table(&isdntable);
+    // destroy_isdn_table(&isdntable);
 }

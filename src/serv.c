@@ -764,11 +764,6 @@ void servmon(char *ifname, struct porttab *ports,
         unmark_facility(TCPUDPIDFILE, ifname);
         return;
     }
-    if (!iface_supported(ifname)) {
-        err_iface_unsupported();
-        unmark_facility(TCPUDPIDFILE, ifname);
-        return;
-    }
     if (!iface_up(ifname)) {
         err_iface_down();
         unmark_facility(TCPUDPIDFILE, ifname);
@@ -823,7 +818,7 @@ void servmon(char *ifname, struct porttab *ports,
     writelog(logging, logfile,
              "******** TCP/UDP service monitor started ********");
 
-    isdnfd = -1;
+    //isdnfd = -1;
     exitloop = 0;
     gettimeofday(&tv, NULL);
     starttime = startlog = timeint = tv.tv_sec;

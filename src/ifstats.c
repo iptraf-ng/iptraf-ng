@@ -119,9 +119,6 @@ void initiflist(struct iflist **list)
 
     while (get_next_iface(fd, ifname, 12)) {
         if (strcmp(ifname, "") != 0) {
-            if (!(iface_supported(ifname)))
-                continue;
-
             if (ifinlist(*list, ifname))        /* ignore entry if already in */
                 continue;       /* interface list */
 
@@ -488,7 +485,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
         update_panels();
         doupdate();
 
-        isdnfd = -1;
+        //isdnfd = -1;
         exitloop = 0;
         gettimeofday(&tv, NULL);
         starttime = startlog = statbegin = tv.tv_sec;
@@ -837,11 +834,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
         unmark_facility(DSTATIDFILE, iface);
         return;
     }
-    if (!iface_supported(iface)) {
-        err_iface_unsupported();
-        unmark_facility(DSTATIDFILE, iface);
-        return;
-    }
     if (!iface_up(iface)) {
         err_iface_down();
         unmark_facility(DSTATIDFILE, iface);
@@ -913,7 +905,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
     leaveok(statwin, TRUE);
 
-    isdnfd = -1;
+    //isdnfd = -1;
     exitloop = 0;
     char *unitstring = dispmode(options->actmode);
 

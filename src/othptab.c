@@ -27,7 +27,6 @@ details.
 #include "log.h"
 #include "revname.h"
 #include "rvnamed.h"
-#include "links.h"
 #include "servname.h"
 #include "addproto.h"
 
@@ -144,17 +143,17 @@ struct othptabent *add_othp_entry(struct othptable *table,
     new_entry->fragment = fragment;
 
     if ((table->mac) || (!is_ip)) {
-        if ((linkproto == LINK_ETHERNET) || (linkproto == LINK_PLIP)) {
+	if ((linkproto == ARPHRD_ETHER) /* || (linkproto == LINK_PLIP) */ ) {
             convmacaddr((char*)(((struct ethhdr *) packet)->h_source),
                         new_entry->smacaddr);
             convmacaddr((char*)(((struct ethhdr *) packet)->h_dest),
                         new_entry->dmacaddr);
-        } else if (linkproto == LINK_FDDI) {
+        } else if (linkproto == ARPHRD_FDDI) {
             convmacaddr((char*)(((struct fddihdr *) packet)->saddr),
                         new_entry->smacaddr);
             convmacaddr((char*)(((struct fddihdr *) packet)->daddr),
                         new_entry->dmacaddr);
-        } else if (linkproto == LINK_TR) {
+        } else if ((linkproto == ARPHRD_IEEE802) || (linkproto == ARPHRD_IEEE802_TR)) {
             convmacaddr((char*)(((struct trh_hdr *) packet)->saddr),
                         new_entry->smacaddr);
             convmacaddr((char*)(((struct trh_hdr *) packet)->daddr),
@@ -398,9 +397,9 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
         sprintf(scratchpad, " (%u bytes)", entry->pkt_length);
         strcat(msgstring, scratchpad);
 
-        if ((entry->linkproto == LINK_ETHERNET) ||
-            (entry->linkproto == LINK_PLIP) ||
-            (entry->linkproto == LINK_FDDI)) {
+        if ((entry->linkproto == ARPHRD_ETHER) ||
+//            (entry->linkproto == LINK_PLIP) ||
+            (entry->linkproto == ARPHRD_FDDI)) {
             sprintf(scratchpad, " from %s to %s on %s",
                     entry->smacaddr, entry->dmacaddr, entry->iface);
 

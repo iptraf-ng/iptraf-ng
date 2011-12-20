@@ -96,6 +96,7 @@ extern void* xmallocz(size_t size);
 extern char* xstrdup(const char *s);
 
 extern void die(const char *err, ...);
+extern void NORETURN die_errno(const char *err);
 extern void error(const char *err, ...);
 
 static inline char* skip_whitespace(const char *str)

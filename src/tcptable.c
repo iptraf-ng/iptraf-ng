@@ -27,7 +27,6 @@ details.
 #include "revname.h"
 #include "rvnamed.h"
 #include "servname.h"
-#include "links.h"
 
 #define MSGSTRING_MAX	320
 
@@ -623,11 +622,11 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
     if (opts->mac) {
         memset(newmacaddr, 0, 15);
 
-        if ((linkproto == LINK_ETHERNET) || (linkproto == LINK_PLIP)) {
+        if ((linkproto == ARPHRD_ETHER) /* || (linkproto == LINK_PLIP) */ ) {
             convmacaddr((char*)(((struct ethhdr *) packet)->h_source), newmacaddr);
-        } else if (linkproto == LINK_FDDI) {
+        } else if (linkproto == ARPHRD_FDDI) {
             convmacaddr((char*)(((struct fddihdr *) packet)->saddr), newmacaddr);
-        } else if (linkproto == LINK_TR) {
+        } else if ((linkproto == ARPHRD_IEEE802) || (linkproto == ARPHRD_IEEE802_TR)) {
             convmacaddr((char*)(((struct trh_hdr *) packet)->saddr), newmacaddr);
         }
 

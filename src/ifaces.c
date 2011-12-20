@@ -19,20 +19,9 @@ details.
 
 #include "iptraf-ng-compat.h"
 
-#include "links.h"
 #include "error.h"
 
-extern int accept_unsupported_interfaces;
-#define NUM_SUPPORTED_IFACES 39
-
 extern int daemonized;
-
-char ifaces[][6] =
-    { "lo", "eth", "sl", "ppp", "ippp", "plip", "fddi", "isdn", "dvb", "pvc",
-      "hdlc", "ipsec", "sbni", "tr", "wvlan", "wlan", "sm2", "sm3", "pent", "lec",
-      "brg", "tun", "tap", "cipcb", "tunl", "vlan", "hsi", "ctc", "ath", "bond",
-      "ra", "bnep", "dsl", "modem", "ni", "br", "tap", "dummy", "vmnet"
-};
 
 char *ltrim(char *buf)
 {
@@ -88,25 +77,6 @@ int get_next_iface(FILE * fd, char *ifname, int n)
     return 0;
 }
 
-/*
- * Determine if supplied interface is supported.
- */
-
-int iface_supported(char *iface)
-{
-    int i;
-
-    if (accept_unsupported_interfaces)
-        return 1;
-
-    for (i = 0; i <= NUM_SUPPORTED_IFACES - 1; i++) {
-        if (strncmp(ifaces[i], iface, strlen(ifaces[i])) == 0)
-            return 1;
-    }
-
-    return 0;
-}
-
 int iface_up(char *iface)
 {
     int fd;
@@ -124,11 +94,6 @@ int iface_up(char *iface)
         return 0;
 
     return 1;
-}
-
-void err_iface_unsupported(void)
-{
-    write_error("Specified interface not supported", daemonized);
 }
 
 void err_iface_down(void)

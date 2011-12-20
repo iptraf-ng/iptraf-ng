@@ -22,11 +22,9 @@ details.
 #include "iptraf-ng-compat.h"
 #include "tui/tui.h"
 #include "landesc.h"
-
 #include "deskman.h"
 #include "attrs.h"
 #include "dirs.h"
-#include "links.h"
 
 static int check_mac_addr(const char *mac)
 {
@@ -131,9 +129,9 @@ struct eth_desc* load_eth_desc(unsigned link_type)
 	char *filename = NULL;
 	FILE *fp = NULL;
 
-	if (link_type == LINK_ETHERNET)
+	if (link_type == ARPHRD_ETHER)
 		filename = ETHFILE;
-	else if (link_type == LINK_FDDI)
+	else if (link_type == ARPHRD_FDDI)
 		filename = FDDIFILE;
 
 	struct eth_desc *hd = xmallocz(sizeof(struct eth_desc));
@@ -159,9 +157,9 @@ static void save_eth_desc(struct eth_desc *hd, unsigned linktype)
 {
 	FILE *fd = NULL;
 
-	if (linktype == LINK_ETHERNET)
+	if (linktype == ARPHRD_ETHER)
 		fd = fopen(ETHFILE, "w");
-	else if (linktype == LINK_FDDI)
+	else if (linktype == ARPHRD_FDDI)
 		fd = fopen(FDDIFILE, "w");
 
 	if (!fd) {
