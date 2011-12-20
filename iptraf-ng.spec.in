@@ -66,6 +66,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/logrotate.d/iptraf-ng
 
 %changelog
+* Tue Dec 20 2011 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.0-rc0-1
+- new upstream version
+
 * Thu Apr 8 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.2-3
 - Still Package Review fixing rhbz#576591
 
