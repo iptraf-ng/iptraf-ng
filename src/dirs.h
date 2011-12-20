@@ -1,13 +1,22 @@
 /*
- * dirs.h - directory and file definitions used by IPTraf
- *
- * You may change these directories to suit your needs, BUT:
- *
- *   1. Some directories contain files that IPTraf may erase, see LOCKDIR
- *   2. The temporary file creation methods are NOT SAFE FOR USE ON WORLD
- *      WRITABLE DIRECTORIES.  Do not define any of these directories to
- *      be any world-writable directory, such as /tmp or /var/tmp.
- */
+    Copyright (C) 2011  Nikola Pajkovsky (npajkovs@redhat.com)
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+// TODO: full rewrite
 
 #include "getpath.h"
 

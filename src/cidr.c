@@ -1,19 +1,24 @@
-
 /*
- * cidr.c - functions to process addresses in CIDR notation
- *
- * Copyright (c) Gerard Paul Java 2003
- *
- * This module contains functions that deal with CIDR address/mask notation.
- *
- * This module may be freely used for any purpose, commercial or otherwise,
- * In any product that uses this module, the following notice must appear:
- *
- *     Includes software developed by Gerard Paul Java
- *     Copyright (c) Gerard Paul Java 2003
- */
+    Copyright (C) 2011  Nikola Pajkovsky (npajkovs@redhat.com)
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
 
 #include "iptraf-ng-compat.h"
+
+// TODO: full rewrite
 
 /*
  * Returns a binary subnet mask based on the number of mask bits.  The
