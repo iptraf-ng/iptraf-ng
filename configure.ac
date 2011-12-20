@@ -1,5 +1,5 @@
 AC_INIT([iptraf-ng],
-	m4_esyscmd([./gen-version]),
+	m4_esyscmd([cat ./version]),
 	[iptraf-ng@fedorahosted.org])
 
 AC_CONFIG_HEADERS([config.h])

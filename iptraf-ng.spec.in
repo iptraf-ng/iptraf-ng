@@ -56,8 +56,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc CHANGES FAQ LICENSE INSTALL README* RELEASE-NOTES
 %doc Documentation
-%{_bindir}/iptraf-ng
-%{_bindir}/rvnamed-ng
+%{_sbindir}/iptraf-ng
+%{_sbindir}/rvnamed-ng
 %{_mandir}/man8/iptraf-ng.8*
 %{_mandir}/man8/rvnamed-ng.8*
 %{_localstatedir}/lock/iptraf-ng
