@@ -38,7 +38,6 @@ details.
  */
 
 extern int daemonized;
-extern int accept_unsupported_interfaces;
 
 /*
 int isdnfd;
