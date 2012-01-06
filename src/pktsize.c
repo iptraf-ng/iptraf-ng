@@ -55,19 +55,13 @@ int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
                         WINDOW * win)
 {
     struct ifreq ifr;
-    int fd;
     int istat;
     int i;
 
     strcpy(ifr.ifr_name, ifname);
 
-    fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    int fd = xsocket_raw_eth_p_all();
 
-    if (fd < 0) {
-        write_error("Unable to open socket for MTU determination",
-                    daemonized);
-        return 1;
-    }
     istat = ioctl(fd, SIOCGIFMTU, &ifr);
 
     close(fd);
@@ -158,8 +152,6 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
     unsigned int interval;
 
     int ch;
-
-    int fd;
 
     char buf[MAX_PACKET_SIZE];
     int br;
@@ -253,12 +245,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
     gettimeofday(&tv, NULL);
     starttime = startlog = timeint = tv.tv_sec;
 
-    open_socket(&fd);
-
-    if (fd < 0) {
-        unmark_facility(PKTSIZEIDFILE, ifname);
-        return;
-    }
+    int fd = xsocket_raw_eth_p_all();
 
     if ((first_active_facility()) && (options->promisc)) {
         init_promisc_list(&promisc_list);

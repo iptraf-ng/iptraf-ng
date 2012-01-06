@@ -44,17 +44,6 @@ int isdnfd;
 struct isdntab isdntable;
 */
 
-/* replace by xsocket  */
-void open_socket(int *fd)
-{
-    *fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-
-    if (*fd < 0) {
-        write_error("Unable to open raw socket", daemonized);
-        return;
-    }
-}
-
 
 static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
                          char **packet, char *aligned_buf, unsigned int *readlen)

@@ -95,6 +95,9 @@ extern char* xvasprintf(const char *format, va_list p);
 extern void* xmallocz(size_t size);
 extern char* xstrdup(const char *s);
 
+extern int xsocket(int domain, int type, int protocol);
+extern int xsocket_raw_eth_p_all(void);
+
 extern void die(const char *err, ...);
 extern void NORETURN die_errno(const char *err);
 extern void error(const char *err, ...);

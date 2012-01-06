@@ -77,3 +77,16 @@ char* xstrdup(const char *s)
 	return t;
 }
 
+int xsocket(int domain, int type, int protocol)
+{
+        int fd = socket(domain, type, protocol);
+        if (fd < 0)
+                die("%s: %s failed", strerror(errno), __func__);
+
+        return fd;
+}
+
+int xsocket_raw_eth_p_all(void)
+{
+        return xsocket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+}

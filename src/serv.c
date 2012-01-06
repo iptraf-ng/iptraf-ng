@@ -697,7 +697,6 @@ void servmon(char *ifname, struct porttab *ports,
              struct filterstate *ofilter)
 {
     int logging = options->logging;
-    int fd;
     int pkt_result;
 
     char buf[MAX_PACKET_SIZE];
@@ -758,12 +757,8 @@ void servmon(char *ifname, struct porttab *ports,
         return;
     }
 
-    open_socket(&fd);
+    int fd = xsocket_raw_eth_p_all();
 
-    if (fd < 0) {
-        unmark_facility(TCPUDPIDFILE, ifname);
-        return;
-    }
     if (!iface_up(ifname)) {
         err_iface_down();
         unmark_facility(TCPUDPIDFILE, ifname);

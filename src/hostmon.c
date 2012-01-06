@@ -665,7 +665,6 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
              struct filterstate *ofilter)
 {
     int logging = options->logging;
-    int fd;
     struct ethtab table;
     struct ethtabent *entry;
     struct sockaddr_ll fromaddr;
@@ -725,12 +724,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
         }
     }
 
-    open_socket(&fd);
-
-    if (fd < 0) {
-        unmark_facility(LANMONIDFILE, ifptr);
-        return;
-    }
+    int fd = xsocket_raw_eth_p_all();
 
     if ((first_active_facility()) && (options->promisc)) {
         init_promisc_list(&promisc_list);

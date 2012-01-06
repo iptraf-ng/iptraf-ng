@@ -568,7 +568,7 @@ void ipmon(struct OPTIONS *options,
     int logging = options->logging;
     struct sockaddr_ll fromaddr;        /* iface info */
     unsigned short linktype;    /* data link type */
-    int fd;                     /* raw socket */
+
     char tpacket[MAX_PACKET_SIZE];      /* raw packet data */
     char *packet = NULL;        /* network packet ptr */
     struct iphdr *ippacket;
@@ -660,12 +660,7 @@ void ipmon(struct OPTIONS *options,
         }
     }
 
-    open_socket(&fd);
-
-    if (fd < 0) {
-        unmark_facility(IPMONIDFILE, ifptr);
-        return;
-    }
+    int fd = xsocket_raw_eth_p_all();
 
     if (options->promisc) {
         if (first_active_facility()) {

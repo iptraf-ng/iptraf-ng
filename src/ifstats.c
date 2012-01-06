@@ -404,7 +404,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 
     unsigned int idx = 1;
 
-    int fd;
     FILE *logfile = NULL;
 
     int br;
@@ -440,12 +439,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
     }
 
     initiftab(&table);
-    open_socket(&fd);
-
-    if (fd < 0) {
-        unmark_facility(GSTATIDFILE, "");
-        return;
-    }
+    int fd = xsocket_raw_eth_p_all();
 
     if ((first_active_facility()) && (options->promisc)) {
         init_promisc_list(&promisc_list);
@@ -757,7 +751,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
     struct sockaddr_ll fromaddr;
     unsigned short linktype;
 
-    int fd;
     int br;
     int framelen = 0;
     int pkt_result = 0;
@@ -828,12 +821,8 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
         return;
     }
 
-    open_socket(&fd);
+    int fd = xsocket_raw_eth_p_all();
 
-    if (fd < 0) {
-        unmark_facility(DSTATIDFILE, iface);
-        return;
-    }
     if (!iface_up(iface)) {
         err_iface_down();
         unmark_facility(DSTATIDFILE, iface);
