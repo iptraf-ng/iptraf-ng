@@ -18,7 +18,6 @@
 
 #include "iptraf-ng-compat.h"
 
-
 static void vreportf(const char *prefix, const char *err, va_list params)
 {
 	char msg[4096];
