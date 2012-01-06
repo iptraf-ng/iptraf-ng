@@ -63,21 +63,6 @@ void rotate_lanlog(int s)
     signal(SIGUSR1, rotate_lanlog);
 }
 
-/*
-void ethlook(struct desclist *list, char *address, char *target)
-{
-    struct desclistent *ptmp = list->head;
-
-    while (ptmp != NULL) {
-        if (strcmp(address, ptmp->rec.address) == 0) {
-            strcpy(target, ptmp->rec.desc);
-            return;
-        }
-        ptmp = ptmp->next_entry;
-    }
-}
-*/
-
 void initethtab(struct ethtab *table, int unit)
 {
     table->head = table->tail = NULL;
@@ -185,7 +170,11 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
     convmacaddr(addr, ptemp->un.desc.ascaddr);
 
     ptemp->un.desc.linktype = linktype;
-//    ethlook(list, ptemp->un.desc.ascaddr, ptemp->un.desc.desc);
+    struct eth_desc *desc = NULL;
+    list_for_each_entry(desc, &list->hd_list, hd_list)
+        if (!strcmp(desc->hd_mac, ptemp->un.desc.ascaddr))
+            strcpy(ptemp->un.desc.ascaddr, ptemp->un.desc.desc);
+
     strcpy(ptemp->un.desc.ifname, ifname);
 
     if (strcmp(ptemp->un.desc.desc, "") == 0)
@@ -876,15 +865,13 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
             if (pkt_result != PACKET_OK)
                 continue;
 
-            if ((linktype == ARPHRD_ETHER)
-                || (linktype == ARPHRD_FDDI)
+            if ((fromaddr.sll_hatype == ARPHRD_ETHER)
+                || (fromaddr.sll_hatype == ARPHRD_FDDI)
 /* fix me
                 || (linktype == LINK_PLIP)
-                || (linktype == LINK_VLAN)
 */
-                || (linktype == ARPHRD_IEEE802_TR)
-                || (linktype == ARPHRD_IEEE802))
-            {
+                || (fromaddr.sll_hatype == ARPHRD_IEEE802_TR)
+                || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
                 if (fromaddr.sll_protocol == htons(ETH_P_IP))
                     is_ip = 1;
                 else
@@ -894,27 +881,23 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
                  * Check source address entry
                  */
 
-                if ((linktype == ARPHRD_ETHER)
+                if ((fromaddr.sll_hatype == ARPHRD_ETHER)
 /* fix me
                     || (linktype == LINK_PLIP)
-                    || (linktype == LINK_VLAN)
 */
-                    || (linktype == ARPHRD_IEEE802_TR)
-                    || (linktype == ARPHRD_IEEE802))
-                {
+                    || (fromaddr.sll_hatype == ARPHRD_IEEE802_TR)
+                    || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
                     struct ethhdr* hdr_eth = (struct ethhdr *) buf;
                     memcpy(scratch_saddr, (hdr_eth)->h_source, ETH_ALEN);
                     memcpy(scratch_daddr, (hdr_eth)->h_dest, ETH_ALEN);
                     list = elist;
-                }
-                else if (linktype == ARPHRD_FDDI)
-                {
+                } else if (fromaddr.sll_hatype == ARPHRD_FDDI) {
                     struct fddihdr* hdr_fddi = (struct fddihdr *) buf;
                     memcpy(scratch_saddr, (hdr_fddi)->saddr, FDDI_K_ALEN);
                     memcpy(scratch_daddr, (hdr_fddi)->daddr, FDDI_K_ALEN);
                     list = flist;
-                } else if ((linktype == ARPHRD_IEEE802_TR) || (linktype == ARPHRD_IEEE802))
-                {
+                } else if ((fromaddr.sll_hatype == ARPHRD_IEEE802_TR)
+                           || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
                     struct trh_hdr* hdr_trh = (struct trh_hdr *) buf;
                     memcpy(scratch_saddr, (hdr_trh)->saddr, TR_ALEN);
                     memcpy(scratch_daddr, (hdr_trh)->daddr, TR_ALEN);

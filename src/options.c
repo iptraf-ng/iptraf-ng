@@ -139,7 +139,7 @@ void saveoptions(struct OPTIONS *options)
     fd = open(CONFIGFILE, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
 
     if (fd < 0) {
-	    tui_error(ANYKEY_MSG, "Cannot create config file");
+        tui_error(ANYKEY_MSG, "Cannot create config file: %s %s",CONFIGFILE,  strerror(errno));
 	    return;
     }
     bw = write(fd, options, sizeof(struct OPTIONS));

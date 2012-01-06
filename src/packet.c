@@ -34,7 +34,7 @@ details.
 
 
 /* Reimplement again
- * Removed PPP, LINK_ISDN, VLAN, PLIP
+ * Removed PPP, LINK_ISDN, PLIP
  */
 
 extern int daemonized;
@@ -56,14 +56,26 @@ void open_socket(int *fd)
 }
 
 
-void adjustpacket(char *tpacket, unsigned short family,
-                  char **packet, char *aligned_buf, unsigned int *readlen)
+static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
+                         char **packet, char *aligned_buf, unsigned int *readlen)
 {
     unsigned int dataoffset;
 
-    switch (family) {
+    switch (fromaddr->sll_hatype) {
     case ARPHRD_ETHER:
     case ARPHRD_LOOPBACK:
+        if (fromaddr->sll_protocol == ETH_P_8021Q) {
+            /* 0x8100 802.1Q VLAN Extended Header  */
+            *packet = tpacket + VLAN_ETH_HLEN;
+            readlen -= VLAN_ETH_HLEN;
+            /*
+             * Move IP datagram into an aligned buffer.
+             */
+            memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
+            *packet = aligned_buf;
+            break;
+        }
+
         *packet = tpacket + ETH_HLEN;
         *readlen -= ETH_HLEN;
 
@@ -121,19 +133,6 @@ void adjustpacket(char *tpacket, unsigned short family,
     case ARPHRD_TUNNEL:
         *packet = tpacket;
         break;
-
-    /* 0x8100 802.1Q VLAN Extended Header  */
-#if 0 /* fix me */
-    case ETH_P_8021Q:
-        *packet = tpacket + VLAN_ETH_HLEN;
-        readlen -= VLAN_ETH_HLEN;
-        /*
-         * Move IP datagram into an aligned buffer.
-         */
-        memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
-        *packet = aligned_buf;
-        break;
-#endif
     default:
         *packet = (char *) NULL;        /* return a NULL packet to signal */
         break;                  /* an unrecognized link protocol */
@@ -220,9 +219,8 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
      * Does returned interface (ifname) match the specified interface name
      * (ifptr)?
      */
-    if (ifptr != NULL)
-        if (strcmp(ifptr, ifname) != 0)
-            return INVALID_PACKET;
+    if (ifptr && strcmp(ifptr, ifname) != 0)
+        return INVALID_PACKET;
 
 #if 0 /* reenable isdn*/
     /*
@@ -237,14 +235,12 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
      * data link header.
      */
     fromaddr->sll_protocol = ntohs(fromaddr->sll_protocol);
-
-#if 0 /* 0x8100 802.1Q VLAN Extended Header */
-    else {
-        *linktype = LINK_VLAN;
+    if (fromaddr->sll_protocol == ETH_P_8021Q)
         fromaddr->sll_protocol = ntohs(*((unsigned short*)(tpacket+ETH_HLEN+2)));
-    }
-#endif
-    adjustpacket(tpacket, fromaddr->sll_hatype, packet, aligned_buf, br);
+
+
+    adjustpacket(tpacket, fromaddr,
+                 packet, aligned_buf, br);
 
     if (*packet == NULL)
         return INVALID_PACKET;

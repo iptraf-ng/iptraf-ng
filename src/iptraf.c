@@ -330,6 +330,19 @@ static struct options iptraf_ng_options[] = {
 	OPT_END()
 };
 
+static void sanitize_dir(const char *dir)
+{
+    /* Check whether LOCKDIR exists (/var/run is on a tmpfs in Ubuntu) */
+    if(access(dir, F_OK) != 0)
+    {
+        if(mkdir(dir, 0700) == -1)
+            die("Cannot create %s: %s", dir, strerror(errno));
+
+        if(chown(dir, 0, 0) == -1)
+            die("Cannot change owner of %s: %s", dir, strerror(errno));
+    }
+}
+
 int main(int argc, char **argv)
 {
 	struct OPTIONS options;
@@ -452,15 +465,8 @@ int main(int argc, char **argv)
 	freopen("/dev/null", "w", stderr);
 #endif
 
-	/* Check whether LOCKDIR exists (/var/run is on a tmpfs in Ubuntu) */
-	if(access(LOCKDIR,F_OK) != 0)
-	{
-		if(mkdir(LOCKDIR, 0700) == -1)
-			die("Cannot create %s: %s", LOCKDIR, strerror(errno));
-
-		if(chown(LOCKDIR, 0, 0) == -1)
-			die("Cannot change owner of %s: %s", LOCKDIR, strerror(errno));
-	}
+        sanitize_dir(LOCKDIR);
+        sanitize_dir(WORKDIR);
 
 	initscr();
 
