@@ -1,7 +1,7 @@
 Summary:        A console-based network monitoring utility
 Name:           iptraf-ng
 Version:        @@IPTRAF_VERSION@@
-Release:        2%{?dist}
+Release:        1%{?dist}
 Source0:        https://fedorahosted.org/releases/i/p/iptraf-ng/%{name}-%{version}.tar.gz
 Source1:        iptraf-ng-logrotate.conf
 URL:            https://fedorahosted.org/iptraf-ng/
@@ -66,17 +66,5 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/logrotate.d/iptraf-ng
 
 %changelog
-* Thu Dec 22 2011 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.0.rc0-2
-- silent rpmlint
-
-* Tue Dec 20 2011 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.0.rc0-1
-- new upstream version
-
-* Thu Apr 8 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.2-3
-- Still Package Review fixing rhbz#576591
-
-* Mon Apr 3 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.2-2
-- Fix many issues according to rhbz#576591
-
-* Mon Jan 4 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.2-1
+* Wed Jan 11 2011 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.0-1
 - Initialization build
