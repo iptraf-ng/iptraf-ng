@@ -1,5 +1,5 @@
 struct isdntabent {
-    char ifname[18];
+    char ifname[IFNAMSIZ];
     unsigned int encap;
     struct isdntabent *next_entry;
 };

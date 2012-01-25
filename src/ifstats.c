@@ -104,7 +104,7 @@ int ifinlist(struct iflist *list, char *ifname)
 void initiflist(struct iflist **list)
 {
     FILE *fd;
-    char ifname[18];
+    char ifname[IFNAMSIZ];
     struct iflist *itmp = NULL;
     struct iflist *tail = NULL;
     unsigned int index = 0;
@@ -407,7 +407,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
     FILE *logfile = NULL;
 
     int br;
-    char ifname[18];
+    char ifname[IFNAMSIZ];
 
     int ch;
 
@@ -747,7 +747,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
     struct ip6_hdr *ip6packet = NULL;
     unsigned int iphlen;
 
-    char ifname[18];
+    char ifname[IFNAMSIZ];
     struct sockaddr_ll fromaddr;
     unsigned short linktype;
 

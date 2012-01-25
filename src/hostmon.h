@@ -25,7 +25,7 @@ struct ethtabent {
             char eth_addr[ETH_ALEN];
             char ascaddr[15];
             char desc[65];
-            char ifname[18];
+            char ifname[IFNAMSIZ];
             int withdesc;
             int printed;
             unsigned int linktype;

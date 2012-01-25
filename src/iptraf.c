@@ -148,7 +148,7 @@ void program_interface(struct OPTIONS *options,
 	struct filterstate ofilter;
 	struct ffnode *fltfiles;
 
-	char ifname[18];
+	char ifname[IFNAMSIZ];
 	char *ifptr = NULL;
 	struct porttab *ports;
 

@@ -9,7 +9,7 @@
  */
 
 struct promisc_params {
-    char ifname[18];
+    char ifname[IFNAMSIZ];
     int saved_state;
     int state_valid;
 };
