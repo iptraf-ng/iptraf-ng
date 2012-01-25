@@ -24,7 +24,6 @@
 #include <getopt.h>
 #include <signal.h>
 #include <string.h>
-#include <locale.h>
 #include <time.h>
 #include <fcntl.h>
 #include <dirent.h>

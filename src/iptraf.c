@@ -376,8 +376,6 @@ int main(int argc, char **argv)
 	if (__builtin_popcount(status) > 1)
 		die("only one of -i|-d|-s|-z|-l|-g options must be used");
 
-	setlocale(LC_ALL, "");
-
 	strcpy(current_logfile, "");
 	strcpy(graphing_logfile, "");
 	strcpy(graphing_filter, "");
