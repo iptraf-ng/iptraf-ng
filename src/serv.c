@@ -1013,12 +1013,9 @@ void servmon(char *ifname, struct porttab *ports,
                     IPPROTO_UDP)) {
                 updateportent(&list, ((struct ip6_hdr *) ipacket)->ip6_nxt,
                     ntohs(sport),
-                    ntohs(((struct ip6_hdr *) ipacket)->ip6_plen + 40),
-                    idx, 0, ports, options->servnames);
-                updateportent(&list, ((struct ip6_hdr *) ipacket)->ip6_nxt,
                     ntohs(dport),
-                    ntohs(((struct ip6_hdr *) ipacket)->ip6_plen + 40),
-                    idx, 1, ports, options->servnames);
+                    ntohs(((struct ip6_hdr *) ipacket)->ip6_plen) + 40,
+                    idx, ports, options->servnames);
                 if ((list.barptr == NULL) && (list.head != NULL)) {
                     set_barptr((void *)&(list.barptr),
                                list.head,
