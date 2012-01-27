@@ -29,7 +29,7 @@ struct othptabent {
     int s_fstat;
     int d_fstat;
     unsigned int protocol;
-    char iface[18];
+    char iface[IFNAMSIZ];
     unsigned int pkt_length;
 
     union {

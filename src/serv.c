@@ -708,7 +708,7 @@ void servmon(char *ifname, struct porttab *ports,
     unsigned short linktype;
     int br;
 
-    char iface[18];
+    char iface[IFNAMSIZ];
     unsigned int idx = 1;
 
     unsigned int sport = 0;

@@ -156,7 +156,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
     char buf[MAX_PACKET_SIZE];
     int br;
     char *ipacket;
-    char iface[18];
+    char iface[IFNAMSIZ];
     unsigned int mtu;
 
     struct sockaddr_ll fromaddr;
