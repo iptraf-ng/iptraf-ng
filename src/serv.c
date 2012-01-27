@@ -305,7 +305,7 @@ void updateportent(struct portlist *list, unsigned int protocol,
         }
 
         dport_listent->ibcount += br;
-        dport_listent->spans.spanbr_out += br;
+        dport_listent->spans.spanbr_in += br;
         dport_listent->icount++;
     }
     if (sport_listent != NULL || dport_listent != NULL) {
