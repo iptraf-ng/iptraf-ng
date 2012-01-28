@@ -979,6 +979,8 @@ void servmon(char *ifname, struct porttab *ports,
         }
 
         if (br > 0) {
+		unsigned short ipproto;
+		unsigned short iplen;
             pkt_result = processpacket(buf, &ipacket, (unsigned int*)&br, &tot_br,
                                        &sport, &dport, &fromaddr,
                                        &linktype, ofilter,
@@ -988,45 +990,38 @@ void servmon(char *ifname, struct porttab *ports,
             if (pkt_result != PACKET_OK)
                 continue;
 
-	    if (fromaddr.sll_protocol == ETH_P_IP) {
-
-            if ((((struct iphdr *) ipacket)->protocol == IPPROTO_TCP)
-                || (((struct iphdr *) ipacket)->protocol == IPPROTO_UDP)) {
-                updateportent(&list, ((struct iphdr *) ipacket)->protocol,
-                              ntohs(sport), ntohs(dport),
-                              ntohs(((struct iphdr *) ipacket)->tot_len),
-                              idx, ports, options->servnames);
-
-                if ((list.barptr == NULL) && (list.head != NULL)) {
-                    set_barptr((void *)&(list.barptr),
-                               list.head,
-                               &(list.head->starttime),
-                               &(list.head->spans),
-                               sizeof(struct serv_spans), statwin,
-                               &statcleared, statx);
-                    list.baridx = 1;
-                }
-            }
-        } else {
-            if ((((struct ip6_hdr *) ipacket)->ip6_nxt == IPPROTO_TCP)
-                || (((struct ip6_hdr *) ipacket)->ip6_nxt ==
-                    IPPROTO_UDP)) {
-                updateportent(&list, ((struct ip6_hdr *) ipacket)->ip6_nxt,
-                    ntohs(sport),
-                    ntohs(dport),
-                    ntohs(((struct ip6_hdr *) ipacket)->ip6_plen) + 40,
-                    idx, ports, options->servnames);
-                if ((list.barptr == NULL) && (list.head != NULL)) {
-                    set_barptr((void *)&(list.barptr),
-                               list.head,
-                               &(list.head->starttime),
-                               &(list.head->spans),
-                               sizeof(struct serv_spans), statwin,
-                               &statcleared, statx);
-                    list.baridx = 1;
-                }
-            }
-        }
+		switch(fromaddr.sll_protocol) {
+			case ETH_P_IP:
+				ipproto = ((struct iphdr *) ipacket)->protocol;
+				iplen = ntohs(((struct iphdr *) ipacket)->tot_len);
+				break;
+			case ETH_P_IPV6:
+				ipproto = ((struct ip6_hdr *) ipacket)->ip6_nxt;	/* FIXME: extension headers ??? */
+				iplen = ntohs(((struct ip6_hdr *) ipacket)->ip6_plen) + 40;
+				break;
+			default:
+				/* unknown link protocol */
+				continue;
+		}
+		switch(ipproto) {
+			case IPPROTO_TCP:
+			case IPPROTO_UDP:
+				updateportent(&list, ipproto, ntohs(sport), ntohs(dport),
+					iplen, idx, ports, options->servnames);
+				break;
+			default:
+				/* unknown L4 protocol */
+				continue;
+		}
+		if ((list.barptr == NULL) && (list.head != NULL)) {
+			set_barptr((void *)&(list.barptr),
+				list.head,
+				&(list.head->starttime),
+				&(list.head->spans),
+				sizeof(struct serv_spans), statwin,
+				&statcleared, statx);
+			list.baridx = 1;
+		}
         }
     }
 
