@@ -1174,7 +1174,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
             } else if (fromaddr.sll_protocol == ETH_P_IPV6) {
 
                 ip6packet = (struct ip6_hdr *) packet;
-                iplen = ntohs(ip6packet->ip6_plen);
+                iplen = ntohs(ip6packet->ip6_plen) + 40;
 
                 totals.ip6total++;
                 totals.ip6btotal += iplen;
