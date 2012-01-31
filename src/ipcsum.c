@@ -19,12 +19,12 @@
 #include "iptraf-ng-compat.h"
 
 /* code taken from http://www.faqs.org/rfcs/rfc1071.html. See section 4.1 "C"  */
-int in_cksum(u_short *addr, int len)
+int in_cksum(u_short * addr, int len)
 {
 	register int sum = 0;
 
-        while (len > 1) {
-		sum += *(u_short *)addr++;
+	while (len > 1) {
+		sum += *(u_short *) addr++;
 		len -= 2;
 	}
 
@@ -34,5 +34,5 @@ int in_cksum(u_short *addr, int len)
 	while (sum >> 16)
 		sum = (sum & 0xffff) + (sum >> 16);
 
-	return (u_short)(~sum);
+	return (u_short) (~sum);
 }

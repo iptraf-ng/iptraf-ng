@@ -34,8 +34,7 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 	list->prev = list;
 }
 
-static inline void __list_add(struct list_head *new,
-			      struct list_head *prev,
+static inline void __list_add(struct list_head *new, struct list_head *prev,
 			      struct list_head *next)
 {
 	next->prev = new;
@@ -54,12 +53,13 @@ static inline void list_add_tail(struct list_head *new, struct list_head *head)
 	__list_add(new, head->prev, head);
 }
 
-static inline void list_add_tail_unique(struct list_head *new, struct list_head *head)
+static inline void list_add_tail_unique(struct list_head *new,
+					struct list_head *head)
 {
 	__list_add(new, head->prev, head);
 }
 
-static inline void __list_del(struct list_head * prev, struct list_head * next)
+static inline void __list_del(struct list_head *prev, struct list_head *next)
 {
 	next->prev = prev;
 	prev->next = next;

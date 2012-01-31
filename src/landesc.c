@@ -35,10 +35,12 @@ static int check_mac_addr(const char *mac)
 
 	int success = sscanf(mac, "%02s:%02s:%02s:%02s:%02s:%02s",
 			     a, b, c, d, e, f);
+
 	if (success != 6)
 		return 0;
 
 	char mac_hex[13];
+
 	sprintf(mac_hex, "%s%s%s%s%s%s", a, b, c, d, e, f);
 
 	for (int ii = 0; ii < 12; ++ii)
@@ -51,7 +53,7 @@ static int check_mac_addr(const char *mac)
 /* parse and insert unique eth description.
  * caller is responsible for freeing whole list
  */
-static void parse_eth_desc(FILE *fp, struct eth_desc* hd)
+static void parse_eth_desc(FILE * fp, struct eth_desc *hd)
 {
 	char *l = NULL;
 	size_t len = 0;
@@ -65,12 +67,12 @@ static void parse_eth_desc(FILE *fp, struct eth_desc* hd)
 
 		if (strchr(line, '\n'))
 			strchr(line, '\n')[0] = '\0';
-		char mac[18] = {0};
+		char mac[18] = { 0 };
 		strncpy(mac, line, 17);
 
 		if (!check_mac_addr(mac)) {
-			tui_error(ANYKEY_MSG, "Not a mac '%s' address, skipped"
-				  , mac);
+			tui_error(ANYKEY_MSG, "Not a mac '%s' address, skipped",
+				  mac);
 			continue;
 		}
 
@@ -79,7 +81,8 @@ static void parse_eth_desc(FILE *fp, struct eth_desc* hd)
 
 		/* mandatory space between mac and ip */
 		if (!isspace(*line)) {
-			tui_error(ANYKEY_MSG, "Missing mandatory space between"
+			tui_error(ANYKEY_MSG,
+				  "Missing mandatory space between"
 				  "mac and host/ip address, skipped");
 			continue;
 		}
@@ -92,23 +95,25 @@ static void parse_eth_desc(FILE *fp, struct eth_desc* hd)
 		}
 
 		struct eth_desc *new = xmalloc(sizeof(struct eth_desc));
+
 		memcpy(new->hd_mac, mac, sizeof(mac));
 		new->hd_desc = xstrdup(line);
 
 		struct eth_desc *desc = NULL;
+
 		list_for_each_entry(desc, &hd->hd_list, hd_list)
-			if ((strcmp(desc->hd_mac, mac) == 0)
-			    || (strcmp(desc->hd_desc, line) == 0))
-				goto dupe;
+		    if ((strcmp(desc->hd_mac, mac) == 0)
+			|| (strcmp(desc->hd_desc, line) == 0))
+			goto dupe;
 
 		list_add_tail(&new->hd_list, &hd->hd_list);
-	dupe:;
+	      dupe:;
 	}
 
 	free(l);
 }
 
-struct eth_desc* load_eth_desc(unsigned link_type)
+struct eth_desc *load_eth_desc(unsigned link_type)
 {
 /* why is usefull to have it two files with same content?
  * There is two options how to merge it.
@@ -135,6 +140,7 @@ struct eth_desc* load_eth_desc(unsigned link_type)
 		filename = FDDIFILE;
 
 	struct eth_desc *hd = xmallocz(sizeof(struct eth_desc));
+
 	INIT_LIST_HEAD(&hd->hd_list);
 
 	fp = fopen(filename, "r");
@@ -169,8 +175,9 @@ static void save_eth_desc(struct eth_desc *hd, unsigned linktype)
 
 	fprintf(fd, "# see man ethers for syntax\n\n");
 	struct eth_desc *desc = NULL;
+
 	list_for_each_entry(desc, &hd->hd_list, hd_list)
-		fprintf(fd, "%s %s\n", desc->hd_mac, desc->hd_desc);
+	    fprintf(fd, "%s %s\n", desc->hd_mac, desc->hd_desc);
 
 	fclose(fd);
 }
@@ -180,15 +187,17 @@ void free_eth_desc(struct eth_desc *hd)
 {
 	struct eth_desc *entry = NULL;
 	struct list_head *l, *n;
+
 	list_for_each_safe(l, n, &hd->hd_list) {
 		entry = list_entry(l, struct eth_desc, hd_list);
+
 		free(entry->hd_desc);
 		list_del(l);
 		free(entry);
 	}
 }
 
-static struct eth_desc* select_eth_desc(const struct eth_desc *hd)
+static struct eth_desc *select_eth_desc(const struct eth_desc *hd)
 {
 
 	int resp;
@@ -200,21 +209,24 @@ static struct eth_desc* select_eth_desc(const struct eth_desc *hd)
 		return NULL;
 	}
 
-	tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2,
-			STDATTR, BOXATTR, BARSTDATTR, HIGHATTR);
+	tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2, STDATTR, BOXATTR,
+			BARSTDATTR, HIGHATTR);
 
 	tx_set_listbox_title(&slist, "Address", 1);
 	tx_set_listbox_title(&slist, "Description", 19);
 
 	struct eth_desc *entry = NULL;
+
 	list_for_each_entry(entry, &hd->hd_list, hd_list) {
-		snprintf(descline, 80, "%-18s%s", entry->hd_mac, entry->hd_desc);
+		snprintf(descline, 80, "%-18s%s", entry->hd_mac,
+			 entry->hd_desc);
 		tx_add_list_entry(&slist, (char *) entry, descline);
 	}
 
 	tx_show_listbox(&slist);
 
 	int aborted = 0;
+
 	tx_operate_listbox(&slist, &resp, &aborted);
 
 	if (!aborted)
@@ -232,7 +244,7 @@ static struct eth_desc* select_eth_desc(const struct eth_desc *hd)
 }
 
 static int dialog_eth_desc(struct FIELDLIST *fields, const char *initaddr,
-			    const char *initdesc)
+			   const char *initdesc)
 {
 	/* TODO: move to tui */
 	WINDOW *win = newwin(8, 70, 8, (COLS - 70) / 2);
@@ -258,6 +270,7 @@ static int dialog_eth_desc(struct FIELDLIST *fields, const char *initaddr,
 	tx_addfield(fields, 50, 2, 0, initdesc);
 
 	int aborted = 0;
+
 	tx_fillfields(fields, &aborted);
 
 	del_panel(panel);
@@ -274,6 +287,7 @@ static void add_eth_desc(struct eth_desc *list)
 
 	if (!aborted) {
 		struct eth_desc *new = xmalloc(sizeof(struct eth_desc));
+
 		memcpy(new->hd_mac, fields.list->buf, sizeof(new->hd_mac));
 		new->hd_desc = xstrdup(fields.list->nextfield->buf);
 
@@ -288,6 +302,7 @@ static void add_eth_desc(struct eth_desc *list)
 static void edit_eth_desc(struct eth_desc *list)
 {
 	struct eth_desc *hd = select_eth_desc(list);
+
 	if (!hd)
 		return;
 
@@ -320,9 +335,8 @@ void manage_eth_desc(unsigned linktype)
 	int row = 1;
 	int aborted = 0;
 
-	tx_initmenu(&menu, 7, 31, (LINES - 6) / 2, (COLS - 31) / 2,
-		    BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
-		    DESCATTR);
+	tx_initmenu(&menu, 7, 31, (LINES - 6) / 2, (COLS - 31) / 2, BOXATTR,
+		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
 	tx_additem(&menu, " ^A^dd description...",
 		   "Adds a description for a MAC address");
 	tx_additem(&menu, " ^E^dit description...",
@@ -332,7 +346,8 @@ void manage_eth_desc(unsigned linktype)
 	tx_additem(&menu, NULL, NULL);
 	tx_additem(&menu, " E^x^it menu", "Returns to the main menu");
 
-	struct eth_desc *list = load_eth_desc(linktype /*, WITHOUTETCETHERS*/);
+	struct eth_desc *list =
+	    load_eth_desc(linktype /*, WITHOUTETCETHERS */ );
 
 	do {
 		tx_showmenu(&menu);

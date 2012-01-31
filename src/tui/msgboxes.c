@@ -4,7 +4,7 @@
  * Written by Gerard Paul Java
  * Copyright (c) Gerard Paul Java 2001
  */
- 
+
 #include <curses.h>
 #include <panel.h>
 #include "winops.h"
@@ -19,16 +19,16 @@ int INFO_PROMPT_ATTR;
 
 void tx_init_error_attrs(int border, int text, int prompt)
 {
-    ERR_BORDER_ATTR = border;
-    ERR_TEXT_ATTR = text;
-    ERR_PROMPT_ATTR = prompt;
+	ERR_BORDER_ATTR = border;
+	ERR_TEXT_ATTR = text;
+	ERR_PROMPT_ATTR = prompt;
 }
 
 void tx_init_info_attrs(int border, int text, int prompt)
 {
-    INFO_BORDER_ATTR = border;
-    INFO_TEXT_ATTR = text;
-    INFO_PROMPT_ATTR = prompt;
+	INFO_BORDER_ATTR = border;
+	INFO_TEXT_ATTR = text;
+	INFO_PROMPT_ATTR = prompt;
 }
 
 void tui_error(const char *prompt, const char *err, ...)
@@ -46,8 +46,10 @@ void tui_error(const char *prompt, const char *err, ...)
 	wattrset(win, ERR_TEXT_ATTR);
 	wmove(win, 1, 2);
 	va_list params;
+
 	va_start(params, err);
 	char msg[4096];
+
 	vsnprintf(msg, sizeof(msg), err, params);
 	wprintw(win, "%s", msg);
 	va_end(params);
@@ -56,6 +58,7 @@ void tui_error(const char *prompt, const char *err, ...)
 	doupdate();
 
 	int response;
+
 	do {
 		response = wgetch(win);
 		if (response == 12)
@@ -70,31 +73,31 @@ void tui_error(const char *prompt, const char *err, ...)
 
 void tx_infobox(char *text, char *prompt)
 {
-    WINDOW *win;
-    PANEL *panel;
-    int ch;
+	WINDOW *win;
+	PANEL *panel;
+	int ch;
 
-    win = newwin(4, 50, (LINES - 4) / 2, (COLS - 50) / 2);
-    panel = new_panel(win);
-    wattrset(win, INFO_BORDER_ATTR);
-    tx_colorwin(win);
-    tx_box(win, ACS_VLINE, ACS_HLINE);
-    wattrset(win, INFO_TEXT_ATTR);
-    mvwprintw(win, 1, 2, text);
-    wattrset(win, INFO_PROMPT_ATTR);
-    mvwprintw(win, 2, 2, prompt);
-    update_panels();
-    doupdate();
+	win = newwin(4, 50, (LINES - 4) / 2, (COLS - 50) / 2);
+	panel = new_panel(win);
+	wattrset(win, INFO_BORDER_ATTR);
+	tx_colorwin(win);
+	tx_box(win, ACS_VLINE, ACS_HLINE);
+	wattrset(win, INFO_TEXT_ATTR);
+	mvwprintw(win, 1, 2, text);
+	wattrset(win, INFO_PROMPT_ATTR);
+	mvwprintw(win, 2, 2, prompt);
+	update_panels();
+	doupdate();
 
-    do {
-        ch = wgetch(win);
-        if (ch == 12)
-            tx_refresh_screen();
-    } while (ch == 12);
+	do {
+		ch = wgetch(win);
+		if (ch == 12)
+			tx_refresh_screen();
+	} while (ch == 12);
 
-    del_panel(panel);
-    delwin(win);
+	del_panel(panel);
+	delwin(win);
 
-    update_panels();
-    doupdate();
-}                                    
+	update_panels();
+	doupdate();
+}

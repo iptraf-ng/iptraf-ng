@@ -1,4 +1,3 @@
-
 /***
 
 error.c - Error-handling subroutines

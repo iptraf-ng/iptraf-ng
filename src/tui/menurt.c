@@ -251,7 +251,7 @@ void tx_operatemenu(struct MENU *menu, int *position, int *aborted)
 			break;
 			/* case 27: exitloop = 1;*aborted = 1;row=menu->itemcount;break; */
 		case '^':
-			break;		/* ignore caret key */
+			break;	/* ignore caret key */
 		default:
 			keyptr = strchr(menu->shortcuts, toupper(ch));
 			if ((keyptr != NULL)
@@ -262,7 +262,7 @@ void tx_operatemenu(struct MENU *menu, int *position, int *aborted)
 		}
 	} while (!(exitloop));
 
-	*position = row;		/* position of executed option is in *position */
+	*position = row;	/* position of executed option is in *position */
 	del_panel(menu->descpanel);
 	delwin(menu->descwin);
 	update_panels();

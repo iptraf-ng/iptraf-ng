@@ -90,9 +90,9 @@
 extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
-extern char* xvasprintf(const char *format, va_list p);
-extern void* xmallocz(size_t size);
-extern char* xstrdup(const char *s);
+extern char *xvasprintf(const char *format, va_list p);
+extern void *xmallocz(size_t size);
+extern char *xstrdup(const char *s);
 
 extern int xsocket(int domain, int type, int protocol);
 extern int xsocket_raw_eth_p_all(void);
@@ -101,39 +101,39 @@ extern void die(const char *err, ...);
 extern void NORETURN die_errno(const char *err);
 extern void error(const char *err, ...);
 
-static inline char* skip_whitespace(const char *str)
+static inline char *skip_whitespace(const char *str)
 {
 	while (isspace(*str))
 		++str;
 
-	return (char*) str;
+	return (char *) str;
 }
 
 #if 0
 static inline int strtoul_ui(char const *s, int base, unsigned int *result)
 {
-    unsigned long ul;
-    char *p;
+	unsigned long ul;
+	char *p;
 
-    errno = 0;
-    ul = strtoul(s, &p, base);
-    if (errno || *p || p == s || (unsigned int) ul != ul)
-        return -1;
-    *result = ul;
-    return 0;
+	errno = 0;
+	ul = strtoul(s, &p, base);
+	if (errno || *p || p == s || (unsigned int) ul != ul)
+		return -1;
+	*result = ul;
+	return 0;
 }
 
 static inline int strtol_i(char const *s, int base, int *result)
 {
-    long ul;
-    char *p;
+	long ul;
+	char *p;
 
-    errno = 0;
-    ul = strtol(s, &p, base);
-    if (errno || *p || p == s || (int) ul != ul)
-        return -1;
-    *result = ul;
-    return 0;
+	errno = 0;
+	ul = strtol(s, &p, base);
+	if (errno || *p || p == s || (int) ul != ul)
+		return -1;
+	*result = ul;
+	return 0;
 }
 #endif
 

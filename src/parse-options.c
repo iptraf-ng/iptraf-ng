@@ -23,6 +23,7 @@
 static int parse_opt_size(const struct options *opt)
 {
 	unsigned size = 1;
+
 	for (; opt->type != OPTION_END; opt++)
 		size++;
 
@@ -32,7 +33,8 @@ static int parse_opt_size(const struct options *opt)
 #define USAGE_OPTS_WIDTH 24
 #define USAGE_GAP         2
 
-void NORETURN parse_usage_and_die(const char * const * usage, const struct options *opt)
+void NORETURN parse_usage_and_die(const char *const *usage,
+				  const struct options *opt)
 {
 	fprintf(stderr, "usage: %s\n", *usage++);
 
@@ -84,10 +86,10 @@ static int get_value(const struct options *opt)
 
 	switch (opt->type) {
 	case OPTION_BOOL:
-		*(int*)opt->value += 1;
+		*(int *) opt->value += 1;
 		break;
 	case OPTION_INTEGER:
-		*(int*)opt->value = strtol(optarg, (char **)&s, 10);
+		*(int *) opt->value = strtol(optarg, (char **) &s, 10);
 		if (*s) {
 			error("invalid number -- %s", s);
 			return -1;
@@ -95,7 +97,7 @@ static int get_value(const struct options *opt)
 		break;
 	case OPTION_STRING:
 		if (optarg)
-			*(char**)opt->value = (char*)optarg;
+			*(char **) opt->value = (char *) optarg;
 		break;
 	case OPTION_GROUP:
 	case OPTION_END:
@@ -106,31 +108,30 @@ static int get_value(const struct options *opt)
 }
 
 void parse_opts(int argc, char **argv, const struct options *opt,
-		const char * const usage[])
+		const char *const usage[])
 {
 	int size = parse_opt_size(opt);
 	struct strbuf *shortopts = strbuf_new();
-	struct option *longopts = xmallocz(sizeof(longopts[0]) * (size+2));
+	struct option *longopts = xmallocz(sizeof(longopts[0]) * (size + 2));
 	const struct options *curopt = opt;
 	struct option *curlongopts = longopts;
 
 	for (; curopt->type != OPTION_END; curopt++, curlongopts++) {
 		curlongopts->name = curopt->long_name;
 
-		switch (curopt->type)
-		{
+		switch (curopt->type) {
 		case OPTION_BOOL:
 			curlongopts->has_arg = no_argument;
 			if (curopt->short_name)
 				strbuf_append_char(shortopts,
-							curopt->short_name);
+						   curopt->short_name);
 			break;
 		case OPTION_INTEGER:
 		case OPTION_STRING:
 			curlongopts->has_arg = required_argument;
 			if (curopt->short_name)
 				strbuf_append_strf(shortopts, "%c:",
-							curopt->short_name);
+						   curopt->short_name);
 			break;
 		case OPTION_GROUP:
 		case OPTION_END:
@@ -144,6 +145,7 @@ void parse_opts(int argc, char **argv, const struct options *opt,
 	while (1) {
 		curopt = opt;
 		int c = getopt_long(argc, argv, shortopts->buf, longopts, NULL);
+
 		if (c == -1)
 			break;
 

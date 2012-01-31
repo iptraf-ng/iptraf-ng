@@ -36,14 +36,14 @@ extern int isdnfd;
 
 void open_socket(int *fd);
 
-void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr,
-               int *ch, int *br, char *ifname, WINDOW * win);
+void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
+	       int *br, char *ifname, WINDOW * win);
 
 int processpacket(char *tpacket, char **packet, unsigned int *br,
-                  unsigned int *total_br, unsigned int *sport,
-                  unsigned int *dport, struct sockaddr_ll *fromaddr,
-                  unsigned short *linktype, struct filterstate *ofilter,
-                  int match_opposite, char *ifname, char *ifptr);
+		  unsigned int *total_br, unsigned int *sport,
+		  unsigned int *dport, struct sockaddr_ll *fromaddr,
+		  unsigned short *linktype, struct filterstate *ofilter,
+		  int match_opposite, char *ifname, char *ifptr);
 void pkt_cleanup(void);
 
 #endif

@@ -20,13 +20,12 @@
 #ifndef STRBUF_H
 #define STRBUF_H
 
-struct strbuf
-{
-    /* Size of the allocated buffer. Always > 0. */
-    int alloc;
-    /* Length of the string, without the ending \0. */
-    int len;
-    char *buf;
+struct strbuf {
+	/* Size of the allocated buffer. Always > 0. */
+	int alloc;
+	/* Length of the string, without the ending \0. */
+	int len;
+	char *buf;
 };
 
 /**
@@ -49,7 +48,7 @@ void strbuf_free(struct strbuf *strbuf);
  * string buffer is returned.  Caller is responsible to release the
  * returned memory using free().
  */
-char* strbuf_free_nobuf(struct strbuf *strbuf);
+char *strbuf_free_nobuf(struct strbuf *strbuf);
 
 /**
  * The string content is set to an empty string, erasing any previous
@@ -67,29 +66,27 @@ struct strbuf *strbuf_append_char(struct strbuf *strbuf, char c);
  * The current content of the string buffer is extended by adding a
  * string str at its end.
  */
-struct strbuf *strbuf_append_str(struct strbuf *strbuf,
-                                 const char *str);
+struct strbuf *strbuf_append_str(struct strbuf *strbuf, const char *str);
 
 /**
  * The current content of the string buffer is extended by inserting a
  * string str at its beginning.
  */
-struct strbuf *strbuf_prepend_str(struct strbuf *strbuf,
-                                  const char *str);
+struct strbuf *strbuf_prepend_str(struct strbuf *strbuf, const char *str);
 
 /**
  * The current content of the string buffer is extended by adding a
  * sequence of data formatted as the format argument specifies.
  */
-struct strbuf *strbuf_append_strf(struct strbuf *strbuf,
-                                  const char *format, ...);
+struct strbuf *strbuf_append_strf(struct strbuf *strbuf, const char *format,
+				  ...);
 
 /**
  * The current content of the string buffer is extended by inserting a
  * sequence of data formatted as the format argument specifies at the
  * buffer beginning.
  */
-struct strbuf *strbuf_prepend_strf(struct strbuf *strbuf,
-                                   const char *format, ...);
+struct strbuf *strbuf_prepend_strf(struct strbuf *strbuf, const char *format,
+				   ...);
 
 #endif

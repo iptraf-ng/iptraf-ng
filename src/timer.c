@@ -23,15 +23,15 @@ details.
 
 void printelapsedtime(time_t start, time_t now, int y, int x, WINDOW * win)
 {
-    time_t elapsed;
-    unsigned int hours;
-    unsigned int mins;
+	time_t elapsed;
+	unsigned int hours;
+	unsigned int mins;
 
-    elapsed = now - start;
+	elapsed = now - start;
 
-    hours = elapsed / 3600;
-    mins = (elapsed % 3600) / 60;
+	hours = elapsed / 3600;
+	mins = (elapsed % 3600) / 60;
 
-    wmove(win, y, x);
-    wprintw(win, " Elapsed time: %3u:%02u ", hours, mins);
+	wmove(win, y, x);
+	wprintw(win, " Elapsed time: %3u:%02u ", hours, mins);
 }

@@ -29,18 +29,17 @@
 
 #include "attrs.h"
 
-void set_barptr(void **barptr, void *entry,
-                time_t *starttime, void *spanbr, size_t size,
-                WINDOW *win, int *cleared, int x)
+void set_barptr(void **barptr, void *entry, time_t * starttime, void *spanbr,
+		size_t size, WINDOW * win, int *cleared, int x)
 {
-    *barptr = entry;
-    *starttime = time(NULL);
-    memset(spanbr, 0, size);
+	*barptr = entry;
+	*starttime = time(NULL);
+	memset(spanbr, 0, size);
 
-    if (!(*cleared)) {
-        wattrset(win, IPSTATATTR);
-        mvwprintw(win, 0, x, "Computing");
-        tx_wcoloreol(win);
-        *cleared = 1;
-    }
+	if (!(*cleared)) {
+		wattrset(win, IPSTATATTR);
+		mvwprintw(win, 0, x, "Computing");
+		tx_wcoloreol(win);
+		*cleared = 1;
+	}
 }

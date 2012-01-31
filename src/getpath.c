@@ -24,34 +24,33 @@
 
 char *get_path(int dirtype, char *file)
 {
-    static char path[PATH_MAX];
-    char *ptr = NULL;
-    char *dir, *env = NULL;
+	static char path[PATH_MAX];
+	char *ptr = NULL;
+	char *dir, *env = NULL;
 
-    switch (dirtype) {
-    case T_WORKDIR:
-        dir = WORKDIR;
-        env = WORKDIR_ENV;
-        break;
-    case T_LOGDIR:
-        dir = LOGDIR;
-        env = LOGDIR_ENV;
-        break;
-    case T_LOCKDIR:
-        dir = LOCKDIR;
-        break;
-    default:
-        return file;
-    }
+	switch (dirtype) {
+	case T_WORKDIR:
+		dir = WORKDIR;
+		env = WORKDIR_ENV;
+		break;
+	case T_LOGDIR:
+		dir = LOGDIR;
+		env = LOGDIR_ENV;
+		break;
+	case T_LOCKDIR:
+		dir = LOCKDIR;
+		break;
+	default:
+		return file;
+	}
 
-    if ((dirtype != T_LOCKDIR)
-	&& (ptr = getenv(env)) != NULL)
-        dir = ptr;
+	if ((dirtype != T_LOCKDIR) && (ptr = getenv(env)) != NULL)
+		dir = ptr;
 
-    if (dir == NULL || *dir == '\0')
-        return file;
+	if (dir == NULL || *dir == '\0')
+		return file;
 
-    snprintf(path, PATH_MAX - 1, "%s/%s", dir, file);
+	snprintf(path, PATH_MAX - 1, "%s/%s", dir, file);
 
-    return path;
+	return path;
 }

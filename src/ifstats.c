@@ -46,13 +46,11 @@ extern int daemonized;
 /* from log.c, applicable only to this module */
 
 void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
-                   FILE * logfile);
+		   FILE * logfile);
 void writedstatlog(char *ifname, int unit, float activity, float pps,
-                   float peakactivity, float peakpps,
-                   float peakactivity_in, float peakpps_in,
-                   float peakactivity_out, float peakpps_out,
-                   struct iftotals *ts, unsigned long nsecs,
-                   FILE * logfile);
+		   float peakactivity, float peakpps, float peakactivity_in,
+		   float peakpps_in, float peakactivity_out, float peakpps_out,
+		   struct iftotals *ts, unsigned long nsecs, FILE * logfile);
 
 /*
  * USR1 log-rotation signal handlers
@@ -60,16 +58,16 @@ void writedstatlog(char *ifname, int unit, float activity, float pps,
 
 void rotate_gstat_log(int s)
 {
-    rotate_flag = 1;
-    strcpy(target_logname, GSTATLOG);
-    signal(SIGUSR1, rotate_gstat_log);
+	rotate_flag = 1;
+	strcpy(target_logname, GSTATLOG);
+	signal(SIGUSR1, rotate_gstat_log);
 }
 
 void rotate_dstat_log(int s)
 {
-    rotate_flag = 1;
-    strcpy(target_logname, current_logfile);
-    signal(SIGUSR1, rotate_dstat_log);
+	rotate_flag = 1;
+	strcpy(target_logname, current_logfile);
+	signal(SIGUSR1, rotate_dstat_log);
 }
 
 
@@ -80,15 +78,15 @@ void rotate_dstat_log(int s)
 
 int ifinlist(struct iflist *list, char *ifname)
 {
-    struct iflist *ptmp = list;
-    int result = 0;
+	struct iflist *ptmp = list;
+	int result = 0;
 
-    while ((ptmp != NULL) && (result == 0)) {
-        result = (strcmp(ifname, ptmp->ifname) == 0);
-        ptmp = ptmp->next_entry;
-    }
+	while ((ptmp != NULL) && (result == 0)) {
+		result = (strcmp(ifname, ptmp->ifname) == 0);
+		ptmp = ptmp->next_entry;
+	}
 
-    return result;
+	return result;
 }
 
 /*
@@ -103,229 +101,229 @@ int ifinlist(struct iflist *list, char *ifname)
 
 void initiflist(struct iflist **list)
 {
-    FILE *fd;
-    char ifname[IFNAMSIZ];
-    struct iflist *itmp = NULL;
-    struct iflist *tail = NULL;
-    unsigned int index = 0;
+	FILE *fd;
+	char ifname[IFNAMSIZ];
+	struct iflist *itmp = NULL;
+	struct iflist *tail = NULL;
+	unsigned int index = 0;
 
-    *list = NULL;
+	*list = NULL;
 
-    fd = open_procnetdev();
-    if (fd == NULL) {
-	    tui_error(ANYKEY_MSG, "Unable to obtain interface list");
-	    return;
-    }
+	fd = open_procnetdev();
+	if (fd == NULL) {
+		tui_error(ANYKEY_MSG, "Unable to obtain interface list");
+		return;
+	}
 
-    while (get_next_iface(fd, ifname, 12)) {
-        if (strcmp(ifname, "") != 0) {
-            if (ifinlist(*list, ifname))        /* ignore entry if already in */
-                continue;       /* interface list */
+	while (get_next_iface(fd, ifname, 12)) {
+		if (strcmp(ifname, "") != 0) {
+			if (ifinlist(*list, ifname))	/* ignore entry if already in */
+				continue;	/* interface list */
 
-            /*
-             * Check if the interface is actually up running.  This prevents
-             * inactive devices in /proc/net/dev from actually appearing in
-             * interface lists used by IPTraf.
-             */
+			/*
+			 * Check if the interface is actually up running.  This prevents
+			 * inactive devices in /proc/net/dev from actually appearing in
+			 * interface lists used by IPTraf.
+			 */
 
-            if (!iface_up(ifname))
-                continue;
+			if (!iface_up(ifname))
+				continue;
 
-            /*
-             * At this point, the interface is now sure to be up and running.
-             */
+			/*
+			 * At this point, the interface is now sure to be up and running.
+			 */
 
-            itmp = xmalloc(sizeof(struct iflist));
-            memset(itmp, 0, sizeof(struct iflist));
-            strcpy(itmp->ifname, ifname);
-            index++;
-            itmp->index = index;
+			itmp = xmalloc(sizeof(struct iflist));
+			memset(itmp, 0, sizeof(struct iflist));
+			strcpy(itmp->ifname, ifname);
+			index++;
+			itmp->index = index;
 
-            if (*list == NULL) {
-                *list = itmp;
-                itmp->prev_entry = NULL;
-            } else {
-                tail->next_entry = itmp;
-                itmp->prev_entry = tail;
-            }
+			if (*list == NULL) {
+				*list = itmp;
+				itmp->prev_entry = NULL;
+			} else {
+				tail->next_entry = itmp;
+				itmp->prev_entry = tail;
+			}
 
-            tail = itmp;
-            itmp->next_entry = NULL;
-        }
-    }
+			tail = itmp;
+			itmp->next_entry = NULL;
+		}
+	}
 
-    fclose(fd);
+	fclose(fd);
 }
 
 void positionptr(struct iftab *table, struct iflist **ptmp, char *ifname)
 {
-    struct iflist *plast = NULL;
-    int ok = 0;
+	struct iflist *plast = NULL;
+	int ok = 0;
 
-    *ptmp = table->head;
+	*ptmp = table->head;
 
-    while ((*ptmp != NULL) && (!ok)) {
-        ok = (strcmp((*ptmp)->ifname, ifname) == 0);
+	while ((*ptmp != NULL) && (!ok)) {
+		ok = (strcmp((*ptmp)->ifname, ifname) == 0);
 
-        if (!ok) {
-            if ((*ptmp)->next_entry == NULL)
-                plast = *ptmp;
+		if (!ok) {
+			if ((*ptmp)->next_entry == NULL)
+				plast = *ptmp;
 
-            *ptmp = (*ptmp)->next_entry;
-        }
-    }
+			*ptmp = (*ptmp)->next_entry;
+		}
+	}
 
-    if (*ptmp == NULL) {
-        *ptmp = xmalloc(sizeof(struct iflist));
-        memset(*ptmp, 0, sizeof(struct iflist));
-        (*ptmp)->index = plast->index + 1;
-        plast->next_entry = *ptmp;
-        (*ptmp)->prev_entry = plast;
-        (*ptmp)->next_entry = NULL;
-        strcpy((*ptmp)->ifname, ifname);
+	if (*ptmp == NULL) {
+		*ptmp = xmalloc(sizeof(struct iflist));
+		memset(*ptmp, 0, sizeof(struct iflist));
+		(*ptmp)->index = plast->index + 1;
+		plast->next_entry = *ptmp;
+		(*ptmp)->prev_entry = plast;
+		(*ptmp)->next_entry = NULL;
+		strcpy((*ptmp)->ifname, ifname);
 
-        if ((*ptmp)->index <= LINES - 4)
-            table->lastvisible = *ptmp;
-    }
+		if ((*ptmp)->index <= LINES - 4)
+			table->lastvisible = *ptmp;
+	}
 }
 
 void destroyiflist(struct iflist *list)
 {
-    struct iflist *ctmp;
-    struct iflist *ptmp;
+	struct iflist *ctmp;
+	struct iflist *ptmp;
 
-    if (list != NULL) {
-        ptmp = list;
-        ctmp = ptmp->next_entry;
+	if (list != NULL) {
+		ptmp = list;
+		ctmp = ptmp->next_entry;
 
-        do {
-            free(ptmp);
-            ptmp = ctmp;
-            if (ctmp != NULL)
-                ctmp = ctmp->next_entry;
-        } while (ptmp != NULL);
-    }
+		do {
+			free(ptmp);
+			ptmp = ctmp;
+			if (ctmp != NULL)
+				ctmp = ctmp->next_entry;
+		} while (ptmp != NULL);
+	}
 }
 
 void no_ifaces_error(void)
 {
-    write_error
-        ("No active interfaces.  Check their status or the /proc filesystem",
-         daemonized);
+	write_error
+	    ("No active interfaces.  Check their status or the /proc filesystem",
+	     daemonized);
 }
 
-void updaterates(struct iftab *table, int unit, time_t starttime,
-                 time_t now, unsigned int idx)
+void updaterates(struct iftab *table, int unit, time_t starttime, time_t now,
+		 unsigned int idx)
 {
-    struct iflist *ptmp = table->firstvisible;
+	struct iflist *ptmp = table->firstvisible;
 
-    wattrset(table->statwin, HIGHATTR);
-    do {
-	wmove(table->statwin, ptmp->index - idx, 60 * COLS / 80);
-        if (unit == KBITS) {
-            ptmp->rate =
-                ((float) (ptmp->spanbr * 8 / 1000)) /
-                ((float) (now - starttime));
-            wprintw(table->statwin, "%8.2f kbits/sec", ptmp->rate);
-        } else {
-            ptmp->rate =
-                ((float) (ptmp->spanbr / 1024)) /
-                ((float) (now - starttime));
-            wprintw(table->statwin, "%8.2f kbytes/sec", ptmp->rate);
-        }
+	wattrset(table->statwin, HIGHATTR);
+	do {
+		wmove(table->statwin, ptmp->index - idx, 60 * COLS / 80);
+		if (unit == KBITS) {
+			ptmp->rate =
+			    ((float) (ptmp->spanbr * 8 / 1000)) /
+			    ((float) (now - starttime));
+			wprintw(table->statwin, "%8.2f kbits/sec", ptmp->rate);
+		} else {
+			ptmp->rate =
+			    ((float) (ptmp->spanbr / 1024)) /
+			    ((float) (now - starttime));
+			wprintw(table->statwin, "%8.2f kbytes/sec", ptmp->rate);
+		}
 
-        if (ptmp->rate > ptmp->peakrate)
-            ptmp->peakrate = ptmp->rate;
+		if (ptmp->rate > ptmp->peakrate)
+			ptmp->peakrate = ptmp->rate;
 
-        ptmp->spanbr = 0;
-        ptmp = ptmp->next_entry;
-    } while (ptmp != table->lastvisible->next_entry);
+		ptmp->spanbr = 0;
+		ptmp = ptmp->next_entry;
+	} while (ptmp != table->lastvisible->next_entry);
 }
 
 void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 {
-    unsigned int target_row;
+	unsigned int target_row;
 
-    if ((ptmp->index < idx) || (ptmp->index > idx + (LINES - 5)))
-        return;
+	if ((ptmp->index < idx) || (ptmp->index > idx + (LINES - 5)))
+		return;
 
-    target_row = ptmp->index - idx;
+	target_row = ptmp->index - idx;
 
-    wattrset(win, STDATTR);
-    wmove(win, target_row, 1);
-    wprintw(win, "%s", ptmp->ifname);
-    wattrset(win, HIGHATTR);
-    wmove(win, target_row, 9  * COLS / 80);
-    printlargenum(ptmp->total, win);
-    wmove(win, target_row, 19 * COLS / 80);
-    printlargenum(ptmp->iptotal, win);
-    wmove(win, target_row, 29 * COLS / 80);
-    printlargenum(ptmp->ip6total, win);
-    wmove(win, target_row, 39 * COLS / 80);
-    printlargenum(ptmp->noniptotal, win);
-    wmove(win, target_row, 49 * COLS / 80);
-    wprintw(win, "%8lu", ptmp->badtotal);
+	wattrset(win, STDATTR);
+	wmove(win, target_row, 1);
+	wprintw(win, "%s", ptmp->ifname);
+	wattrset(win, HIGHATTR);
+	wmove(win, target_row, 9 * COLS / 80);
+	printlargenum(ptmp->total, win);
+	wmove(win, target_row, 19 * COLS / 80);
+	printlargenum(ptmp->iptotal, win);
+	wmove(win, target_row, 29 * COLS / 80);
+	printlargenum(ptmp->ip6total, win);
+	wmove(win, target_row, 39 * COLS / 80);
+	printlargenum(ptmp->noniptotal, win);
+	wmove(win, target_row, 49 * COLS / 80);
+	wprintw(win, "%8lu", ptmp->badtotal);
 }
 
 void preparescreen(struct iftab *table)
 {
-    struct iflist *ptmp = table->head;
-    unsigned int i = 1;
+	struct iflist *ptmp = table->head;
+	unsigned int i = 1;
 
-    unsigned int winht = LINES - 4;
+	unsigned int winht = LINES - 4;
 
-    table->firstvisible = table->head;
+	table->firstvisible = table->head;
 
-    do {
-        printifentry(ptmp, table->statwin, 1);
+	do {
+		printifentry(ptmp, table->statwin, 1);
 
-        if (i <= winht)
-            table->lastvisible = ptmp;
+		if (i <= winht)
+			table->lastvisible = ptmp;
 
-        ptmp = ptmp->next_entry;
-        i++;
-    } while ((ptmp != NULL) && (i <= winht));
+		ptmp = ptmp->next_entry;
+		i++;
+	} while ((ptmp != NULL) && (i <= winht));
 }
 
 void labelstats(WINDOW * win)
 {
-    wmove(win, 0, 1);
-    wprintw(win, " Iface ");
-    wmove(win, 0, 12 * COLS / 80);
-    wprintw(win, " Total ");
-    wmove(win, 0, 22 * COLS / 80);
-    wprintw(win, " IPv4 ");
-    wmove(win, 0, 32 * COLS / 80);
-    wprintw(win, " IPv6 ");
-    wmove(win, 0, 42 * COLS / 80);
-    wprintw(win, " NonIP ");
-    wmove(win, 0, 52 * COLS / 80);
-    wprintw(win, " BadIP ");
-    wmove(win, 0, 65 * COLS / 80);
-    wprintw(win, " Activity ");
+	wmove(win, 0, 1);
+	wprintw(win, " Iface ");
+	wmove(win, 0, 12 * COLS / 80);
+	wprintw(win, " Total ");
+	wmove(win, 0, 22 * COLS / 80);
+	wprintw(win, " IPv4 ");
+	wmove(win, 0, 32 * COLS / 80);
+	wprintw(win, " IPv6 ");
+	wmove(win, 0, 42 * COLS / 80);
+	wprintw(win, " NonIP ");
+	wmove(win, 0, 52 * COLS / 80);
+	wprintw(win, " BadIP ");
+	wmove(win, 0, 65 * COLS / 80);
+	wprintw(win, " Activity ");
 }
 
 void initiftab(struct iftab *table)
 {
-    table->borderwin = newwin(LINES - 2, COLS, 1, 0);
-    table->borderpanel = new_panel(table->borderwin);
+	table->borderwin = newwin(LINES - 2, COLS, 1, 0);
+	table->borderpanel = new_panel(table->borderwin);
 
-    move(LINES - 1, 1);
-    scrollkeyhelp();
-    stdexitkeyhelp();
-    wattrset(table->borderwin, BOXATTR);
-    tx_box(table->borderwin, ACS_VLINE, ACS_HLINE);
-    labelstats(table->borderwin);
-    table->statwin = newwin(LINES - 4, COLS - 2, 2, 1);
-    table->statpanel = new_panel(table->statwin);
-    tx_stdwinset(table->statwin);
-    wtimeout(table->statwin, -1);
-    wattrset(table->statwin, STDATTR);
-    tx_colorwin(table->statwin);
-    wattrset(table->statwin, BOXATTR);
-    wmove(table->borderwin, LINES - 3, 32 * COLS / 80);
-    wprintw(table->borderwin,
-            " Total, IP, NonIP, and BadIP are packet counts ");
+	move(LINES - 1, 1);
+	scrollkeyhelp();
+	stdexitkeyhelp();
+	wattrset(table->borderwin, BOXATTR);
+	tx_box(table->borderwin, ACS_VLINE, ACS_HLINE);
+	labelstats(table->borderwin);
+	table->statwin = newwin(LINES - 4, COLS - 2, 2, 1);
+	table->statpanel = new_panel(table->statwin);
+	tx_stdwinset(table->statwin);
+	wtimeout(table->statwin, -1);
+	wattrset(table->statwin, STDATTR);
+	tx_colorwin(table->statwin);
+	wattrset(table->statwin, BOXATTR);
+	wmove(table->borderwin, LINES - 3, 32 * COLS / 80);
+	wprintw(table->borderwin,
+		" Total, IP, NonIP, and BadIP are packet counts ");
 }
 
 /*
@@ -334,50 +332,51 @@ void initiftab(struct iftab *table)
 
 void scrollgstatwin(struct iftab *table, int direction, unsigned int *idx)
 {
-    char buf[255];
-    sprintf(buf, "%%%dc", COLS - 2);
-    wattrset(table->statwin, STDATTR);
-    if (direction == SCROLLUP) {
-        if (table->lastvisible->next_entry != NULL) {
-            wscrl(table->statwin, 1);
-            table->lastvisible = table->lastvisible->next_entry;
-            table->firstvisible = table->firstvisible->next_entry;
-            (*idx)++;
-            wmove(table->statwin, LINES - 5, 0);
-            scrollok(table->statwin, 0);
-            wprintw(table->statwin, buf, ' ');
-            scrollok(table->statwin, 1);
-            printifentry(table->lastvisible, table->statwin, *idx);
-        }
-    } else {
-        if (table->firstvisible != table->head) {
-            wscrl(table->statwin, -1);
-            table->firstvisible = table->firstvisible->prev_entry;
-            table->lastvisible = table->lastvisible->prev_entry;
-            (*idx)--;
-            wmove(table->statwin, 0, 0);
-            wprintw(table->statwin, buf, ' ');
-            printifentry(table->firstvisible, table->statwin, *idx);
-        }
-    }
+	char buf[255];
+
+	sprintf(buf, "%%%dc", COLS - 2);
+	wattrset(table->statwin, STDATTR);
+	if (direction == SCROLLUP) {
+		if (table->lastvisible->next_entry != NULL) {
+			wscrl(table->statwin, 1);
+			table->lastvisible = table->lastvisible->next_entry;
+			table->firstvisible = table->firstvisible->next_entry;
+			(*idx)++;
+			wmove(table->statwin, LINES - 5, 0);
+			scrollok(table->statwin, 0);
+			wprintw(table->statwin, buf, ' ');
+			scrollok(table->statwin, 1);
+			printifentry(table->lastvisible, table->statwin, *idx);
+		}
+	} else {
+		if (table->firstvisible != table->head) {
+			wscrl(table->statwin, -1);
+			table->firstvisible = table->firstvisible->prev_entry;
+			table->lastvisible = table->lastvisible->prev_entry;
+			(*idx)--;
+			wmove(table->statwin, 0, 0);
+			wprintw(table->statwin, buf, ' ');
+			printifentry(table->firstvisible, table->statwin, *idx);
+		}
+	}
 }
 
 void pagegstatwin(struct iftab *table, int direction, int *idx)
 {
-    int i = 1;
+	int i = 1;
 
-    if (direction == SCROLLUP) {
-        while ((i <= LINES - 5)
-               && (table->lastvisible->next_entry != NULL)) {
-            i++;
-            scrollgstatwin(table, direction, (unsigned int*)idx);
-        }
-    } else {
-        while ((i <= LINES - 5) && (table->firstvisible != table->head)) {
-            i++;
-            scrollgstatwin(table, direction, (unsigned int*)idx);
-        }
-    }
+	if (direction == SCROLLUP) {
+		while ((i <= LINES - 5)
+		       && (table->lastvisible->next_entry != NULL)) {
+			i++;
+			scrollgstatwin(table, direction, (unsigned int *) idx);
+		}
+	} else {
+		while ((i <= LINES - 5) && (table->firstvisible != table->head)) {
+			i++;
+			scrollgstatwin(table, direction, (unsigned int *) idx);
+		}
+	}
 }
 
 
@@ -386,346 +385,366 @@ void pagegstatwin(struct iftab *table, int direction, int *idx)
  */
 
 void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
-             int facilitytime)
+	     int facilitytime)
 {
-    int logging = options->logging;
-    struct iftab table;
+	int logging = options->logging;
+	struct iftab table;
 
-    char buf[MAX_PACKET_SIZE];
-    char *packet;
-    int pkt_result = 0;
+	char buf[MAX_PACKET_SIZE];
+	char *packet;
+	int pkt_result = 0;
 
-    unsigned int iphlen;
+	unsigned int iphlen;
 
-    struct sockaddr_ll fromaddr;
-    unsigned short linktype;
+	struct sockaddr_ll fromaddr;
+	unsigned short linktype;
 
-    struct iflist *ptmp = NULL;
+	struct iflist *ptmp = NULL;
 
-    unsigned int idx = 1;
+	unsigned int idx = 1;
 
-    FILE *logfile = NULL;
+	FILE *logfile = NULL;
 
-    int br;
-    char ifname[IFNAMSIZ];
+	int br;
+	char ifname[IFNAMSIZ];
 
-    int ch;
+	int ch;
 
-    struct timeval tv;
-    unsigned long starttime = 0;
-    unsigned long statbegin = 0;
-    unsigned long now = 0;
-    unsigned long long unow = 0;
-    unsigned long startlog = 0;
-    unsigned long updtime = 0;
-    unsigned long long updtime_usec = 0;
+	struct timeval tv;
+	unsigned long starttime = 0;
+	unsigned long statbegin = 0;
+	unsigned long now = 0;
+	unsigned long long unow = 0;
+	unsigned long startlog = 0;
+	unsigned long updtime = 0;
+	unsigned long long updtime_usec = 0;
 
-    struct promisc_states *promisc_list;
+	struct promisc_states *promisc_list;
 
-    if (!facility_active(GSTATIDFILE, ""))
-        mark_facility(GSTATIDFILE, "general interface statistics", "");
-    else {
-        write_error
-            ("General interface stats already active in another process",
-             daemonized);
-        return;
-    }
+	if (!facility_active(GSTATIDFILE, ""))
+		mark_facility(GSTATIDFILE, "general interface statistics", "");
+	else {
+		write_error
+		    ("General interface stats already active in another process",
+		     daemonized);
+		return;
+	}
 
-    initiflist(&(table.head));
-    if (table.head == NULL) {
-        no_ifaces_error();
-        unmark_facility(GSTATIDFILE, "");
-        return;
-    }
+	initiflist(&(table.head));
+	if (table.head == NULL) {
+		no_ifaces_error();
+		unmark_facility(GSTATIDFILE, "");
+		return;
+	}
 
-    initiftab(&table);
-    int fd = xsocket_raw_eth_p_all();
+	initiftab(&table);
+	int fd = xsocket_raw_eth_p_all();
 
-    if ((first_active_facility()) && (options->promisc)) {
-        init_promisc_list(&promisc_list);
-        save_promisc_list(promisc_list);
-        srpromisc(1, promisc_list);
-        destroy_promisc_list(&promisc_list);
-    }
+	if ((first_active_facility()) && (options->promisc)) {
+		init_promisc_list(&promisc_list);
+		save_promisc_list(promisc_list);
+		srpromisc(1, promisc_list);
+		destroy_promisc_list(&promisc_list);
+	}
 
-    adjust_instance_count(PROCCOUNTFILE, 1);
-    active_facility_countfile[0] = '\0';
+	adjust_instance_count(PROCCOUNTFILE, 1);
+	active_facility_countfile[0] = '\0';
 
-    if (logging) {
-        if (strcmp(current_logfile, "") == 0) {
-            strcpy(current_logfile, GSTATLOG);
+	if (logging) {
+		if (strcmp(current_logfile, "") == 0) {
+			strcpy(current_logfile, GSTATLOG);
 
-            if (!daemonized)
-                input_logfile(current_logfile, &logging);
-        }
-    }
+			if (!daemonized)
+				input_logfile(current_logfile, &logging);
+		}
+	}
 
-    if (logging) {
-        opentlog(&logfile, GSTATLOG);
+	if (logging) {
+		opentlog(&logfile, GSTATLOG);
 
-        if (logfile == NULL)
-            logging = 0;
-    }
-    if (logging)
-        signal(SIGUSR1, rotate_gstat_log);
+		if (logfile == NULL)
+			logging = 0;
+	}
+	if (logging)
+		signal(SIGUSR1, rotate_gstat_log);
 
-    rotate_flag = 0;
-    writelog(logging, logfile,
-             "******** General interface statistics started ********");
+	rotate_flag = 0;
+	writelog(logging, logfile,
+		 "******** General interface statistics started ********");
 
-    if (table.head != NULL) {
-        preparescreen(&table);
+	if (table.head != NULL) {
+		preparescreen(&table);
 
-        update_panels();
-        doupdate();
+		update_panels();
+		doupdate();
 
-        //isdnfd = -1;
-        exitloop = 0;
-        gettimeofday(&tv, NULL);
-        starttime = startlog = statbegin = tv.tv_sec;
+		//isdnfd = -1;
+		exitloop = 0;
+		gettimeofday(&tv, NULL);
+		starttime = startlog = statbegin = tv.tv_sec;
 
-        while (!exitloop) {
-            gettimeofday(&tv, NULL);
-            now = tv.tv_sec;
-            unow = tv.tv_sec * 1e+6 + tv.tv_usec;
+		while (!exitloop) {
+			gettimeofday(&tv, NULL);
+			now = tv.tv_sec;
+			unow = tv.tv_sec * 1e+6 + tv.tv_usec;
 
-            if ((now - starttime) >= 5) {
-                updaterates(&table, options->actmode, starttime, now, idx);
-                printelapsedtime(statbegin, now, LINES - 3, 1,
-                                 table.borderwin);
-                starttime = now;
-            }
-            if (((now - startlog) >= options->logspan) && (logging)) {
-                writegstatlog(&table, options->actmode,
-                              time((time_t *) NULL) - statbegin, logfile);
-                startlog = now;
-            }
-            if (((options->updrate != 0)
-                 && (now - updtime >= options->updrate))
-                || ((options->updrate == 0)
-                    && (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
-                update_panels();
-                doupdate();
-                updtime = now;
-                updtime_usec = unow;
-            }
-            check_rotate_flag(&logfile, logging);
+			if ((now - starttime) >= 5) {
+				updaterates(&table, options->actmode, starttime,
+					    now, idx);
+				printelapsedtime(statbegin, now, LINES - 3, 1,
+						 table.borderwin);
+				starttime = now;
+			}
+			if (((now - startlog) >= options->logspan) && (logging)) {
+				writegstatlog(&table, options->actmode,
+					      time((time_t *) NULL) - statbegin,
+					      logfile);
+				startlog = now;
+			}
+			if (((options->updrate != 0)
+			     && (now - updtime >= options->updrate))
+			    || ((options->updrate == 0)
+				&& (unow - updtime_usec >=
+				    DEFAULT_UPDATE_DELAY))) {
+				update_panels();
+				doupdate();
+				updtime = now;
+				updtime_usec = unow;
+			}
+			check_rotate_flag(&logfile, logging);
 
-            if ((facilitytime != 0)
-                && (((now - statbegin) / 60) >= facilitytime))
-                exitloop = 1;
+			if ((facilitytime != 0)
+			    && (((now - statbegin) / 60) >= facilitytime))
+				exitloop = 1;
 
-            getpacket(fd, buf, &fromaddr, &ch, &br, ifname, table.statwin);
+			getpacket(fd, buf, &fromaddr, &ch, &br, ifname,
+				  table.statwin);
 
-            if (ch != ERR) {
-                switch (ch) {
-                case KEY_UP:
-                    scrollgstatwin(&table, SCROLLDOWN, &idx);
-                    break;
-                case KEY_DOWN:
-                    scrollgstatwin(&table, SCROLLUP, &idx);
-                    break;
-                case KEY_PPAGE:
-                case '-':
-                    pagegstatwin(&table, SCROLLDOWN, (int*)&idx);
-                    break;
-                case KEY_NPAGE:
-                case ' ':
-                    pagegstatwin(&table, SCROLLUP, (int*)&idx);
-                    break;
-                case 12:
-                case 'l':
-                case 'L':
-                    tx_refresh_screen();
-                    break;
+			if (ch != ERR) {
+				switch (ch) {
+				case KEY_UP:
+					scrollgstatwin(&table, SCROLLDOWN,
+						       &idx);
+					break;
+				case KEY_DOWN:
+					scrollgstatwin(&table, SCROLLUP, &idx);
+					break;
+				case KEY_PPAGE:
+				case '-':
+					pagegstatwin(&table, SCROLLDOWN,
+						     (int *) &idx);
+					break;
+				case KEY_NPAGE:
+				case ' ':
+					pagegstatwin(&table, SCROLLUP,
+						     (int *) &idx);
+					break;
+				case 12:
+				case 'l':
+				case 'L':
+					tx_refresh_screen();
+					break;
 
-                case 'Q':
-                case 'q':
-                case 'X':
-                case 'x':
-                case 27:
-                case 24:
-                    exitloop = 1;
-                    break;
-                }
-            }
-            if (br > 0) {
-                pkt_result =
-                    processpacket(buf, &packet, (unsigned int*)&br, NULL, NULL, NULL,
-                                  &fromaddr, &linktype, ofilter,
-                                  MATCH_OPPOSITE_USECONFIG, ifname, NULL);
+				case 'Q':
+				case 'q':
+				case 'X':
+				case 'x':
+				case 27:
+				case 24:
+					exitloop = 1;
+					break;
+				}
+			}
+			if (br > 0) {
+				pkt_result =
+				    processpacket(buf, &packet,
+						  (unsigned int *) &br, NULL,
+						  NULL, NULL, &fromaddr,
+						  &linktype, ofilter,
+						  MATCH_OPPOSITE_USECONFIG,
+						  ifname, NULL);
 
-                if (pkt_result != PACKET_OK
-                    && pkt_result != MORE_FRAGMENTS)
-                    continue;
+				if (pkt_result != PACKET_OK
+				    && pkt_result != MORE_FRAGMENTS)
+					continue;
 
-		        if ((options->v6inv4asv6) && (fromaddr.sll_protocol == ETH_P_IP)
-                    && ((struct iphdr *) packet)->protocol == IPPROTO_IPV6 ) {
-	                    iphlen = ((struct iphdr *) packet)->ihl * 4;
-	                    fromaddr.sll_protocol = htons(ETH_P_IPV6);
-                        memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
-                        // Reprocess the IPv6 packet
-                        pkt_result = processpacket(buf, &packet, (unsigned int*)&br, NULL, NULL, NULL,
-                                  &fromaddr, &linktype, ofilter, MATCH_OPPOSITE_USECONFIG, ifname, NULL);
+				if ((options->v6inv4asv6)
+				    && (fromaddr.sll_protocol == ETH_P_IP)
+				    && ((struct iphdr *) packet)->protocol ==
+				    IPPROTO_IPV6) {
+					iphlen =
+					    ((struct iphdr *) packet)->ihl * 4;
+					fromaddr.sll_protocol =
+					    htons(ETH_P_IPV6);
+					memmove(buf, buf + iphlen,
+						MAX_PACKET_SIZE - iphlen);
+					// Reprocess the IPv6 packet
+					pkt_result =
+					    processpacket(buf, &packet,
+							  (unsigned int *) &br,
+							  NULL, NULL, NULL,
+							  &fromaddr, &linktype,
+							  ofilter,
+							  MATCH_OPPOSITE_USECONFIG,
+							  ifname, NULL);
 
-                        if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
-                            continue;
-                }
-                positionptr(&table, &ptmp, ifname);
+					if (pkt_result != PACKET_OK
+					    && pkt_result != MORE_FRAGMENTS)
+						continue;
+				}
+				positionptr(&table, &ptmp, ifname);
 
-                ptmp->total++;
+				ptmp->total++;
 
-                ptmp->spanbr += br;
-                ptmp->br += br;
+				ptmp->spanbr += br;
+				ptmp->br += br;
 
-                if (fromaddr.sll_protocol == ETH_P_IP) {
-                    ptmp->iptotal++;
+				if (fromaddr.sll_protocol == ETH_P_IP) {
+					ptmp->iptotal++;
 
-                    if (pkt_result == CHECKSUM_ERROR) {
-                        (ptmp->badtotal)++;
-                        continue;
-                    }
-                } else if (fromaddr.sll_protocol == ETH_P_IPV6) {
-                    ptmp->ip6total++;
-                } else {
-                    (ptmp->noniptotal)++;
-                }
-                printifentry(ptmp, table.statwin, idx);
-            }
+					if (pkt_result == CHECKSUM_ERROR) {
+						(ptmp->badtotal)++;
+						continue;
+					}
+				} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
+					ptmp->ip6total++;
+				} else {
+					(ptmp->noniptotal)++;
+				}
+				printifentry(ptmp, table.statwin, idx);
+			}
 
-        }
+		}
 
-        close(fd);
-    }
+		close(fd);
+	}
 
-    if ((options->promisc) && (is_last_instance())) {
-        load_promisc_list(&promisc_list);
-        srpromisc(0, promisc_list);
-        destroy_promisc_list(&promisc_list);
-    }
+	if ((options->promisc) && (is_last_instance())) {
+		load_promisc_list(&promisc_list);
+		srpromisc(0, promisc_list);
+		destroy_promisc_list(&promisc_list);
+	}
 
-    adjust_instance_count(PROCCOUNTFILE, -1);
+	adjust_instance_count(PROCCOUNTFILE, -1);
 
-    del_panel(table.statpanel);
-    delwin(table.statwin);
-    del_panel(table.borderpanel);
-    delwin(table.borderwin);
-    update_panels();
-    doupdate();
+	del_panel(table.statpanel);
+	delwin(table.statwin);
+	del_panel(table.borderpanel);
+	delwin(table.borderwin);
+	update_panels();
+	doupdate();
 
-    if (logging) {
-        signal(SIGUSR1, SIG_DFL);
-        writegstatlog(&table, options->actmode,
-                      time((time_t *) NULL) - statbegin, logfile);
-        writelog(logging, logfile,
-                 "******** General interface statistics stopped ********");
-        fclose(logfile);
-    }
-    destroyiflist(table.head);
-    pkt_cleanup();
-    unmark_facility(GSTATIDFILE, "");
-    strcpy(current_logfile, "");
+	if (logging) {
+		signal(SIGUSR1, SIG_DFL);
+		writegstatlog(&table, options->actmode,
+			      time((time_t *) NULL) - statbegin, logfile);
+		writelog(logging, logfile,
+			 "******** General interface statistics stopped ********");
+		fclose(logfile);
+	}
+	destroyiflist(table.head);
+	pkt_cleanup();
+	unmark_facility(GSTATIDFILE, "");
+	strcpy(current_logfile, "");
 }
 
 
 void printdetlabels(WINDOW * win, struct iftotals *totals)
 {
-    wattrset(win, BOXATTR);
-    mvwprintw(win, 2, 14,
-              "  Total      Total    Incoming   Incoming    Outgoing   Outgoing");
-    mvwprintw(win, 3, 14,
-              "Packets      Bytes     Packets      Bytes     Packets      Bytes");
-    wattrset(win, STDATTR);
-    mvwprintw(win, 4, 2, "Total:");
-    mvwprintw(win, 5, 2, "IPv4:");
-    mvwprintw(win, 6, 2, "IPv6:");
-    mvwprintw(win, 7, 2, "TCP:");
-    mvwprintw(win, 8, 2, "UDP:");
-    mvwprintw(win, 9, 2, "ICMP:");
-    mvwprintw(win, 10, 2, "Other IP:");
-    mvwprintw(win, 11, 2, "Non-IP:");
-    mvwprintw(win, 14, 2, "Total rates:");
-    mvwprintw(win, 17, 2, "Incoming rates:");
-    mvwprintw(win, 20, 2, "Outgoing rates:");
+	wattrset(win, BOXATTR);
+	mvwprintw(win, 2, 14,
+		  "  Total      Total    Incoming   Incoming    Outgoing   Outgoing");
+	mvwprintw(win, 3, 14,
+		  "Packets      Bytes     Packets      Bytes     Packets      Bytes");
+	wattrset(win, STDATTR);
+	mvwprintw(win, 4, 2, "Total:");
+	mvwprintw(win, 5, 2, "IPv4:");
+	mvwprintw(win, 6, 2, "IPv6:");
+	mvwprintw(win, 7, 2, "TCP:");
+	mvwprintw(win, 8, 2, "UDP:");
+	mvwprintw(win, 9, 2, "ICMP:");
+	mvwprintw(win, 10, 2, "Other IP:");
+	mvwprintw(win, 11, 2, "Non-IP:");
+	mvwprintw(win, 14, 2, "Total rates:");
+	mvwprintw(win, 17, 2, "Incoming rates:");
+	mvwprintw(win, 20, 2, "Outgoing rates:");
 
-    mvwprintw(win, 14, 45, "Broadcast packets:");
-    mvwprintw(win, 15, 45, "Broadcast bytes:");
-    mvwprintw(win, 19, 45, "IP checksum errors:");
+	mvwprintw(win, 14, 45, "Broadcast packets:");
+	mvwprintw(win, 15, 45, "Broadcast bytes:");
+	mvwprintw(win, 19, 45, "IP checksum errors:");
 
-    update_panels();
-    doupdate();
+	update_panels();
+	doupdate();
 }
 
-void printstatrow(WINDOW * win, int row,
-                  unsigned long long total, unsigned long long btotal,
-                  unsigned long long total_in,
-                  unsigned long long btotal_in,
-                  unsigned long long total_out,
-                  unsigned long long btotal_out)
+void printstatrow(WINDOW * win, int row, unsigned long long total,
+		  unsigned long long btotal, unsigned long long total_in,
+		  unsigned long long btotal_in, unsigned long long total_out,
+		  unsigned long long btotal_out)
 {
-    wmove(win, row, 12);
-    printlargenum(total, win);
-    wmove(win, row, 23);
-    printlargenum(btotal, win);
-    wmove(win, row, 35);
-    printlargenum(total_in, win);
-    wmove(win, row, 46);
-    printlargenum(btotal_in, win);
-    wmove(win, row, 58);
-    printlargenum(total_out, win);
-    wmove(win, row, 69);
-    printlargenum(btotal_out, win);
+	wmove(win, row, 12);
+	printlargenum(total, win);
+	wmove(win, row, 23);
+	printlargenum(btotal, win);
+	wmove(win, row, 35);
+	printlargenum(total_in, win);
+	wmove(win, row, 46);
+	printlargenum(btotal_in, win);
+	wmove(win, row, 58);
+	printlargenum(total_out, win);
+	wmove(win, row, 69);
+	printlargenum(btotal_out, win);
 }
 
 void printdetails(struct iftotals *totals, WINDOW * win)
 {
-    wattrset(win, HIGHATTR);
+	wattrset(win, HIGHATTR);
 
-    /* Print totals on the IP protocols */
+	/* Print totals on the IP protocols */
 
-    printstatrow(win, 4, totals->total, totals->bytestotal,
-                 totals->total_in, totals->bytestotal_in,
-                 totals->total_out, totals->bytestotal_out);
+	printstatrow(win, 4, totals->total, totals->bytestotal,
+		     totals->total_in, totals->bytestotal_in, totals->total_out,
+		     totals->bytestotal_out);
 
-    printstatrow(win, 5, totals->iptotal, totals->ipbtotal,
-                 totals->iptotal_in, totals->ipbtotal_in,
-                 totals->iptotal_out, totals->ipbtotal_out);
+	printstatrow(win, 5, totals->iptotal, totals->ipbtotal,
+		     totals->iptotal_in, totals->ipbtotal_in,
+		     totals->iptotal_out, totals->ipbtotal_out);
 
-    printstatrow(win, 6, totals->ip6total, totals->ip6btotal,
-                 totals->ip6total_in, totals->ip6btotal_in,
-                 totals->ip6total_out, totals->ip6btotal_out);
+	printstatrow(win, 6, totals->ip6total, totals->ip6btotal,
+		     totals->ip6total_in, totals->ip6btotal_in,
+		     totals->ip6total_out, totals->ip6btotal_out);
 
-    printstatrow(win, 7, totals->tcptotal, totals->tcpbtotal,
-                 totals->tcptotal_in, totals->tcpbtotal_in,
-		 totals->tcptotal_out, totals->tcpbtotal_out);
+	printstatrow(win, 7, totals->tcptotal, totals->tcpbtotal,
+		     totals->tcptotal_in, totals->tcpbtotal_in,
+		     totals->tcptotal_out, totals->tcpbtotal_out);
 
-    printstatrow(win, 8, totals->udptotal, totals->udpbtotal,
-                 totals->udptotal_in, totals->udpbtotal_in,
-                 totals->udptotal_out, totals->udpbtotal_out);
+	printstatrow(win, 8, totals->udptotal, totals->udpbtotal,
+		     totals->udptotal_in, totals->udpbtotal_in,
+		     totals->udptotal_out, totals->udpbtotal_out);
 
-    printstatrow(win, 9, totals->icmptotal, totals->icmpbtotal,
-                 totals->icmptotal_in, totals->icmpbtotal_in,
-                 totals->icmptotal_out, totals->icmpbtotal_out);
+	printstatrow(win, 9, totals->icmptotal, totals->icmpbtotal,
+		     totals->icmptotal_in, totals->icmpbtotal_in,
+		     totals->icmptotal_out, totals->icmpbtotal_out);
 
-    printstatrow(win, 10, totals->othtotal, totals->othbtotal,
-                 totals->othtotal_in, totals->othbtotal_in,
-                 totals->othtotal_out, totals->othbtotal_out);
+	printstatrow(win, 10, totals->othtotal, totals->othbtotal,
+		     totals->othtotal_in, totals->othbtotal_in,
+		     totals->othtotal_out, totals->othbtotal_out);
 
-    /* Print non-IP totals */
+	/* Print non-IP totals */
 
-    printstatrow(win, 11, totals->noniptotal, totals->nonipbtotal,
-                 totals->noniptotal_in, totals->nonipbtotal_in,
-                 totals->noniptotal_out, totals->nonipbtotal_out);
+	printstatrow(win, 11, totals->noniptotal, totals->nonipbtotal,
+		     totals->noniptotal_in, totals->nonipbtotal_in,
+		     totals->noniptotal_out, totals->nonipbtotal_out);
 
-    /* Broadcast totals */
-    wmove(win, 14, 67);
-    printlargenum(totals->bcast, win);
-    wmove(win, 15, 67);
-    printlargenum(totals->bcastbytes, win);
+	/* Broadcast totals */
+	wmove(win, 14, 67);
+	printlargenum(totals->bcast, win);
+	wmove(win, 15, 67);
+	printlargenum(totals->bcastbytes, win);
 
-    /* Bad packet count */
+	/* Bad packet count */
 
-    mvwprintw(win, 19, 68, "%8lu", totals->badtotal);
+	mvwprintw(win, 19, 68, "%8lu", totals->badtotal);
 }
 
 
@@ -734,609 +753,643 @@ void printdetails(struct iftotals *totals, WINDOW * win)
  */
 
 void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
-              struct filterstate *ofilter)
+	      struct filterstate *ofilter)
 {
-    int logging = options->logging;
+	int logging = options->logging;
 
-    WINDOW *statwin;
-    PANEL *statpanel;
+	WINDOW *statwin;
+	PANEL *statpanel;
 
-    char buf[MAX_PACKET_SIZE];
-    char *packet;
-    struct iphdr *ipacket = NULL;
-    struct ip6_hdr *ip6packet = NULL;
-    unsigned int iphlen;
+	char buf[MAX_PACKET_SIZE];
+	char *packet;
+	struct iphdr *ipacket = NULL;
+	struct ip6_hdr *ip6packet = NULL;
+	unsigned int iphlen;
 
-    char ifname[IFNAMSIZ];
-    struct sockaddr_ll fromaddr;
-    unsigned short linktype;
+	char ifname[IFNAMSIZ];
+	struct sockaddr_ll fromaddr;
+	unsigned short linktype;
 
-    int br;
-    int framelen = 0;
-    int pkt_result = 0;
+	int br;
+	int framelen = 0;
+	int pkt_result = 0;
 
-    FILE *logfile = NULL;
+	FILE *logfile = NULL;
 
-    unsigned int iplen = 0;
+	unsigned int iplen = 0;
 
-    struct iftotals totals;
+	struct iftotals totals;
 
-    int ch;
+	int ch;
 
-    struct timeval tv;
-    unsigned long updtime = 0;
-    unsigned long long updtime_usec = 0;
-    unsigned long starttime, now;
-    unsigned long statbegin, startlog;
-    unsigned long rate_interval;
-    unsigned long long unow;
+	struct timeval tv;
+	unsigned long updtime = 0;
+	unsigned long long updtime_usec = 0;
+	unsigned long starttime, now;
+	unsigned long statbegin, startlog;
+	unsigned long rate_interval;
+	unsigned long long unow;
 
-    float spanbr = 0;
-    float spanpkt = 0;
-    float spanbr_in = 0;
-    float spanbr_out = 0;
-    float spanpkt_in = 0;
-    float spanpkt_out = 0;
+	float spanbr = 0;
+	float spanpkt = 0;
+	float spanbr_in = 0;
+	float spanbr_out = 0;
+	float spanpkt_in = 0;
+	float spanpkt_out = 0;
 
-    float activity = 0;
-    float activity_in = 0;
-    float activity_out = 0;
-    float peakactivity = 0;
-    float peakactivity_in = 0;
-    float peakactivity_out = 0;
+	float activity = 0;
+	float activity_in = 0;
+	float activity_out = 0;
+	float peakactivity = 0;
+	float peakactivity_in = 0;
+	float peakactivity_out = 0;
 
-    float pps = 0;
-    float peakpps = 0;
-    float pps_in = 0;
-    float pps_out = 0;
-    float peakpps_in = 0;
-    float peakpps_out = 0;
+	float pps = 0;
+	float peakpps = 0;
+	float pps_in = 0;
+	float pps_out = 0;
+	float peakpps_in = 0;
+	float peakpps_out = 0;
 
-    struct promisc_states *promisc_list;
-    char err_msg[80];
-
-#ifdef ACTIVATE_GRAPHING
-    FILE *graphing_fd;
-    unsigned long last_graph_time;
-    unsigned long graph_interval;
-
-    float graph_span_pkts = 0;
-    float graph_span_bytes = 0;
-    float graph_span_pkts_in = 0;
-    float graph_span_bytes_in = 0;
-    float graph_span_pkts_out = 0;
-    float graph_span_bytes_out = 0;
-#endif
-
-    /*
-     * Mark this facility
-     */
-
-    if (!facility_active(DSTATIDFILE, iface))
-        mark_facility(DSTATIDFILE, "detailed interface statistics", iface);
-    else {
-        snprintf(err_msg, 80,
-                 "Detailed interface stats already monitoring %s", iface);
-        write_error(err_msg, daemonized);
-        return;
-    }
-
-    int fd = xsocket_raw_eth_p_all();
-
-    if (!iface_up(iface)) {
-        err_iface_down();
-        unmark_facility(DSTATIDFILE, iface);
-        return;
-    }
-
-    if ((first_active_facility()) && (options->promisc)) {
-        init_promisc_list(&promisc_list);
-        save_promisc_list(promisc_list);
-        srpromisc(1, promisc_list);
-        destroy_promisc_list(&promisc_list);
-    }
-
-    adjust_instance_count(PROCCOUNTFILE, 1);
-    active_facility_countfile[0] = '\0';
-
-    move(LINES - 1, 1);
-    stdexitkeyhelp();
-    statwin = newwin(LINES - 2, COLS, 1, 0);
-    statpanel = new_panel(statwin);
-    tx_stdwinset(statwin);
-    wtimeout(statwin, -1);
-    wattrset(statwin, BOXATTR);
-    tx_colorwin(statwin);
-    tx_box(statwin, ACS_VLINE, ACS_HLINE);
-    wmove(statwin, 0, 1);
-    wprintw(statwin, " Statistics for %s ", iface);
-    wattrset(statwin, STDATTR);
-    update_panels();
-    doupdate();
-
-    memset(&totals, 0, sizeof(struct iftotals));
-
-    if (logging) {
-        if (strcmp(current_logfile, "") == 0) {
-            snprintf(current_logfile, 64, "%s-%s.log", DSTATLOG, iface);
-
-            if (!daemonized)
-                input_logfile(current_logfile, &logging);
-        }
-    }
-
-    if (logging) {
-        opentlog(&logfile, current_logfile);
-
-        if (logfile == NULL)
-            logging = 0;
-    }
-    if (logging)
-        signal(SIGUSR1, rotate_dstat_log);
-
-    rotate_flag = 0;
-    writelog(logging, logfile,
-             "******** Detailed interface statistics started ********");
-
-    printdetlabels(statwin, &totals);
-    printdetails(&totals, statwin);
-    update_panels();
-    doupdate();
-
-    spanbr = 0;
-
-    gettimeofday(&tv, NULL);
-    starttime = startlog = statbegin = tv.tv_sec;
+	struct promisc_states *promisc_list;
+	char err_msg[80];
 
 #ifdef ACTIVATE_GRAPHING
-    last_graph_time = starttime;
+	FILE *graphing_fd;
+	unsigned long last_graph_time;
+	unsigned long graph_interval;
+
+	float graph_span_pkts = 0;
+	float graph_span_bytes = 0;
+	float graph_span_pkts_in = 0;
+	float graph_span_bytes_in = 0;
+	float graph_span_pkts_out = 0;
+	float graph_span_bytes_out = 0;
 #endif
 
-    leaveok(statwin, TRUE);
+	/*
+	 * Mark this facility
+	 */
 
-    //isdnfd = -1;
-    exitloop = 0;
-    char *unitstring = dispmode(options->actmode);
+	if (!facility_active(DSTATIDFILE, iface))
+		mark_facility(DSTATIDFILE, "detailed interface statistics",
+			      iface);
+	else {
+		snprintf(err_msg, 80,
+			 "Detailed interface stats already monitoring %s",
+			 iface);
+		write_error(err_msg, daemonized);
+		return;
+	}
 
-    /*
-     * Data-gathering loop
-     */
+	int fd = xsocket_raw_eth_p_all();
 
-    while (!exitloop) {
-        gettimeofday(&tv, NULL);
-        now = tv.tv_sec;
-        unow = tv.tv_sec * 1e+6 + tv.tv_usec;
+	if (!iface_up(iface)) {
+		err_iface_down();
+		unmark_facility(DSTATIDFILE, iface);
+		return;
+	}
 
-        rate_interval = now - starttime;
+	if ((first_active_facility()) && (options->promisc)) {
+		init_promisc_list(&promisc_list);
+		save_promisc_list(promisc_list);
+		srpromisc(1, promisc_list);
+		destroy_promisc_list(&promisc_list);
+	}
 
-        if (rate_interval >= 5) {
-            wattrset(statwin, BOXATTR);
-            printelapsedtime(statbegin, now, LINES - 3, 1, statwin);
-            if (options->actmode == KBITS) {
-                activity =
-                    (float) (spanbr * 8 / 1000) / (float) rate_interval;
-                activity_in =
-                    (float) (spanbr_in * 8 / 1000) / (float) rate_interval;
-                activity_out =
-                    (float) (spanbr_out * 8 / 1000) /
-                    (float) rate_interval;
-            } else {
-                activity = (float) (spanbr / 1024) / (float) rate_interval;
-                activity_in =
-                    (float) (spanbr_in / 1024) / (float) rate_interval;
-                activity_out =
-                    (float) (spanbr_out / 1024) / (float) rate_interval;
-            }
+	adjust_instance_count(PROCCOUNTFILE, 1);
+	active_facility_countfile[0] = '\0';
 
-            pps = (float) (spanpkt) / (float) (now - starttime);
-            pps_in = (float) (spanpkt_in) / (float) (now - starttime);
-            pps_out = (float) (spanpkt_out) / (float) (now - starttime);
+	move(LINES - 1, 1);
+	stdexitkeyhelp();
+	statwin = newwin(LINES - 2, COLS, 1, 0);
+	statpanel = new_panel(statwin);
+	tx_stdwinset(statwin);
+	wtimeout(statwin, -1);
+	wattrset(statwin, BOXATTR);
+	tx_colorwin(statwin);
+	tx_box(statwin, ACS_VLINE, ACS_HLINE);
+	wmove(statwin, 0, 1);
+	wprintw(statwin, " Statistics for %s ", iface);
+	wattrset(statwin, STDATTR);
+	update_panels();
+	doupdate();
 
-            spanbr = spanbr_in = spanbr_out = 0;
-            spanpkt = spanpkt_in = spanpkt_out = 0;
-            starttime = now;
+	memset(&totals, 0, sizeof(struct iftotals));
 
-            wattrset(statwin, HIGHATTR);
-            mvwprintw(statwin, 14, 19, "%8.1f %s/sec", activity,
-                      unitstring);
-            mvwprintw(statwin, 15, 19, "%8.1f packets/sec", pps);
-            mvwprintw(statwin, 17, 19, "%8.1f %s/sec", activity_in,
-                      unitstring);
-            mvwprintw(statwin, 18, 19, "%8.1f packets/sec", pps_in);
-            mvwprintw(statwin, 20, 19, "%8.1f %s/sec", activity_out,
-                      unitstring);
-            mvwprintw(statwin, 21, 19, "%8.1f packets/sec", pps_out);
+	if (logging) {
+		if (strcmp(current_logfile, "") == 0) {
+			snprintf(current_logfile, 64, "%s-%s.log", DSTATLOG,
+				 iface);
 
-            if (activity > peakactivity)
-                peakactivity = activity;
+			if (!daemonized)
+				input_logfile(current_logfile, &logging);
+		}
+	}
 
-            if (activity_in > peakactivity_in)
-                peakactivity_in = activity_in;
+	if (logging) {
+		opentlog(&logfile, current_logfile);
 
-            if (activity_out > peakactivity_out)
-                peakactivity_out = activity_out;
+		if (logfile == NULL)
+			logging = 0;
+	}
+	if (logging)
+		signal(SIGUSR1, rotate_dstat_log);
 
-            if (pps > peakpps)
-                peakpps = pps;
+	rotate_flag = 0;
+	writelog(logging, logfile,
+		 "******** Detailed interface statistics started ********");
 
-            if (pps_in > peakpps_in)
-                peakpps_in = pps_in;
+	printdetlabels(statwin, &totals);
+	printdetails(&totals, statwin);
+	update_panels();
+	doupdate();
 
-            if (pps_out > peakpps_out)
-                peakpps_out = pps_out;
-        }
-        if ((now - startlog) >= options->logspan && logging) {
-            writedstatlog(iface, options->actmode, activity, pps,
-                          peakactivity, peakpps,
-                          peakactivity_in, peakpps_in,
-                          peakactivity_out, peakpps_out, &totals,
-                          time((time_t *) NULL) - statbegin, logfile);
+	spanbr = 0;
 
-            startlog = now;
-        }
-#ifdef ACTIVATE_GRAPHING
-        graph_interval = now - last_graph_time;
-        if (daemonized && graph_interval >= 60
-            && graphing_logfile[0] != '\0') {
-            graphing_fd = fopen(graphing_logfile, "w");
-            if (graphing_fd == NULL) {
-                write_error
-                    ("Unable to open raw logfile, raw logging diabled", 1);
-                graphing_logfile[0] = '\0';
-            } else {
-                fprintf(graphing_fd, "%lu %8.2f %8.2f %8.2f %8.2f\n",
-                        now,
-                        (float) graph_span_pkts_out /
-                        (float) graph_interval,
-                        (float) (graph_span_bytes_out * 8 / 1000) /
-                        (float) graph_interval,
-                        (float) graph_span_pkts_in /
-                        (float) graph_interval,
-                        (float) (graph_span_bytes_in * 8 / 1000) /
-                        (float) graph_interval);
-
-                fclose(graphing_fd);
-                last_graph_time = now;
-                graph_span_pkts_out = 0;
-                graph_span_bytes_out = 0;
-                graph_span_pkts_in = 0;
-                graph_span_bytes_in = 0;
-            }
-        }
-#endif
-
-        if (((options->updrate == 0)
-             && (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))
-            || ((options->updrate != 0)
-                && (now - updtime >= options->updrate))) {
-            printdetails(&totals, statwin);
-            update_panels();
-            doupdate();
-            updtime_usec = unow;
-            updtime = now;
-        }
-        check_rotate_flag(&logfile, logging);
-
-        if ((facilitytime != 0)
-            && (((now - statbegin) / 60) >= facilitytime))
-            exitloop = 1;
-
-        getpacket(fd, buf, &fromaddr, &ch, &br, ifname, statwin);
-
-        if (ch != ERR) {
-            switch (ch) {
-            case 12:
-            case 'l':
-            case 'L':
-                tx_refresh_screen();
-                break;
-
-            case 'Q':
-            case 'q':
-            case 'X':
-            case 'x':
-            case 24:
-            case 27:
-                exitloop = 1;
-                break;
-            }
-        }
-        if (br > 0) {
-            framelen = br;
-            pkt_result = processpacket(buf, &packet, (unsigned int*)&br, NULL,
-                                       NULL, NULL, &fromaddr,
-                                       &linktype, ofilter,
-                                       MATCH_OPPOSITE_USECONFIG, ifname,
-                                       iface);
-
-            if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
-                continue;
-
-            if ((options->v6inv4asv6) && (fromaddr.sll_protocol == ETH_P_IP)
-                && ((struct iphdr *) packet)->protocol == IPPROTO_IPV6 ) {
-                    iphlen = ((struct iphdr *) packet)->ihl * 4;
-                    fromaddr.sll_protocol = htons(ETH_P_IPV6);
-                    memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
-                    // Reprocess the IPv6 packet
-                    pkt_result = processpacket(buf, &packet, (unsigned int*)&br, NULL, NULL, NULL,
-                              &fromaddr, &linktype, ofilter, MATCH_OPPOSITE_USECONFIG, ifname, NULL);
-                    if (pkt_result != PACKET_OK && pkt_result != MORE_FRAGMENTS)
-                        continue;
-            }
-
-            totals.total++;
-            totals.bytestotal += framelen;
-
-            if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                totals.total_out++;
-                totals.bytestotal_out += framelen;
-                spanbr_out += framelen;
-                spanpkt_out++;
-            } else {
-                totals.total_in++;
-                totals.bytestotal_in += framelen;
-                spanbr_in += framelen;
-                spanpkt_in++;
-            }
-
-            if (fromaddr.sll_pkttype == PACKET_BROADCAST) {
-                totals.bcast++;
-                totals.bcastbytes += framelen;
-            }
-
-            spanbr += framelen;
-            spanpkt++;
-
-            if (fromaddr.sll_protocol == ETH_P_IP) {
-                if (pkt_result == CHECKSUM_ERROR) {
-                    totals.badtotal++;
-                    continue;
-                }
-
-                ipacket = (struct iphdr *) packet;
-                iphlen = ipacket->ihl * 4;
-                iplen = ntohs(ipacket->tot_len);
-
-                totals.iptotal++;
-                totals.ipbtotal += iplen;
+	gettimeofday(&tv, NULL);
+	starttime = startlog = statbegin = tv.tv_sec;
 
 #ifdef ACTIVATE_GRAPHING
-                graph_span_pkts++;
-                graph_span_bytes += framelen;
+	last_graph_time = starttime;
 #endif
 
-                if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                    totals.iptotal_out++;
-                    totals.ipbtotal_out += iplen;
+	leaveok(statwin, TRUE);
+
+	//isdnfd = -1;
+	exitloop = 0;
+	char *unitstring = dispmode(options->actmode);
+
+	/*
+	 * Data-gathering loop
+	 */
+
+	while (!exitloop) {
+		gettimeofday(&tv, NULL);
+		now = tv.tv_sec;
+		unow = tv.tv_sec * 1e+6 + tv.tv_usec;
+
+		rate_interval = now - starttime;
+
+		if (rate_interval >= 5) {
+			wattrset(statwin, BOXATTR);
+			printelapsedtime(statbegin, now, LINES - 3, 1, statwin);
+			if (options->actmode == KBITS) {
+				activity =
+				    (float) (spanbr * 8 / 1000) /
+				    (float) rate_interval;
+				activity_in =
+				    (float) (spanbr_in * 8 / 1000) /
+				    (float) rate_interval;
+				activity_out =
+				    (float) (spanbr_out * 8 / 1000) /
+				    (float) rate_interval;
+			} else {
+				activity =
+				    (float) (spanbr / 1024) /
+				    (float) rate_interval;
+				activity_in =
+				    (float) (spanbr_in / 1024) /
+				    (float) rate_interval;
+				activity_out =
+				    (float) (spanbr_out / 1024) /
+				    (float) rate_interval;
+			}
+
+			pps = (float) (spanpkt) / (float) (now - starttime);
+			pps_in =
+			    (float) (spanpkt_in) / (float) (now - starttime);
+			pps_out =
+			    (float) (spanpkt_out) / (float) (now - starttime);
+
+			spanbr = spanbr_in = spanbr_out = 0;
+			spanpkt = spanpkt_in = spanpkt_out = 0;
+			starttime = now;
+
+			wattrset(statwin, HIGHATTR);
+			mvwprintw(statwin, 14, 19, "%8.1f %s/sec", activity,
+				  unitstring);
+			mvwprintw(statwin, 15, 19, "%8.1f packets/sec", pps);
+			mvwprintw(statwin, 17, 19, "%8.1f %s/sec", activity_in,
+				  unitstring);
+			mvwprintw(statwin, 18, 19, "%8.1f packets/sec", pps_in);
+			mvwprintw(statwin, 20, 19, "%8.1f %s/sec", activity_out,
+				  unitstring);
+			mvwprintw(statwin, 21, 19, "%8.1f packets/sec",
+				  pps_out);
+
+			if (activity > peakactivity)
+				peakactivity = activity;
+
+			if (activity_in > peakactivity_in)
+				peakactivity_in = activity_in;
+
+			if (activity_out > peakactivity_out)
+				peakactivity_out = activity_out;
+
+			if (pps > peakpps)
+				peakpps = pps;
+
+			if (pps_in > peakpps_in)
+				peakpps_in = pps_in;
+
+			if (pps_out > peakpps_out)
+				peakpps_out = pps_out;
+		}
+		if ((now - startlog) >= options->logspan && logging) {
+			writedstatlog(iface, options->actmode, activity, pps,
+				      peakactivity, peakpps, peakactivity_in,
+				      peakpps_in, peakactivity_out, peakpps_out,
+				      &totals,
+				      time((time_t *) NULL) - statbegin,
+				      logfile);
+
+			startlog = now;
+		}
 #ifdef ACTIVATE_GRAPHING
-                    graph_span_pkts_out++;
-                    graph_span_bytes_out += framelen;
+		graph_interval = now - last_graph_time;
+		if (daemonized && graph_interval >= 60
+		    && graphing_logfile[0] != '\0') {
+			graphing_fd = fopen(graphing_logfile, "w");
+			if (graphing_fd == NULL) {
+				write_error
+				    ("Unable to open raw logfile, raw logging diabled",
+				     1);
+				graphing_logfile[0] = '\0';
+			} else {
+				fprintf(graphing_fd,
+					"%lu %8.2f %8.2f %8.2f %8.2f\n", now,
+					(float) graph_span_pkts_out /
+					(float) graph_interval,
+					(float) (graph_span_bytes_out * 8 /
+						 1000) / (float) graph_interval,
+					(float) graph_span_pkts_in /
+					(float) graph_interval,
+					(float) (graph_span_bytes_in * 8 /
+						 1000) /
+					(float) graph_interval);
+
+				fclose(graphing_fd);
+				last_graph_time = now;
+				graph_span_pkts_out = 0;
+				graph_span_bytes_out = 0;
+				graph_span_pkts_in = 0;
+				graph_span_bytes_in = 0;
+			}
+		}
 #endif
-                } else {
-                    totals.iptotal_in++;
-                    totals.ipbtotal_in += iplen;
+
+		if (((options->updrate == 0)
+		     && (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))
+		    || ((options->updrate != 0)
+			&& (now - updtime >= options->updrate))) {
+			printdetails(&totals, statwin);
+			update_panels();
+			doupdate();
+			updtime_usec = unow;
+			updtime = now;
+		}
+		check_rotate_flag(&logfile, logging);
+
+		if ((facilitytime != 0)
+		    && (((now - statbegin) / 60) >= facilitytime))
+			exitloop = 1;
+
+		getpacket(fd, buf, &fromaddr, &ch, &br, ifname, statwin);
+
+		if (ch != ERR) {
+			switch (ch) {
+			case 12:
+			case 'l':
+			case 'L':
+				tx_refresh_screen();
+				break;
+
+			case 'Q':
+			case 'q':
+			case 'X':
+			case 'x':
+			case 24:
+			case 27:
+				exitloop = 1;
+				break;
+			}
+		}
+		if (br > 0) {
+			framelen = br;
+			pkt_result =
+			    processpacket(buf, &packet, (unsigned int *) &br,
+					  NULL, NULL, NULL, &fromaddr,
+					  &linktype, ofilter,
+					  MATCH_OPPOSITE_USECONFIG, ifname,
+					  iface);
+
+			if (pkt_result != PACKET_OK
+			    && pkt_result != MORE_FRAGMENTS)
+				continue;
+
+			if ((options->v6inv4asv6)
+			    && (fromaddr.sll_protocol == ETH_P_IP)
+			    && ((struct iphdr *) packet)->protocol ==
+			    IPPROTO_IPV6) {
+				iphlen = ((struct iphdr *) packet)->ihl * 4;
+				fromaddr.sll_protocol = htons(ETH_P_IPV6);
+				memmove(buf, buf + iphlen,
+					MAX_PACKET_SIZE - iphlen);
+				// Reprocess the IPv6 packet
+				pkt_result =
+				    processpacket(buf, &packet,
+						  (unsigned int *) &br, NULL,
+						  NULL, NULL, &fromaddr,
+						  &linktype, ofilter,
+						  MATCH_OPPOSITE_USECONFIG,
+						  ifname, NULL);
+				if (pkt_result != PACKET_OK
+				    && pkt_result != MORE_FRAGMENTS)
+					continue;
+			}
+
+			totals.total++;
+			totals.bytestotal += framelen;
+
+			if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+				totals.total_out++;
+				totals.bytestotal_out += framelen;
+				spanbr_out += framelen;
+				spanpkt_out++;
+			} else {
+				totals.total_in++;
+				totals.bytestotal_in += framelen;
+				spanbr_in += framelen;
+				spanpkt_in++;
+			}
+
+			if (fromaddr.sll_pkttype == PACKET_BROADCAST) {
+				totals.bcast++;
+				totals.bcastbytes += framelen;
+			}
+
+			spanbr += framelen;
+			spanpkt++;
+
+			if (fromaddr.sll_protocol == ETH_P_IP) {
+				if (pkt_result == CHECKSUM_ERROR) {
+					totals.badtotal++;
+					continue;
+				}
+
+				ipacket = (struct iphdr *) packet;
+				iphlen = ipacket->ihl * 4;
+				iplen = ntohs(ipacket->tot_len);
+
+				totals.iptotal++;
+				totals.ipbtotal += iplen;
+
 #ifdef ACTIVATE_GRAPHING
-                    graph_span_pkts_in++;
-                    graph_span_bytes_in += framelen;
+				graph_span_pkts++;
+				graph_span_bytes += framelen;
 #endif
-                }
 
-                switch (ipacket->protocol) {
-                case IPPROTO_TCP:
-                    totals.tcptotal++;
-                    totals.tcpbtotal += iplen;
+				if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+					totals.iptotal_out++;
+					totals.ipbtotal_out += iplen;
+#ifdef ACTIVATE_GRAPHING
+					graph_span_pkts_out++;
+					graph_span_bytes_out += framelen;
+#endif
+				} else {
+					totals.iptotal_in++;
+					totals.ipbtotal_in += iplen;
+#ifdef ACTIVATE_GRAPHING
+					graph_span_pkts_in++;
+					graph_span_bytes_in += framelen;
+#endif
+				}
 
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.tcptotal_out++;
-                        totals.tcpbtotal_out += iplen;
-                    } else {
-                        totals.tcptotal_in++;
-                        totals.tcpbtotal_in += iplen;
-                    }
-                    break;
-                case IPPROTO_UDP:
-                    totals.udptotal++;
-                    totals.udpbtotal += iplen;
+				switch (ipacket->protocol) {
+				case IPPROTO_TCP:
+					totals.tcptotal++;
+					totals.tcpbtotal += iplen;
 
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.udptotal_out++;
-                        totals.udpbtotal_out += iplen;
-                    } else {
-                        totals.udptotal_in++;
-                        totals.udpbtotal_in += iplen;
-                    }
-                    break;
-                case IPPROTO_ICMP:
-                    totals.icmptotal++;
-                    totals.icmpbtotal += iplen;
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.tcptotal_out++;
+						totals.tcpbtotal_out += iplen;
+					} else {
+						totals.tcptotal_in++;
+						totals.tcpbtotal_in += iplen;
+					}
+					break;
+				case IPPROTO_UDP:
+					totals.udptotal++;
+					totals.udpbtotal += iplen;
 
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.icmptotal_out++;
-                        totals.icmpbtotal_out += iplen;
-                    } else {
-                        totals.icmptotal_in++;
-                        totals.icmpbtotal_in += iplen;
-                    }
-                    break;
-                default:
-                    totals.othtotal++;
-                    totals.othbtotal += iplen;
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.udptotal_out++;
+						totals.udpbtotal_out += iplen;
+					} else {
+						totals.udptotal_in++;
+						totals.udpbtotal_in += iplen;
+					}
+					break;
+				case IPPROTO_ICMP:
+					totals.icmptotal++;
+					totals.icmpbtotal += iplen;
 
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.othtotal_out++;
-                        totals.othbtotal_out += iplen;
-                    } else {
-                        totals.othtotal_in++;
-                        totals.othbtotal_in += iplen;
-                    }
-                    break;
-                }
-            } else if (fromaddr.sll_protocol == ETH_P_IPV6) {
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.icmptotal_out++;
+						totals.icmpbtotal_out += iplen;
+					} else {
+						totals.icmptotal_in++;
+						totals.icmpbtotal_in += iplen;
+					}
+					break;
+				default:
+					totals.othtotal++;
+					totals.othbtotal += iplen;
 
-                ip6packet = (struct ip6_hdr *) packet;
-                iplen = ntohs(ip6packet->ip6_plen) + 40;
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.othtotal_out++;
+						totals.othbtotal_out += iplen;
+					} else {
+						totals.othtotal_in++;
+						totals.othbtotal_in += iplen;
+					}
+					break;
+				}
+			} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
 
-                totals.ip6total++;
-                totals.ip6btotal += iplen;
+				ip6packet = (struct ip6_hdr *) packet;
+				iplen = ntohs(ip6packet->ip6_plen) + 40;
 
-                if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                    totals.ip6total_out++;
-                    totals.ip6btotal_out += iplen;
-                } else {
-                    totals.ip6total_in++;
-                    totals.ip6btotal_in += iplen;
-                }
+				totals.ip6total++;
+				totals.ip6btotal += iplen;
 
-                switch (ip6packet->ip6_nxt) {
-                case IPPROTO_TCP:
-                    totals.tcptotal++;
-                    totals.tcpbtotal += iplen;
+				if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+					totals.ip6total_out++;
+					totals.ip6btotal_out += iplen;
+				} else {
+					totals.ip6total_in++;
+					totals.ip6btotal_in += iplen;
+				}
 
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.tcptotal_out++;
-                        totals.tcpbtotal_out += iplen;
-                    } else {
-                        totals.tcptotal_in++;
-                        totals.tcpbtotal_in += iplen;
-                    }
-                    break;
-                case IPPROTO_UDP:
-                    totals.udptotal++;
-                    totals.udpbtotal += iplen;
+				switch (ip6packet->ip6_nxt) {
+				case IPPROTO_TCP:
+					totals.tcptotal++;
+					totals.tcpbtotal += iplen;
 
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.udptotal_out++;
-                        totals.udpbtotal_out += iplen;
-                    } else {
-                        totals.udptotal_in++;
-                        totals.udpbtotal_in += iplen;
-                    }
-                    break;
-                case IPPROTO_ICMPV6:
-                    totals.icmptotal++;
-                    totals.icmpbtotal += iplen;
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.icmptotal_out++;
-                        totals.icmpbtotal_out += iplen;
-                    } else {
-                        totals.icmptotal_in++;
-                        totals.icmpbtotal_in += iplen;
-                    }
-                    break;
-                default:
-                    totals.othtotal++;
-                    totals.othbtotal += iplen;
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.tcptotal_out++;
+						totals.tcpbtotal_out += iplen;
+					} else {
+						totals.tcptotal_in++;
+						totals.tcpbtotal_in += iplen;
+					}
+					break;
+				case IPPROTO_UDP:
+					totals.udptotal++;
+					totals.udpbtotal += iplen;
 
-                    if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                        totals.othtotal_out++;
-                        totals.othbtotal_out += iplen;
-                    } else {
-                        totals.othtotal_in++;
-                        totals.othbtotal_in += iplen;
-                    }
-                    break;
-                }
-            } else {
-		 totals.noniptotal++;
-                totals.nonipbtotal += br;
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.udptotal_out++;
+						totals.udpbtotal_out += iplen;
+					} else {
+						totals.udptotal_in++;
+						totals.udpbtotal_in += iplen;
+					}
+					break;
+				case IPPROTO_ICMPV6:
+					totals.icmptotal++;
+					totals.icmpbtotal += iplen;
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.icmptotal_out++;
+						totals.icmpbtotal_out += iplen;
+					} else {
+						totals.icmptotal_in++;
+						totals.icmpbtotal_in += iplen;
+					}
+					break;
+				default:
+					totals.othtotal++;
+					totals.othbtotal += iplen;
 
-                if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-                    totals.noniptotal_out++;
-                    totals.nonipbtotal_out += br;
-                } else {
-                    totals.noniptotal_in++;
-                    totals.nonipbtotal_in += br;
-                }
-            }
-        }
-    }
+					if (fromaddr.sll_pkttype ==
+					    PACKET_OUTGOING) {
+						totals.othtotal_out++;
+						totals.othbtotal_out += iplen;
+					} else {
+						totals.othtotal_in++;
+						totals.othbtotal_in += iplen;
+					}
+					break;
+				}
+			} else {
+				totals.noniptotal++;
+				totals.nonipbtotal += br;
 
-    close(fd);
+				if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
+					totals.noniptotal_out++;
+					totals.nonipbtotal_out += br;
+				} else {
+					totals.noniptotal_in++;
+					totals.nonipbtotal_in += br;
+				}
+			}
+		}
+	}
 
-    if ((options->promisc) && (is_last_instance())) {
-        load_promisc_list(&promisc_list);
-        srpromisc(0, promisc_list);
-        destroy_promisc_list(&promisc_list);
-    }
+	close(fd);
 
-    adjust_instance_count(PROCCOUNTFILE, -1);
+	if ((options->promisc) && (is_last_instance())) {
+		load_promisc_list(&promisc_list);
+		srpromisc(0, promisc_list);
+		destroy_promisc_list(&promisc_list);
+	}
 
-    if (logging) {
-        signal(SIGUSR1, SIG_DFL);
-        writedstatlog(iface, options->actmode, activity, pps,
-                      peakactivity, peakpps,
-                      peakactivity_in, peakpps_in,
-                      peakactivity_out, peakpps_out, &totals,
-                      time((time_t *) NULL) - statbegin, logfile);
-        writelog(logging, logfile,
-                 "******** Detailed interface statistics stopped ********");
-        fclose(logfile);
-    }
+	adjust_instance_count(PROCCOUNTFILE, -1);
 
-    del_panel(statpanel);
-    delwin(statwin);
-    unmark_facility(DSTATIDFILE, iface);
-    strcpy(current_logfile, "");
-    pkt_cleanup();
-    update_panels();
-    doupdate();
+	if (logging) {
+		signal(SIGUSR1, SIG_DFL);
+		writedstatlog(iface, options->actmode, activity, pps,
+			      peakactivity, peakpps, peakactivity_in,
+			      peakpps_in, peakactivity_out, peakpps_out,
+			      &totals, time((time_t *) NULL) - statbegin,
+			      logfile);
+		writelog(logging, logfile,
+			 "******** Detailed interface statistics stopped ********");
+		fclose(logfile);
+	}
+
+	del_panel(statpanel);
+	delwin(statwin);
+	unmark_facility(DSTATIDFILE, iface);
+	strcpy(current_logfile, "");
+	pkt_cleanup();
+	update_panels();
+	doupdate();
 }
 
 void selectiface(char *ifname, int withall, int *aborted)
 {
-    int ch;
+	int ch;
 
-    struct iflist *list;
-    struct iflist *ptmp;
+	struct iflist *list;
+	struct iflist *ptmp;
 
-    struct scroll_list scrolllist;
+	struct scroll_list scrolllist;
 
-    initiflist(&list);
+	initiflist(&list);
 
-    if (list == NULL) {
-        no_ifaces_error();
-        *aborted = 1;
-        return;
-    }
+	if (list == NULL) {
+		no_ifaces_error();
+		*aborted = 1;
+		return;
+	}
 
-    if ((withall) && (list != NULL)) {
-        ptmp = xmalloc(sizeof(struct iflist));
-        strncpy(ptmp->ifname, "All interfaces", sizeof (ptmp->ifname));
+	if ((withall) && (list != NULL)) {
+		ptmp = xmalloc(sizeof(struct iflist));
+		strncpy(ptmp->ifname, "All interfaces", sizeof(ptmp->ifname));
 
-        ptmp->prev_entry = NULL;
-        list->prev_entry = ptmp;
-        ptmp->next_entry = list;
-        list = ptmp;
-    }
-    tx_listkeyhelp(STDATTR, HIGHATTR);
+		ptmp->prev_entry = NULL;
+		list->prev_entry = ptmp;
+		ptmp->next_entry = list;
+		list = ptmp;
+	}
+	tx_listkeyhelp(STDATTR, HIGHATTR);
 
-    ptmp = list;
+	ptmp = list;
 
-    tx_init_listbox(&scrolllist, 24, 14, (COLS - 24) / 2 - 9,
-                    (LINES - 14) / 2, STDATTR, BOXATTR, BARSTDATTR,
-                    HIGHATTR);
+	tx_init_listbox(&scrolllist, 24, 14, (COLS - 24) / 2 - 9,
+			(LINES - 14) / 2, STDATTR, BOXATTR, BARSTDATTR,
+			HIGHATTR);
 
-    tx_set_listbox_title(&scrolllist, "Select Interface", 1);
+	tx_set_listbox_title(&scrolllist, "Select Interface", 1);
 
-    while (ptmp != NULL) {
-        tx_add_list_entry(&scrolllist, (char *) ptmp, ptmp->ifname);
-        ptmp = ptmp->next_entry;
-    }
+	while (ptmp != NULL) {
+		tx_add_list_entry(&scrolllist, (char *) ptmp, ptmp->ifname);
+		ptmp = ptmp->next_entry;
+	}
 
-    tx_show_listbox(&scrolllist);
-    tx_operate_listbox(&scrolllist, &ch, aborted);
-    tx_close_listbox(&scrolllist);
+	tx_show_listbox(&scrolllist);
+	tx_operate_listbox(&scrolllist, &ch, aborted);
+	tx_close_listbox(&scrolllist);
 
-    if (!(*aborted) && (list != NULL)) {
-        ptmp = (struct iflist *) scrolllist.textptr->nodeptr;
-        if ((withall) && (ptmp->prev_entry == NULL))    /* All Interfaces */
-            strcpy(ifname, "");
-        else
-            strcpy(ifname, ptmp->ifname);
-    }
+	if (!(*aborted) && (list != NULL)) {
+		ptmp = (struct iflist *) scrolllist.textptr->nodeptr;
+		if ((withall) && (ptmp->prev_entry == NULL))	/* All Interfaces */
+			strcpy(ifname, "");
+		else
+			strcpy(ifname, ptmp->ifname);
+	}
 
-    tx_destroy_list(&scrolllist);
-    destroyiflist(list);
-    update_panels();
-    doupdate();
+	tx_destroy_list(&scrolllist);
+	destroyiflist(list);
+	update_panels();
+	doupdate();
 }

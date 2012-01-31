@@ -10,6 +10,6 @@ for IPTraf
 
 void tx_stdwinset(WINDOW * win);
 void tx_refresh_screen(void);
-void tx_colorwin(WINDOW *win);
-void tx_wcoloreol(WINDOW *win);
-void tx_box(WINDOW *win, int vline, int hline);
+void tx_colorwin(WINDOW * win);
+void tx_wcoloreol(WINDOW * win);
+void tx_box(WINDOW * win, int vline, int hline);

@@ -9,14 +9,14 @@
  */
 
 struct promisc_params {
-    char ifname[IFNAMSIZ];
-    int saved_state;
-    int state_valid;
+	char ifname[IFNAMSIZ];
+	int saved_state;
+	int state_valid;
 };
 
 struct promisc_states {
-    struct promisc_params params;
-    struct promisc_states *next_entry;
+	struct promisc_params params;
+	struct promisc_states *next_entry;
 };
 
 void init_promisc_list(struct promisc_states **list);

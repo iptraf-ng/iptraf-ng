@@ -20,24 +20,24 @@ details.
 #include "iptraf-ng-compat.h"
 
 void servlook(int servnames, unsigned int port, unsigned int protocol,
-              char *target, int maxlen)
+	      char *target, int maxlen)
 {
-    static struct servent *sve;
+	static struct servent *sve;
 
-    memset(target, 0, maxlen + 1);
+	memset(target, 0, maxlen + 1);
 
-    if (servnames) {
-        if (protocol == IPPROTO_TCP)
-            sve = getservbyport(port, "tcp");
-        else
-            sve = getservbyport(port, "udp");
+	if (servnames) {
+		if (protocol == IPPROTO_TCP)
+			sve = getservbyport(port, "tcp");
+		else
+			sve = getservbyport(port, "udp");
 
-        if (sve != NULL) {
-            strncpy(target, sve->s_name, maxlen);
-        } else {
-            sprintf(target, "%u", ntohs(port));
-        }
-    } else {
-        sprintf(target, "%u", ntohs(port));
-    }
+		if (sve != NULL) {
+			strncpy(target, sve->s_name, maxlen);
+		} else {
+			sprintf(target, "%u", ntohs(port));
+		}
+	} else {
+		sprintf(target, "%u", ntohs(port));
+	}
 }

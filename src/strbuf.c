@@ -22,54 +22,57 @@
 
 int prefixcmp(const char *str, const char *prefix)
 {
-    for (; ; str++, prefix++)
-        if (!*prefix)
-            return 0;
-        else if (*str != *prefix)
-            return (unsigned char)*prefix - (unsigned char)*str;
+	for (;; str++, prefix++)
+		if (!*prefix)
+			return 0;
+		else if (*str != *prefix)
+			return (unsigned char) *prefix - (unsigned char) *str;
 }
 
 int suffixcmp(const char *str, const char *suffix)
 {
-    int len_minus_suflen = strlen(str) - strlen(suffix);
-    if (len_minus_suflen < 0)
-        return len_minus_suflen;
-    else
-        return strcmp(str + len_minus_suflen, suffix);
+	int len_minus_suflen = strlen(str) - strlen(suffix);
+
+	if (len_minus_suflen < 0)
+		return len_minus_suflen;
+	else
+		return strcmp(str + len_minus_suflen, suffix);
 }
 
 struct strbuf *strbuf_new(void)
 {
-    struct strbuf *buf = xmalloc(sizeof(struct strbuf));
-    buf->alloc = 8;
-    buf->len = 0;
-    buf->buf = xmalloc(buf->alloc);
-    buf->buf[buf->len] = '\0';
-    return buf;
+	struct strbuf *buf = xmalloc(sizeof(struct strbuf));
+
+	buf->alloc = 8;
+	buf->len = 0;
+	buf->buf = xmalloc(buf->alloc);
+	buf->buf[buf->len] = '\0';
+	return buf;
 }
 
 void strbuf_free(struct strbuf *strbuf)
 {
-    if (!strbuf)
-        return;
+	if (!strbuf)
+		return;
 
-    free(strbuf->buf);
-    free(strbuf);
+	free(strbuf->buf);
+	free(strbuf);
 }
 
-char* strbuf_free_nobuf(struct strbuf *strbuf)
+char *strbuf_free_nobuf(struct strbuf *strbuf)
 {
-    char *ret = strbuf->buf;
-    free(strbuf);
-    return ret;
+	char *ret = strbuf->buf;
+
+	free(strbuf);
+	return ret;
 }
 
 
 void strbuf_clear(struct strbuf *strbuf)
 {
-    assert(strbuf->alloc > 0);
-    strbuf->len = 0;
-    strbuf->buf[0] = '\0';
+	assert(strbuf->alloc > 0);
+	strbuf->len = 0;
+	strbuf->buf[0] = '\0';
 }
 
 /* Ensures that the buffer can be extended by num characters
@@ -77,69 +80,72 @@ void strbuf_clear(struct strbuf *strbuf)
  */
 static void strbuf_grow(struct strbuf *strbuf, int num)
 {
-    if (strbuf->len + num + 1 > strbuf->alloc)
-    {
-	while (strbuf->len + num + 1 > strbuf->alloc)
-	    strbuf->alloc *= 2; /* huge grow = infinite loop */
-        strbuf->buf = xrealloc(strbuf->buf, strbuf->alloc);
-    }
+	if (strbuf->len + num + 1 > strbuf->alloc) {
+		while (strbuf->len + num + 1 > strbuf->alloc)
+			strbuf->alloc *= 2;	/* huge grow = infinite loop */
+		strbuf->buf = xrealloc(strbuf->buf, strbuf->alloc);
+	}
 }
 
 struct strbuf *strbuf_append_char(struct strbuf *strbuf, char c)
 {
-    strbuf_grow(strbuf, 1);
-    strbuf->buf[strbuf->len++] = c;
-    strbuf->buf[strbuf->len] = '\0';
-    return strbuf;
+	strbuf_grow(strbuf, 1);
+	strbuf->buf[strbuf->len++] = c;
+	strbuf->buf[strbuf->len] = '\0';
+	return strbuf;
 }
 
 struct strbuf *strbuf_append_str(struct strbuf *strbuf, const char *str)
 {
-    int len = strlen(str);
-    strbuf_grow(strbuf, len);
-    assert(strbuf->len + len < strbuf->alloc);
-    memmove(strbuf->buf + strbuf->len, str, len);
-    strbuf->len += len;
-    strbuf->buf[strbuf->len] = '\0';
-    return strbuf;
+	int len = strlen(str);
+
+	strbuf_grow(strbuf, len);
+	assert(strbuf->len + len < strbuf->alloc);
+	memmove(strbuf->buf + strbuf->len, str, len);
+	strbuf->len += len;
+	strbuf->buf[strbuf->len] = '\0';
+	return strbuf;
 }
 
 struct strbuf *strbuf_prepend_str(struct strbuf *strbuf, const char *str)
 {
-    int len = strlen(str);
-    strbuf_grow(strbuf, len);
-    assert(strbuf->len + len < strbuf->alloc);
-    memmove(strbuf->buf + len, strbuf->buf, strbuf->len + 1);
-    memcpy(strbuf->buf, str, len);
-    strbuf->len += len;
-    return strbuf;
+	int len = strlen(str);
+
+	strbuf_grow(strbuf, len);
+	assert(strbuf->len + len < strbuf->alloc);
+	memmove(strbuf->buf + len, strbuf->buf, strbuf->len + 1);
+	memcpy(strbuf->buf, str, len);
+	strbuf->len += len;
+	return strbuf;
 }
 
-struct strbuf *strbuf_append_strf(struct strbuf *strbuf, const char *format, ...)
+struct strbuf *strbuf_append_strf(struct strbuf *strbuf, const char *format,
+				  ...)
 {
-    va_list p;
-    char *string_ptr;
+	va_list p;
+	char *string_ptr;
 
-    va_start(p, format);
-    string_ptr = xvasprintf(format, p);
-    va_end(p);
+	va_start(p, format);
+	string_ptr = xvasprintf(format, p);
+	va_end(p);
 
-    strbuf_append_str(strbuf, string_ptr);
+	strbuf_append_str(strbuf, string_ptr);
 
-    free(string_ptr);
-    return strbuf;
+	free(string_ptr);
+	return strbuf;
 }
 
-struct strbuf *strbuf_prepend_strf(struct strbuf *strbuf, const char *format, ...)
+struct strbuf *strbuf_prepend_strf(struct strbuf *strbuf, const char *format,
+				   ...)
 {
-    va_list p;
-    char *string_ptr;
+	va_list p;
+	char *string_ptr;
 
-    va_start(p, format);
-    string_ptr = xvasprintf(format, p);
-    va_end(p);
+	va_start(p, format);
+	string_ptr = xvasprintf(format, p);
+	va_end(p);
 
-    strbuf_prepend_str(strbuf, string_ptr);
-    free(string_ptr);
-    return strbuf;
+	strbuf_prepend_str(strbuf, string_ptr);
+	free(string_ptr);
+	return strbuf;
 }

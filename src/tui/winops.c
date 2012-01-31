@@ -11,50 +11,49 @@ winops.c - screen configuration and setup functions
 
 void tx_stdwinset(WINDOW * win)
 {
-    meta(win, TRUE);
-    keypad(win, TRUE);
-    notimeout(win, 0);
-    scrollok(win, 1);
+	meta(win, TRUE);
+	keypad(win, TRUE);
+	notimeout(win, 0);
+	scrollok(win, 1);
 }
 
 void tx_refresh_screen(void)
 {
-    endwin();
-    doupdate();
-    curs_set(0);
+	endwin();
+	doupdate();
+	curs_set(0);
 }
 
 void tx_colorwin(WINDOW * win)
 {
-    int ctr;
-    char *blankpad;
-    blankpad = (char *) malloc(sizeof(char) * (COLS + 1));
+	int ctr;
+	char *blankpad;
+	blankpad = (char *) malloc(sizeof(char) * (COLS + 1));
 
-    strcpy(blankpad, "");
+	strcpy(blankpad, "");
 
-    for (ctr = 0; ctr <= getmaxx(win); ctr++) {
-	strcat(blankpad, " ");
-    }
+	for (ctr = 0; ctr <= getmaxx(win); ctr++) {
+		strcat(blankpad, " ");
+	}
 
-    scrollok(win, 0);
-    for (ctr = 0; ctr <= getmaxy(win); ctr++) {
-	wmove(win, ctr, 0);
-	wprintw(win, "%s", blankpad);
-    }
-    scrollok(win, 1);
-    free(blankpad);
+	scrollok(win, 0);
+	for (ctr = 0; ctr <= getmaxy(win); ctr++) {
+		wmove(win, ctr, 0);
+		wprintw(win, "%s", blankpad);
+	}
+	scrollok(win, 1);
+	free(blankpad);
 }
 
-void tx_wcoloreol(WINDOW *win)
+void tx_wcoloreol(WINDOW * win)
 {
-    int y, x;
-    int cury, curx;
-    char sp_buf[10];
-    
-    getyx(win, cury, curx);
-    getmaxyx(win, y, x);
-    sprintf(sp_buf, "%%%dc", x - curx - 1);
-    scrollok(win, 0);
-    wprintw(win, sp_buf, ' ');
-}
+	int y, x;
+	int cury, curx;
+	char sp_buf[10];
 
+	getyx(win, cury, curx);
+	getmaxyx(win, y, x);
+	sprintf(sp_buf, "%%%dc", x - curx - 1);
+	scrollok(win, 0);
+	wprintw(win, sp_buf, ' ');
+}

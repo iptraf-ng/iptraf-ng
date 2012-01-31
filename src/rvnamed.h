@@ -19,9 +19,9 @@
 #define MAX_RVNAMED_CHILDREN	200
 
 struct rvn {
-    int type;
-    int ready;
-    struct in_addr saddr;
-    struct in6_addr s6addr;
-    char fqdn[45];
+	int type;
+	int ready;
+	struct in_addr saddr;
+	struct in6_addr s6addr;
+	char fqdn[45];
 };

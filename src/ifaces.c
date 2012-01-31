@@ -25,10 +25,10 @@ extern int daemonized;
 
 char *ltrim(char *buf)
 {
-    while ((*buf == ' ') || (*buf == '\t'))
-        buf++;
+	while ((*buf == ' ') || (*buf == '\t'))
+		buf++;
 
-    return buf;
+	return buf;
 }
 
 /*
@@ -38,21 +38,21 @@ char *ltrim(char *buf)
 
 FILE *open_procnetdev(void)
 {
-    FILE *fd;
-    char buf[161];
+	FILE *fd;
+	char buf[161];
 
-    fd = fopen("/proc/net/dev", "r");
+	fd = fopen("/proc/net/dev", "r");
 
-    /*
-     * Read and discard the table header lines in the file
-     */
+	/*
+	 * Read and discard the table header lines in the file
+	 */
 
-    if (fd != NULL) {
-        fgets(buf, 160, fd);
-        fgets(buf, 160, fd);
-    }
+	if (fd != NULL) {
+		fgets(buf, 160, fd);
+		fgets(buf, 160, fd);
+	}
 
-    return fd;
+	return fd;
 }
 
 /*
@@ -60,63 +60,63 @@ FILE *open_procnetdev(void)
  */
 int get_next_iface(FILE * fd, char *ifname, int n)
 {
-    char buf[161];
+	char buf[161];
 
-    strcpy(ifname, "");
+	strcpy(ifname, "");
 
-    if (!feof(fd)) {
-        strcpy(buf, "");
-        fgets(buf, 160, fd);
-        if (strcmp(buf, "") != 0) {
-            strncpy(ifname, ltrim(strtok(buf, ":")), n);
-            if (ifname[n - 1] != '\0')
-                strcpy(ifname, "");
-            return 1;
-        }
-    }
-    return 0;
+	if (!feof(fd)) {
+		strcpy(buf, "");
+		fgets(buf, 160, fd);
+		if (strcmp(buf, "") != 0) {
+			strncpy(ifname, ltrim(strtok(buf, ":")), n);
+			if (ifname[n - 1] != '\0')
+				strcpy(ifname, "");
+			return 1;
+		}
+	}
+	return 0;
 }
 
 int iface_up(char *iface)
 {
-    int fd;
-    int ir;
-    struct ifreq ifr;
+	int fd;
+	int ir;
+	struct ifreq ifr;
 
-    fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-    strcpy(ifr.ifr_name, iface);
-    ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
+	strcpy(ifr.ifr_name, iface);
+	ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
 
-    close(fd);
+	close(fd);
 
-    if ((ir != 0) || (!(ifr.ifr_flags & IFF_UP)))
-        return 0;
+	if ((ir != 0) || (!(ifr.ifr_flags & IFF_UP)))
+		return 0;
 
-    return 1;
+	return 1;
 }
 
 void err_iface_down(void)
 {
-    write_error("Specified interface not active", daemonized);
+	write_error("Specified interface not active", daemonized);
 }
 
 void isdn_iface_check(int *fd, char *ifname)
 {
-    if (*fd == -1) {
-        if (strncmp(ifname, "isdn", 4) == 0)
-            *fd = open("/dev/isdnctrl", O_RDWR);
-    }
+	if (*fd == -1) {
+		if (strncmp(ifname, "isdn", 4) == 0)
+			*fd = open("/dev/isdnctrl", O_RDWR);
+	}
 }
 
 char *gen_iface_msg(char *ifptr)
 {
-    static char if_msg[20];
+	static char if_msg[20];
 
-    if (ifptr == NULL)
-        strcpy(if_msg, "all interfaces");
-    else
-        strncpy(if_msg, ifptr, 20);
+	if (ifptr == NULL)
+		strcpy(if_msg, "all interfaces");
+	else
+		strncpy(if_msg, ifptr, 20);
 
-    return if_msg;
+	return if_msg;
 }

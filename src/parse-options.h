@@ -20,20 +20,20 @@
 #define PARSE_OPTIONS_H
 
 enum parse_opt_type {
-    OPTION_BOOL,
-    OPTION_GROUP,
-    OPTION_STRING,
-    OPTION_INTEGER,
-    OPTION_END,
+	OPTION_BOOL,
+	OPTION_GROUP,
+	OPTION_STRING,
+	OPTION_INTEGER,
+	OPTION_END,
 };
 
 struct options {
-    enum parse_opt_type type;
-    int short_name;
-    const char *long_name;
-    void *value;
-    const char *argh;
-    const char *help;
+	enum parse_opt_type type;
+	int short_name;
+	const char *long_name;
+	void *value;
+	const char *argh;
+	const char *help;
 };
 
 /*
@@ -53,8 +53,8 @@ struct options {
 #define OPT__HELP(v)        OPT_BOOL('h', "help", (v), "show this help message")
 
 void parse_opts(int argc, char **argv, const struct options *opt,
-                const char * const usage[]);
+		const char *const usage[]);
 
-void parse_usage_and_die(const char * const * usage, const struct options *opt);
+void parse_usage_and_die(const char *const *usage, const struct options *opt);
 
 #endif
