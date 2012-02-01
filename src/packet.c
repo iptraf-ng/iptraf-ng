@@ -191,7 +191,6 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 {
 	static char aligned_buf[ALIGNED_BUF_LEN];
 	struct iphdr *ip;
-	struct ip6_hdr *ip6;
 	int hdr_check;
 	register int ip_checksum;
 	register int iphlen;
@@ -200,11 +199,6 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 	unsigned int f_sport, f_dport;
 
 	int firstin;
-
-	union {
-		struct tcphdr *tcp;
-		struct udphdr *udp;
-	} in_ip;
 
 	/*
 	 * Does returned interface (ifname) match the specified interface name
@@ -298,21 +292,25 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 				if (!firstin)
 					return MORE_FRAGMENTS;
 			} else {
-				if (ip->protocol == IPPROTO_TCP) {
-					in_ip.tcp =
-					    (struct tcphdr *) ((char *) ip +
-							       iphlen);
-					sport_tmp = in_ip.tcp->source;
-					dport_tmp = in_ip.tcp->dest;
-				} else if (ip->protocol == IPPROTO_UDP) {
-					in_ip.udp =
-					    (struct udphdr *) ((char *) ip +
-							       iphlen);
-					sport_tmp = in_ip.udp->source;
-					dport_tmp = in_ip.udp->dest;
-				} else {
+				struct tcphdr *tcp;
+				struct udphdr *udp;
+				char *ip_payload = (char *) ip + iphlen;
+
+				switch(ip->protocol) {
+				case IPPROTO_TCP:
+					tcp = (struct tcphdr *) ip_payload;
+					sport_tmp = tcp->source;
+					dport_tmp = tcp->dest;
+					break;
+				case IPPROTO_UDP:
+					udp = (struct udphdr *) ip_payload;
+					sport_tmp = udp->source;
+					dport_tmp = udp->dest;
+					break;
+				default:
 					sport_tmp = 0;
 					dport_tmp = 0;
+					break;
 				}
 
 				if (total_br != NULL)
@@ -347,21 +345,33 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		}
 		return PACKET_OK;
 	} else if (fromaddr->sll_protocol == ETH_P_IPV6) {
-		ip6 = (struct ip6_hdr *) (*packet);
-		iphlen = 40;
+		struct tcphdr *tcp;
+		struct udphdr *udp;
+		struct ip6_hdr *ip6 = (struct ip6_hdr *) *packet;
+		char *ip_payload = (char *) ip6 + 40;
+
 		//TODO: Filter packets
-		if (ip6->ip6_nxt == IPPROTO_TCP) {
-			in_ip.tcp = (struct tcphdr *) ((char *) ip6 + iphlen);
-			if (sport != NULL)
-				*sport = in_ip.tcp->source;
-			if (dport != NULL)
-				*dport = in_ip.tcp->dest;
-		} else if (ip6->ip6_nxt == IPPROTO_UDP) {
-			in_ip.udp = (struct udphdr *) ((char *) ip6 + iphlen);
-			if (sport != NULL)
-				*sport = in_ip.udp->source;
-			if (dport != NULL)
-				*dport = in_ip.udp->dest;
+		switch(ip6->ip6_nxt) {		/* FIXME: extension headers ??? */
+		case IPPROTO_TCP:
+			tcp = (struct tcphdr *) ip_payload;
+			if (sport)
+				*sport = tcp->source;
+			if (dport)
+				*dport = tcp->dest;
+			break;
+		case IPPROTO_UDP:
+			udp = (struct udphdr *) ip_payload;
+			if (sport)
+				*sport = udp->source;
+			if (dport)
+				*dport = udp->dest;
+			break;
+		default:
+			if(sport)
+				*sport = 0;
+			if(dport)
+				*dport = 0;
+			break;
 		}
 	}
 	return PACKET_OK;
