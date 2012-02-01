@@ -361,7 +361,7 @@ void scrollgstatwin(struct iftab *table, int direction, unsigned int *idx)
 	}
 }
 
-void pagegstatwin(struct iftab *table, int direction, int *idx)
+void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
 {
 	int i = 1;
 
@@ -369,12 +369,12 @@ void pagegstatwin(struct iftab *table, int direction, int *idx)
 		while ((i <= LINES - 5)
 		       && (table->lastvisible->next_entry != NULL)) {
 			i++;
-			scrollgstatwin(table, direction, (unsigned int *) idx);
+			scrollgstatwin(table, direction, idx);
 		}
 	} else {
 		while ((i <= LINES - 5) && (table->firstvisible != table->head)) {
 			i++;
-			scrollgstatwin(table, direction, (unsigned int *) idx);
+			scrollgstatwin(table, direction, idx);
 		}
 	}
 }
@@ -532,11 +532,11 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 				break;
 			case KEY_PPAGE:
 			case '-':
-				pagegstatwin(&table, SCROLLDOWN, (int *) &idx);
+				pagegstatwin(&table, SCROLLDOWN, &idx);
 				break;
 			case KEY_NPAGE:
 			case ' ':
-				pagegstatwin(&table, SCROLLUP, (int *) &idx);
+				pagegstatwin(&table, SCROLLUP, &idx);
 				break;
 			case 12:
 			case 'l':
