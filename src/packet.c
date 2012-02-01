@@ -190,15 +190,6 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  int match_opposite, char *ifname, char *ifptr)
 {
 	static char aligned_buf[ALIGNED_BUF_LEN];
-	struct iphdr *ip;
-	int hdr_check;
-	register int ip_checksum;
-	register int iphlen;
-
-	unsigned int sport_tmp, dport_tmp;
-	unsigned int f_sport, f_dport;
-
-	int firstin;
 
 	/*
 	 * Does returned interface (ifname) match the specified interface name
@@ -231,6 +222,12 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		return INVALID_PACKET;
 
 	if (fromaddr->sll_protocol == ETH_P_IP) {
+		struct iphdr *ip;
+		int hdr_check;
+		register int ip_checksum;
+		register int iphlen;
+		unsigned int f_sport, f_dport;
+
 		/*
 		 * At this point, we're now processing IP packets.  Start by getting
 		 * IP header and length.
@@ -251,10 +248,14 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 
 		if ((ip->protocol == IPPROTO_TCP || ip->protocol == IPPROTO_UDP)
 		    && (sport != NULL && dport != NULL)) {
+			unsigned int sport_tmp, dport_tmp;
+
 			/*
 			 * Process TCP/UDP fragments
 			 */
 			if ((ntohs(ip->frag_off) & 0x3fff) != 0) {
+				int firstin;
+
 				/*
 				 * total_br contains total byte count of all fragments
 				 * not yet retrieved.  Will differ only if fragments
