@@ -230,27 +230,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 	if (*packet == NULL)
 		return INVALID_PACKET;
 
-	/*
-	 * Apply non-IP packet filter
-	 */
-
-	if ((fromaddr->sll_protocol != ETH_P_IP)
-	    && (fromaddr->sll_protocol != ETH_P_IPV6)) {
-		if ((fromaddr->sll_protocol == ETH_P_ARP)
-		    || (fromaddr->sll_protocol == ETH_P_RARP)) {
-			if (!nonipfilter(filter, fromaddr->sll_protocol)) {
-				return PACKET_FILTERED;
-			}
-		} else {
-			if (!nonipfilter(filter, 0)) {
-				return PACKET_FILTERED;
-			}
-		}
-		return PACKET_OK;
-	}
-
 	if (fromaddr->sll_protocol == ETH_P_IP) {
-
 		/*
 		 * At this point, we're now processing IP packets.  Start by getting
 		 * IP header and length.
@@ -372,6 +352,11 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 			if(dport)
 				*dport = 0;
 			break;
+		}
+	} else {
+		/* not IPv4 and not IPv6: apply non-IP packet filter */
+		if (!nonipfilter(filter, fromaddr->sll_protocol)) {
+			return PACKET_FILTERED;
 		}
 	}
 	return PACKET_OK;

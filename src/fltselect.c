@@ -116,7 +116,7 @@ int nonipfilter(struct filterstate *filter, unsigned int protocol)
 	case ETH_P_RARP:
 		result = filter->rarp;
 		break;
-	case 0:
+	default:
 		result = filter->nonip;
 		break;
 	}
