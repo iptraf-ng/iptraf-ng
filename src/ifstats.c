@@ -520,40 +520,37 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 			getpacket(fd, buf, &fromaddr, &ch, &br, ifname,
 				  table.statwin);
 
-			if (ch != ERR) {
-				switch (ch) {
-				case KEY_UP:
-					scrollgstatwin(&table, SCROLLDOWN,
-						       &idx);
-					break;
-				case KEY_DOWN:
-					scrollgstatwin(&table, SCROLLUP, &idx);
-					break;
-				case KEY_PPAGE:
-				case '-':
-					pagegstatwin(&table, SCROLLDOWN,
-						     (int *) &idx);
-					break;
-				case KEY_NPAGE:
-				case ' ':
-					pagegstatwin(&table, SCROLLUP,
-						     (int *) &idx);
-					break;
-				case 12:
-				case 'l':
-				case 'L':
-					tx_refresh_screen();
-					break;
-
-				case 'Q':
-				case 'q':
-				case 'X':
-				case 'x':
-				case 27:
-				case 24:
-					exitloop = 1;
-					break;
-				}
+			switch (ch) {
+			case ERR:
+				/* no key ready, do nothing */
+				break;
+			case KEY_UP:
+				scrollgstatwin(&table, SCROLLDOWN, &idx);
+				break;
+			case KEY_DOWN:
+				scrollgstatwin(&table, SCROLLUP, &idx);
+				break;
+			case KEY_PPAGE:
+			case '-':
+				pagegstatwin(&table, SCROLLDOWN, (int *) &idx);
+				break;
+			case KEY_NPAGE:
+			case ' ':
+				pagegstatwin(&table, SCROLLUP, (int *) &idx);
+				break;
+			case 12:
+			case 'l':
+			case 'L':
+				tx_refresh_screen();
+				break;
+			case 'Q':
+			case 'q':
+			case 'X':
+			case 'x':
+			case 27:
+			case 24:
+				exitloop = 1;
+				break;
 			}
 			if (br > 0) {
 				pkt_result =
