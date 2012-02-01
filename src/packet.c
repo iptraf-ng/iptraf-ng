@@ -169,10 +169,9 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
 	*ch = ERR;
 
 	if (FD_ISSET(fd, &set)) {
-		fromlen = sizeof(struct sockaddr_pkt);
-		*br =
-		    recvfrom(fd, buf, MAX_PACKET_SIZE, 0,
-			     (struct sockaddr *) fromaddr, &fromlen);
+		fromlen = sizeof(struct sockaddr_ll);
+		*br = recvfrom(fd, buf, MAX_PACKET_SIZE, 0,
+			       (struct sockaddr *) fromaddr, &fromlen);
 		ifr.ifr_ifindex = fromaddr->sll_ifindex;
 		ioctl(fd, SIOCGIFNAME, &ifr);
 		strcpy(ifname, ifr.ifr_name);
