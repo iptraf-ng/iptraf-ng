@@ -811,19 +811,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	struct promisc_states *promisc_list;
 	char err_msg[80];
 
-#ifdef ACTIVATE_GRAPHING
-	FILE *graphing_fd;
-	unsigned long last_graph_time;
-	unsigned long graph_interval;
-
-	float graph_span_pkts = 0;
-	float graph_span_bytes = 0;
-	float graph_span_pkts_in = 0;
-	float graph_span_bytes_in = 0;
-	float graph_span_pkts_out = 0;
-	float graph_span_bytes_out = 0;
-#endif
-
 	/*
 	 * Mark this facility
 	 */
@@ -906,10 +893,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
 	gettimeofday(&tv, NULL);
 	starttime = startlog = statbegin = tv.tv_sec;
-
-#ifdef ACTIVATE_GRAPHING
-	last_graph_time = starttime;
-#endif
 
 	leaveok(statwin, TRUE);
 
@@ -1003,38 +986,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
 			startlog = now;
 		}
-#ifdef ACTIVATE_GRAPHING
-		graph_interval = now - last_graph_time;
-		if (daemonized && graph_interval >= 60
-		    && graphing_logfile[0] != '\0') {
-			graphing_fd = fopen(graphing_logfile, "w");
-			if (graphing_fd == NULL) {
-				write_error
-				    ("Unable to open raw logfile, raw logging diabled",
-				     1);
-				graphing_logfile[0] = '\0';
-			} else {
-				fprintf(graphing_fd,
-					"%lu %8.2f %8.2f %8.2f %8.2f\n", now,
-					(float) graph_span_pkts_out /
-					(float) graph_interval,
-					(float) (graph_span_bytes_out * 8 /
-						 1000) / (float) graph_interval,
-					(float) graph_span_pkts_in /
-					(float) graph_interval,
-					(float) (graph_span_bytes_in * 8 /
-						 1000) /
-					(float) graph_interval);
-
-				fclose(graphing_fd);
-				last_graph_time = now;
-				graph_span_pkts_out = 0;
-				graph_span_bytes_out = 0;
-				graph_span_pkts_in = 0;
-				graph_span_bytes_in = 0;
-			}
-		}
-#endif
 
 		if (((options->updrate == 0)
 		     && (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))
@@ -1142,25 +1093,12 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 				totals.iptotal++;
 				totals.ipbtotal += iplen;
 
-#ifdef ACTIVATE_GRAPHING
-				graph_span_pkts++;
-				graph_span_bytes += framelen;
-#endif
-
 				if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
 					totals.iptotal_out++;
 					totals.ipbtotal_out += iplen;
-#ifdef ACTIVATE_GRAPHING
-					graph_span_pkts_out++;
-					graph_span_bytes_out += framelen;
-#endif
 				} else {
 					totals.iptotal_in++;
 					totals.ipbtotal_in += iplen;
-#ifdef ACTIVATE_GRAPHING
-					graph_span_pkts_in++;
-					graph_span_bytes_in += framelen;
-#endif
 				}
 
 				switch (ipacket->protocol) {
