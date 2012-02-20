@@ -548,62 +548,57 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 			exitloop = 1;
 			break;
 		}
-		if (br > 0) {
-			pkt_result =
-			    processpacket(buf, &packet,
-					  (unsigned int *) &br, NULL,
-					  NULL, NULL, &fromaddr,
-					  &linktype, ofilter,
-					  MATCH_OPPOSITE_USECONFIG,
-					  ifname, NULL);
+		if (br <= 0)
+			continue;
+
+		pkt_result = processpacket(buf, &packet, (unsigned int *) &br,
+					   NULL, NULL, NULL, &fromaddr,
+					   &linktype, ofilter,
+					   MATCH_OPPOSITE_USECONFIG,
+					   ifname, NULL);
+
+		if (pkt_result != PACKET_OK
+		    && pkt_result != MORE_FRAGMENTS)
+			continue;
+
+		if ((options->v6inv4asv6)
+		    && (fromaddr.sll_protocol == ETH_P_IP)
+		    && ((struct iphdr *) packet)->protocol == IPPROTO_IPV6) {
+			iphlen = ((struct iphdr *) packet)->ihl * 4;
+			fromaddr.sll_protocol = htons(ETH_P_IPV6);
+			memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
+			// Reprocess the IPv6 packet
+			pkt_result = processpacket(buf, &packet,
+						   (unsigned int *) &br,
+						   NULL, NULL, NULL, &fromaddr,
+						   &linktype, ofilter,
+						   MATCH_OPPOSITE_USECONFIG,
+						   ifname, NULL);
 
 			if (pkt_result != PACKET_OK
 			    && pkt_result != MORE_FRAGMENTS)
 				continue;
-
-			if ((options->v6inv4asv6)
-			    && (fromaddr.sll_protocol == ETH_P_IP)
-			    && ((struct iphdr *) packet)->protocol ==
-			    IPPROTO_IPV6) {
-				iphlen = ((struct iphdr *) packet)->ihl * 4;
-				fromaddr.sll_protocol = htons(ETH_P_IPV6);
-				memmove(buf, buf + iphlen,
-					MAX_PACKET_SIZE - iphlen);
-				// Reprocess the IPv6 packet
-				pkt_result =
-				    processpacket(buf, &packet,
-						  (unsigned int *) &br,
-						  NULL, NULL, NULL,
-						  &fromaddr, &linktype,
-						  ofilter,
-						  MATCH_OPPOSITE_USECONFIG,
-						  ifname, NULL);
-
-				if (pkt_result != PACKET_OK
-				    && pkt_result != MORE_FRAGMENTS)
-					continue;
-			}
-			positionptr(&table, &ptmp, ifname);
-
-			ptmp->total++;
-
-			ptmp->spanbr += br;
-			ptmp->br += br;
-
-			if (fromaddr.sll_protocol == ETH_P_IP) {
-				ptmp->iptotal++;
-
-				if (pkt_result == CHECKSUM_ERROR) {
-					(ptmp->badtotal)++;
-					continue;
-				}
-			} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
-				ptmp->ip6total++;
-			} else {
-				(ptmp->noniptotal)++;
-			}
-			printifentry(ptmp, table.statwin, idx);
 		}
+		positionptr(&table, &ptmp, ifname);
+
+		ptmp->total++;
+
+		ptmp->spanbr += br;
+		ptmp->br += br;
+
+		if (fromaddr.sll_protocol == ETH_P_IP) {
+			ptmp->iptotal++;
+
+			if (pkt_result == CHECKSUM_ERROR) {
+				(ptmp->badtotal)++;
+				continue;
+			}
+		} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
+			ptmp->ip6total++;
+		} else {
+			(ptmp->noniptotal)++;
+		}
+		printifentry(ptmp, table.statwin, idx);
 	}
 	close(fd);
 
