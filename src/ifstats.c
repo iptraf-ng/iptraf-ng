@@ -471,149 +471,141 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	writelog(logging, logfile,
 		 "******** General interface statistics started ********");
 
-	if (table.head != NULL) {
-		preparescreen(&table);
+	preparescreen(&table);
 
-		update_panels();
-		doupdate();
+	update_panels();
+	doupdate();
 
-		//isdnfd = -1;
-		exitloop = 0;
+	//isdnfd = -1;
+	exitloop = 0;
+	gettimeofday(&tv, NULL);
+	starttime = startlog = statbegin = tv.tv_sec;
+
+	while (!exitloop) {
 		gettimeofday(&tv, NULL);
-		starttime = startlog = statbegin = tv.tv_sec;
+		now = tv.tv_sec;
+		unow = tv.tv_sec * 1e+6 + tv.tv_usec;
 
-		while (!exitloop) {
-			gettimeofday(&tv, NULL);
-			now = tv.tv_sec;
-			unow = tv.tv_sec * 1e+6 + tv.tv_usec;
+		if ((now - starttime) >= 5) {
+			updaterates(&table, options->actmode, starttime,
+				    now, idx);
+			printelapsedtime(statbegin, now, LINES - 3, 1,
+					 table.borderwin);
+			starttime = now;
+		}
+		if (((now - startlog) >= options->logspan) && (logging)) {
+			writegstatlog(&table, options->actmode,
+				      time((time_t *) NULL) - statbegin,
+				      logfile);
+			startlog = now;
+		}
+		if (((options->updrate != 0)
+		     && (now - updtime >= options->updrate))
+		    || ((options->updrate == 0)
+			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
+			update_panels();
+			doupdate();
+			updtime = now;
+			updtime_usec = unow;
+		}
+		check_rotate_flag(&logfile, logging);
 
-			if ((now - starttime) >= 5) {
-				updaterates(&table, options->actmode, starttime,
-					    now, idx);
-				printelapsedtime(statbegin, now, LINES - 3, 1,
-						 table.borderwin);
-				starttime = now;
-			}
-			if (((now - startlog) >= options->logspan) && (logging)) {
-				writegstatlog(&table, options->actmode,
-					      time((time_t *) NULL) - statbegin,
-					      logfile);
-				startlog = now;
-			}
-			if (((options->updrate != 0)
-			     && (now - updtime >= options->updrate))
-			    || ((options->updrate == 0)
-				&& (unow - updtime_usec >=
-				    DEFAULT_UPDATE_DELAY))) {
-				update_panels();
-				doupdate();
-				updtime = now;
-				updtime_usec = unow;
-			}
-			check_rotate_flag(&logfile, logging);
+		if ((facilitytime != 0)
+		    && (((now - statbegin) / 60) >= facilitytime))
+			exitloop = 1;
 
-			if ((facilitytime != 0)
-			    && (((now - statbegin) / 60) >= facilitytime))
-				exitloop = 1;
+		getpacket(fd, buf, &fromaddr, &ch, &br, ifname, table.statwin);
 
-			getpacket(fd, buf, &fromaddr, &ch, &br, ifname,
-				  table.statwin);
+		switch (ch) {
+		case ERR:
+			/* no key ready, do nothing */
+			break;
+		case KEY_UP:
+			scrollgstatwin(&table, SCROLLDOWN, &idx);
+			break;
+		case KEY_DOWN:
+			scrollgstatwin(&table, SCROLLUP, &idx);
+			break;
+		case KEY_PPAGE:
+		case '-':
+			pagegstatwin(&table, SCROLLDOWN, &idx);
+			break;
+		case KEY_NPAGE:
+		case ' ':
+			pagegstatwin(&table, SCROLLUP, &idx);
+			break;
+		case 12:
+		case 'l':
+		case 'L':
+			tx_refresh_screen();
+			break;
+		case 'Q':
+		case 'q':
+		case 'X':
+		case 'x':
+		case 27:
+		case 24:
+			exitloop = 1;
+			break;
+		}
+		if (br > 0) {
+			pkt_result =
+			    processpacket(buf, &packet,
+					  (unsigned int *) &br, NULL,
+					  NULL, NULL, &fromaddr,
+					  &linktype, ofilter,
+					  MATCH_OPPOSITE_USECONFIG,
+					  ifname, NULL);
 
-			switch (ch) {
-			case ERR:
-				/* no key ready, do nothing */
-				break;
-			case KEY_UP:
-				scrollgstatwin(&table, SCROLLDOWN, &idx);
-				break;
-			case KEY_DOWN:
-				scrollgstatwin(&table, SCROLLUP, &idx);
-				break;
-			case KEY_PPAGE:
-			case '-':
-				pagegstatwin(&table, SCROLLDOWN, &idx);
-				break;
-			case KEY_NPAGE:
-			case ' ':
-				pagegstatwin(&table, SCROLLUP, &idx);
-				break;
-			case 12:
-			case 'l':
-			case 'L':
-				tx_refresh_screen();
-				break;
-			case 'Q':
-			case 'q':
-			case 'X':
-			case 'x':
-			case 27:
-			case 24:
-				exitloop = 1;
-				break;
-			}
-			if (br > 0) {
+			if (pkt_result != PACKET_OK
+			    && pkt_result != MORE_FRAGMENTS)
+				continue;
+
+			if ((options->v6inv4asv6)
+			    && (fromaddr.sll_protocol == ETH_P_IP)
+			    && ((struct iphdr *) packet)->protocol ==
+			    IPPROTO_IPV6) {
+				iphlen = ((struct iphdr *) packet)->ihl * 4;
+				fromaddr.sll_protocol = htons(ETH_P_IPV6);
+				memmove(buf, buf + iphlen,
+					MAX_PACKET_SIZE - iphlen);
+				// Reprocess the IPv6 packet
 				pkt_result =
 				    processpacket(buf, &packet,
-						  (unsigned int *) &br, NULL,
-						  NULL, NULL, &fromaddr,
-						  &linktype, ofilter,
+						  (unsigned int *) &br,
+						  NULL, NULL, NULL,
+						  &fromaddr, &linktype,
+						  ofilter,
 						  MATCH_OPPOSITE_USECONFIG,
 						  ifname, NULL);
 
 				if (pkt_result != PACKET_OK
 				    && pkt_result != MORE_FRAGMENTS)
 					continue;
-
-				if ((options->v6inv4asv6)
-				    && (fromaddr.sll_protocol == ETH_P_IP)
-				    && ((struct iphdr *) packet)->protocol ==
-				    IPPROTO_IPV6) {
-					iphlen =
-					    ((struct iphdr *) packet)->ihl * 4;
-					fromaddr.sll_protocol =
-					    htons(ETH_P_IPV6);
-					memmove(buf, buf + iphlen,
-						MAX_PACKET_SIZE - iphlen);
-					// Reprocess the IPv6 packet
-					pkt_result =
-					    processpacket(buf, &packet,
-							  (unsigned int *) &br,
-							  NULL, NULL, NULL,
-							  &fromaddr, &linktype,
-							  ofilter,
-							  MATCH_OPPOSITE_USECONFIG,
-							  ifname, NULL);
-
-					if (pkt_result != PACKET_OK
-					    && pkt_result != MORE_FRAGMENTS)
-						continue;
-				}
-				positionptr(&table, &ptmp, ifname);
-
-				ptmp->total++;
-
-				ptmp->spanbr += br;
-				ptmp->br += br;
-
-				if (fromaddr.sll_protocol == ETH_P_IP) {
-					ptmp->iptotal++;
-
-					if (pkt_result == CHECKSUM_ERROR) {
-						(ptmp->badtotal)++;
-						continue;
-					}
-				} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
-					ptmp->ip6total++;
-				} else {
-					(ptmp->noniptotal)++;
-				}
-				printifentry(ptmp, table.statwin, idx);
 			}
+			positionptr(&table, &ptmp, ifname);
 
+			ptmp->total++;
+
+			ptmp->spanbr += br;
+			ptmp->br += br;
+
+			if (fromaddr.sll_protocol == ETH_P_IP) {
+				ptmp->iptotal++;
+
+				if (pkt_result == CHECKSUM_ERROR) {
+					(ptmp->badtotal)++;
+					continue;
+				}
+			} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
+				ptmp->ip6total++;
+			} else {
+				(ptmp->noniptotal)++;
+			}
+			printifentry(ptmp, table.statwin, idx);
 		}
-
-		close(fd);
 	}
+	close(fd);
 
 	if ((options->promisc) && (is_last_instance())) {
 		load_promisc_list(&promisc_list);
