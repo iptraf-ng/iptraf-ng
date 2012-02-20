@@ -255,7 +255,6 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
-	active_facility_countfile[0] = '\0';
 
 	do {
 		gettimeofday(&tv, NULL);

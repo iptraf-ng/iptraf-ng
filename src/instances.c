@@ -46,7 +46,6 @@ void mark_facility(char *tagfile, char *facility, char *iface)
 		write_error(errstring, daemonized);
 	}
 	close(fd);
-	strncpy(active_facility_lockfile, lockfile, 64);
 }
 
 void unmark_facility(char *tagfile, char *iface)
@@ -55,7 +54,6 @@ void unmark_facility(char *tagfile, char *iface)
 
 	gen_lockfile_name(tagfile, iface, lockfile);
 	unlink(lockfile);
-	strcpy(active_facility_lockfile, "");
 }
 
 int facility_active(char *tagfile, char *iface)

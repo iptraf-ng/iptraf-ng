@@ -448,7 +448,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
-	active_facility_countfile[0] = '\0';
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -842,7 +841,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
-	active_facility_countfile[0] = '\0';
 
 	move(LINES - 1, 1);
 	stdexitkeyhelp();

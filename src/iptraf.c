@@ -55,8 +55,6 @@ int exitloop = 0;
 int daemonized = 0;
 int facility_running = 0;
 int is_first_instance;
-char active_facility_lockfile[64];
-char active_facility_countfile[64];
 int accept_unsupported_interfaces = 0;
 char graphing_filter[80];
 

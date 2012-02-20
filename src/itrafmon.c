@@ -689,7 +689,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
 	instance_id = adjust_instance_count(ITRAFMONCOUNTFILE, 1);
-	strncpy(active_facility_countfile, ITRAFMONCOUNTFILE, 64);
 
 	init_tcp_table(&table);
 	init_othp_table(&othptbl, options->mac);

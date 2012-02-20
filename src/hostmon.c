@@ -740,7 +740,6 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
 	instance_id = adjust_instance_count(LANMONCOUNTFILE, 1);
-	strncpy(active_facility_countfile, LANMONCOUNTFILE, 64);
 
 	hostmonhelp();
 

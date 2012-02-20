@@ -771,7 +771,6 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
-	active_facility_countfile[0] = '\0';
 
 	initportlist(&list);
 	statwin = newwin(1, COLS, LINES - 2, 0);
