@@ -169,9 +169,8 @@ void program_interface(struct OPTIONS *options, int opt, char *optarg,
 
 	attrset(STATUSBARATTR);
 	mvprintw(LINES - 1, 1, PLATFORM);
-	about();
 
-	tx_initmenu(&menu, 13, 35, (LINES - 14) / 2, (COLS - 35) / 2, BOXATTR,
+	tx_initmenu(&menu, 15, 35, (LINES - 16) / 2, (COLS - 35) / 2, BOXATTR,
 		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
 
 	tx_additem(&menu, " IP traffic ^m^onitor",
@@ -189,6 +188,8 @@ void program_interface(struct OPTIONS *options, int opt, char *optarg,
 		   "Allows you to select traffic display and logging criteria");
 	tx_additem(&menu, NULL, NULL);
 	tx_additem(&menu, " C^o^nfigure...", "Set various program options");
+	tx_additem(&menu, NULL, NULL);
+	tx_additem(&menu, " ^A^bout...", "Displays program info");
 	tx_additem(&menu, NULL, NULL);
 	tx_additem(&menu, " E^x^it", "Exits program");
 
@@ -261,6 +262,9 @@ void program_interface(struct OPTIONS *options, int opt, char *optarg,
 			saveoptions(options);
 			break;
 		case 11:
+			about();
+			break;
+		case 13:
 			endloop = 1;
 			break;
 		}
