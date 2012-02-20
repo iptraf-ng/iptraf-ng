@@ -63,7 +63,6 @@ LIB_H += addproto.h
 LIB_H += tcptimeout.h
 LIB_H += arphdr.h
 LIB_H += externs.h
-LIB_H += ospf.h
 LIB_H += attrs.h
 LIB_H += fltdefs.h
 LIB_H += logvars.h
