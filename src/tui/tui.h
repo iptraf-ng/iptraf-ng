@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_TUI_TUI_H
+#define IPTRAF_NG_TUI_TUI_H
+
 /*
     Copyright (C) 2010  Nikola Pajkovsky (npajkovs@redhat.com)
 
@@ -16,11 +19,8 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef TUI_H
-#define TUI_H
-
 #define ANYKEY_MSG "Press a key to continue"
 
 extern void tui_error(const char *prompt, const char *err, ...);
 
-#endif
+#endif	/* IPTRAF_NG_TUI_TUI_H */

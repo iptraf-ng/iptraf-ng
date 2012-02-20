@@ -1,3 +1,5 @@
+#ifndef IPTRAF_NG_IFSTATS_H
+#define IPTRAF_NG_IFSTATS_H
 
 /***
 
@@ -95,3 +97,5 @@ struct iftotals {
 	unsigned long badtotal;
 	unsigned int interval;
 };
+
+#endif	/* IPTRAF_NG_IFSTATS_H */

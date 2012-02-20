@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_DIRS_H
+#define IPTRAF_NG_DIRS_H
+
 /*
     Copyright (C) 2011  Nikola Pajkovsky (npajkovs@redhat.com)
 
@@ -150,3 +153,5 @@
 #ifndef PATH_MAX
 #define PATH_MAX	4095
 #endif
+
+#endif	/* IPTRAF_NG_DIRS_H */

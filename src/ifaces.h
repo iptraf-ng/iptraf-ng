@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_IFACES_H
+#define IPTRAF_NG_IFACES_H
+
 /***
 
 ifaces.h - prototype declaration for interface support determination
@@ -11,3 +14,5 @@ int iface_up(char *iface);
 void err_iface_down(void);
 void isdn_iface_check(int *fd, char *ifname);
 char *gen_iface_msg(char *ifptr);
+
+#endif	/* IPTRAF_NG_IFACES_H */

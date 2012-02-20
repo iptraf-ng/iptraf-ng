@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_FLTDEFS_H
+#define IPTRAF_NG_FLTDEFS_H
+
 /***
 
 fltdefs.h - declarations for the TCP, UDP, and misc IP filters
@@ -65,3 +68,5 @@ struct filterlist {
 	struct filterent *tail;
 	unsigned int lastpos;
 };
+
+#endif	/* IPTRAF_NG_FLTDEFS_H */

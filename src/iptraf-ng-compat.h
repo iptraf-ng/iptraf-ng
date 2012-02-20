@@ -137,4 +137,4 @@ static inline int strtol_i(char const *s, int base, int *result)
 }
 #endif
 
-#endif
+#endif	/* IPTRAF_NG_COMPAT_H */

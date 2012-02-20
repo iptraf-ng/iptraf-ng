@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_PACKET_H
+#define IPTRAF_NG_PACKET_H
+
 /***
 
 packet.h - external declarations for packet.c
@@ -11,9 +14,6 @@ Written by Gerard Paul Java
  * 96 bytes should be enough for the IP header, TCP/UDP/ICMP/whatever header
  * with reasonable numbers of options.
  */
-
-#ifndef PACKET_H
-#define PACKET_H
 
 #define SNAPSHOT_LEN 96
 #define MAX_PACKET_SIZE 17664
@@ -46,4 +46,4 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  int match_opposite, char *ifname, char *ifptr);
 void pkt_cleanup(void);
 
-#endif
+#endif	/* IPTRAF_NG_PACKET_H */

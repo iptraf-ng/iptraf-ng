@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_FLTMGR_H
+#define IPTRAF_NG_FLTMGR_H
+
 /***
 
 fltmgr.h - filter list management routine prototypes
@@ -33,3 +36,5 @@ void listfileerr(int code);
 int mark_filter_change(void);
 void clear_flt_tag(void);
 #endif
+
+#endif	/* IPTRAF_NG_FLTMGR_H */

@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_LANDESC_H
+#define IPTRAF_NG_LANDESC_H
+
 /***
 
 ethdesc.c	- Ethernet host description management module
@@ -16,9 +19,6 @@ GNU General Public License for more details.
 
 ***/
 
-#ifndef LANDESC_H
-#define LANDESC_H
-
 #include "list.h"
 
 #define WITHETCETHERS 1
@@ -36,4 +36,4 @@ void free_eth_desc(struct eth_desc *hd);
 
 void manage_eth_desc(unsigned int linktype);
 
-#endif
+#endif	/* IPTRAF_NG_LANDESC_H */

@@ -1,3 +1,5 @@
+#ifndef IPTRAF_NG_OPTIONS_H
+#define IPTRAF_NG_OPTIONS_H
 
 struct OPTIONS {
 	unsigned int color:1, logging:1, revlook:1, servnames:1, promisc:1,
@@ -10,3 +12,5 @@ struct OPTIONS {
 
 #define DEFAULT_UPDATE_DELAY 50000	/* usec screen delay if update rate 0 */
 #define HOSTMON_UPDATE_DELAY 100000
+
+#endif	/* IPTRAF_NG_OPTIONS_H */

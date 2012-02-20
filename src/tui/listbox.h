@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_TUI_LISTBOX_H
+#define IPTRAF_NG_TUI_LISTBOX_H
+
 #include <curses.h>
 
 #define MAX_TEXT_LENGTH 240
@@ -42,3 +45,5 @@ void tx_close_listbox(struct scroll_list *list);
 void tx_destroy_list(struct scroll_list *list);
 
 #define tx_destroy_listbox tx_destroy_list
+
+#endif	/* IPTRAF_NG_TUI_LISTBOX_H */

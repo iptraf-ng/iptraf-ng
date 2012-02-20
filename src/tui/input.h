@@ -1,3 +1,5 @@
+#ifndef IPTRAF_NG_TUI_INPUT_H
+#define IPTRAF_NG_TUI_INPUT_H
 
 /***
 
@@ -38,3 +40,5 @@ void tx_addfield(struct FIELDLIST *list, unsigned int len, unsigned int y,
 void tx_getinput(struct FIELDLIST *list, struct FIELD *field, int *exitkey);
 void tx_fillfields(struct FIELDLIST *list, int *aborted);
 void tx_destroyfields(struct FIELDLIST *list);
+
+#endif	/* IPTRAF_NG_TUI_INPUT_H */

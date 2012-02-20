@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_STRBUF_H
+#define IPTRAF_NG_STRBUF_H
+
 /*
     strbuf.h - string buffer
 
@@ -17,8 +20,6 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-#ifndef STRBUF_H
-#define STRBUF_H
 
 struct strbuf {
 	/* Size of the allocated buffer. Always > 0. */
@@ -89,4 +90,4 @@ struct strbuf *strbuf_append_strf(struct strbuf *strbuf, const char *format,
 struct strbuf *strbuf_prepend_strf(struct strbuf *strbuf, const char *format,
 				   ...);
 
-#endif
+#endif	/* IPTRAF_NG_STRBUF_H */

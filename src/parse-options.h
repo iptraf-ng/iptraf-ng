@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_PARSE_OPTIONS_H
+#define IPTRAF_NG_PARSE_OPTIONS_H
+
 /*
     Copyright (C) 2010  Nikola Pajkovsky (npajkovs@redhat.com)
 
@@ -15,9 +18,6 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-
-#ifndef PARSE_OPTIONS_H
-#define PARSE_OPTIONS_H
 
 enum parse_opt_type {
 	OPTION_BOOL,
@@ -57,4 +57,4 @@ void parse_opts(int argc, char **argv, const struct options *opt,
 
 void parse_usage_and_die(const char *const *usage, const struct options *opt);
 
-#endif
+#endif	/* IPTRAF_NG_PARSE_OPTIONS_H */

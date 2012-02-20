@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_LOG_H
+#define IPTRAF_NG_LOG_H
+
 /***
 
 log.h - the iptraf logging facility header file
@@ -15,3 +18,5 @@ void rotate_logfile(FILE ** fd, char *name);
 void check_rotate_flag(FILE ** fd, int logging);
 void announce_rotate_prepare(FILE * fd);
 void announce_rotate_complete(FILE * fd);
+
+#endif	/* IPTRAF_NG_LOG_H */

@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_HOSTMON_H
+#define IPTRAF_NG_HOSTMON_H
+
 /*
  * hostmon.h - definitions used by the Ethernet station monitor
  */
@@ -49,3 +52,5 @@ struct ethtab {
 	WINDOW *tabwin;
 	PANEL *tabpanel;
 };
+
+#endif	/* IPTRAF_NG_HOSTMON_H */

@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_LIST_H
+#define IPTRAF_NG_LIST_H
+
 /*
     Copyright (C) 2010  Nikola Pajkovsky (npajkovs@redhat.com)
 
@@ -15,9 +18,6 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-
-#ifndef LIST_H
-#define LIST_H
 
 struct list_head {
 	struct list_head *next, *prev;
@@ -98,4 +98,4 @@ static inline int list_empty(const struct list_head *head)
 	     &pos->member != (head);					\
 	     pos = list_entry(pos->member.next, typeof(*pos), member))
 
-#endif
+#endif	/* IPTRAF_NG_LIST_H */

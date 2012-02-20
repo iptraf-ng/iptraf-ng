@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_ATTRS_H
+#define IPTRAF_NG_ATTRS_H
+
 /* Attribute variables */
 
 extern int STDATTR;
@@ -31,3 +34,5 @@ extern int UNKNIPATTR;
 extern int UNKNATTR;
 extern int IPV6ATTR;
 extern int ICMPV6ATTR;
+
+#endif	/* IPTRAF_NG_ATTRS_H */

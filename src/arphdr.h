@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_ARPHDR_H
+#define IPTRAF_NG_ARPHDR_H
+
 /*
  * arp header format, stolen from the Linux include files.
  */
@@ -17,3 +20,5 @@ struct arp_hdr {
 	unsigned char ar_tha[ETH_ALEN];	/* target hardware address      */
 	unsigned char ar_tip[4];	/* target IP address            */
 };
+
+#endif	/* IPTRAF_NG_ARPHDR_H */

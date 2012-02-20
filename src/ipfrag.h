@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_IPFRAG_H
+#define IPTRAF_NG_IPFRAG_H
+
 /***
 
 ipfrag.h - IP fragmentation hander definitions
@@ -47,3 +50,5 @@ void destroyfraglist(void);
 
 unsigned int processfragment(struct iphdr *packet, unsigned int *sport,
 			     unsigned int *dport, int *firstin);
+
+#endif	/* IPTRAF_NG_IPFRAG_H */

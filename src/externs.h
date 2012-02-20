@@ -1,3 +1,5 @@
+#ifndef IPTRAF_NG_EXTERNS_H
+#define IPTRAF_NG_EXTERNS_H
 
 /***
 
@@ -23,3 +25,5 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 void setoptions(struct OPTIONS *options, struct porttab **ports);
 void loadoptions(struct OPTIONS *options);
 void saveoptions(struct OPTIONS *options);
+
+#endif	/* IPTRAF_NG_EXTERNS_H */

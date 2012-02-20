@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_OTHPTAB_H
+#define IPTRAF_NG_OTHPTAB_H
+
 /***
 
 othptab.h - header file for the non-TCP routines
@@ -140,3 +143,5 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 void refresh_othwindow(struct othptable *table);
 
 void destroyothptable(struct othptable *table);
+
+#endif	/* IPTRAF_NG_OTHPTAB_H */

@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_SERV_H
+#define IPTRAF_NG_SERV_H
+
 /***
 
 serv.h  - TCP/UDP port statistics header file
@@ -67,3 +70,5 @@ void addmoreports(struct porttab **table);
 void loadaddports(struct porttab **table);
 void destroyporttab(struct porttab *table);
 void removeaport(struct porttab **table);
+
+#endif	/* IPTRAF_NG_SERV_H */

@@ -1,3 +1,5 @@
+#ifndef IPTRAF_NG_OSPF_H
+#define IPTRAF_NG_OSPF_H
 
 /***
 
@@ -16,3 +18,5 @@ struct ospfhdr {
 	u_short ospf_chksum;
 	u_short ospf_authtype;
 }
+
+#endif	/* IPTRAF_NG_OSPF_H */

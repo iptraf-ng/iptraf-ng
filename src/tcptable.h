@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_TCPTABLE_H
+#define IPTRAF_NG_TCPTABLE_H
+
 /***
 
    tcptable.h   -- table manipulation for the statistics display.
@@ -131,3 +134,5 @@ void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
 
 void write_timeout_log(int logging, FILE * logfile, struct tcptableent *tcpnode,
 		       struct OPTIONS *opts);
+
+#endif	/* IPTRAF_NG_TCPTABLE_H */

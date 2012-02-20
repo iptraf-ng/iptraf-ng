@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_TUI_MENURT_H
+#define IPTRAF_NG_TUI_MENURT_H
+
 /***
    menu.h - declaration file for my menu library
    Copyright (c) Gerard Paul R. Java 1997
@@ -52,3 +55,5 @@ extern void tx_showitem(struct MENU *menu, struct ITEM *itemptr, int selected);
 extern void tx_showmenu(struct MENU *menu);
 extern void tx_operatemenu(struct MENU *menu, int *row, int *aborted);
 extern void tx_destroymenu(struct MENU *menu);
+
+#endif	/* IPTRAF_NG_TUI_MENURT_H */

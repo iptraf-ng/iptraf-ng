@@ -1,3 +1,5 @@
+#ifndef IPTRAF_NG_FLTSELECT_H
+#define IPTRAF_NG_FLTSELECT_H
 
 /***
 
@@ -23,3 +25,5 @@ void config_filters(struct filterstate *filter);
 void loadfilters(struct filterstate *filter);
 void savefilters(struct filterstate *filter);
 int nonipfilter(struct filterstate *filter, unsigned int protocol);
+
+#endif	/* IPTRAF_NG_FLTSELECT_H */

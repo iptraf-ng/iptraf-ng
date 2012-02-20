@@ -1,3 +1,6 @@
+#ifndef IPTRAF_NG_RVNAMED_H
+#define IPTRAF_NG_RVNAMED_H
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -25,3 +28,5 @@ struct rvn {
 	struct in6_addr s6addr;
 	char fqdn[45];
 };
+
+#endif	/* IPTRAF_NG_RVNAMED_H */
