@@ -67,6 +67,8 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 	case ARPHRD_CSLIP:
 	case ARPHRD_SLIP6:
 	case ARPHRD_CSLIP6:
+	case ARPHRD_TUNNEL:
+	case ARPHRD_NONE:
 		*packet = tpacket;
 		break;
 	case ARPHRD_FRAD:
@@ -90,9 +92,6 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 		dataoffset = get_tr_ip_offset((unsigned char *) tpacket);
 		*packet = tpacket + dataoffset;
 		*readlen -= dataoffset;
-		break;
-	case ARPHRD_TUNNEL:
-		*packet = tpacket;
 		break;
 	default:
 		*packet = (char *) NULL;	/* return a NULL packet to signal */
