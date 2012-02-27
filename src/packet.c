@@ -56,7 +56,7 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 		if (fromaddr->sll_protocol == ETH_P_8021Q) {
 			/* 0x8100 802.1Q VLAN Extended Header  */
 			*packet = tpacket + VLAN_ETH_HLEN;
-			readlen -= VLAN_ETH_HLEN;
+			*readlen -= VLAN_ETH_HLEN;
 			break;
 		}
 
