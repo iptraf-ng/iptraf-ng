@@ -226,7 +226,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		int hdr_check;
 		register int ip_checksum;
 		register int iphlen;
-		unsigned int f_sport, f_dport;
+		unsigned int f_sport = 0, f_dport = 0;
 
 		/*
 		 * At this point, we're now processing IP packets.  Start by getting
@@ -309,21 +309,13 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 			 */
 			f_sport = ntohs(sport_tmp);
 			f_dport = ntohs(dport_tmp);
-
-			if ((filter->filtercode != 0)
-			    &&
-			    (!ipfilter
-			     (ip->saddr, ip->daddr, f_sport, f_dport,
-			      ip->protocol, match_opposite, &(filter->fl))))
-				return PACKET_FILTERED;
-		} else {
-			if ((filter->filtercode != 0)
-			    &&
-			    (!ipfilter
-			     (ip->saddr, ip->daddr, 0, 0, ip->protocol,
-			      match_opposite, &(filter->fl))))
-				return PACKET_FILTERED;
 		}
+		if ((filter->filtercode != 0)
+		    &&
+		    (!ipfilter
+		     (ip->saddr, ip->daddr, f_sport, f_dport, ip->protocol,
+		      match_opposite, &(filter->fl))))
+			return PACKET_FILTERED;
 		return PACKET_OK;
 	} else if (fromaddr->sll_protocol == ETH_P_IPV6) {
 		struct tcphdr *tcp;
