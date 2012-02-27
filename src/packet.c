@@ -146,11 +146,8 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
 		ioctl(fd, SIOCGIFNAME, &ifr);
 		strcpy(ifname, ifr.ifr_name);
 	}
-	if (!daemonized) {
-		if (FD_ISSET(0, &set))
-			*ch = wgetch(win);
-	} else
-		*ch = ERR;
+	if (!daemonized && FD_ISSET(0, &set))
+		*ch = wgetch(win);
 }
 
 int processpacket(char *tpacket, char **packet, unsigned int *br,
