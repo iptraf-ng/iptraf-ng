@@ -277,7 +277,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 				struct udphdr *udp;
 				char *ip_payload = (char *) ip + iphlen;
 
-				switch(ip->protocol) {
+				switch (ip->protocol) {
 				case IPPROTO_TCP:
 					tcp = (struct tcphdr *) ip_payload;
 					sport_tmp = tcp->source;
@@ -324,7 +324,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		char *ip_payload = (char *) ip6 + 40;
 
 		//TODO: Filter packets
-		switch(ip6->ip6_nxt) {		/* FIXME: extension headers ??? */
+		switch (ip6->ip6_nxt) {	/* FIXME: extension headers ??? */
 		case IPPROTO_TCP:
 			tcp = (struct tcphdr *) ip_payload;
 			if (sport)
@@ -340,9 +340,9 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 				*dport = udp->dest;
 			break;
 		default:
-			if(sport)
+			if (sport)
 				*sport = 0;
-			if(dport)
+			if (dport)
 				*dport = 0;
 			break;
 		}
