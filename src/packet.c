@@ -53,15 +53,15 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 	switch (fromaddr->sll_hatype) {
 	case ARPHRD_ETHER:
 	case ARPHRD_LOOPBACK:
-		if (fromaddr->sll_protocol == ETH_P_8021Q) {
-			/* 0x8100 802.1Q VLAN Extended Header  */
-			*packet = tpacket + VLAN_ETH_HLEN;
-			*readlen -= VLAN_ETH_HLEN;
-			break;
-		}
-
 		*packet = tpacket + ETH_HLEN;
 		*readlen -= ETH_HLEN;
+		if (fromaddr->sll_protocol == ETH_P_8021Q) {
+			/* strip 0x8100 802.1Q VLAN Extended Header  */
+			*packet += 4;
+			*readlen -= 4;
+			/* update network protocol */
+			fromaddr->sll_protocol = *((unsigned short *) *packet);
+		}
 		break;
 	case ARPHRD_SLIP:
 	case ARPHRD_CSLIP:
@@ -179,11 +179,6 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 	 * data link header.
 	 */
 	fromaddr->sll_protocol = ntohs(fromaddr->sll_protocol);
-	if (fromaddr->sll_protocol == ETH_P_8021Q)
-		fromaddr->sll_protocol =
-		    ntohs(*((unsigned short *) (tpacket + ETH_HLEN + 2)));
-
-
 	adjustpacket(tpacket, fromaddr, packet, br);
 
 	if (*packet == NULL)
