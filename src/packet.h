@@ -15,11 +15,7 @@ Written by Gerard Paul Java
  * with reasonable numbers of options.
  */
 
-#define SNAPSHOT_LEN 96
 #define MAX_PACKET_SIZE 17664
-#define ALIGNED_BUF_LEN 120
-
-#define min(a, b) ((a > b) ? b : a)
 
 #define INVALID_PACKET 0
 #define PACKET_OK 1

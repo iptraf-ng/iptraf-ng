@@ -46,8 +46,7 @@ struct isdntab isdntable;
 
 
 static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
-			 char **packet, char *aligned_buf,
-			 unsigned int *readlen)
+			 char **packet, unsigned int *readlen)
 {
 	unsigned int dataoffset;
 
@@ -58,26 +57,11 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 			/* 0x8100 802.1Q VLAN Extended Header  */
 			*packet = tpacket + VLAN_ETH_HLEN;
 			readlen -= VLAN_ETH_HLEN;
-			/*
-			 * Move IP datagram into an aligned buffer.
-			 */
-			memmove(aligned_buf, *packet,
-				min(SNAPSHOT_LEN, *readlen));
-			*packet = aligned_buf;
 			break;
 		}
 
 		*packet = tpacket + ETH_HLEN;
 		*readlen -= ETH_HLEN;
-
-		/*
-		 * Move IP data into an aligned buffer.  96 bytes should be sufficient
-		 * for IP and TCP headers with reasonable numbers of options and some
-		 * data.
-		 */
-
-		memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
-		*packet = aligned_buf;
 		break;
 	case ARPHRD_SLIP:
 	case ARPHRD_CSLIP:
@@ -93,15 +77,6 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 	case ARPHRD_FDDI:
 		*packet = tpacket + sizeof(struct fddihdr);
 		*readlen -= sizeof(struct fddihdr);
-
-		/*
-		 * Move IP data into an aligned buffer.  96 bytes should be sufficient
-		 * for IP and TCP headers with reasonable numbers of options and some
-		 * data.
-		 */
-
-		memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
-		*packet = aligned_buf;
 		break;
 	case ARPHRD_IEEE802_TR:
 	case ARPHRD_IEEE802:
@@ -115,11 +90,6 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 		dataoffset = get_tr_ip_offset((unsigned char *) tpacket);
 		*packet = tpacket + dataoffset;
 		*readlen -= dataoffset;
-		/*
-		 * Move IP datagram into an aligned buffer.
-		 */
-		memmove(aligned_buf, *packet, min(SNAPSHOT_LEN, *readlen));
-		*packet = aligned_buf;
 		break;
 	case ARPHRD_TUNNEL:
 		*packet = tpacket;
@@ -189,8 +159,6 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  unsigned short *linktype, struct filterstate *filter,
 		  int match_opposite, char *ifname, char *ifptr)
 {
-	static char aligned_buf[ALIGNED_BUF_LEN];
-
 	/*
 	 * Does returned interface (ifname) match the specified interface name
 	 * (ifptr)?
@@ -216,7 +184,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		    ntohs(*((unsigned short *) (tpacket + ETH_HLEN + 2)));
 
 
-	adjustpacket(tpacket, fromaddr, packet, aligned_buf, br);
+	adjustpacket(tpacket, fromaddr, packet, br);
 
 	if (*packet == NULL)
 		return INVALID_PACKET;
