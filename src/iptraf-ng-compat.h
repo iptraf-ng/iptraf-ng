@@ -60,8 +60,8 @@
 #include <linux/types.h>
 #include <linux/isdn.h>
 
-#include <net/if.h>
-#include <net/if_arp.h>
+#include <linux/if.h>
+#include <linux/if_arp.h>
 
 /* move it out! */
 #include "tui/labels.h"

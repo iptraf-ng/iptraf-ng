@@ -38,7 +38,7 @@ void init_promisc_list(struct promisc_states **list)
 {
 	FILE *fd;
 	int ifd;
-	char buf[IF_NAMESIZE];
+	char buf[IFNAMSIZ];
 	struct promisc_states *ptmp;
 	struct promisc_states *tail = NULL;
 	struct ifreq ifr;
