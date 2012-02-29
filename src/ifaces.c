@@ -68,6 +68,7 @@ int get_next_iface(FILE * fd, char *ifname, int n)
 		strcpy(buf, "");
 		fgets(buf, 160, fd);
 		if (strcmp(buf, "") != 0) {
+			memset(ifname, 0, n);
 			strncpy(ifname, ltrim(strtok(buf, ":")), n);
 			if (ifname[n - 1] != '\0')
 				strcpy(ifname, "");

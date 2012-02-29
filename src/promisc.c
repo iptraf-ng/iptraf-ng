@@ -50,7 +50,7 @@ void init_promisc_list(struct promisc_states **list)
 	*list = NULL;
 	fd = open_procnetdev();
 
-	while (get_next_iface(fd, buf, 12)) {
+	while (get_next_iface(fd, buf, sizeof(buf))) {
 		if (strcmp(buf, "") != 0) {
 			ptmp = xmalloc(sizeof(struct promisc_states));
 			strcpy(ptmp->params.ifname, buf);

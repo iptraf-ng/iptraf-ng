@@ -115,7 +115,7 @@ void initiflist(struct iflist **list)
 		return;
 	}
 
-	while (get_next_iface(fd, ifname, 12)) {
+	while (get_next_iface(fd, ifname, sizeof(ifname))) {
 		if (strcmp(ifname, "") != 0) {
 			if (ifinlist(*list, ifname))	/* ignore entry if already in */
 				continue;	/* interface list */
