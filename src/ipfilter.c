@@ -53,7 +53,6 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 	char actual_address[30];
 	unsigned int maskbits;
 
-	const char *init_yesno = "Y";
 	const char *WILDCARD = "0.0.0.0";
 
 	dlgwin = newwin(22, 80, (LINES - 22) / 2, (COLS - 80) / 2);
@@ -110,77 +109,18 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 	tx_addfield(&fields, 5, 5, 30, init_dport1);
 	tx_addfield(&fields, 5, 5, 39, init_dport2);
 
-	if (data->filters[F_ALL_IP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 8, 10, init_yesno);
-
-	if (data->filters[F_TCP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 8, 20, init_yesno);
-
-	if (data->filters[F_UDP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 8, 30, init_yesno);
-
-	if (data->filters[F_ICMP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 8, 40, init_yesno);
-
-	if (data->filters[F_IGMP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 8, 50, init_yesno);
-
-	if (data->filters[F_OSPF])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 10, 10, init_yesno);
-
-	if (data->filters[F_IGP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 10, 20, init_yesno);
-
-	if (data->filters[F_IGRP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 10, 30, init_yesno);
-
-	if (data->filters[F_GRE])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 10, 40, init_yesno);
-
-	if (data->filters[F_L2TP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 10, 50, init_yesno);
-
-	if (data->filters[F_IPSEC_AH])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 12, 10, init_yesno);
-
-	if (data->filters[F_IPSEC_ESP])
-		init_yesno = "Y";
-	else
-		init_yesno = "";
-	tx_addfield(&fields, 1, 12, 23, init_yesno);
+	tx_addfield(&fields, 1, 8, 10, (data->filters[F_ALL_IP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 8, 20, (data->filters[F_TCP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 8, 30, (data->filters[F_UDP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 8, 40, (data->filters[F_ICMP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 8, 50, (data->filters[F_IGMP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 10, 10, (data->filters[F_OSPF]) ? "Y" : "");
+	tx_addfield(&fields, 1, 10, 20, (data->filters[F_IGP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 10, 30, (data->filters[F_IGRP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 10, 40, (data->filters[F_GRE]) ? "Y" : "");
+	tx_addfield(&fields, 1, 10, 50, (data->filters[F_L2TP]) ? "Y" : "");
+	tx_addfield(&fields, 1, 12, 10, (data->filters[F_IPSEC_AH]) ? "Y" : "");
+	tx_addfield(&fields, 1, 12, 23, (data->filters[F_IPSEC_ESP]) ? "Y" : "");
 
 	cptr = tx_ltrim(data->protolist);
 	tx_addfield(&fields, 54, 15, 1, cptr);
