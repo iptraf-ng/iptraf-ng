@@ -397,7 +397,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	unsigned int iphlen;
 
 	struct sockaddr_ll fromaddr;
-	unsigned short linktype;
 
 	struct iflist *ptmp = NULL;
 
@@ -553,7 +552,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 
 		pkt_result = processpacket(buf, &packet, (unsigned int *) &br,
 					   NULL, NULL, NULL, &fromaddr,
-					   &linktype, ofilter,
+					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
 					   ifname, NULL);
 
@@ -571,7 +570,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 			pkt_result = processpacket(buf, &packet,
 						   (unsigned int *) &br,
 						   NULL, NULL, NULL, &fromaddr,
-						   &linktype, ofilter,
+						   ofilter,
 						   MATCH_OPPOSITE_USECONFIG,
 						   ifname, NULL);
 
@@ -751,7 +750,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
 	char ifname[IFNAMSIZ];
 	struct sockaddr_ll fromaddr;
-	unsigned short linktype;
 
 	int br;
 	int framelen = 0;
@@ -1013,7 +1011,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			pkt_result =
 			    processpacket(buf, &packet, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
-					  &linktype, ofilter,
+					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, ifname,
 					  iface);
 
@@ -1034,7 +1032,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 				    processpacket(buf, &packet,
 						  (unsigned int *) &br, NULL,
 						  NULL, NULL, &fromaddr,
-						  &linktype, ofilter,
+						  ofilter,
 						  MATCH_OPPOSITE_USECONFIG,
 						  ifname, NULL);
 				if (pkt_result != PACKET_OK

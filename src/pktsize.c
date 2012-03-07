@@ -159,7 +159,6 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	unsigned int mtu;
 
 	struct sockaddr_ll fromaddr;
-	unsigned short linktype;
 	int pkt_result;
 
 	struct timeval tv;
@@ -308,7 +307,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 			pkt_result =
 			    processpacket(buf, &ipacket, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
-					  &linktype, ofilter,
+					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, iface,
 					  ifname);
 

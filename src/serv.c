@@ -703,7 +703,6 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	int keymode = 0;
 
 	struct sockaddr_ll fromaddr;
-	unsigned short linktype;
 	int br;
 
 	char iface[IFNAMSIZ];
@@ -1048,7 +1047,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 			pkt_result =
 			    processpacket(buf, &ipacket, (unsigned int *) &br,
 					  &tot_br, &sport, &dport, &fromaddr,
-					  &linktype, ofilter,
+					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, iface,
 					  ifname);
 

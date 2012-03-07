@@ -578,7 +578,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 {
 	int logging = options->logging;
 	struct sockaddr_ll fromaddr;	/* iface info */
-	unsigned short linktype;	/* data link type */
 
 	char tpacket[MAX_PACKET_SIZE];	/* raw packet data */
 	char *packet = NULL;	/* network packet ptr */
@@ -1146,7 +1145,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			pkt_result =
 			    processpacket((char *) tpacket, &packet,
 					  (unsigned int *) &readlen, &br,
-					  &sport, &dport, &fromaddr, &linktype,
+					  &sport, &dport, &fromaddr,
 					  ofilter, MATCH_OPPOSITE_ALWAYS,
 					  ifname, ifptr);
 
@@ -1157,7 +1156,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			    && (fromaddr.sll_protocol != ETH_P_IPV6)) {
 				add_othp_entry(&othptbl, &table, 0, 0, NULL,
 					       NULL, NOT_IP,
-					       fromaddr.sll_protocol, linktype,
+					       fromaddr.sll_protocol, fromaddr.sll_hatype,
 					       (char *) tpacket,
 					       (char *) packet, br, ifname, 0,
 					       0, 0, logging, logfile,
@@ -1181,7 +1180,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 							  (unsigned int *)
 							  &readlen, &br, &sport,
 							  &dport, &fromaddr,
-							  &linktype, ofilter,
+							  ofilter,
 							  MATCH_OPPOSITE_ALWAYS,
 							  ifname, ifptr);
 					if (pkt_result != PACKET_OK)
@@ -1361,7 +1360,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 								     tcpentry,
 								     transpacket,
 								     tpacket,
-								     linktype,
+								     fromaddr.sll_hatype,
 								     readlen,
 								     br,
 								     ippacket->
@@ -1378,7 +1377,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 								     tcpentry,
 								     transpacket,
 								     tpacket,
-								     linktype,
+								     fromaddr.sll_hatype,
 								     readlen,
 								     readlen, 0,
 								     logging,
@@ -1510,7 +1509,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 						       ippacket->daddr, NULL,
 						       NULL, IS_IP,
 						       ippacket->protocol,
-						       linktype,
+						       fromaddr.sll_hatype,
 						       (char *) tpacket,
 						       (char *) transpacket,
 						       readlen, ifname,
@@ -1536,7 +1535,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 						       &ip6packet->ip6_dst,
 						       IS_IP,
 						       ip6packet->ip6_nxt,
-						       linktype,
+						       fromaddr.sll_hatype,
 						       (char *) tpacket,
 						       (char *) transpacket,
 						       readlen, ifname,

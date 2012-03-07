@@ -673,7 +673,6 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	struct ethtab table;
 	struct ethtabent *entry;
 	struct sockaddr_ll fromaddr;
-	unsigned short linktype;
 
 	int br;
 	char buf[MAX_PACKET_SIZE];
@@ -864,7 +863,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 			pkt_result =
 			    processpacket(buf, &ipacket, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
-					  &linktype, ofilter,
+					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, ifname,
 					  ifptr);
 
@@ -924,12 +923,12 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 				}
 
 				entry =
-				    in_ethtable(&table, linktype,
+				    in_ethtable(&table, fromaddr.sll_hatype,
 						scratch_saddr);
 
 				if ((entry == NULL) && (!nomem))
 					entry =
-					    addethentry(&table, linktype,
+					    addethentry(&table, fromaddr.sll_hatype,
 							ifname, scratch_saddr,
 							&nomem, list);
 
@@ -947,11 +946,11 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 				 */
 
 				entry =
-				    in_ethtable(&table, linktype,
+				    in_ethtable(&table, fromaddr.sll_hatype,
 						scratch_daddr);
 				if ((entry == NULL) && (!nomem))
 					entry =
-					    addethentry(&table, linktype,
+					    addethentry(&table, fromaddr.sll_hatype,
 							ifname, scratch_daddr,
 							&nomem, list);
 
