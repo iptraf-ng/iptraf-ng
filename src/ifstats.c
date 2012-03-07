@@ -116,40 +116,41 @@ void initiflist(struct iflist **list)
 	}
 
 	while (get_next_iface(fd, ifname, sizeof(ifname))) {
-		if (strcmp(ifname, "") != 0) {
-			if (ifinlist(*list, ifname))	/* ignore entry if already in */
-				continue;	/* interface list */
+		if (!*ifname)
+			continue;
 
-			/*
-			 * Check if the interface is actually up running.  This prevents
-			 * inactive devices in /proc/net/dev from actually appearing in
-			 * interface lists used by IPTraf.
-			 */
+		if (ifinlist(*list, ifname))	/* ignore entry if already in */
+			continue;	/* interface list */
 
-			if (!iface_up(ifname))
-				continue;
+		/*
+		 * Check if the interface is actually up running.  This prevents
+		 * inactive devices in /proc/net/dev from actually appearing in
+		 * interface lists used by IPTraf.
+		 */
 
-			/*
-			 * At this point, the interface is now sure to be up and running.
-			 */
+		if (!iface_up(ifname))
+			continue;
 
-			itmp = xmalloc(sizeof(struct iflist));
-			memset(itmp, 0, sizeof(struct iflist));
-			strcpy(itmp->ifname, ifname);
-			index++;
-			itmp->index = index;
+		/*
+		 * At this point, the interface is now sure to be up and running.
+		 */
 
-			if (*list == NULL) {
-				*list = itmp;
-				itmp->prev_entry = NULL;
-			} else {
-				tail->next_entry = itmp;
-				itmp->prev_entry = tail;
-			}
+		itmp = xmalloc(sizeof(struct iflist));
+		memset(itmp, 0, sizeof(struct iflist));
+		strcpy(itmp->ifname, ifname);
+		index++;
+		itmp->index = index;
 
-			tail = itmp;
-			itmp->next_entry = NULL;
+		if (*list == NULL) {
+			*list = itmp;
+			itmp->prev_entry = NULL;
+		} else {
+			tail->next_entry = itmp;
+			itmp->prev_entry = tail;
 		}
+
+		tail = itmp;
+		itmp->next_entry = NULL;
 	}
 
 	fclose(fd);
