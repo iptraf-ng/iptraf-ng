@@ -1049,7 +1049,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 					  &tot_br, &sport, &dport, &fromaddr,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, iface,
-					  ifname);
+					  ifname, options->v6inv4asv6);
 
 			if (pkt_result != PACKET_OK)
 				continue;

@@ -153,7 +153,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  unsigned int *total_br, unsigned int *sport,
 		  unsigned int *dport, struct sockaddr_ll *fromaddr,
 		  struct filterstate *filter,
-		  int match_opposite, char *ifname, char *ifptr)
+		  int match_opposite, char *ifname, char *ifptr, int v6inv4asv6)
 {
 	/*
 	 * Does returned interface (ifname) match the specified interface name
@@ -180,7 +180,7 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 	if (*packet == NULL)
 		return INVALID_PACKET;
 
-	if (fromaddr->sll_protocol == ETH_P_IP) {
+again:	if (fromaddr->sll_protocol == ETH_P_IP) {
 		struct iphdr *ip;
 		int hdr_check;
 		register int ip_checksum;
@@ -275,6 +275,12 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		     (ip->saddr, ip->daddr, f_sport, f_dport, ip->protocol,
 		      match_opposite, &(filter->fl))))
 			return PACKET_FILTERED;
+		if (v6inv4asv6 && (ip->protocol == IPPROTO_IPV6)) {
+			fromaddr->sll_protocol = ETH_P_IPV6;
+			*packet += iphlen;
+			*br -= iphlen;
+			goto again;
+		}
 		return PACKET_OK;
 	} else if (fromaddr->sll_protocol == ETH_P_IPV6) {
 		struct tcphdr *tcp;

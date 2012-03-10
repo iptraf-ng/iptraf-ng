@@ -394,8 +394,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	char *packet;
 	int pkt_result = 0;
 
-	unsigned int iphlen;
-
 	struct sockaddr_ll fromaddr;
 
 	struct iflist *ptmp = NULL;
@@ -553,30 +551,12 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 					   NULL, NULL, NULL, &fromaddr,
 					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
-					   ifname, NULL);
+					   ifname, NULL, options->v6inv4asv6);
 
 		if (pkt_result != PACKET_OK
 		    && pkt_result != MORE_FRAGMENTS)
 			continue;
 
-		if ((options->v6inv4asv6)
-		    && (fromaddr.sll_protocol == ETH_P_IP)
-		    && ((struct iphdr *) packet)->protocol == IPPROTO_IPV6) {
-			iphlen = ((struct iphdr *) packet)->ihl * 4;
-			fromaddr.sll_protocol = htons(ETH_P_IPV6);
-			memmove(buf, buf + iphlen, MAX_PACKET_SIZE - iphlen);
-			// Reprocess the IPv6 packet
-			pkt_result = processpacket(buf, &packet,
-						   (unsigned int *) &br,
-						   NULL, NULL, NULL, &fromaddr,
-						   ofilter,
-						   MATCH_OPPOSITE_USECONFIG,
-						   ifname, NULL);
-
-			if (pkt_result != PACKET_OK
-			    && pkt_result != MORE_FRAGMENTS)
-				continue;
-		}
 		positionptr(&table, &ptmp, ifname);
 
 		ptmp->total++;
@@ -1013,32 +993,11 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, ifname,
-					  iface);
+					  iface, options->v6inv4asv6);
 
 			if (pkt_result != PACKET_OK
 			    && pkt_result != MORE_FRAGMENTS)
 				continue;
-
-			if ((options->v6inv4asv6)
-			    && (fromaddr.sll_protocol == ETH_P_IP)
-			    && ((struct iphdr *) packet)->protocol ==
-			    IPPROTO_IPV6) {
-				iphlen = ((struct iphdr *) packet)->ihl * 4;
-				fromaddr.sll_protocol = htons(ETH_P_IPV6);
-				memmove(buf, buf + iphlen,
-					MAX_PACKET_SIZE - iphlen);
-				// Reprocess the IPv6 packet
-				pkt_result =
-				    processpacket(buf, &packet,
-						  (unsigned int *) &br, NULL,
-						  NULL, NULL, &fromaddr,
-						  ofilter,
-						  MATCH_OPPOSITE_USECONFIG,
-						  ifname, NULL);
-				if (pkt_result != PACKET_OK
-				    && pkt_result != MORE_FRAGMENTS)
-					continue;
-			}
 
 			totals.total++;
 			totals.bytestotal += framelen;

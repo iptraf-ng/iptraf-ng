@@ -1143,7 +1143,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					  (unsigned int *) &readlen, &br,
 					  &sport, &dport, &fromaddr,
 					  ofilter, MATCH_OPPOSITE_ALWAYS,
-					  ifname, ifptr);
+					  ifname, ifptr, options->v6inv4asv6);
 
 			if (pkt_result != PACKET_OK)
 				continue;
@@ -1159,29 +1159,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					       options->servnames, 0, &nomem);
 				continue;
 			} else {
-				if ((options->v6inv4asv6)
-				    && (fromaddr.sll_protocol == ETH_P_IP)
-				    && ((struct iphdr *) packet)->protocol ==
-				    IPPROTO_IPV6) {
-					iphlen =
-					    ((struct iphdr *) packet)->ihl * 4;
-					fromaddr.sll_protocol =
-					    htons(ETH_P_IPV6);
-					memmove(tpacket, tpacket + iphlen,
-						MAX_PACKET_SIZE - iphlen);
-					// Reprocess the ipv6 packet
-					pkt_result =
-					    processpacket((char *) tpacket,
-							  &packet,
-							  (unsigned int *)
-							  &readlen, &br, &sport,
-							  &dport, &fromaddr,
-							  ofilter,
-							  MATCH_OPPOSITE_ALWAYS,
-							  ifname, ifptr);
-					if (pkt_result != PACKET_OK)
-						continue;
-				}
 				if (fromaddr.sll_protocol == ETH_P_IP) {
 					ippacket = (struct iphdr *) packet;
 					iphlen = ippacket->ihl * 4;
