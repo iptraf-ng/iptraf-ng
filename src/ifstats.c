@@ -987,23 +987,24 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
 		getpacket(fd, buf, &fromaddr, &ch, &br, ifname, statwin);
 
-		if (ch != ERR) {
-			switch (ch) {
-			case 12:
-			case 'l':
-			case 'L':
-				tx_refresh_screen();
-				break;
+		switch (ch) {
+		case ERR:
+			/* no key ready, do nothing */
+			break;
+		case 12:
+		case 'l':
+		case 'L':
+			tx_refresh_screen();
+			break;
 
-			case 'Q':
-			case 'q':
-			case 'X':
-			case 'x':
-			case 24:
-			case 27:
-				exitloop = 1;
-				break;
-			}
+		case 'Q':
+		case 'q':
+		case 'X':
+		case 'x':
+		case 24:
+		case 27:
+			exitloop = 1;
+			break;
 		}
 		if (br > 0) {
 			framelen = br;
