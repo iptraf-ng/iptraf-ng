@@ -716,7 +716,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 		snprintf(msgstring, 80,
 			 "LAN station monitor already running on %s",
 			 gen_iface_msg(ifptr));
-		write_error(msgstring, daemonized);
+		write_error(msgstring);
 		return;
 	}
 

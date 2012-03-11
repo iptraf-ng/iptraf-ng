@@ -23,7 +23,9 @@ details.
 #include "error.h"
 #include "log.h"
 
-void write_error(char *msg, int daemonized)
+extern int daemonized;
+
+void write_error(char *msg)
 {
 	if (daemonized)
 		write_daemon_err(msg);

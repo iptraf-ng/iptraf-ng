@@ -27,8 +27,6 @@ details.
 #include "instances.h"
 #include "error.h"
 
-extern int daemonized;
-
 void makestdfiltermenu(struct MENU *menu)
 {
 	tx_initmenu(menu, 9, 31, (LINES - 8) / 2, (COLS - 31) / 2 + 15, BOXATTR,
@@ -75,9 +73,9 @@ void clear_flt_tag(void)
 void listfileerr(int code)
 {
 	if (code == 1)
-		write_error("Error loading filter list file", daemonized);
+		write_error("Error loading filter list file");
 	else
-		write_error("Error writing filter list file", daemonized);
+		write_error("Error writing filter list file");
 }
 
 unsigned long int nametoaddr(char *ascname, int *err)
@@ -98,7 +96,7 @@ unsigned long int nametoaddr(char *ascname, int *err)
 			bcopy((he->h_addr_list)[0], &result, he->h_length);
 		else {
 			snprintf(imsg, 45, "Unable to resolve %s", ascname);
-			write_error(imsg, daemonized);
+			write_error(imsg);
 			*err = 1;
 			return (-1);
 		}

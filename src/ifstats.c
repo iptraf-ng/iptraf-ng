@@ -209,8 +209,7 @@ void destroyiflist(struct iflist *list)
 void no_ifaces_error(void)
 {
 	write_error
-	    ("No active interfaces.  Check their status or the /proc filesystem",
-	     daemonized);
+	    ("No active interfaces.  Check their status or the /proc filesystem");
 }
 
 void updaterates(struct iftab *table, int unit, time_t starttime, time_t now,
@@ -425,8 +424,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		mark_facility(GSTATIDFILE, "general interface statistics", "");
 	else {
 		write_error
-		    ("General interface stats already active in another process",
-		     daemonized);
+		    ("General interface stats already active in another process");
 		return;
 	}
 
@@ -807,7 +805,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 		snprintf(err_msg, 80,
 			 "Detailed interface stats already monitoring %s",
 			 iface);
-		write_error(err_msg, daemonized);
+		write_error(err_msg);
 		return;
 	}
 

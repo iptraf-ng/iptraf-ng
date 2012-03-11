@@ -23,7 +23,7 @@ int loadfilter(char *filename, struct filterlist *fl, int resolve)
 	if (pfd < 0) {
 		memset(err_msg, 0, 80);
 		snprintf(err_msg, 80, "Error opening IP filter data file");
-		write_error(err_msg, daemonized);
+		write_error(err_msg);
 		fl->head = NULL;
 		return 1;
 	}

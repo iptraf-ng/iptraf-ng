@@ -750,7 +750,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	else {
 		snprintf(msgstring, 80, "TCP/UDP monitor already running on %s",
 			 ifname);
-		write_error(msgstring, daemonized);
+		write_error(msgstring);
 		return;
 	}
 

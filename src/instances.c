@@ -22,8 +22,6 @@ details.
 #include "dirs.h"
 #include "instances.h"
 
-extern int daemonized;
-
 void gen_lockfile_name(char *tagfile, char *iface, char *result)
 {
 	if (iface == NULL)
@@ -43,7 +41,7 @@ void mark_facility(char *tagfile, char *facility, char *iface)
 	if (fd < 0) {
 		snprintf(errstring, 80, "Warning: unable to lock %s on %s",
 			 facility, iface);
-		write_error(errstring, daemonized);
+		write_error(errstring);
 	}
 	close(fd);
 }

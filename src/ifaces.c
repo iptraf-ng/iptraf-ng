@@ -21,8 +21,6 @@ details.
 
 #include "error.h"
 
-extern int daemonized;
-
 char *ltrim(char *buf)
 {
 	while ((*buf == ' ') || (*buf == '\t'))
@@ -99,7 +97,7 @@ int iface_up(char *iface)
 
 void err_iface_down(void)
 {
-	write_error("Specified interface not active", daemonized);
+	write_error("Specified interface not active");
 }
 
 void isdn_iface_check(int *fd, char *ifname)

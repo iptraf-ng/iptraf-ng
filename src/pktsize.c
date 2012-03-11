@@ -65,7 +65,7 @@ int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
 
 	close(fd);
 	if (istat < 0) {
-		write_error("Unable to obtain interface MTU", daemonized);
+		write_error("Unable to obtain interface MTU");
 		return 1;
 	}
 	*interval = ifr.ifr_mtu / 20;	/* There are 20 packet size brackets */
@@ -180,7 +180,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	else {
 		snprintf(msgstring, 80,
 			 "Packet sizes already being monitored on %s", ifname);
-		write_error(msgstring, daemonized);
+		write_error(msgstring);
 		return;
 	}
 

@@ -32,8 +32,6 @@ details.
 #include "parseproto.h"
 #include "cidr.h"
 
-extern int daemonized;
-
 void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		   char *init_sport1, char *init_sport2, char *init_daddr,
 		   char *init_dmask, char *init_dport1, char *init_dport2,

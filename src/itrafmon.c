@@ -520,9 +520,7 @@ int checkrvnamed(void)
 
 			die("unable execvp() rvnamed-ng");
 		} else if (cpid == -1) {
-			write_error
-			    ("Can't spawn new process; lookups will block",
-			     daemonized);
+			write_error ("Can't spawn new process; lookups will block");
 			return 0;
 		} else {
 			while (waitpid(cpid, &cstat, 0) < 0)
@@ -530,9 +528,7 @@ int checkrvnamed(void)
 					break;
 
 			if (WEXITSTATUS(cstat) == 1) {
-				write_error
-				    ("Can't start rvnamed; lookups will block",
-				     daemonized);
+				write_error ("Can't start rvnamed; lookups will block");
 				return 0;
 			} else {
 				sleep(1);
@@ -660,7 +656,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		snprintf(msgstring, 80,
 			 "IP Traffic Monitor already listening on %s",
 			 gen_iface_msg(ifptr));
-		write_error(msgstring, daemonized);
+		write_error(msgstring);
 		return;
 	}
 

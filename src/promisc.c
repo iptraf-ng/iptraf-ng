@@ -31,7 +31,6 @@ details.
 
 #define PROMISC_MSG_MAX 80
 
-extern int daemonized;
 extern int accept_unsupported_interfaces;
 
 void init_promisc_list(struct promisc_states **list)
@@ -89,7 +88,7 @@ void init_promisc_list(struct promisc_states **list)
 					sprintf(err_msg,
 						"Unable to obtain interface parameters for %s",
 						buf);
-					write_error(err_msg, daemonized);
+					write_error(err_msg);
 					ptmp->params.state_valid = 0;
 				} else {
 					ptmp->params.saved_state =
@@ -117,7 +116,7 @@ void save_promisc_list(struct promisc_states *list)
 	fd = open(PROMISCLISTFILE, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
 
 	if (fd < 0) {
-		write_error("Unable to save interface flags", daemonized);
+		write_error("Unable to save interface flags");
 		return;
 	}
 
@@ -143,8 +142,7 @@ void load_promisc_list(struct promisc_states **list)
 	fd = open(PROMISCLISTFILE, O_RDONLY);
 
 	if (fd < 0) {
-		write_error("Unable to retrieve saved interface flags",
-			    daemonized);
+		write_error("Unable to retrieve saved interface flags");
 		*list = NULL;
 		return;
 	}
@@ -185,8 +183,7 @@ void srpromisc(int mode, struct promisc_states *list)
 	fd = socket(PF_INET, SOCK_DGRAM, 0);
 
 	if (fd < 0) {
-		write_error("Unable to open socket for flag change",
-			    daemonized);
+		write_error("Unable to open socket for flag change");
 		return;
 	}
 
@@ -213,7 +210,7 @@ void srpromisc(int mode, struct promisc_states *list)
 			if (istat < 0) {
 				sprintf(fullmsg, "Promisc change failed for %s",
 					ptmp->params.ifname);
-				write_error(fullmsg, daemonized);
+				write_error(fullmsg);
 			}
 		}
 		ptmp = ptmp->next_entry;
