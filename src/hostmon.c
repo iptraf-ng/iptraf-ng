@@ -139,16 +139,15 @@ struct ethtabent *addethnode(struct ethtab *table, int *nomem)
 
 void convmacaddr(char *addr, char *result)
 {
-	unsigned int i;
 	u_int8_t *ptmp = (u_int8_t *) addr;
-	char hexbyte[3];
 
-	strcpy(result, "");
-	for (i = 0; i <= 5; i++) {
-		sprintf(hexbyte, "%02x", *ptmp);
-		strcat(result, hexbyte);
-		ptmp++;
-	}
+	sprintf(result, "%02x:%02x:%02x:%02x:%02x:%02x",
+			*ptmp,
+			*(ptmp + 1),
+			*(ptmp + 2),
+			*(ptmp + 3),
+			*(ptmp + 4),
+			*(ptmp + 5));
 }
 
 struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
@@ -172,8 +171,8 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
 	struct eth_desc *desc = NULL;
 
 	list_for_each_entry(desc, &list->hd_list, hd_list)
-	    if (!strcmp(desc->hd_mac, ptemp->un.desc.ascaddr))
-		strcpy(ptemp->un.desc.ascaddr, ptemp->un.desc.desc);
+		if (!strcmp(desc->hd_mac, ptemp->un.desc.ascaddr))
+			strcpy(ptemp->un.desc.desc, desc->hd_desc);
 
 	strcpy(ptemp->un.desc.ifname, ifname);
 
