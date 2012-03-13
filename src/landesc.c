@@ -31,7 +31,7 @@ static int check_mac_addr(const char *mac)
 	if (strlen(mac) != 17)
 		return 0;
 
-	char a[2], b[2], c[2], d[2], e[2], f[2];
+	char a[3], b[3], c[3], d[3], e[3], f[3];
 
 	int success = sscanf(mac, "%02s:%02s:%02s:%02s:%02s:%02s",
 			     a, b, c, d, e, f);
