@@ -171,7 +171,7 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
 	struct eth_desc *desc = NULL;
 
 	list_for_each_entry(desc, &list->hd_list, hd_list)
-		if (!strcmp(desc->hd_mac, ptemp->un.desc.ascaddr))
+		if (!strcasecmp(desc->hd_mac, ptemp->un.desc.ascaddr))
 			strcpy(ptemp->un.desc.desc, desc->hd_desc);
 
 	strcpy(ptemp->un.desc.ifname, ifname);
