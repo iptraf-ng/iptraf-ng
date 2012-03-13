@@ -253,22 +253,20 @@ void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 			ptmp->noniptotal, ptmp->badtotal);
 
 		if (nsecs > 5) {
-			char *unitstring = dispmode(unit);
-
 			if (unit == KBITS) {
-				fprintf(fd, ", average activity %.2f %s/s",
+				fprintf(fd, ", average activity %.2f %s",
 					(float) (ptmp->br * 8 / 1000) /
-					(float) nsecs, unitstring);
+					(float) nsecs, dispmode(unit));
 			} else {
-				fprintf(fd, ", average activity %.2f %s/s",
+				fprintf(fd, ", average activity %.2f %s",
 					(float) (ptmp->br / 1024) /
-					(float) nsecs, unitstring);
+					(float) nsecs, dispmode(unit));
 			}
 
-			fprintf(fd, ", peak activity %.2f %s/s", ptmp->peakrate,
-				unitstring);
-			fprintf(fd, ", last 5-second activity %.2f %s/s",
-				ptmp->rate, unitstring);
+			fprintf(fd, ", peak activity %.2f %s", ptmp->peakrate,
+				dispmode(unit));
+			fprintf(fd, ", last 5-second activity %.2f %s",
+				ptmp->rate, dispmode(unit));
 		}
 		fprintf(fd, "\n");
 
@@ -285,7 +283,6 @@ void writedstatlog(char *ifname, int unit, float activity, float pps,
 		   struct iftotals *ts, unsigned long nsecs, FILE * fd)
 {
 	char atime[TIME_TARGET_MAX];
-	char *unitstring = dispmode(unit);
 
 	genatime(time((time_t *) NULL), atime);
 
@@ -374,12 +371,12 @@ void writedstatlog(char *ifname, int unit, float activity, float pps,
 
 		}
 		fprintf(fd,
-			"\nPeak total activity: %.2f %s/s, %.2f packets/s\n",
-			peakactivity, unitstring, peakpps);
-		fprintf(fd, "Peak incoming rate: %.2f %s/s, %.2f packets/s\n",
-			peakactivity_in, unitstring, peakpps_in);
-		fprintf(fd, "Peak outgoing rate: %.2f %s/s, %.2f packets/s\n\n",
-			peakactivity_out, unitstring, peakpps_out);
+			"\nPeak total activity: %.2f %s, %.2f packets/s\n",
+			peakactivity, dispmode(unit), peakpps);
+		fprintf(fd, "Peak incoming rate: %.2f %s, %.2f packets/s\n",
+			peakactivity_in, dispmode(unit), peakpps_in);
+		fprintf(fd, "Peak outgoing rate: %.2f %s, %.2f packets/s\n\n",
+			peakactivity_out, dispmode(unit), peakpps_out);
 	}
 	fprintf(fd, "IP checksum errors: %lu\n\n", ts->badtotal);
 	fprintf(fd, "Running time: %lu seconds\n", nsecs);
@@ -393,8 +390,6 @@ void writeutslog(struct portlistent *list, unsigned long nsecs, int units,
 	struct portlistent *ptmp = list;
 	float inrate, outrate, totalrate;
 	time_t now = time(NULL);
-
-	char *unitstring = dispmode(units);
 
 	genatime(time((time_t *) NULL), atime);
 
@@ -436,19 +431,19 @@ void writeutslog(struct portlistent *list, unsigned long nsecs, int units,
 			ptmp->bcount);
 
 		if (totalrate >= 0.0)
-			fprintf(fd, ", %.2f %s/s", totalrate, unitstring);
+			fprintf(fd, ", %.2f %s", totalrate, dispmode(units));
 
 		fprintf(fd, "; %llu packets, %llu bytes incoming", ptmp->icount,
 			ptmp->ibcount);
 
 		if (inrate >= 0.0)
-			fprintf(fd, ", %.2f %s/s", inrate, unitstring);
+			fprintf(fd, ", %.2f %s", inrate, dispmode(units));
 
 		fprintf(fd, "; %llu packets, %llu bytes outgoing", ptmp->ocount,
 			ptmp->obcount);
 
 		if (outrate >= 0.0)
-			fprintf(fd, ", %.2f %s/s", outrate, unitstring);
+			fprintf(fd, ", %.2f %s", outrate, dispmode(units));
 
 		fprintf(fd, "\n\n");
 		ptmp = ptmp->next_entry;
@@ -463,8 +458,6 @@ void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 {
 	char atime[TIME_TARGET_MAX];
 	struct ethtabent *ptmp = list;
-
-	char *unitstring = dispmode(unit);
 
 	genatime(time((time_t *) NULL), atime);
 
@@ -516,9 +509,9 @@ void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 
 			if (nsecs > 5)
 				fprintf(fd,
-					"\tLast 5-second rates: %.2f %s/s incoming, %.2f %s/s outgoing\n",
-					ptmp->un.figs.inrate, unitstring,
-					ptmp->un.figs.outrate, unitstring);
+					"\tLast 5-second rates: %.2f %s incoming, %.2f %s outgoing\n",
+					ptmp->un.figs.inrate, dispmode(unit),
+					ptmp->un.figs.outrate, dispmode(unit));
 		}
 
 		ptmp = ptmp->next_entry;

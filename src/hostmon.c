@@ -96,10 +96,8 @@ void initethtab(struct ethtab *table, int unit)
 
 	wmove(table->borderwin, LINES - 3, 40);
 
-	char *unitstring = dispmode(unit);
-
-	wprintw(table->borderwin, " InRate and OutRate are in %s/sec ",
-		unitstring);
+	wprintw(table->borderwin, " InRate and OutRate are in %s ",
+		dispmode(unit));
 
 	wattrset(table->tabwin, STDATTR);
 	tx_colorwin(table->tabwin);

@@ -543,24 +543,21 @@ void update_flowrate(WINDOW * win, struct tcptableent *entry, time_t now,
 		     int *cleared, int mode)
 {
 	float rate = 0;
-	char units[10];
 
 	wattrset(win, IPSTATLABELATTR);
 	mvwprintw(win, 0, COLS * 47 / 80, "TCP flow rate: ");
 	wattrset(win, IPSTATATTR);
 	if (mode == KBITS) {
-		strcpy(units, "kbits/s");
 		rate =
 		    (float) (entry->spanbr * 8 / 1000) / (float) (now -
 								  entry->
 								  starttime);
 	} else {
-		strcpy(units, "kbytes/s");
 		rate =
 		    (float) (entry->spanbr / 1024) / (float) (now -
 							      entry->starttime);
 	}
-	mvwprintw(win, 0, COLS * 50 / 80 + 13, "%8.2f %s", rate, units);
+	mvwprintw(win, 0, COLS * 53 / 80 + 13, "%8.2f %s", rate, dispmode(mode));
 	entry->spanbr = 0;
 	*cleared = 0;
 }

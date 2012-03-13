@@ -198,7 +198,7 @@ void printlargenum(unsigned long long i, WINDOW * win)
 	if (i < 100000000)	/* less than 100 million */
 		wprintw(win, "%9llu", i);
 	else if (i < 1000000000)	/* less than 1 billion */
-		wprintw(win, "%8lluK", i / 1000);
+		wprintw(win, "%8lluk", i / 1000);
 	else if (i < 1000000000000ULL)	/* less than 1 trillion */
 		wprintw(win, "%8lluM", i / 1000000);
 	else if (i < 1000000000000000ULL)	/* less than 1000 trillion */

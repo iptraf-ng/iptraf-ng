@@ -671,12 +671,10 @@ void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
 									   starttime);
 	}
 
-	char *act_unit = dispmode(actmode);
-
 	wattrset(win, IPSTATLABELATTR);
 	mvwprintw(win, 0, 1,
-		  "Protocol data rates (%s/s):           in             out            total",
-		  act_unit);
+		  "Protocol data rates (%s):              in             out            total",
+		  dispmode(actmode));
 	wattrset(win, IPSTATATTR);
 	mvwprintw(win, 0, 31, "%10.2f", inrate);
 	mvwprintw(win, 0, 46, "%10.2f", outrate);

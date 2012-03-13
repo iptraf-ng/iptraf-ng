@@ -83,7 +83,7 @@
 #define KBITS 0
 
 #define dispmode(mode)				\
-	((mode) == KBITS) ? "kbits": "kbytes";
+	(((mode) == KBITS) ? "kbps": "kBps")
 
 #define NORETURN __attribute__((noreturn))
 

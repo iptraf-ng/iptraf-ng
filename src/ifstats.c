@@ -219,17 +219,17 @@ void updaterates(struct iftab *table, int unit, time_t starttime, time_t now,
 
 	wattrset(table->statwin, HIGHATTR);
 	do {
-		wmove(table->statwin, ptmp->index - idx, 60 * COLS / 80);
+		wmove(table->statwin, ptmp->index - idx, 64 * COLS / 80);
 		if (unit == KBITS) {
 			ptmp->rate =
 			    ((float) (ptmp->spanbr * 8 / 1000)) /
 			    ((float) (now - starttime));
-			wprintw(table->statwin, "%8.2f kbits/sec", ptmp->rate);
+			wprintw(table->statwin, "%8.2f %s", ptmp->rate, dispmode(unit));
 		} else {
 			ptmp->rate =
 			    ((float) (ptmp->spanbr / 1024)) /
 			    ((float) (now - starttime));
-			wprintw(table->statwin, "%8.2f kbytes/sec", ptmp->rate);
+			wprintw(table->statwin, "%8.2f %s", ptmp->rate, dispmode(unit));
 		}
 
 		if (ptmp->rate > ptmp->peakrate)
@@ -253,16 +253,16 @@ void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 	wmove(win, target_row, 1);
 	wprintw(win, "%s", ptmp->ifname);
 	wattrset(win, HIGHATTR);
-	wmove(win, target_row, 9 * COLS / 80);
+	wmove(win, target_row, 14 * COLS / 80);
 	printlargenum(ptmp->total, win);
-	wmove(win, target_row, 19 * COLS / 80);
+	wmove(win, target_row, 24 * COLS / 80);
 	printlargenum(ptmp->iptotal, win);
-	wmove(win, target_row, 29 * COLS / 80);
+	wmove(win, target_row, 34 * COLS / 80);
 	printlargenum(ptmp->ip6total, win);
-	wmove(win, target_row, 39 * COLS / 80);
+	wmove(win, target_row, 44 * COLS / 80);
 	printlargenum(ptmp->noniptotal, win);
-	wmove(win, target_row, 49 * COLS / 80);
-	wprintw(win, "%8lu", ptmp->badtotal);
+	wmove(win, target_row, 53 * COLS / 80);
+	wprintw(win, "%7lu", ptmp->badtotal);
 }
 
 void preparescreen(struct iftab *table)
@@ -289,17 +289,21 @@ void labelstats(WINDOW * win)
 {
 	wmove(win, 0, 1);
 	wprintw(win, " Iface ");
-	wmove(win, 0, 12 * COLS / 80);
+	/* 14, 24, 34, ... from printifentry() */
+	/* 10 = strlen(printed number); from printlargenum() */
+	/* 7 = strlen(" Total ") */
+	/* 1 = align the string on 'l' from " Total " */
+	wmove(win, 0, (14 * COLS / 80) + 10 - 7 + 1);
 	wprintw(win, " Total ");
-	wmove(win, 0, 22 * COLS / 80);
+	wmove(win, 0, (24 * COLS / 80) + 10 - 6 + 1);
 	wprintw(win, " IPv4 ");
-	wmove(win, 0, 32 * COLS / 80);
+	wmove(win, 0, (34 * COLS / 80) + 10 - 6 + 1);
 	wprintw(win, " IPv6 ");
-	wmove(win, 0, 42 * COLS / 80);
+	wmove(win, 0, (44 * COLS / 80) + 10 - 7 + 1);
 	wprintw(win, " NonIP ");
-	wmove(win, 0, 52 * COLS / 80);
+	wmove(win, 0, (53 * COLS / 80) + 8 - 7 + 1);
 	wprintw(win, " BadIP ");
-	wmove(win, 0, 65 * COLS / 80);
+	wmove(win, 0, (64 * COLS / 80) + 14 - 10);
 	wprintw(win, " Activity ");
 }
 
@@ -860,7 +864,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
 	//isdnfd = -1;
 	exitloop = 0;
-	char *unitstring = dispmode(options->actmode);
 
 	/*
 	 * Data-gathering loop
@@ -909,15 +912,15 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			starttime = now;
 
 			wattrset(statwin, HIGHATTR);
-			mvwprintw(statwin, 14, 19, "%8.1f %s/sec", activity,
-				  unitstring);
-			mvwprintw(statwin, 15, 19, "%8.1f packets/sec", pps);
-			mvwprintw(statwin, 17, 19, "%8.1f %s/sec", activity_in,
-				  unitstring);
-			mvwprintw(statwin, 18, 19, "%8.1f packets/sec", pps_in);
-			mvwprintw(statwin, 20, 19, "%8.1f %s/sec", activity_out,
-				  unitstring);
-			mvwprintw(statwin, 21, 19, "%8.1f packets/sec",
+			mvwprintw(statwin, 14, 19, "%8.1f %s", activity,
+				  dispmode(options->actmode));
+			mvwprintw(statwin, 15, 19, "%8.1f pps", pps);
+			mvwprintw(statwin, 17, 19, "%8.1f %s", activity_in,
+				  dispmode(options->actmode));
+			mvwprintw(statwin, 18, 19, "%8.1f pps", pps_in);
+			mvwprintw(statwin, 20, 19, "%8.1f %s", activity_out,
+				  dispmode(options->actmode));
+			mvwprintw(statwin, 21, 19, "%8.1f pps",
 				  pps_out);
 
 			if (activity > peakactivity)
