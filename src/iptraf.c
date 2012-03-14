@@ -55,7 +55,6 @@ int exitloop = 0;
 int daemonized = 0;
 int facility_running = 0;
 int is_first_instance;
-int accept_unsupported_interfaces = 0;
 char graphing_filter[80];
 
 extern void about(void);
@@ -333,8 +332,6 @@ static struct options iptraf_ng_options[] = {
 		 "clear all locks and counters"
 		 /*. Use with great caution. Normally used to recover from an abnormal termination */
 	    ),
-	OPT_BOOL('u', NULL, &accept_unsupported_interfaces,
-		 "allow use of unsupported interfaces as ethernet devices"),
 	OPT_INTEGER('t', NULL, &facilitytime,
 		    "run only for the specified <n> number of minutes"),
 	OPT_STRING('L', NULL, &L_opt, "logfile",

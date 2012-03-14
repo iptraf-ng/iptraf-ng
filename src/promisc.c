@@ -78,8 +78,7 @@ void init_promisc_list(struct promisc_states **list)
 			    || (strncmp(buf, "br", 2) == 0)
 			    || (strncmp(buf, "vmnet", 5) == 0)
 			    || (strncmp(ptmp->params.ifname, "wvlan", 4) == 0)
-			    || (strncmp(ptmp->params.ifname, "lec", 3) == 0)
-			    || (accept_unsupported_interfaces)) {
+			    || (strncmp(ptmp->params.ifname, "lec", 3) == 0)) {
 				strcpy(ifr.ifr_name, buf);
 
 				istat = ioctl(ifd, SIOCGIFFLAGS, &ifr);
