@@ -122,3 +122,14 @@ rvnamed_ng_CPPFLAGS = ${AM_CPPFLAGS}
 rvnamed_ng_CFLAGS = ${AM_CFLAGS} ${libncurses_CFLAGS}
 
 EXTRA_DIST = $(man_MANS)
+
+CHECKFLAGS= -Wuninitialized -Wshadow  -Wold-initializer -Wno-transparent-union -Wno-return-void
+SPARSE = sparse
+
+TESTS = \
+    $(TUI_C) $(TUI_H) \
+    $(LIB_C) $(LIB_H) \
+    $(NULL)
+
+TESTS_ENVIRONMENT = \
+       $(SPARSE) $(CHECKFLAGS) $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS) ${libncurses_CFLAGS}
