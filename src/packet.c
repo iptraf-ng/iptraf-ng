@@ -70,6 +70,7 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 	case ARPHRD_CSLIP6:
 	case ARPHRD_TUNNEL:
 	case ARPHRD_NONE:
+	case ARPHRD_IPGRE:
 		*packet = tpacket;
 		break;
 	case ARPHRD_FRAD:
