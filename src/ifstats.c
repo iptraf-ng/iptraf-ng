@@ -50,7 +50,7 @@ void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 void writedstatlog(char *ifname, int unit, float activity, float pps,
 		   float peakactivity, float peakpps, float peakactivity_in,
 		   float peakpps_in, float peakactivity_out, float peakpps_out,
-		   struct iftotals *ts, unsigned long nsecs, FILE * logfile);
+		   struct ifcounts *ts, unsigned long nsecs, FILE * logfile);
 
 /*
  * USR1 log-rotation signal handlers
@@ -622,7 +622,7 @@ err:
 }
 
 
-void printdetlabels(WINDOW * win, struct iftotals *totals)
+void printdetlabels(WINDOW * win)
 {
 	wattrset(win, BOXATTR);
 	mvwprintw(win, 2, 14,
@@ -669,55 +669,61 @@ void printstatrow(WINDOW * win, int row, unsigned long long total,
 	printlargenum(btotal_out, win);
 }
 
-void printdetails(struct iftotals *totals, WINDOW * win)
+void printstatrow_proto(WINDOW *win, int row, struct proto_counter *proto_counter)
+{
+	printstatrow(win, row,
+		     proto_counter->proto_total.pc_packets,
+		     proto_counter->proto_total.pc_bytes,
+		     proto_counter->proto_in.pc_packets,
+		     proto_counter->proto_in.pc_bytes,
+		     proto_counter->proto_out.pc_packets,
+		     proto_counter->proto_out.pc_bytes);
+}
+
+void printdetails(struct ifcounts *ifcounts, WINDOW * win)
 {
 	wattrset(win, HIGHATTR);
-
 	/* Print totals on the IP protocols */
-
-	printstatrow(win, 4, totals->total, totals->bytestotal,
-		     totals->total_in, totals->bytestotal_in, totals->total_out,
-		     totals->bytestotal_out);
-
-	printstatrow(win, 5, totals->iptotal, totals->ipbtotal,
-		     totals->iptotal_in, totals->ipbtotal_in,
-		     totals->iptotal_out, totals->ipbtotal_out);
-
-	printstatrow(win, 6, totals->ip6total, totals->ip6btotal,
-		     totals->ip6total_in, totals->ip6btotal_in,
-		     totals->ip6total_out, totals->ip6btotal_out);
-
-	printstatrow(win, 7, totals->tcptotal, totals->tcpbtotal,
-		     totals->tcptotal_in, totals->tcpbtotal_in,
-		     totals->tcptotal_out, totals->tcpbtotal_out);
-
-	printstatrow(win, 8, totals->udptotal, totals->udpbtotal,
-		     totals->udptotal_in, totals->udpbtotal_in,
-		     totals->udptotal_out, totals->udpbtotal_out);
-
-	printstatrow(win, 9, totals->icmptotal, totals->icmpbtotal,
-		     totals->icmptotal_in, totals->icmpbtotal_in,
-		     totals->icmptotal_out, totals->icmpbtotal_out);
-
-	printstatrow(win, 10, totals->othtotal, totals->othbtotal,
-		     totals->othtotal_in, totals->othbtotal_in,
-		     totals->othtotal_out, totals->othbtotal_out);
+	printstatrow_proto(win, 4, &ifcounts->total);
+	printstatrow_proto(win, 5, &ifcounts->ipv4);
+	printstatrow_proto(win, 6, &ifcounts->ipv6);
+	printstatrow_proto(win, 7, &ifcounts->tcp);
+	printstatrow_proto(win, 8, &ifcounts->udp);
+	printstatrow_proto(win, 9, &ifcounts->icmp);
+	printstatrow_proto(win, 10, &ifcounts->other);
 
 	/* Print non-IP totals */
 
-	printstatrow(win, 11, totals->noniptotal, totals->nonipbtotal,
-		     totals->noniptotal_in, totals->nonipbtotal_in,
-		     totals->noniptotal_out, totals->nonipbtotal_out);
+	printstatrow_proto(win, 11, &ifcounts->nonip);
 
 	/* Broadcast totals */
 	wmove(win, 14, 67);
-	printlargenum(totals->bcast, win);
+	printlargenum(ifcounts->bcast.pc_packets, win);
 	wmove(win, 15, 67);
-	printlargenum(totals->bcastbytes, win);
+	printlargenum(ifcounts->bcast.pc_bytes, win);
 
 	/* Bad packet count */
 
-	mvwprintw(win, 19, 68, "%8lu", totals->badtotal);
+	mvwprintw(win, 19, 68, "%8lu", ifcounts->bad.pc_packets);
+}
+
+void update_counter(struct pkt_counter *count, int bytes)
+{
+	if (count) {
+		count->pc_packets++;
+		count->pc_bytes += bytes;
+	}
+}
+
+void update_proto_counter(struct proto_counter *proto_counter, int outgoing, int bytes)
+{
+	if (proto_counter) {
+		update_counter(&proto_counter->proto_total, bytes);
+		if (outgoing)
+			update_counter(&proto_counter->proto_out, bytes);
+		else
+			update_counter(&proto_counter->proto_in, bytes);
+	}
 }
 
 
@@ -750,7 +756,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
 	unsigned int iplen = 0;
 
-	struct iftotals totals;
+	struct ifcounts ifcounts;
 
 	int ch;
 
@@ -762,12 +768,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	unsigned long rate_interval;
 	unsigned long long unow;
 
-	float spanbr = 0;
-	float spanpkt = 0;
-	float spanbr_in = 0;
-	float spanbr_out = 0;
-	float spanpkt_in = 0;
-	float spanpkt_out = 0;
+	struct proto_counter span;
 
 	float activity = 0;
 	float activity_in = 0;
@@ -832,7 +833,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	update_panels();
 	doupdate();
 
-	memset(&totals, 0, sizeof(struct iftotals));
+	memset(&ifcounts, 0, sizeof(struct ifcounts));
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -857,12 +858,12 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	writelog(logging, logfile,
 		 "******** Detailed interface statistics started ********");
 
-	printdetlabels(statwin, &totals);
-	printdetails(&totals, statwin);
+	printdetlabels(statwin);
+	printdetails(&ifcounts, statwin);
 	update_panels();
 	doupdate();
 
-	spanbr = 0;
+	memset(&span, 0, sizeof(span));
 
 	gettimeofday(&tv, NULL);
 	starttime = startlog = statbegin = tv.tv_sec;
@@ -898,34 +899,31 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			printelapsedtime(statbegin, now, LINES - 3, 1, statwin);
 			if (options->actmode == KBITS) {
 				activity =
-				    (float) (spanbr * 8 / 1000) /
+				    (float) (span.proto_total.pc_bytes * 8 / 1000) /
 				    (float) rate_interval;
 				activity_in =
-				    (float) (spanbr_in * 8 / 1000) /
+				    (float) (span.proto_in.pc_bytes * 8 / 1000) /
 				    (float) rate_interval;
 				activity_out =
-				    (float) (spanbr_out * 8 / 1000) /
+				    (float) (span.proto_out.pc_bytes * 8 / 1000) /
 				    (float) rate_interval;
 			} else {
 				activity =
-				    (float) (spanbr / 1024) /
+				    (float) (span.proto_total.pc_bytes / 1024) /
 				    (float) rate_interval;
 				activity_in =
-				    (float) (spanbr_in / 1024) /
+				    (float) (span.proto_in.pc_bytes / 1024) /
 				    (float) rate_interval;
 				activity_out =
-				    (float) (spanbr_out / 1024) /
+				    (float) (span.proto_out.pc_bytes / 1024) /
 				    (float) rate_interval;
 			}
 
-			pps = (float) (spanpkt) / (float) (now - starttime);
-			pps_in =
-			    (float) (spanpkt_in) / (float) (now - starttime);
-			pps_out =
-			    (float) (spanpkt_out) / (float) (now - starttime);
+			pps = (float) (span.proto_total.pc_packets) / (float) rate_interval;
+			pps_in = (float) (span.proto_in.pc_packets) / (float) rate_interval;
+			pps_out = (float) (span.proto_out.pc_packets) / (float) rate_interval;
 
-			spanbr = spanbr_in = spanbr_out = 0;
-			spanpkt = spanpkt_in = spanpkt_out = 0;
+			memset(&span, 0, sizeof(span));
 			starttime = now;
 
 			wattrset(statwin, HIGHATTR);
@@ -962,7 +960,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			writedstatlog(iface, options->actmode, activity, pps,
 				      peakactivity, peakpps, peakactivity_in,
 				      peakpps_in, peakactivity_out, peakpps_out,
-				      &totals,
+				      &ifcounts,
 				      time((time_t *) NULL) - statbegin,
 				      logfile);
 
@@ -973,7 +971,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 		     && (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))
 		    || ((options->updrate != 0)
 			&& (now - updtime >= options->updrate))) {
-			printdetails(&totals, statwin);
+			printdetails(&ifcounts, statwin);
 			update_panels();
 			doupdate();
 			updtime_usec = unow;
@@ -1007,6 +1005,9 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			break;
 		}
 		if (br > 0) {
+			int outgoing;
+			short ipproto;
+
 			framelen = br;
 			pkt_result =
 			    processpacket(buf, &packet, (unsigned int *) &br,
@@ -1019,184 +1020,55 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			    && pkt_result != MORE_FRAGMENTS)
 				continue;
 
-			totals.total++;
-			totals.bytestotal += framelen;
-
-			if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-				totals.total_out++;
-				totals.bytestotal_out += framelen;
-				spanbr_out += framelen;
-				spanpkt_out++;
-			} else {
-				totals.total_in++;
-				totals.bytestotal_in += framelen;
-				spanbr_in += framelen;
-				spanpkt_in++;
-			}
-
+			outgoing = (fromaddr.sll_pkttype == PACKET_OUTGOING);
+			update_proto_counter(&ifcounts.total, outgoing, framelen);
 			if (fromaddr.sll_pkttype == PACKET_BROADCAST) {
-				totals.bcast++;
-				totals.bcastbytes += framelen;
+				update_counter(&ifcounts.bcast, framelen);
 			}
 
-			spanbr += framelen;
-			spanpkt++;
+			update_proto_counter(&span, outgoing, framelen);
 
-			if (fromaddr.sll_protocol == ETH_P_IP) {
+			/* account network layer protocol */
+			switch(fromaddr.sll_protocol) {
+			case ETH_P_IP:
 				if (pkt_result == CHECKSUM_ERROR) {
-					totals.badtotal++;
+					update_counter(&ifcounts.bad, framelen);
 					continue;
 				}
 
 				ipacket = (struct iphdr *) packet;
-				iphlen = ipacket->ihl * 4;
 				iplen = ntohs(ipacket->tot_len);
+				ipproto = ipacket->protocol;
 
-				totals.iptotal++;
-				totals.ipbtotal += iplen;
-
-				if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-					totals.iptotal_out++;
-					totals.ipbtotal_out += iplen;
-				} else {
-					totals.iptotal_in++;
-					totals.ipbtotal_in += iplen;
-				}
-
-				switch (ipacket->protocol) {
-				case IPPROTO_TCP:
-					totals.tcptotal++;
-					totals.tcpbtotal += iplen;
-
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.tcptotal_out++;
-						totals.tcpbtotal_out += iplen;
-					} else {
-						totals.tcptotal_in++;
-						totals.tcpbtotal_in += iplen;
-					}
-					break;
-				case IPPROTO_UDP:
-					totals.udptotal++;
-					totals.udpbtotal += iplen;
-
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.udptotal_out++;
-						totals.udpbtotal_out += iplen;
-					} else {
-						totals.udptotal_in++;
-						totals.udpbtotal_in += iplen;
-					}
-					break;
-				case IPPROTO_ICMP:
-					totals.icmptotal++;
-					totals.icmpbtotal += iplen;
-
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.icmptotal_out++;
-						totals.icmpbtotal_out += iplen;
-					} else {
-						totals.icmptotal_in++;
-						totals.icmpbtotal_in += iplen;
-					}
-					break;
-				default:
-					totals.othtotal++;
-					totals.othbtotal += iplen;
-
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.othtotal_out++;
-						totals.othbtotal_out += iplen;
-					} else {
-						totals.othtotal_in++;
-						totals.othbtotal_in += iplen;
-					}
-					break;
-				}
-			} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
-
+				update_proto_counter(&ifcounts.ipv4, outgoing, iplen);
+				break;
+			case ETH_P_IPV6:
 				ip6packet = (struct ip6_hdr *) packet;
 				iplen = ntohs(ip6packet->ip6_plen) + 40;
+				ipproto = ip6packet->ip6_nxt;
 
-				totals.ip6total++;
-				totals.ip6btotal += iplen;
+				update_proto_counter(&ifcounts.ipv6, outgoing, iplen);
+				break;
+			default:
+				update_proto_counter(&ifcounts.nonip, outgoing, iplen);
+				continue;
+			}
 
-				if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-					totals.ip6total_out++;
-					totals.ip6btotal_out += iplen;
-				} else {
-					totals.ip6total_in++;
-					totals.ip6btotal_in += iplen;
-				}
-
-				switch (ip6packet->ip6_nxt) {
-				case IPPROTO_TCP:
-					totals.tcptotal++;
-					totals.tcpbtotal += iplen;
-
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.tcptotal_out++;
-						totals.tcpbtotal_out += iplen;
-					} else {
-						totals.tcptotal_in++;
-						totals.tcpbtotal_in += iplen;
-					}
-					break;
-				case IPPROTO_UDP:
-					totals.udptotal++;
-					totals.udpbtotal += iplen;
-
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.udptotal_out++;
-						totals.udpbtotal_out += iplen;
-					} else {
-						totals.udptotal_in++;
-						totals.udpbtotal_in += iplen;
-					}
-					break;
-				case IPPROTO_ICMPV6:
-					totals.icmptotal++;
-					totals.icmpbtotal += iplen;
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.icmptotal_out++;
-						totals.icmpbtotal_out += iplen;
-					} else {
-						totals.icmptotal_in++;
-						totals.icmpbtotal_in += iplen;
-					}
-					break;
-				default:
-					totals.othtotal++;
-					totals.othbtotal += iplen;
-
-					if (fromaddr.sll_pkttype ==
-					    PACKET_OUTGOING) {
-						totals.othtotal_out++;
-						totals.othbtotal_out += iplen;
-					} else {
-						totals.othtotal_in++;
-						totals.othbtotal_in += iplen;
-					}
-					break;
-				}
-			} else {
-				totals.noniptotal++;
-				totals.nonipbtotal += br;
-
-				if (fromaddr.sll_pkttype == PACKET_OUTGOING) {
-					totals.noniptotal_out++;
-					totals.nonipbtotal_out += br;
-				} else {
-					totals.noniptotal_in++;
-					totals.nonipbtotal_in += br;
-				}
+			/* account transport layer protocol */
+			switch (ipproto) {
+			case IPPROTO_TCP:
+				update_proto_counter(&ifcounts.tcp, outgoing, iplen);
+				break;
+			case IPPROTO_UDP:
+				update_proto_counter(&ifcounts.udp, outgoing, iplen);
+				break;
+			case IPPROTO_ICMP:
+			case IPPROTO_ICMPV6:
+				update_proto_counter(&ifcounts.icmp, outgoing, iplen);
+				break;
+			default:
+				update_proto_counter(&ifcounts.other, outgoing, iplen);
+				break;
 			}
 		}
 	}
@@ -1218,7 +1090,7 @@ err:
 		writedstatlog(iface, options->actmode, activity, pps,
 			      peakactivity, peakpps, peakactivity_in,
 			      peakpps_in, peakactivity_out, peakpps_out,
-			      &totals, time((time_t *) NULL) - statbegin,
+			      &ifcounts, time((time_t *) NULL) - statbegin,
 			      logfile);
 		writelog(logging, logfile,
 			 "******** Detailed interface statistics stopped ********");

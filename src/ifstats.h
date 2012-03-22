@@ -35,67 +35,29 @@ struct iftab {
 	PANEL *statpanel;
 };
 
-struct iftotals {
-	unsigned long long total;
-	unsigned long long bytestotal;
-	unsigned long long total_in;
-	unsigned long long total_out;
-	unsigned long long bytestotal_out;
-	unsigned long long bytestotal_in;
-	unsigned long long bcast;
-	unsigned long long bcastbytes;
+struct pkt_counter {
+	unsigned long long pc_packets;
+	unsigned long long pc_bytes;
+};
 
-	unsigned long long iptotal;
-	unsigned long long ipbtotal;
-	unsigned long long iptotal_in;
-	unsigned long long iptotal_out;
-	unsigned long long ipbtotal_in;
-	unsigned long long ipbtotal_out;
+struct proto_counter {
+	struct pkt_counter proto_total;
+	struct pkt_counter proto_in;
+	struct pkt_counter proto_out;
+};
 
-	unsigned long long ip6total;
-	unsigned long long ip6btotal;
-	unsigned long long ip6total_in;
-	unsigned long long ip6total_out;
-	unsigned long long ip6btotal_in;
-	unsigned long long ip6btotal_out;
+struct ifcounts {
+	struct proto_counter total;
+	struct pkt_counter bcast;
+	struct pkt_counter bad;
+	struct proto_counter ipv4;
+	struct proto_counter ipv6;
+	struct proto_counter nonip;
 
-	unsigned long long noniptotal;
-	unsigned long long nonipbtotal;
-	unsigned long long noniptotal_in;
-	unsigned long long noniptotal_out;
-	unsigned long long nonipbtotal_in;
-	unsigned long long nonipbtotal_out;
-
-	unsigned long long tcptotal;
-	unsigned long long tcpbtotal;
-	unsigned long long tcptotal_in;
-	unsigned long long tcptotal_out;
-	unsigned long long tcpbtotal_in;
-	unsigned long long tcpbtotal_out;
-
-	unsigned long long udptotal;
-	unsigned long long udpbtotal;
-	unsigned long long udptotal_in;
-	unsigned long long udptotal_out;
-	unsigned long long udpbtotal_in;
-	unsigned long long udpbtotal_out;
-
-	unsigned long long icmptotal;
-	unsigned long long icmpbtotal;
-	unsigned long long icmptotal_in;
-	unsigned long long icmptotal_out;
-	unsigned long long icmpbtotal_in;
-	unsigned long long icmpbtotal_out;
-
-	unsigned long long othtotal;
-	unsigned long long othbtotal;
-	unsigned long long othtotal_in;
-	unsigned long long othtotal_out;
-	unsigned long long othbtotal_in;
-	unsigned long long othbtotal_out;
-
-	unsigned long badtotal;
-	unsigned int interval;
+	struct proto_counter tcp;
+	struct proto_counter udp;
+	struct proto_counter icmp;
+	struct proto_counter other;
 };
 
 #endif	/* IPTRAF_NG_IFSTATS_H */
