@@ -1150,7 +1150,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					  (unsigned int *) &readlen, &br,
 					  &sport, &dport, &fromaddr,
 					  ofilter, MATCH_OPPOSITE_ALWAYS,
-					  ifname, ifptr, options->v6inv4asv6);
+					  ifname, options->v6inv4asv6);
 
 			if (pkt_result != PACKET_OK)
 				continue;

@@ -562,7 +562,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 					   NULL, NULL, NULL, &fromaddr,
 					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
-					   ifname, NULL, options->v6inv4asv6);
+					   ifname, options->v6inv4asv6);
 
 		if (pkt_result != PACKET_OK
 		    && pkt_result != MORE_FRAGMENTS)
@@ -1013,7 +1013,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, ifname,
-					  iface, options->v6inv4asv6);
+					  options->v6inv4asv6);
 
 			if (pkt_result != PACKET_OK
 			    && pkt_result != MORE_FRAGMENTS)

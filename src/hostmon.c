@@ -872,7 +872,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, ifname,
-					  ifptr, 0);
+					  0);
 
 			if (pkt_result != PACKET_OK)
 				continue;

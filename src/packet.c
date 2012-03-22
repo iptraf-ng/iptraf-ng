@@ -155,15 +155,8 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  unsigned int *total_br, unsigned int *sport,
 		  unsigned int *dport, struct sockaddr_ll *fromaddr,
 		  struct filterstate *filter,
-		  int match_opposite, char *ifname, char *ifptr, int v6inv4asv6)
+		  int match_opposite, char *ifname, int v6inv4asv6)
 {
-	/*
-	 * Does returned interface (ifname) match the specified interface name
-	 * (ifptr)?
-	 */
-	if (ifptr && strcmp(ifptr, ifname) != 0)
-		return INVALID_PACKET;
-
 #if 0				/* reenable isdn */
 	/*
 	 * Prepare ISDN reference descriptor and table.

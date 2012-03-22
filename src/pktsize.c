@@ -318,7 +318,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, iface,
-					  ifname, 0);
+					  0);
 
 			if (pkt_result != PACKET_OK)
 				continue;
