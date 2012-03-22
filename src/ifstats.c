@@ -411,6 +411,8 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 
 	int ch;
 
+	int fd;
+
 	struct timeval tv;
 	unsigned long starttime = 0;
 	unsigned long statbegin = 0;
@@ -438,7 +440,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	}
 
 	initiftab(&table);
-	int fd = xsocket_raw_eth_p_all();
 
 	if ((first_active_facility()) && (options->promisc)) {
 		init_promisc_list(&promisc_list);
@@ -475,6 +476,12 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 
 	update_panels();
 	doupdate();
+
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
 
 	//isdnfd = -1;
 	exitloop = 0;
@@ -584,6 +591,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	}
 	close(fd);
 
+err:
 	if ((options->promisc) && (is_last_instance())) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
@@ -777,6 +785,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 
 	struct promisc_states *promisc_list;
 	char err_msg[80];
+	int fd;
 
 	/*
 	 * Mark this facility
@@ -792,8 +801,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 		write_error(err_msg);
 		return;
 	}
-
-	int fd = xsocket_raw_eth_p_all();
 
 	if (!iface_up(iface)) {
 		err_iface_down();
@@ -861,6 +868,16 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	starttime = startlog = statbegin = tv.tv_sec;
 
 	leaveok(statwin, TRUE);
+
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(socket_bind_to_iface_by_name(fd, iface) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	//isdnfd = -1;
 	exitloop = 0;
@@ -1184,8 +1201,10 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 		}
 	}
 
+err_close:
 	close(fd);
 
+err:
 	if ((options->promisc) && (is_last_instance())) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);

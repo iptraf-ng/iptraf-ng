@@ -739,6 +739,8 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 
 	const int statx = 1;
 
+	int fd;
+
 	/*
 	 * Mark this facility
 	 */
@@ -751,8 +753,6 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		write_error(msgstring);
 		return;
 	}
-
-	int fd = xsocket_raw_eth_p_all();
 
 	if (!iface_up(ifname)) {
 		err_iface_down();
@@ -817,6 +817,16 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	mvwprintw(statwin, 0, 1, "No entries");
 	update_panels();
 	doupdate();
+
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(socket_bind_to_iface_by_name(fd, ifname) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
@@ -1090,6 +1100,9 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		}
 	}
 
+err_close:
+	close(fd);
+err:
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
 		writeutslog(list.head, time((time_t *) NULL) - starttime,

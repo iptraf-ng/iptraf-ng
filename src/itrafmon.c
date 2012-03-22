@@ -88,7 +88,7 @@ void prepare_statwin(WINDOW * win)
 {
 	wattrset(win, IPSTATLABELATTR);
 	wmove(win, 0, 1);
-	wprintw(win, "Pkts captured (all interfaces):");
+	wprintw(win, "Packets captured:");
 	mvwaddch(win, 0, 45 * COLS / 80, ACS_VLINE);
 }
 
@@ -627,6 +627,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 	int fragment = 0;	/* Set to 1 if not first fragment */
 
+	int fd;
+
 	int ch;
 	int keymode = 0;
 	char msgstring[80];
@@ -664,8 +666,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			return;
 		}
 	}
-
-	int fd = xsocket_raw_eth_p_all();
 
 	if (options->promisc) {
 		if (first_active_facility()) {
@@ -744,6 +744,16 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	rotate_flag = 0;
 	writelog(logging, logfile,
 		 "******** IP traffic monitor started ********");
+
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(ifptr && socket_bind_to_iface_by_name(fd, ifptr) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	//isdnfd = -1;
 	exitloop = 0;
@@ -1519,6 +1529,9 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		}
 	}
 
+err_close:
+	close(fd);
+err:
 	if (get_instance_count(ITRAFMONCOUNTFILE) <= 1)
 		killrvnamed();
 
@@ -1550,7 +1563,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	delwin(othptbl.othpwin);
 	delwin(othptbl.borderwin);
 	delwin(statwin);
-	close(fd);
 	destroytcptable(&table);
 	destroyothptable(&othptbl);
 	pkt_cleanup();

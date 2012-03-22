@@ -174,6 +174,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	struct promisc_states *promisc_list;
 
 	char msgstring[80];
+	int fd;
 
 	if (!facility_active(PKTSIZEIDFILE, ifname))
 		mark_facility(PKTSIZEIDFILE, "Packet size breakdown", ifname);
@@ -242,9 +243,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
-	starttime = startlog = timeint = tv.tv_sec;
-
-	int fd = xsocket_raw_eth_p_all();
+	now = starttime = startlog = timeint = tv.tv_sec;
 
 	if ((first_active_facility()) && (options->promisc)) {
 		init_promisc_list(&promisc_list);
@@ -254,6 +253,16 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
+
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(socket_bind_to_iface_by_name(fd, ifname) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	do {
 		gettimeofday(&tv, NULL);
@@ -318,6 +327,9 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		}
 	} while (!exitloop);
 
+err_close:
+	close(fd);
+err:
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
 		write_size_log(brackets, now - starttime, ifname, mtu, logfile);
@@ -325,7 +337,6 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 			 "******** Packet size distribution facility stopped ********");
 		fclose(logfile);
 	}
-	close(fd);
 
 	if ((options->promisc) && (is_last_instance())) {
 		load_promisc_list(&promisc_list);

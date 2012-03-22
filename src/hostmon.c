@@ -705,6 +705,8 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	int instance_id;
 	char msgstring[80];
 
+	int fd;
+
 	struct promisc_states *promisc_list;
 
 	if (!facility_active(LANMONIDFILE, ifptr))
@@ -724,8 +726,6 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 			return;
 		}
 	}
-
-	int fd = xsocket_raw_eth_p_all();
 
 	if ((first_active_facility()) && (options->promisc)) {
 		init_promisc_list(&promisc_list);
@@ -770,6 +770,16 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	writelog(logging, logfile,
 		 "******** LAN traffic monitor started ********");
 	leaveok(table.tabwin, TRUE);
+
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(ifptr && socket_bind_to_iface_by_name(fd, ifptr) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
@@ -964,8 +974,10 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 		}
 	} while (!exitloop);
 
+err_close:
 	close(fd);
 
+err:
 	if ((options->promisc) && (is_last_instance())) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
