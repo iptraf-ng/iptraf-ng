@@ -267,7 +267,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	do {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1e+6 + tv.tv_usec;
+		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		if (((options->updrate != 0)
 		     && (now - updtime >= options->updrate))

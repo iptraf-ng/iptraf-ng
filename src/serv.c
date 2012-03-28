@@ -831,7 +831,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1e+6 + tv.tv_usec;
+		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		if (now - timeint >= 5) {
 			printelapsedtime(starttime, now, LINES - 4, 20,

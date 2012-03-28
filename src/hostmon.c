@@ -788,7 +788,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	do {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1e+6 + tv.tv_usec;
+		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		if ((now - starttime) >= 5) {
 			printelapsedtime(statbegin, now, LINES - 3, 15,
