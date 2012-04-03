@@ -839,307 +839,200 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		getpacket(fd, tpacket, &fromaddr, &ch, &readlen, ifname,
 			  table.tcpscreen);
 
-		if (ch != ERR) {
-			if (keymode == 0) {
-				switch (ch) {
-				case KEY_UP:
-					if (!curwin) {
-						if (table.barptr != NULL) {
-							if (table.barptr->
-							    prev_entry !=
-							    NULL) {
-								tmptcp =
-								    table.
-								    barptr;
-								set_barptr((void
-									    *)
-									   &
-									   (table.
-									    barptr),
-									   table.
-									   barptr->
-									   prev_entry,
-									   &
-									   (table.
-									    barptr->
-									    prev_entry->
-									    starttime),
-									   &
-									   (table.
-									    barptr->
-									    prev_entry->
-									    spanbr),
-									   sizeof
-									   (unsigned
-									    long),
-									   statwin,
-									   &statcleared,
-									   statx);
+		if (ch == ERR)
+			goto no_key_ready;
 
-								printentry
-								    (&table,
-								     tmptcp,
-								     screen_idx,
-								     mode);
-
-								if (table.
-								    baridx == 1)
-									scrollupperwin
-									    (&table,
-									     SCROLLDOWN,
-									     &screen_idx,
-									     mode);
-								else
-									(table.
-									 baridx)--;
-
-								printentry
-								    (&table,
-								     table.
-								     barptr,
-								     screen_idx,
-								     mode);
-							}
-						}
-					} else
-						scrolllowerwin(&othptbl,
-							       SCROLLDOWN);
-					break;
-				case KEY_DOWN:
-					if (!curwin) {
-						if (table.barptr != NULL) {
-							if (table.barptr->
-							    next_entry !=
-							    NULL) {
-								tmptcp =
-								    table.
-								    barptr;
-								set_barptr((void
-									    *)
-									   &
-									   (table.
-									    barptr),
-									   table.
-									   barptr->
-									   next_entry,
-									   &
-									   (table.
-									    barptr->
-									    next_entry->
-									    starttime),
-									   &
-									   (table.
-									    barptr->
-									    next_entry->
-									    spanbr),
-									   sizeof
-									   (unsigned
-									    long),
-									   statwin,
-									   &statcleared,
-									   statx);
-								printentry
-								    (&table,
-								     tmptcp,
-								     screen_idx,
-								     mode);
-
-								if (table.
-								    baridx ==
-								    table.imaxy)
-									scrollupperwin
-									    (&table,
-									     SCROLLUP,
-									     &screen_idx,
-									     mode);
-								else
-									(table.
-									 baridx)++;
-
-								printentry
-								    (&table,
-								     table.
-								     barptr,
-								     screen_idx,
-								     mode);
-							}
-						}
-					} else
-						scrolllowerwin(&othptbl,
-							       SCROLLUP);
-					break;
-				case KEY_RIGHT:
-					if (curwin) {
-						if (othptbl.strindex !=
-						    VSCRL_OFFSET)
-							othptbl.strindex =
-							    VSCRL_OFFSET;
-
-						refresh_othwindow(&othptbl);
-					}
-					break;
-				case KEY_LEFT:
-					if (curwin) {
-						if (othptbl.strindex != 0)
-							othptbl.strindex = 0;
-
-						refresh_othwindow(&othptbl);
-					}
-					break;
-				case KEY_PPAGE:
-				case '-':
-					if (!curwin) {
-						if (table.barptr != NULL) {
-							pageupperwin(&table,
-								     SCROLLDOWN,
-								     &screen_idx,
-								     mode);
-							set_barptr((void *)
-								   &(table.
-								     barptr),
-								   table.
-								   lastvisible,
-								   &(table.
-								     lastvisible->
-								     starttime),
-								   &(table.
-								     lastvisible->
-								     spanbr),
-								   sizeof
-								   (unsigned
-								    long),
-								   statwin,
-								   &statcleared,
-								   statx);
-							table.baridx =
-							    table.lastvisible->
-							    index - screen_idx +
-							    1;
-							refreshtcpwin(&table,
-								      screen_idx,
-								      mode);
-						}
-					} else {
-						pagelowerwin(&othptbl,
-							     SCROLLDOWN);
-						refresh_othwindow(&othptbl);
-					}
-					break;
-				case KEY_NPAGE:
-				case ' ':
-					if (!curwin) {
-						if (table.barptr != NULL) {
-							pageupperwin(&table,
-								     SCROLLUP,
-								     &screen_idx,
-								     mode);
-							set_barptr((void *)
-								   &(table.
-								     barptr),
-								   table.
-								   firstvisible,
-								   &(table.
-								     firstvisible->
-								     starttime),
-								   &(table.
-								     firstvisible->
-								     spanbr),
-								   sizeof
-								   (unsigned
-								    long),
-								   statwin,
-								   &statcleared,
-								   statx);
-							table.baridx = 1;
-							refreshtcpwin(&table,
-								      screen_idx,
-								      mode);
-						}
-					} else {
-						pagelowerwin(&othptbl,
-							     SCROLLUP);
-						refresh_othwindow(&othptbl);
-					}
-					break;
-				case KEY_F(6):
-				case 'w':
-				case 'W':
-				case 9:
-					curwin = !curwin;
-					markactive(curwin, table.borderwin,
-						   othptbl.borderwin);
-					uniq_help(curwin);
-					break;
-				case 'm':
-				case 'M':
-					if (!curwin) {
-						mode = (mode + 1) % 3;
-						if ((mode == 1)
-						    && (!options->mac))
-							mode = 2;
-						refreshtcpwin(&table,
-							      screen_idx, mode);
-					}
-					break;
-				case 12:
-				case 'l':
-				case 'L':
-					tx_refresh_screen();
-					break;
-
-				case 'F':
-				case 'f':
-				case 'c':
-				case 'C':
-					flushclosedentries(&table, &screen_idx,
-							   logging, logfile,
-							   options);
-					refreshtcpwin(&table, screen_idx, mode);
-					break;
-				case 's':
-				case 'S':
-					keymode = 1;
-					show_tcpsort_win(&sortwin, &sortpanel);
-					break;
-				case 'Q':
-				case 'q':
-				case 'X':
-				case 'x':
-				case 24:
-				case 27:
-					exitloop = 1;
+		if (keymode == 0) {
+			switch (ch) {
+			case KEY_UP:
+				if (curwin) {
+					scrolllowerwin(&othptbl, SCROLLDOWN);
 					break;
 				}
-			} else if (keymode == 1) {
-				keymode = 0;
-				del_panel(sortpanel);
-				delwin(sortwin);
-				show_sort_statwin(&sortwin, &sortpanel);
-				update_panels();
-				doupdate();
-				sortipents(&table, &screen_idx, ch, mode,
-					   logging, logfile, options->timeout,
-					   &nomem, options);
+				if (!table.barptr
+				    || !table.barptr->prev_entry)
+					break;
 
-				if (table.barptr != NULL) {
-					set_barptr((void *) &(table.barptr),
-						   table.firstvisible,
-						   &(table.firstvisible->
-						     starttime),
-						   &(table.firstvisible->
-						     spanbr),
-						   sizeof(unsigned long),
-						   statwin, &statcleared,
-						   statx);
-					table.baridx = 1;
+				tmptcp = table.barptr;
+				set_barptr((void *) &(table.barptr),
+					   table.barptr->prev_entry,
+					   &(table.barptr->prev_entry->starttime),
+					   &(table.barptr->prev_entry->spanbr),
+					   sizeof(unsigned long),
+					   statwin, &statcleared, statx);
+
+				printentry(&table, tmptcp, screen_idx, mode);
+
+				if (table.baridx == 1)
+					scrollupperwin(&table, SCROLLDOWN,
+						       &screen_idx, mode);
+				else
+					(table.baridx)--;
+
+				printentry(&table, table.barptr, screen_idx,
+					   mode);
+				break;
+			case KEY_DOWN:
+				if (curwin) {
+					scrolllowerwin(&othptbl, SCROLLUP);
+					break;
 				}
+				if (!table.barptr
+				    || !table.barptr->next_entry)
+					break;
+
+				tmptcp = table.barptr;
+				set_barptr((void*) &(table.barptr),
+					   table.barptr->next_entry,
+					   &(table.barptr->next_entry->starttime),
+					   &(table.barptr->next_entry->spanbr),
+					   sizeof(unsigned long),
+					   statwin, &statcleared, statx);
+				printentry(&table, tmptcp, screen_idx,mode);
+
+				if (table.baridx == table.imaxy)
+					scrollupperwin(&table, SCROLLUP,
+						       &screen_idx, mode);
+				else
+					(table.baridx)++;
+
+				printentry(&table,table.barptr, screen_idx,
+					   mode);
+				break;
+			case KEY_RIGHT:
+				if (!curwin)
+					break;
+
+				if (othptbl.strindex != VSCRL_OFFSET)
+					othptbl.strindex = VSCRL_OFFSET;
+
+				refresh_othwindow(&othptbl);
+				break;
+			case KEY_LEFT:
+				if (!curwin)
+					break;
+
+				if (othptbl.strindex != 0)
+					othptbl.strindex = 0;
+
+				refresh_othwindow(&othptbl);
+				break;
+			case KEY_PPAGE:
+			case '-':
+				if (curwin) {
+					pagelowerwin(&othptbl, SCROLLDOWN);
+					refresh_othwindow(&othptbl);
+					break;
+				}
+
+				if (!table.barptr)
+					break;
+
+				pageupperwin(&table, SCROLLDOWN, &screen_idx,
+					     mode);
+				set_barptr((void *) &(table.barptr),
+					   table.lastvisible,
+					   &(table.lastvisible->starttime),
+					   &(table.lastvisible->spanbr),
+					   sizeof(unsigned long),
+					   statwin,&statcleared, statx);
+				table.baridx =
+					table.lastvisible->index - screen_idx + 1;
 				refreshtcpwin(&table, screen_idx, mode);
-				del_panel(sortpanel);
-				delwin(sortwin);
-				update_panels();
-				doupdate();
+				break;
+			case KEY_NPAGE:
+			case ' ':
+				if (curwin) {
+					pagelowerwin(&othptbl, SCROLLUP);
+					refresh_othwindow(&othptbl);
+					break;
+				}
+
+				if (!table.barptr)
+					break;
+
+				pageupperwin(&table, SCROLLUP, &screen_idx, mode);
+				set_barptr((void *) &(table.barptr),
+					   table.firstvisible,
+					   &(table.firstvisible->starttime),
+					   &(table.firstvisible->spanbr),
+					   sizeof(unsigned long),
+					   statwin, &statcleared, statx);
+				table.baridx = 1;
+				refreshtcpwin(&table, screen_idx, mode);
+				break;
+			case KEY_F(6):
+			case 'w':
+			case 'W':
+			case 9:
+				curwin = !curwin;
+				markactive(curwin, table.borderwin,
+					   othptbl.borderwin);
+				uniq_help(curwin);
+				break;
+			case 'm':
+			case 'M':
+				if (curwin)
+					break;
+				mode = (mode + 1) % 3;
+				if ((mode == 1) && (!options->mac))
+					mode = 2;
+				refreshtcpwin(&table, screen_idx, mode);
+				break;
+			case 12:
+			case 'l':
+			case 'L':
+				tx_refresh_screen();
+				break;
+
+			case 'F':
+			case 'f':
+			case 'c':
+			case 'C':
+				flushclosedentries(&table, &screen_idx, logging,
+						   logfile, options);
+				refreshtcpwin(&table, screen_idx, mode);
+				break;
+			case 's':
+			case 'S':
+				keymode = 1;
+				show_tcpsort_win(&sortwin, &sortpanel);
+				break;
+			case 'Q':
+			case 'q':
+			case 'X':
+			case 'x':
+			case 24:
+			case 27:
+				exitloop = 1;
+				break;
 			}
+		} else if (keymode == 1) {
+			keymode = 0;
+			del_panel(sortpanel);
+			delwin(sortwin);
+			show_sort_statwin(&sortwin, &sortpanel);
+			update_panels();
+			doupdate();
+			sortipents(&table, &screen_idx, ch, mode, logging,
+				   logfile, options->timeout, &nomem, options);
+
+			if (table.barptr != NULL) {
+				set_barptr((void *) &(table.barptr),
+					   table.firstvisible,
+					   &(table.firstvisible->starttime),
+					   &(table.firstvisible->spanbr),
+					   sizeof(unsigned long),
+					   statwin, &statcleared, statx);
+				table.baridx = 1;
+			}
+			refreshtcpwin(&table, screen_idx, mode);
+			del_panel(sortpanel);
+			delwin(sortwin);
+			update_panels();
+			doupdate();
 		}
+	no_key_ready:
 
 		if (readlen <= 0)
 			continue;
