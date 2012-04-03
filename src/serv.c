@@ -866,234 +866,176 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 
 		getpacket(fd, buf, &fromaddr, &ch, &br, iface, list.win);
 
-		if (ch != ERR) {
-			if (keymode == 0) {
-				switch (ch) {
-				case KEY_UP:
-					if (list.barptr != NULL) {
-						if (list.barptr->prev_entry !=
-						    NULL) {
-							serv_tmp = list.barptr;
-							set_barptr((void *)
-								   &(list.
-								     barptr),
-								   list.barptr->
-								   prev_entry,
-								   &(list.
-								     barptr->
-								     prev_entry->
-								     starttime),
-								   &(list.
-								     barptr->
-								     prev_entry->
-								     spans),
-								   sizeof(struct
-									  serv_spans),
-								   statwin,
-								   &statcleared,
-								   statx);
-							printportent(&list,
-								     serv_tmp,
-								     idx);
+		if (ch == ERR)
+			goto no_key_ready;
 
-							if (list.baridx == 1) {
-								scrollservwin
-								    (&list,
-								     SCROLLDOWN,
-								     (int *)
-								     &idx);
-							} else
-								list.baridx--;
-
-							printportent(&list,
-								     list.
-								     barptr,
-								     idx);
-						}
-					}
+		if (keymode == 0) {
+			switch (ch) {
+			case KEY_UP:
+				if (!list.barptr
+				    || !list.barptr->prev_entry)
 					break;
-				case KEY_DOWN:
-					if (list.barptr != NULL) {
-						if (list.barptr->next_entry !=
-						    NULL) {
-							serv_tmp = list.barptr;
-							set_barptr((void *)
-								   &(list.
-								     barptr),
-								   list.barptr->
-								   next_entry,
-								   &(list.
-								     barptr->
-								     next_entry->
-								     starttime),
-								   &(list.
-								     barptr->
-								     next_entry->
-								     spans),
-								   sizeof(struct
-									  serv_spans),
-								   statwin,
-								   &statcleared,
-								   statx);
-							printportent(&list,
-								     serv_tmp,
-								     idx);
 
-							if (list.baridx ==
-							    list.imaxy) {
-								scrollservwin
-								    (&list,
-								     SCROLLUP,
-								     (int *)
-								     &idx);
-							} else
-								list.baridx++;
+				serv_tmp = list.barptr;
+				set_barptr((void *) &(list.barptr),
+					   list.barptr->prev_entry,
+					   &(list.barptr->prev_entry->starttime),
+					   &(list.barptr->prev_entry->spans),
+					   sizeof(struct serv_spans),
+					   statwin, &statcleared, statx);
+				printportent(&list, serv_tmp, idx);
 
-							printportent(&list,
-								     list.
-								     barptr,
-								     idx);
-						}
-					}
+				if (list.baridx == 1)
+					scrollservwin(&list, SCROLLDOWN, (int *) &idx);
+				else
+					list.baridx--;
+
+				printportent(&list, list.barptr, idx);
+				break;
+			case KEY_DOWN:
+				if (!list.barptr
+				    || !list.barptr->next_entry)
 					break;
-				case KEY_PPAGE:
-				case '-':
-					if (list.barptr != NULL) {
-						pageservwin(&list, SCROLLDOWN,
-							    (int *)
-							    &idx);
 
-						set_barptr((void *)
-							   &(list.barptr),
-							   list.lastvisible,
-							   &(list.lastvisible->
-							     starttime),
-							   &(list.lastvisible->
-							     spans),
-							   sizeof(struct
-								  serv_spans),
-							   statwin,
-							   &statcleared, statx);
-						list.baridx =
-						    list.lastvisible->idx -
-						    idx + 1;
+				serv_tmp = list.barptr;
+				set_barptr((void *) &(list.barptr),
+					   list.barptr->next_entry,
+					   &(list.barptr->next_entry->starttime),
+					   &(list.barptr->next_entry->spans),
+					   sizeof(struct serv_spans),
+					   statwin, &statcleared, statx);
+				printportent(&list,serv_tmp, idx);
 
-						refresh_serv_screen(&list, idx);
-					}
-					break;
-				case KEY_NPAGE:
-				case ' ':
-					if (list.barptr != NULL) {
-						pageservwin(&list, SCROLLUP,
-							    (int *)
-							    &idx);
+				if (list.baridx == list.imaxy)
+					scrollservwin(&list, SCROLLUP, (int *) &idx);
+				else
+					list.baridx++;
 
-						set_barptr((void *)
-							   &(list.barptr),
-							   list.firstvisible,
-							   &(list.firstvisible->
-							     starttime),
-							   &(list.firstvisible->
-							     spans),
-							   sizeof(struct
-								  serv_spans),
-							   statwin,
-							   &statcleared, statx);
-						list.baridx = 1;
+				printportent(&list, list.barptr, idx);
+				break;
+			case KEY_PPAGE:
+			case '-':
+				if (!list.barptr)
+					break;
 
-						refresh_serv_screen(&list, idx);
-					}
-					break;
-				case 12:
-				case 'l':
-				case 'L':
-					tx_refresh_screen();
-					break;
-				case 's':
-				case 'S':
-					show_portsort_keywin(&sortwin,
-							     &sortpanel);
-					keymode = 1;
-					break;
-				case 'q':
-				case 'Q':
-				case 'x':
-				case 'X':
-				case 27:
-				case 24:
-					exitloop = 1;
-				}
-			} else if (keymode == 1) {
-				del_panel(sortpanel);
-				delwin(sortwin);
-				sortportents(&list, (int *) &idx, ch);
-				keymode = 0;
-				if (list.barptr != NULL) {
-					set_barptr((void *) &(list.barptr),
-						   list.firstvisible,
-						   &(list.firstvisible->
-						     starttime),
-						   &(list.firstvisible->spans),
-						   sizeof(struct serv_spans),
-						   statwin, &statcleared,
-						   statx);
-					list.baridx = 1;
-				}
+				pageservwin(&list, SCROLLDOWN, (int *) &idx);
+
+				set_barptr((void *) &(list.barptr),
+					   list.lastvisible,
+					   &(list.lastvisible->starttime),
+					   &(list.lastvisible->spans),
+					   sizeof(struct serv_spans),
+					   statwin, &statcleared, statx);
+				list.baridx = list.lastvisible->idx - idx + 1;
+
 				refresh_serv_screen(&list, idx);
-				update_panels();
-				doupdate();
-			}
-		}
-
-		if (br > 0) {
-			unsigned short ipproto;
-			unsigned short iplen;
-
-			pkt_result =
-			    processpacket(buf, &ipacket, (unsigned int *) &br,
-					  &tot_br, &sport, &dport, &fromaddr,
-					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG, iface,
-					  options->v6inv4asv6);
-
-			if (pkt_result != PACKET_OK)
-				continue;
-
-			switch (fromaddr.sll_protocol) {
-			case ETH_P_IP:
-				ipproto = ((struct iphdr *) ipacket)->protocol;
-				iplen =
-				    ntohs(((struct iphdr *) ipacket)->tot_len);
 				break;
-			case ETH_P_IPV6:
-				ipproto = ((struct ip6_hdr *) ipacket)->ip6_nxt;	/* FIXME: extension headers ??? */
-				iplen =
-				    ntohs(((struct ip6_hdr *) ipacket)->
-					  ip6_plen) + 40;
+			case KEY_NPAGE:
+			case ' ':
+				if (!list.barptr)
+					break;
+
+				pageservwin(&list, SCROLLUP, (int *) &idx);
+
+				set_barptr((void *) &(list.barptr),
+					   list.firstvisible,
+					   &(list.firstvisible->starttime),
+					   &(list.firstvisible->spans),
+					   sizeof(struct serv_spans),
+					   statwin, &statcleared, statx);
+				list.baridx = 1;
+
+				refresh_serv_screen(&list, idx);
+
 				break;
-			default:
-				/* unknown link protocol */
-				continue;
-			}
-			switch (ipproto) {
-			case IPPROTO_TCP:
-			case IPPROTO_UDP:
-				updateportent(&list, ipproto, ntohs(sport),
-					      ntohs(dport), iplen, idx, ports,
-					      options->servnames);
+			case 12:
+			case 'l':
+			case 'L':
+				tx_refresh_screen();
 				break;
-			default:
-				/* unknown L4 protocol */
-				continue;
+			case 's':
+			case 'S':
+				show_portsort_keywin(&sortwin,
+						     &sortpanel);
+				keymode = 1;
+				break;
+			case 'q':
+			case 'Q':
+			case 'x':
+			case 'X':
+			case 27:
+			case 24:
+				exitloop = 1;
 			}
-			if ((list.barptr == NULL) && (list.head != NULL)) {
-				set_barptr((void *) &(list.barptr), list.head,
-					   &(list.head->starttime),
-					   &(list.head->spans),
-					   sizeof(struct serv_spans), statwin,
-					   &statcleared, statx);
+		} else if (keymode == 1) {
+			del_panel(sortpanel);
+			delwin(sortwin);
+			sortportents(&list, (int *) &idx, ch);
+			keymode = 0;
+			if (list.barptr != NULL) {
+				set_barptr((void *) &(list.barptr),
+					   list.firstvisible,
+					   &(list.firstvisible->
+					     starttime),
+					   &(list.firstvisible->spans),
+					   sizeof(struct serv_spans),
+					   statwin, &statcleared,
+					   statx);
 				list.baridx = 1;
 			}
+			refresh_serv_screen(&list, idx);
+			update_panels();
+			doupdate();
+		}
+	no_key_ready:
+
+		if (br <= 0)
+			continue;
+
+		unsigned short ipproto;
+		unsigned short iplen;
+
+		pkt_result =
+			processpacket(buf, &ipacket, (unsigned int *) &br,
+				      &tot_br, &sport, &dport, &fromaddr,
+				      ofilter,
+				      MATCH_OPPOSITE_USECONFIG, iface,
+				      options->v6inv4asv6);
+
+		if (pkt_result != PACKET_OK)
+			continue;
+
+		switch (fromaddr.sll_protocol) {
+		case ETH_P_IP:
+			ipproto = ((struct iphdr *) ipacket)->protocol;
+			iplen =	ntohs(((struct iphdr *) ipacket)->tot_len);
+			break;
+		case ETH_P_IPV6:
+			ipproto = ((struct ip6_hdr *) ipacket)->ip6_nxt;	/* FIXME: extension headers ??? */
+			iplen = ntohs(((struct ip6_hdr *) ipacket)->ip6_plen) + 40;
+			break;
+		default:
+			/* unknown link protocol */
+			continue;
+		}
+		switch (ipproto) {
+		case IPPROTO_TCP:
+		case IPPROTO_UDP:
+			updateportent(&list, ipproto, ntohs(sport),
+				      ntohs(dport), iplen, idx, ports,
+				      options->servnames);
+			break;
+		default:
+			/* unknown L4 protocol */
+			continue;
+		}
+		if ((list.barptr == NULL) && (list.head != NULL)) {
+			set_barptr((void *) &(list.barptr), list.head,
+				   &(list.head->starttime),
+				   &(list.head->spans),
+				   sizeof(struct serv_spans), statwin,
+				   &statcleared, statx);
+			list.baridx = 1;
 		}
 	}
 
