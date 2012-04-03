@@ -1076,37 +1076,31 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			continue;
 		}
 
-		transpacket =
-		    (struct tcphdr *) (packet + iphlen);
+		transpacket = (struct tcphdr *) (packet + iphlen);
 
 		if (protocol == IPPROTO_TCP) {
-
 			if (ippacket != NULL) {
 				tcpentry =
-				    in_table(&table,
-					     ippacket->saddr,
-					     ippacket->daddr,
-					     NULL, NULL,
-					     ntohs(sport),
-					     ntohs(dport),
-					     ifname, logging,
-					     logfile, &nomem,
-					     options);
+					in_table(&table,
+						 ippacket->saddr,
+						 ippacket->daddr,
+						 NULL, NULL,
+						 ntohs(sport),
+						 ntohs(dport),
+						 ifname, logging,
+						 logfile, &nomem,
+						 options);
 			} else {
 				tcpentry =
-				    in_table(&table, 0, 0,
-					     (uint8_t
-					      *) (&ip6packet->
-						  ip6_src.
-						  s6_addr),
-					     (uint8_t
-					      *) (&ip6packet->
-						  ip6_dst.
-						  s6_addr),
-					     ntohs(sport),
-					     ntohs(dport),
-					     ifname, logging,
-					     logfile, &nomem,
+					in_table(&table, 0, 0,
+					     (uint8_t *) (&ip6packet->
+							  ip6_src.
+							  s6_addr),
+					     (uint8_t *) (&ip6packet->
+							  ip6_dst.
+							  s6_addr),
+					     ntohs(sport), ntohs(dport),
+					     ifname, logging, logfile, &nomem,
 					     options);
 			}
 
@@ -1115,96 +1109,55 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			 * to reduce the chances of stales, not a FIN.
 			 */
 
-			if ((ntohs(frag_off) & 0x3fff) == 0) {	/* first frag only */
-				if ((tcpentry == NULL)
-				    && (!(transpacket->fin))) {
+			if (((ntohs(frag_off) & 0x3fff) == 0)	/* first frag only */
+			    && (tcpentry == NULL)
+			    && (!(transpacket->fin))
+			    && !nomem) {
 
-					/*
-					 * Ok, so we have a packet.  Add it if this connection
-					 * is not yet closed, or if it is a SYN packet.
-					 */
+				/*
+				 * Ok, so we have a packet.  Add it if this connection
+				 * is not yet closed, or if it is a SYN packet.
+				 */
+				wasempty = (table.head == NULL);
+				if (ippacket != NULL)
+					tcpentry =
+						addentry(&table,
+							 (unsigned long) ippacket->saddr,
+							 (unsigned long) ippacket->daddr,
+							 NULL, NULL, sport, dport,
+							 ippacket->protocol,
+							 ifname, &revlook, rvnfd,
+							 options->servnames, &nomem);
+				else
+					tcpentry =
+						addentry(&table, 0, 0,
+							 (uint8_t *) (&ip6packet->ip6_src.s6_addr),
+							 (uint8_t *) (&ip6packet->ip6_dst.s6_addr),
+							 sport, dport, ip6packet->ip6_nxt,
+							 ifname, &revlook, rvnfd,
+							 options->servnames, &nomem);
+				if (tcpentry != NULL) {
+					printentry(&table, tcpentry->oth_connection, screen_idx,
+						   mode);
 
-					if (!nomem) {
-						wasempty =
-						    (table.
-						     head ==
-						     NULL);
-						if (ippacket !=
-						    NULL)
-							tcpentry
-							    =
-							    addentry
-							    (&table,
-							     (unsigned
-							      long)
-							     ippacket->
-							     saddr,
-							     (unsigned
-							      long)
-							     ippacket->
-							     daddr,
-							     NULL,
-							     NULL,
-							     sport,
-							     dport,
-							     ippacket->
-							     protocol,
-							     ifname,
-							     &revlook,
-							     rvnfd,
-							     options->
-							     servnames,
-							     &nomem);
-						else
-							tcpentry
-							    =
-							    addentry
-							    (&table,
-							     0,
-							     0,
-							     (uint8_t
-							      *)
-							     (&ip6packet->
-							      ip6_src.
-							      s6_addr),
-							     (uint8_t
-							      *)
-							     (&ip6packet->
-							      ip6_dst.
-							      s6_addr),
-							     sport,
-							     dport,
-							     ip6packet->
-							     ip6_nxt,
-							     ifname,
-							     &revlook,
-							     rvnfd,
-							     options->
-							     servnames,
-							     &nomem);
-						if (tcpentry !=
-						    NULL) {
-							printentry
-							    (&table,
-							     tcpentry->
-							     oth_connection,
-							     screen_idx,
-							     mode);
-
-							if (wasempty) {
-								set_barptr
-								    ((void *) &(table.barptr), table.firstvisible, &(table.firstvisible->starttime), &(table.firstvisible->spanbr), sizeof(unsigned long), statwin, &statcleared, statx);
-								table.
-								    baridx
-								    =
-								    1;
-							}
-
-							if ((table.barptr == tcpentry) || (table.barptr == tcpentry->oth_connection))
-								set_barptr
-								    ((void *) &(table.barptr), table.barptr, &(table.barptr->starttime), &(table.barptr->spanbr), sizeof(unsigned long), statwin, &statcleared, statx);
-						}
+					if (wasempty) {
+						set_barptr((void *) &(table.barptr),
+							   table.firstvisible,
+							   &(table.firstvisible->starttime),
+							   &(table.firstvisible->spanbr),
+							   sizeof(unsigned long),
+							   statwin, &statcleared, statx);
+						table.baridx = 1;
 					}
+
+					if ((table.barptr == tcpentry)
+					    || (table.barptr == tcpentry->oth_connection))
+						set_barptr((void *) &(table.barptr),
+							   table.barptr,
+							   &(table.barptr->starttime),
+							   &(table.barptr->spanbr),
+							   sizeof(unsigned long), statwin,
+							   &statcleared, statx);
 				}
 			}
 			/*
@@ -1213,156 +1166,83 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			 * success.
 			 */
 
-			if (tcpentry != NULL) {
+			if ((tcpentry != NULL)
+			    && !(tcpentry->stat & FLAG_RST)) {
 				/*
 				 * Don't bother updating the entry if the connection
 				 * has been previously reset.  (Does this really
 				 * happen in practice?)
 				 */
 
-				if (!
-				    (tcpentry->
-				     stat & FLAG_RST)) {
-					if (revlook) {
-						p_sstat =
-						    tcpentry->
-						    s_fstat;
-						p_dstat =
-						    tcpentry->
-						    d_fstat;
-					}
-					if (ippacket != NULL)
-						updateentry
-						    (&table,
-						     tcpentry,
-						     transpacket,
-						     tpacket,
-						     fromaddr.sll_hatype,
-						     readlen,
-						     br,
-						     ippacket->
-						     frag_off,
-						     logging,
-						     &revlook,
-						     rvnfd,
-						     options,
-						     logfile,
-						     &nomem);
-					else
-						updateentry
-						    (&table,
-						     tcpentry,
-						     transpacket,
-						     tpacket,
-						     fromaddr.sll_hatype,
-						     readlen,
-						     readlen, 0,
-						     logging,
-						     &revlook,
-						     rvnfd,
-						     options,
-						     logfile,
-						     &nomem);
-					/*
-					 * Log first packet of a TCP connection except if
-					 * it's a RST, which was already logged earlier in
-					 * updateentry()
-					 */
-
-					if ((tcpentry->pcount ==
-					     1)
-					    &&
-					    (!(tcpentry->
-					       stat & FLAG_RST))
-					    && (logging)) {
-						strcpy
-						    (msgstring,
-						     "first packet");
-						if (transpacket->syn)
-							strcat
-							    (msgstring,
-							     " (SYN)");
-
-						writetcplog
-						    (logging,
-						     logfile,
-						     tcpentry,
-						     readlen,
-						     options->
-						     mac,
-						     msgstring);
-					}
-
-					if ((revlook)
-					    &&
-					    (((p_sstat !=
-					       RESOLVED)
-					      && (tcpentry->
-						  s_fstat ==
-						  RESOLVED))
-					     ||
-					     ((p_dstat !=
-					       RESOLVED)
-					      && (tcpentry->
-						  d_fstat ==
-						  RESOLVED)))) {
-						clearaddr
-						    (&table,
-						     tcpentry,
-						     screen_idx);
-						clearaddr
-						    (&table,
-						     tcpentry->
-						     oth_connection,
-						     screen_idx);
-					}
-					printentry(&table,
-						   tcpentry,
-						   screen_idx,
-						   mode);
-
-					/*
-					 * Special cases: Update other direction if it's
-					 * an ACK in response to a FIN.
-					 *
-					 *         -- or --
-					 *
-					 * Addresses were just resolved for the other
-					 * direction, so we should also do so here.
-					 */
-
-					if (((tcpentry->oth_connection->finsent == 2) &&	/* FINed and ACKed */
-					     (ntohl
-					      (transpacket->
-					       seq) ==
-					      tcpentry->
-					      oth_connection->
-					      finack))
-					    || ((revlook)
-						&&
-						(((p_sstat !=
-						   RESOLVED)
-						  && (tcpentry->
-						      s_fstat ==
-						      RESOLVED))
-						 ||
-						 ((p_dstat !=
-						   RESOLVED)
-						  && (tcpentry->
-						      d_fstat ==
-						      RESOLVED)))))
-						printentry
-						    (&table,
-						     tcpentry->
-						     oth_connection,
-						     screen_idx,
-						     mode);
+				if (revlook) {
+					p_sstat = tcpentry->s_fstat;
+					p_dstat = tcpentry->d_fstat;
 				}
+
+				if (ippacket != NULL)
+					updateentry(&table, tcpentry, transpacket,
+						    tpacket, fromaddr.sll_hatype,
+						    readlen, br, ippacket->frag_off,
+						    logging, &revlook, rvnfd, options,
+						    logfile, &nomem);
+				else
+					updateentry(&table, tcpentry, transpacket,
+						    tpacket, fromaddr.sll_hatype,
+						    readlen, readlen, 0, logging,
+						    &revlook, rvnfd, options,
+						    logfile, &nomem);
+				/*
+				 * Log first packet of a TCP connection except if
+				 * it's a RST, which was already logged earlier in
+				 * updateentry()
+				 */
+
+				if ((tcpentry->pcount == 1)
+				    && (!(tcpentry->stat & FLAG_RST))
+				    && (logging)) {
+					strcpy(msgstring, "first packet");
+					if (transpacket->syn)
+						strcat(msgstring, " (SYN)");
+
+					writetcplog(logging, logfile, tcpentry,
+						    readlen, options->mac,
+						    msgstring);
+				}
+
+				if ((revlook)
+				    && (((p_sstat != RESOLVED)
+					 && (tcpentry->s_fstat == RESOLVED))
+					|| ((p_dstat != RESOLVED)
+					    && (tcpentry->d_fstat == RESOLVED)))) {
+					clearaddr(&table, tcpentry, screen_idx);
+					clearaddr(&table, tcpentry->oth_connection,
+						  screen_idx);
+				}
+				printentry(&table, tcpentry, screen_idx, mode);
+
+				/*
+				 * Special cases: Update other direction if it's
+				 * an ACK in response to a FIN.
+				 *
+				 *         -- or --
+				 *
+				 * Addresses were just resolved for the other
+				 * direction, so we should also do so here.
+				 */
+
+				if (((tcpentry->oth_connection->finsent == 2)
+				     &&	/* FINed and ACKed */
+				     (ntohl(transpacket->seq) == tcpentry->oth_connection->finack))
+				    || ((revlook)
+					&& (((p_sstat != RESOLVED)
+					     && (tcpentry->s_fstat == RESOLVED))
+					    || ((p_dstat != RESOLVED)
+						&& (tcpentry->d_fstat == RESOLVED)))))
+					printentry(&table, tcpentry->oth_connection,
+						   screen_idx, mode);
 			}
 		} else if (ippacket != NULL) {
-			fragment =
-			    ((ntohs(ippacket->frag_off) &
-			      0x1fff) != 0);
+			fragment =  ((ntohs(ippacket->frag_off) & 0x1fff) != 0);
 
 			if (ippacket->protocol == IPPROTO_ICMP) {
 
@@ -1372,54 +1252,30 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				 * is received.
 				 */
 
-				if (((struct icmphdr *)
-				     transpacket)->type ==
-				    ICMP_DEST_UNREACH)
-					process_dest_unreach
-					    (&table, (char *)
-					     transpacket,
-					     ifname, &nomem);
-
+				if (((struct icmphdr *) transpacket)->type == ICMP_DEST_UNREACH)
+					process_dest_unreach(&table, (char *) transpacket,
+							     ifname, &nomem);
 			}
-			add_othp_entry(&othptbl, &table,
-				       ippacket->saddr,
-				       ippacket->daddr, NULL,
-				       NULL, IS_IP,
-				       ippacket->protocol,
-				       fromaddr.sll_hatype,
-				       (char *) tpacket,
-				       (char *) transpacket,
-				       readlen, ifname,
-				       &revlook, rvnfd,
-				       options->timeout,
-				       logging, logfile,
-				       options->servnames,
-				       fragment, &nomem);
+			add_othp_entry(&othptbl, &table, ippacket->saddr,
+				       ippacket->daddr, NULL, NULL, IS_IP,
+				       ippacket->protocol, fromaddr.sll_hatype,
+				       (char *) tpacket, (char *) transpacket,
+				       readlen, ifname, &revlook, rvnfd,
+				       options->timeout, logging, logfile,
+				       options->servnames, fragment, &nomem);
 
 		} else {
-			if (ip6packet->ip6_nxt ==
-			    IPPROTO_ICMPV6) {
-				if (((struct icmp6_hdr *)
-				     transpacket)->icmp6_type ==
-				    ICMP6_DST_UNREACH)
-					process_dest_unreach
-					    (&table, (char *)
-					     transpacket,
-					     ifname, &nomem);
-			}
-			add_othp_entry(&othptbl, &table, 0, 0,
-				       &ip6packet->ip6_src,
-				       &ip6packet->ip6_dst,
-				       IS_IP,
-				       ip6packet->ip6_nxt,
-				       fromaddr.sll_hatype,
-				       (char *) tpacket,
-				       (char *) transpacket,
-				       readlen, ifname,
-				       &revlook, rvnfd,
-				       options->timeout,
-				       logging, logfile,
-				       options->servnames,
+			if (ip6packet->ip6_nxt == IPPROTO_ICMPV6
+			    && (((struct icmp6_hdr *) transpacket)->icmp6_type == ICMP6_DST_UNREACH))
+				process_dest_unreach(&table, (char *) transpacket,
+						     ifname, &nomem);
+
+			add_othp_entry(&othptbl, &table, 0, 0, &ip6packet->ip6_src,
+				       &ip6packet->ip6_dst, IS_IP, ip6packet->ip6_nxt,
+				       fromaddr.sll_hatype, (char *) tpacket,
+				       (char *) transpacket, readlen, ifname,
+				       &revlook, rvnfd, options->timeout,
+				       logging, logfile, options->servnames,
 				       fragment, &nomem);
 		}
 	}
