@@ -79,8 +79,7 @@ void init_othp_table(struct othptable *table, int mac)
 	table->mac = mac;
 }
 
-void process_dest_unreach(struct tcptable *table, char *packet, char *ifname,
-			  int *nomem)
+void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 {
 	struct iphdr *ip;
 	struct ip6_hdr *ip6;
@@ -90,7 +89,7 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname,
 	ip = (struct iphdr *) (packet + 8);
 
 	/*
-	 * We really won't be making use of nomem here.  Timeout checking
+	 * Timeout checking
 	 * won't be performed either, so we just pass NULL as the pointer
 	 * to the configuration structure.  in_table() will recognize this
 	 * and set its internal timeout variable to 0.
@@ -104,7 +103,7 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname,
 		tcpentry =
 		    in_table(table, 0, 0, ip6->ip6_src.s6_addr,
 			     ip6->ip6_dst.s6_addr, ntohs(tcp->source),
-			     ntohs(tcp->dest), ifname, 0, NULL, nomem, NULL);
+			     ntohs(tcp->dest), ifname, 0, NULL, NULL);
 	} else {
 		if (ip->protocol != IPPROTO_TCP)
 			return;
@@ -112,12 +111,12 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname,
 		tcpentry =
 		    in_table(table, ip->saddr, ip->daddr, NULL, NULL,
 			     ntohs(tcp->source), ntohs(tcp->dest), ifname, 0,
-			     NULL, nomem, NULL);
+			     NULL, NULL);
 	}
 
 	if (tcpentry != NULL) {
 		tcpentry->stat = tcpentry->oth_connection->stat = FLAG_RST;
-		addtoclosedlist(table, tcpentry, nomem);
+		addtoclosedlist(table, tcpentry);
 	}
 }
 
@@ -129,7 +128,7 @@ struct othptabent *add_othp_entry(struct othptable *table,
 				  char *packet, char *packet2, unsigned int br,
 				  char *ifname, int *rev_lookup, int rvnfd,
 				  unsigned int tm, int logging, FILE * logfile,
-				  int servnames, int fragment, int *nomem)
+				  int servnames, int fragment)
 {
 	struct othptabent *new_entry;
 	struct othptabent *temp;

@@ -343,7 +343,7 @@ struct tcptableent *qt_partition(struct tcptable *table,
 				 struct tcptableent **low,
 				 struct tcptableent **high, int ch,
 				 struct OPTIONS *opts, int logging,
-				 FILE * logfile, int *nomem)
+				 FILE * logfile)
 {
 	struct tcptableent *pivot = *low;
 
@@ -371,7 +371,7 @@ struct tcptableent *qt_partition(struct tcptable *table,
 			    && (!(left->inclosed))) {
 				left->timedout =
 				    left->oth_connection->timedout = 1;
-				addtoclosedlist(table, left, nomem);
+				addtoclosedlist(table, left);
 
 				if (logging)
 					write_timeout_log(logging, logfile,
@@ -390,7 +390,7 @@ struct tcptableent *qt_partition(struct tcptable *table,
 			    && (!(right->inclosed))) {
 				right->timedout =
 				    right->oth_connection->timedout = 1;
-				addtoclosedlist(table, right, nomem);
+				addtoclosedlist(table, right);
 
 				if (logging)
 					write_timeout_log(logging, logfile,
@@ -429,8 +429,7 @@ struct tcptableent *qt_partition(struct tcptable *table,
  */
 void quicksort_tcp_entries(struct tcptable *table, struct tcptableent *low,
 			   struct tcptableent *high, int ch,
-			   struct OPTIONS *opts, int logging, FILE * logfile,
-			   int *nomem)
+			   struct OPTIONS *opts, int logging, FILE * logfile)
 {
 	struct tcptableent *pivot;
 
@@ -439,16 +438,15 @@ void quicksort_tcp_entries(struct tcptable *table, struct tcptableent *low,
 
 	if (high->index > low->index) {
 		pivot =
-		    qt_partition(table, &low, &high, ch, opts, logging, logfile,
-				 nomem);
+		    qt_partition(table, &low, &high, ch, opts, logging, logfile);
 
 		if (pivot->prev_entry != NULL)
 			quicksort_tcp_entries(table, low,
 					      pivot->prev_entry->prev_entry, ch,
-					      opts, logging, logfile, nomem);
+					      opts, logging, logfile);
 
 		quicksort_tcp_entries(table, pivot->next_entry->next_entry,
-				      high, ch, opts, logging, logfile, nomem);
+				      high, ch, opts, logging, logfile);
 	}
 }
 
@@ -458,7 +456,7 @@ void quicksort_tcp_entries(struct tcptable *table, struct tcptableent *low,
  */
 
 void sortipents(struct tcptable *table, unsigned long *idx, int ch, int mode,
-		int logging, FILE * logfile, time_t timeout, int *nomem,
+		int logging, FILE * logfile, time_t timeout,
 		struct OPTIONS *opts)
 {
 	struct tcptableent *tcptmp1;
@@ -474,7 +472,7 @@ void sortipents(struct tcptable *table, unsigned long *idx, int ch, int mode,
 		return;
 
 	quicksort_tcp_entries(table, table->head, table->tail->prev_entry, ch,
-			      opts, logging, logfile, nomem);
+			      opts, logging, logfile);
 
 	update_panels();
 	doupdate();
@@ -632,7 +630,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	int ch;
 	int keymode = 0;
 	char msgstring[80];
-	int nomem = 0;
 
 	struct promisc_states *promisc_list;
 
@@ -1015,7 +1012,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			update_panels();
 			doupdate();
 			sortipents(&table, &screen_idx, ch, mode, logging,
-				   logfile, options->timeout, &nomem, options);
+				   logfile, options->timeout, options);
 
 			if (table.barptr != NULL) {
 				set_barptr((void *) &(table.barptr),
@@ -1072,7 +1069,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				       (char *) tpacket,
 				       (char *) packet, br, ifname, 0,
 				       0, 0, logging, logfile,
-				       options->servnames, 0, &nomem);
+				       options->servnames, 0);
 			continue;
 		}
 
@@ -1088,8 +1085,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 						 ntohs(sport),
 						 ntohs(dport),
 						 ifname, logging,
-						 logfile, &nomem,
-						 options);
+						 logfile, options);
 			} else {
 				tcpentry =
 					in_table(&table, 0, 0,
@@ -1100,8 +1096,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 							  ip6_dst.
 							  s6_addr),
 					     ntohs(sport), ntohs(dport),
-					     ifname, logging, logfile, &nomem,
-					     options);
+					     ifname, logging, logfile, options);
 			}
 
 			/*
@@ -1111,8 +1106,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 			if (((ntohs(frag_off) & 0x3fff) == 0)	/* first frag only */
 			    && (tcpentry == NULL)
-			    && (!(transpacket->fin))
-			    && !nomem) {
+			    && (!(transpacket->fin))) {
 
 				/*
 				 * Ok, so we have a packet.  Add it if this connection
@@ -1127,7 +1121,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 							 NULL, NULL, sport, dport,
 							 ippacket->protocol,
 							 ifname, &revlook, rvnfd,
-							 options->servnames, &nomem);
+							 options->servnames);
 				else
 					tcpentry =
 						addentry(&table, 0, 0,
@@ -1135,7 +1129,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 							 (uint8_t *) (&ip6packet->ip6_dst.s6_addr),
 							 sport, dport, ip6packet->ip6_nxt,
 							 ifname, &revlook, rvnfd,
-							 options->servnames, &nomem);
+							 options->servnames);
 				if (tcpentry != NULL) {
 					printentry(&table, tcpentry->oth_connection, screen_idx,
 						   mode);
@@ -1184,13 +1178,13 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 						    tpacket, fromaddr.sll_hatype,
 						    readlen, br, ippacket->frag_off,
 						    logging, &revlook, rvnfd, options,
-						    logfile, &nomem);
+						    logfile);
 				else
 					updateentry(&table, tcpentry, transpacket,
 						    tpacket, fromaddr.sll_hatype,
 						    readlen, readlen, 0, logging,
 						    &revlook, rvnfd, options,
-						    logfile, &nomem);
+						    logfile);
 				/*
 				 * Log first packet of a TCP connection except if
 				 * it's a RST, which was already logged earlier in
@@ -1254,7 +1248,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 				if (((struct icmphdr *) transpacket)->type == ICMP_DEST_UNREACH)
 					process_dest_unreach(&table, (char *) transpacket,
-							     ifname, &nomem);
+							     ifname);
 			}
 			add_othp_entry(&othptbl, &table, ippacket->saddr,
 				       ippacket->daddr, NULL, NULL, IS_IP,
@@ -1262,13 +1256,13 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				       (char *) tpacket, (char *) transpacket,
 				       readlen, ifname, &revlook, rvnfd,
 				       options->timeout, logging, logfile,
-				       options->servnames, fragment, &nomem);
+				       options->servnames, fragment);
 
 		} else {
 			if (ip6packet->ip6_nxt == IPPROTO_ICMPV6
 			    && (((struct icmp6_hdr *) transpacket)->icmp6_type == ICMP6_DST_UNREACH))
 				process_dest_unreach(&table, (char *) transpacket,
-						     ifname, &nomem);
+						     ifname);
 
 			add_othp_entry(&othptbl, &table, 0, 0, &ip6packet->ip6_src,
 				       &ip6packet->ip6_dst, IS_IP, ip6packet->ip6_nxt,
@@ -1276,7 +1270,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				       (char *) transpacket, readlen, ifname,
 				       &revlook, rvnfd, options->timeout,
 				       logging, logfile, options->servnames,
-				       fragment, &nomem);
+				       fragment);
 		}
 	}
 

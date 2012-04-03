@@ -57,8 +57,6 @@ struct porttab {
 };
 
 void initportlist(struct portlist *list);
-struct portlistent *addtoportlist(struct portlist *list, unsigned int protocol,
-				  unsigned int port, int *nomem, int servnames);
 struct portlistent *inportlist(struct portlist *list, unsigned int protocol,
 			       unsigned int port);
 int goodport(unsigned int port, struct porttab *table);

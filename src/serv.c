@@ -106,8 +106,8 @@ void initportlist(struct portlist *list)
 	doupdate();
 }
 
-struct portlistent *addtoportlist(struct portlist *list, unsigned int protocol,
-				  unsigned int port, int *nomem, int servnames)
+static struct portlistent *addtoportlist(struct portlist *list, unsigned int protocol,
+					 unsigned int port, int servnames)
 {
 	struct portlistent *ptemp;
 
@@ -266,15 +266,13 @@ void updateportent(struct portlist *list, unsigned int protocol,
 {
 	struct portlistent *sport_listent = NULL;
 	struct portlistent *dport_listent = NULL;
-	int nomem = 0;
 
 	if (goodport(sport, ports)) {
 		sport_listent = inportlist(list, protocol, sport);
 
-		if ((sport_listent == NULL) && (!nomem))
+		if (!sport_listent)
 			sport_listent =
-			    addtoportlist(list, protocol, sport, &nomem,
-					  servnames);
+				addtoportlist(list, protocol, sport, servnames);
 
 		if (sport_listent == NULL)
 			return;
@@ -291,10 +289,9 @@ void updateportent(struct portlist *list, unsigned int protocol,
 	if (goodport(dport, ports)) {
 		dport_listent = inportlist(list, protocol, dport);
 
-		if ((dport_listent == NULL) && (!nomem))
+		if (!dport_listent)
 			dport_listent =
-			    addtoportlist(list, protocol, dport, &nomem,
-					  servnames);
+				addtoportlist(list, protocol, dport, servnames);
 
 		if (dport_listent == NULL)
 			return;

@@ -142,12 +142,6 @@ void show_sort_statwin(WINDOW ** statwin, PANEL ** panel)
 	mvwprintw(*statwin, 2, 2, "Sorting, please wait...");
 }
 
-void printnomem(void)
-{
-	attrset(ERRTXTATTR);
-	mvprintw(0, 68, " Memory Low ");
-}
-
 void printipcerr(void)
 {
 	attrset(ERRTXTATTR);

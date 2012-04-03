@@ -9,7 +9,6 @@
  */
 
 void draw_desktop(void);
-void printnomem(void);
 void printipcerr(void);
 void printkeyhelp(char *keytext, char *desc, WINDOW * win, int highattr,
 		  int textattr);

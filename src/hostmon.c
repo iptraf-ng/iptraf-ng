@@ -108,7 +108,7 @@ void initethtab(struct ethtab *table, int unit)
 	doupdate();
 }
 
-struct ethtabent *addethnode(struct ethtab *table, int *nomem)
+struct ethtabent *addethnode(struct ethtab *table)
 {
 	struct ethtabent *ptemp;
 
@@ -149,12 +149,11 @@ void convmacaddr(char *addr, char *result)
 }
 
 struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
-			      char *ifname, char *addr, int *nomem,
-			      struct eth_desc *list)
+			      char *ifname, char *addr, struct eth_desc *list)
 {
 	struct ethtabent *ptemp;
 
-	ptemp = addethnode(table, nomem);
+	ptemp = addethnode(table);
 
 	if (ptemp == NULL)
 		return NULL;
@@ -181,7 +180,7 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
 
 	ptemp->un.desc.printed = 0;
 
-	ptemp = addethnode(table, nomem);
+	ptemp = addethnode(table);
 
 	if (ptemp == NULL)
 		return NULL;
@@ -696,8 +695,6 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	int pkt_result;
 	char *ipacket;
 
-	int nomem = 0;
-
 	WINDOW *sortwin;
 	PANEL *sortpanel;
 	int keymode = 0;
@@ -933,11 +930,10 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 				    in_ethtable(&table, fromaddr.sll_hatype,
 						scratch_saddr);
 
-				if ((entry == NULL) && (!nomem))
+				if (!entry)
 					entry =
 					    addethentry(&table, fromaddr.sll_hatype,
-							ifname, scratch_saddr,
-							&nomem, list);
+							ifname, scratch_saddr, list);
 
 				if (entry != NULL) {
 					updateethent(entry, br, is_ip, 1);
@@ -955,11 +951,10 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 				entry =
 				    in_ethtable(&table, fromaddr.sll_hatype,
 						scratch_daddr);
-				if ((entry == NULL) && (!nomem))
+				if (!entry)
 					entry =
 					    addethentry(&table, fromaddr.sll_hatype,
-							ifname, scratch_daddr,
-							&nomem, list);
+							ifname, scratch_daddr, list);
 
 				if (entry != NULL) {
 					updateethent(entry, br, is_ip, 0);

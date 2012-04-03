@@ -101,23 +101,21 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 			     unsigned long int daddr, uint8_t * s6addr,
 			     uint8_t * d6addr, unsigned int sport,
 			     unsigned int dport, int protocol, char *ifname,
-			     int *rev_lookup, int rvnamedon, int servnames,
-			     int *nomem);
+			     int *rev_lookup, int rvnamedon, int servnames);
 
 struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
 			     unsigned long daddr, uint8_t * s6addr,
 			     uint8_t * d6addr, unsigned int sport,
 			     unsigned int dport, char *ifname, int logging,
-			     FILE * logfile, int *nomem, struct OPTIONS *opts);
+			     FILE * logfile, struct OPTIONS *opts);
 
 void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 		 struct tcphdr *transpacket, char *packet, int linkproto,
 		 unsigned long packetlength, unsigned int bcount,
 		 unsigned int fragofs, int logging, int *revlook, int rvnfd,
-		 struct OPTIONS *opts, FILE * logfile, int *nomem);
+		 struct OPTIONS *opts, FILE * logfile);
 
-void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry,
-		     int *nomem);
+void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
 void clearaddr(struct tcptable *table, struct tcptableent *tableentry,
 	       unsigned int screen_idx);

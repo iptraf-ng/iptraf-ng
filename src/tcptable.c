@@ -143,7 +143,7 @@ void init_tcp_table(struct tcptable *table)
  * Add a TCP entry to the hash table.
  */
 
-int add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry)
+static void add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry)
 {
 	unsigned int hp;	/* hash position in table */
 	struct tcp_hashentry *ptmp;
@@ -181,8 +181,6 @@ int add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry)
 	}
 	table->hash_tails[hp] = ptmp;
 	ptmp->next_entry = NULL;
-
-	return 0;
 }
 
 /*
@@ -222,8 +220,7 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 			     unsigned long int daddr, uint8_t * s6addr,
 			     uint8_t * d6addr, unsigned int sport,
 			     unsigned int dport, int protocol, char *ifname,
-			     int *rev_lookup, int rvnfd, int servnames,
-			     int *nomem)
+			     int *rev_lookup, int rvnfd, int servnames)
 {
 	struct tcptableent *new_entry;
 	struct closedlist *ctemp;
@@ -416,14 +413,13 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 	 * Add entries to hash table
 	 */
 
-	*nomem = add_tcp_hash_entry(table, new_entry);
-	*nomem = add_tcp_hash_entry(table, new_entry->oth_connection);
+	add_tcp_hash_entry(table, new_entry);
+	add_tcp_hash_entry(table, new_entry->oth_connection);
 
 	return new_entry;
 }
 
-void addtoclosedlist(struct tcptable *table, struct tcptableent *entry,
-		     int *nomem)
+void addtoclosedlist(struct tcptable *table, struct tcptableent *entry)
 {
 	struct closedlist *ctemp;
 
@@ -504,7 +500,7 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
 			     unsigned long daddr, uint8_t * s6addr,
 			     uint8_t * d6addr, unsigned int sport,
 			     unsigned int dport, char *ifname, int logging,
-			     FILE * logfile, int *nomem, struct OPTIONS *opts)
+			     FILE * logfile, struct OPTIONS *opts)
 {
 	struct tcp_hashentry *hashptr;
 	unsigned int hp;
@@ -563,7 +559,7 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
 		    && (!(hashptr->tcpnode->inclosed))) {
 			hashptr->tcpnode->timedout = 1;
 			hashptr->tcpnode->oth_connection->timedout = 1;
-			addtoclosedlist(table, hashptr->tcpnode, nomem);
+			addtoclosedlist(table, hashptr->tcpnode);
 
 			if (logging)
 				write_timeout_log(logging, logfile,
@@ -602,7 +598,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 		 struct tcphdr *transpacket, char *packet, int linkproto,
 		 unsigned long packetlength, unsigned int bcount,
 		 unsigned int fragofs, int logging, int *revlook, int rvnfd,
-		 struct OPTIONS *opts, FILE * logfile, int *nomem)
+		 struct OPTIONS *opts, FILE * logfile)
 {
 	char msgstring[MSGSTRING_MAX];
 	char newmacaddr[15];
@@ -737,7 +733,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 		 */
 
 		if (tableentry->oth_connection->pcount == 0)
-			addtoclosedlist(table, tableentry, nomem);
+			addtoclosedlist(table, tableentry);
 		else {
 
 			/*
@@ -763,7 +759,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	if (transpacket->rst) {
 		tableentry->stat |= FLAG_RST;
 		if (!(tableentry->inclosed))
-			addtoclosedlist(table, tableentry, nomem);
+			addtoclosedlist(table, tableentry);
 
 		if (logging) {
 			snprintf(msgstring, MSGSTRING_MAX,
@@ -800,7 +796,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	     || ((tableentry->oth_connection->finsent == 2)
 		 && ((tableentry->finsent == 1)
 		     || (tableentry->finsent == 2)))))
-		addtoclosedlist(table, tableentry, nomem);
+		addtoclosedlist(table, tableentry);
 
 }
 

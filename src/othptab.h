@@ -121,8 +121,7 @@ struct ospfhdr {
 
 void init_othp_table(struct othptable *table, int mac);
 
-void process_dest_unreach(struct tcptable *table, char *packet, char *ifname,
-			  int *nomem);
+void process_dest_unreach(struct tcptable *table, char *packet, char *ifname);
 
 struct othptabent *add_othp_entry(struct othptable *table,
 				  struct tcptable *tcptab, unsigned long saddr,
@@ -133,7 +132,7 @@ struct othptabent *add_othp_entry(struct othptable *table,
 				  unsigned int br, char *ifname,
 				  int *rev_lookup, int rvnamedon,
 				  unsigned int tm, int logging, FILE * logfile,
-				  int servnames, int fragment, int *nomem);
+				  int servnames, int fragment);
 
 char *packetlookup(unsigned int protocol);
 
