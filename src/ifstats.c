@@ -743,7 +743,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	char *packet;
 	struct iphdr *ipacket = NULL;
 	struct ip6_hdr *ip6packet = NULL;
-	unsigned int iphlen;
 
 	char ifname[IFNAMSIZ];
 	struct sockaddr_ll fromaddr;
