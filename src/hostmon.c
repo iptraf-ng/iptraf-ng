@@ -372,7 +372,7 @@ void updateethrates(struct ethtab *table, int unit, time_t starttime,
 	}
 }
 
-void refresh_hostmon_screen(struct ethtab *table, int idx)
+void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
 {
 	struct ethtabent *ptmp = table->firstvisible;
 
@@ -388,7 +388,7 @@ void refresh_hostmon_screen(struct ethtab *table, int idx)
 	doupdate();
 }
 
-void scrollethwin(struct ethtab *table, int direction, int *idx)
+void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 {
 	char sp_buf[10];
 
@@ -424,7 +424,7 @@ void scrollethwin(struct ethtab *table, int direction, int *idx)
 	}
 }
 
-void pageethwin(struct ethtab *table, int direction, int *idx)
+void pageethwin(struct ethtab *table, int direction, unsigned int *idx)
 {
 	int i = 1;
 
@@ -627,7 +627,7 @@ void quicksort_lan_entries(struct ethtab *table, struct ethtabent *low,
 	}
 }
 
-void sort_hosttab(struct ethtab *list, int *idx, int command)
+void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
 {
 	struct ethtabent *ptemp1;
 	unsigned int idxtmp;
@@ -820,22 +820,18 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 			if (keymode == 0) {
 				switch (ch) {
 				case KEY_UP:
-					scrollethwin(&table, SCROLLDOWN,
-						     (int *) &idx);
+					scrollethwin(&table, SCROLLDOWN, &idx);
 					break;
 				case KEY_DOWN:
-					scrollethwin(&table, SCROLLUP,
-						     (int *) &idx);
+					scrollethwin(&table, SCROLLUP, &idx);
 					break;
 				case KEY_PPAGE:
 				case '-':
-					pageethwin(&table, SCROLLDOWN,
-						   (int *) &idx);
+					pageethwin(&table, SCROLLDOWN, &idx);
 					break;
 				case KEY_NPAGE:
 				case ' ':
-					pageethwin(&table, SCROLLUP,
-						   (int *) &idx);
+					pageethwin(&table, SCROLLUP, &idx);
 					break;
 				case 12:
 				case 'l':
@@ -859,7 +855,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 			} else if (keymode == 1) {
 				del_panel(sortpanel);
 				delwin(sortwin);
-				sort_hosttab(&table, (int *) &idx, ch);
+				sort_hosttab(&table, &idx, ch);
 				keymode = 0;
 			}
 		}
