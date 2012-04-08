@@ -28,7 +28,6 @@ details.
 #include "log.h"
 #include "dirs.h"
 #include "deskman.h"
-#include "ipcsum.h"
 #include "attrs.h"
 #include "serv.h"
 #include "timer.h"

@@ -28,7 +28,6 @@ details.
 #include "isdntab.h"
 #include "ifaces.h"
 #include "packet.h"
-#include "ipcsum.h"
 #include "ipfrag.h"
 #include "tr.h"
 
@@ -44,6 +43,24 @@ int isdnfd;
 struct isdntab isdntable;
 */
 
+/* code taken from http://www.faqs.org/rfcs/rfc1071.html. See section 4.1 "C"  */
+static int in_cksum(u_short * addr, int len)
+{
+	register int sum = 0;
+
+	while (len > 1) {
+		sum += *(u_short *) addr++;
+		len -= 2;
+	}
+
+	if (len > 1)
+		sum += *(unsigned char *) addr;
+
+	while (sum >> 16)
+		sum = (sum & 0xffff) + (sum >> 16);
+
+	return (u_short) (~sum);
+}
 
 static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 			 char **packet, unsigned int *readlen)

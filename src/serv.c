@@ -20,7 +20,6 @@ details.
 #include "tui/tui.h"
 
 #include "dirs.h"
-#include "ipcsum.h"
 #include "deskman.h"
 #include "isdntab.h"
 #include "fltdefs.h"
