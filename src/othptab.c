@@ -48,7 +48,7 @@ void init_othp_table(struct othptable *table, int mac)
 {
 	unsigned int winht;
 	unsigned int wintop;
-	unsigned int obmaxx;
+	unsigned int obmaxx UNUSED;
 
 	winht = LINES - (LINES * 0.6) - 2;
 	wintop = (LINES * 0.6) + 1;

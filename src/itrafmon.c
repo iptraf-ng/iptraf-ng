@@ -96,7 +96,7 @@ void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 {
 	WINDOW *win1;
 	WINDOW *win2;
-	int x1, y1, x2, y2;
+	int x1 UNUSED, y1, x2 UNUSED, y2;
 
 	if (!curwin) {
 		win1 = tw;

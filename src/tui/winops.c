@@ -9,6 +9,8 @@ winops.c - screen configuration and setup functions
 #include <stdlib.h>
 #include <string.h>
 
+#include "iptraf-ng-compat.h"
+
 void tx_stdwinset(WINDOW * win)
 {
 	meta(win, TRUE);
@@ -47,8 +49,9 @@ void tx_colorwin(WINDOW * win)
 
 void tx_wcoloreol(WINDOW * win)
 {
-	int y, x;
-	int cury, curx;
+	int x, curx;
+	int y UNUSED;
+	int cury UNUSED;
 	char sp_buf[10];
 
 	getyx(win, cury, curx);

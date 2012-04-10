@@ -66,7 +66,7 @@ void rotate_serv_log(int s)
 void initportlist(struct portlist *list)
 {
 	float screen_scale = ((float) COLS / 80 + 1) / 2;
-	int scratchx;
+	int scratchx UNUSED;
 
 	list->head = list->tail = list->barptr = NULL;
 	list->firstvisible = list->lastvisible = NULL;

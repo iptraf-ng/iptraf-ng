@@ -86,6 +86,7 @@
 	(((mode) == KBITS) ? "kbps": "kBps")
 
 #define NORETURN __attribute__((noreturn))
+#define UNUSED __attribute__((unused))
 
 extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
