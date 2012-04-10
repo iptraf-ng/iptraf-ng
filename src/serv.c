@@ -729,7 +729,6 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	WINDOW *statwin;
 	PANEL *statpanel;
 
-	char msgstring[80];
 	char sp_buf[10];
 
 	const int statx = 1;
@@ -743,9 +742,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	if (!facility_active(TCPUDPIDFILE, ifname))
 		mark_facility(TCPUDPIDFILE, "TCP/UDP monitor", ifname);
 	else {
-		snprintf(msgstring, 80, "TCP/UDP monitor already running on %s",
-			 ifname);
-		write_error(msgstring);
+		write_error("TCP/UDP monitor already running on %s", ifname);
 		return;
 	}
 

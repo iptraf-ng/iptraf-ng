@@ -25,10 +25,14 @@ details.
 
 extern int daemonized;
 
-void write_error(char *msg)
+void write_error(char *msg, ...)
 {
+	va_list vararg;
+
+	va_start(vararg, msg);
 	if (daemonized)
-		write_daemon_err(msg);
+		write_daemon_err(msg, vararg);
 	else
-		tui_error(ANYKEY_MSG, msg);
+		tui_error_va(ANYKEY_MSG, msg, vararg);
+	va_end(vararg);
 }

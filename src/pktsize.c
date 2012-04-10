@@ -172,15 +172,12 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 
 	struct promisc_states *promisc_list;
 
-	char msgstring[80];
 	int fd;
 
 	if (!facility_active(PKTSIZEIDFILE, ifname))
 		mark_facility(PKTSIZEIDFILE, "Packet size breakdown", ifname);
 	else {
-		snprintf(msgstring, 80,
-			 "Packet sizes already being monitored on %s", ifname);
-		write_error(msgstring);
+		write_error("Packet sizes already being monitored on %s", ifname);
 		return;
 	}
 

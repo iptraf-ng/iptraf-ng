@@ -95,8 +95,7 @@ unsigned long int nametoaddr(char *ascname, int *err)
 		if (he != NULL)
 			bcopy((he->h_addr_list)[0], &result, he->h_length);
 		else {
-			snprintf(imsg, 45, "Unable to resolve %s", ascname);
-			write_error(imsg);
+			write_error("Unable to resolve %s", ascname);
 			*err = 1;
 			return (-1);
 		}

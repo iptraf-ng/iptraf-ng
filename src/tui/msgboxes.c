@@ -31,7 +31,7 @@ void tx_init_info_attrs(int border, int text, int prompt)
 	INFO_PROMPT_ATTR = prompt;
 }
 
-void tui_error(const char *prompt, const char *err, ...)
+void tui_error_va(const char *prompt, const char *err, va_list vararg)
 {
 	WINDOW *win = newwin(4, 70, (LINES - 4) / 2, (COLS - 70) / 2);
 	PANEL *panel = new_panel(win);
@@ -45,14 +45,8 @@ void tui_error(const char *prompt, const char *err, ...)
 
 	wattrset(win, ERR_TEXT_ATTR);
 	wmove(win, 1, 2);
-	va_list params;
 
-	va_start(params, err);
-	char msg[4096];
-
-	vsnprintf(msg, sizeof(msg), err, params);
-	wprintw(win, "%s", msg);
-	va_end(params);
+	vw_printw(win, err, vararg);
 
 	update_panels();
 	doupdate();
@@ -69,6 +63,15 @@ void tui_error(const char *prompt, const char *err, ...)
 	delwin(win);
 	update_panels();
 	doupdate();
+}
+
+void tui_error(const char *prompt, const char *err, ...)
+{
+	va_list params;
+
+	va_start(params, err);
+	tui_error_va(prompt, err, params);
+	va_end(params);
 }
 
 void tx_infobox(char *text, char *prompt)

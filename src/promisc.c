@@ -42,7 +42,6 @@ void init_promisc_list(struct promisc_states **list)
 	struct promisc_states *tail = NULL;
 	struct ifreq ifr;
 	int istat;
-	char err_msg[80];
 
 	ifd = socket(PF_INET, SOCK_DGRAM, 0);
 
@@ -84,10 +83,8 @@ void init_promisc_list(struct promisc_states **list)
 				istat = ioctl(ifd, SIOCGIFFLAGS, &ifr);
 
 				if (istat < 0) {
-					sprintf(err_msg,
-						"Unable to obtain interface parameters for %s",
+					write_error("Unable to obtain interface parameters for %s",
 						buf);
-					write_error(err_msg);
 					ptmp->params.state_valid = 0;
 				} else {
 					ptmp->params.saved_state =
@@ -175,7 +172,6 @@ void srpromisc(int mode, struct promisc_states *list)
 	struct ifreq ifr;
 	struct promisc_states *ptmp;
 	int istat;
-	char fullmsg[PROMISC_MSG_MAX];
 
 	ptmp = list;
 
@@ -207,9 +203,8 @@ void srpromisc(int mode, struct promisc_states *list)
 			istat = ioctl(fd, SIOCSIFFLAGS, &ifr);
 
 			if (istat < 0) {
-				sprintf(fullmsg, "Promisc change failed for %s",
+				write_error("Promisc change failed for %s",
 					ptmp->params.ifname);
-				write_error(fullmsg);
 			}
 		}
 		ptmp = ptmp->next_entry;

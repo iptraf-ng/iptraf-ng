@@ -129,14 +129,16 @@ void writelog(int logging, FILE * fd, char *msg)
 	fflush(fd);
 }
 
-void write_daemon_err(char *msg)
+void write_daemon_err(char *msg, va_list vararg)
 {
 	char atime[TIME_TARGET_MAX];
 	FILE *fd;
 
 	genatime(time((time_t *) NULL), atime);
 	fd = fopen(DAEMONLOG, "a");
-	fprintf(fd, "%s iptraf[%u]: %s\n", atime, getpid(), msg);
+	fprintf(fd, "%s iptraf[%u]: ", atime, getpid());
+	vfprintf(fd, msg, vararg);
+	fprintf(fd, "\n");
 	fclose(fd);
 }
 

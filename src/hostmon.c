@@ -700,7 +700,6 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	int keymode = 0;
 
 	int instance_id;
-	char msgstring[80];
 
 	int fd;
 
@@ -709,10 +708,8 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	if (!facility_active(LANMONIDFILE, ifptr))
 		mark_facility(LANMONIDFILE, "LAN monitor", ifptr);
 	else {
-		snprintf(msgstring, 80,
-			 "LAN station monitor already running on %s",
+		write_error("LAN station monitor already running on %s",
 			 gen_iface_msg(ifptr));
-		write_error(msgstring);
 		return;
 	}
 

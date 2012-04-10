@@ -21,9 +21,7 @@ int loadfilter(char *filename, struct filterlist *fl, int resolve)
 	pfd = open(filename, O_RDONLY);
 
 	if (pfd < 0) {
-		memset(err_msg, 0, 80);
-		snprintf(err_msg, 80, "Error opening IP filter data file");
-		write_error(err_msg);
+		write_error("Error opening IP filter data file");
 		fl->head = NULL;
 		return 1;
 	}

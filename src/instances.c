@@ -33,16 +33,12 @@ void gen_lockfile_name(char *tagfile, char *iface, char *result)
 void mark_facility(char *tagfile, char *facility, char *iface)
 {
 	int fd;
-	char errstring[80];
 	char lockfile[64];
 
 	gen_lockfile_name(tagfile, iface, lockfile);
 	fd = open(lockfile, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
-	if (fd < 0) {
-		snprintf(errstring, 80, "Warning: unable to lock %s on %s",
-			 facility, iface);
-		write_error(errstring);
-	}
+	if (fd < 0)
+		write_error("Warning: unable to lock %s on %s", facility, iface);
 	close(fd);
 }
 
