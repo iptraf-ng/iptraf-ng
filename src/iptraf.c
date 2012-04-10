@@ -109,7 +109,7 @@ void remove_sockets(void)
  * USR2 handler.  Used to normally exit a daemonized facility.
  */
 
-void term_usr2_handler(int s)
+void term_usr2_handler(int s UNUSED)
 {
 	exitloop = 1;
 }
@@ -130,8 +130,7 @@ void init_break_menu(struct MENU *break_menu)
  * Get the ball rolling: The program interface routine.
  */
 
-void program_interface(struct OPTIONS *options, int opt, char *optarg,
-		       int facilitytime)
+void program_interface(struct OPTIONS *options)
 {
 	struct MENU menu;
 	struct MENU break_menu;
@@ -357,7 +356,6 @@ int main(int argc, char **argv)
 {
 	struct OPTIONS options;
 	int command = 0;
-	char keyparm[12];
 	int current_log_interval = 0;
 
 #ifndef ALLOWUSERS
@@ -563,7 +561,7 @@ int main(int argc, char **argv)
 	else if (z_opt)
 		packet_size_breakdown(&options, z_opt, facilitytime, &ofilter);
 	else
-		program_interface(&options, command, keyparm, facilitytime);
+		program_interface(&options);
 
 	endwin();
 

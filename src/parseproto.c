@@ -24,7 +24,7 @@
 /*
  * Extracts next token from the buffer.
  */
-char *get_next_token(char *buf, char **cptr)
+char *get_next_token(char **cptr)
 {
 	static char rtoken[32];
 	int i;
@@ -56,7 +56,7 @@ char *get_next_token(char *buf, char **cptr)
 	return rtoken;
 }
 
-void get_next_protorange(char *src, char **cptr, unsigned int *proto1,
+void get_next_protorange(char **cptr, unsigned int *proto1,
 			 unsigned int *proto2, int *parse_result,
 			 char **badtokenptr)
 {
@@ -72,19 +72,19 @@ void get_next_protorange(char *src, char **cptr, unsigned int *proto1,
 	memset(prototmp2, 0, 5);
 	memset(bad_token, 0, 5);
 
-	strncpy(prototmp1, get_next_token(src, cptr), 5);
+	strncpy(prototmp1, get_next_token(cptr), 5);
 	if (prototmp1[0] == '\0') {
 		*parse_result = NO_MORE_TOKENS;
 		return;
 	}
 
-	strncpy(toktmp, get_next_token(src, cptr), 5);
+	strncpy(toktmp, get_next_token(cptr), 5);
 
 	*parse_result = RANGE_OK;
 
 	switch (toktmp[0]) {
 	case '-':
-		strncpy(prototmp2, get_next_token(src, cptr), 5);
+		strncpy(prototmp2, get_next_token(cptr), 5);
 
 		/*
 		 * Check for missing right-hand token for -
@@ -117,7 +117,7 @@ void get_next_protorange(char *src, char **cptr, unsigned int *proto1,
 			/*
 			 * Then check if the next token is a comma
 			 */
-			strncpy(toktmp, get_next_token(src, cptr), 5);
+			strncpy(toktmp, get_next_token(cptr), 5);
 			if (toktmp[0] != '\0' && toktmp[0] != ',') {
 				*parse_result = COMMA_EXPECTED;
 				strncpy(bad_token, toktmp, 5);
@@ -165,7 +165,7 @@ int validate_ranges(char *samplestring, int *parse_result, char **badtokenptr)
 	char *cptr = samplestring;
 
 	do {
-		get_next_protorange(samplestring, &cptr, &proto1, &proto2,
+		get_next_protorange(&cptr, &proto1, &proto2,
 				    parse_result, badtokenptr);
 	} while (*parse_result == RANGE_OK);
 

@@ -121,13 +121,13 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 }
 
 struct othptabent *add_othp_entry(struct othptable *table,
-				  struct tcptable *tcptab, unsigned long saddr,
+				  unsigned long saddr,
 				  unsigned long daddr, struct in6_addr *s6addr,
 				  struct in6_addr *d6addr, int is_ip,
 				  int protocol, unsigned short linkproto,
 				  char *packet, char *packet2, unsigned int br,
 				  char *ifname, int *rev_lookup, int rvnfd,
-				  unsigned int tm, int logging, FILE * logfile,
+				  int logging, FILE * logfile,
 				  int servnames, int fragment)
 {
 	struct othptabent *new_entry;

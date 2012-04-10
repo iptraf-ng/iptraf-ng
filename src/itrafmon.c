@@ -50,7 +50,7 @@ void writetcplog(int logging, FILE * fd, struct tcptableent *entry,
 		 unsigned int pktlen, int mac, char *message);
 void write_tcp_unclosed(int logging, FILE * fd, struct tcptable *table);
 
-void rotate_ipmon_log(int s)
+void rotate_ipmon_log(int s UNUSED)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -161,8 +161,7 @@ void scrollupperwin(struct tcptable *table, int direction, unsigned long *idx,
 	}
 }
 
-void pageupperwin(struct tcptable *table, int direction, unsigned long *idx,
-		  int mode)
+void pageupperwin(struct tcptable *table, int direction, unsigned long *idx)
 {
 	int i = 1;
 
@@ -455,8 +454,8 @@ void quicksort_tcp_entries(struct tcptable *table, struct tcptableent *low,
  * replaced with a Quicksort algorithm.
  */
 
-void sortipents(struct tcptable *table, unsigned long *idx, int ch, int mode,
-		int logging, FILE * logfile, time_t timeout,
+void sortipents(struct tcptable *table, unsigned long *idx, int ch,
+		int logging, FILE * logfile,
 		struct OPTIONS *opts)
 {
 	struct tcptableent *tcptmp1;
@@ -927,8 +926,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				if (!table.barptr)
 					break;
 
-				pageupperwin(&table, SCROLLDOWN, &screen_idx,
-					     mode);
+				pageupperwin(&table, SCROLLDOWN, &screen_idx);
 				set_barptr((void *) &(table.barptr),
 					   table.lastvisible,
 					   &(table.lastvisible->starttime),
@@ -950,7 +948,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				if (!table.barptr)
 					break;
 
-				pageupperwin(&table, SCROLLUP, &screen_idx, mode);
+				pageupperwin(&table, SCROLLUP, &screen_idx);
 				set_barptr((void *) &(table.barptr),
 					   table.firstvisible,
 					   &(table.firstvisible->starttime),
@@ -1013,8 +1011,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			show_sort_statwin(&sortwin, &sortpanel);
 			update_panels();
 			doupdate();
-			sortipents(&table, &screen_idx, ch, mode, logging,
-				   logfile, options->timeout, options);
+			sortipents(&table, &screen_idx, ch, logging,
+				   logfile, options);
 
 			if (table.barptr != NULL) {
 				set_barptr((void *) &(table.barptr),
@@ -1077,12 +1075,12 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			frag_off = 0;
 			break;
 		default:
-			add_othp_entry(&othptbl, &table, 0, 0, NULL,
+			add_othp_entry(&othptbl, 0, 0, NULL,
 				       NULL, NOT_IP,
 				       fromaddr.sll_protocol, fromaddr.sll_hatype,
 				       (char *) tpacket,
 				       (char *) packet, br, ifname, 0,
-				       0, 0, logging, logfile,
+				       0, logging, logfile,
 				       options->servnames, 0);
 			continue;
 		}
@@ -1264,12 +1262,12 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					process_dest_unreach(&table, (char *) transpacket,
 							     ifname);
 			}
-			add_othp_entry(&othptbl, &table, ippacket->saddr,
+			add_othp_entry(&othptbl, ippacket->saddr,
 				       ippacket->daddr, NULL, NULL, IS_IP,
 				       ippacket->protocol, fromaddr.sll_hatype,
 				       (char *) tpacket, (char *) transpacket,
 				       readlen, ifname, &revlook, rvnfd,
-				       options->timeout, logging, logfile,
+				       logging, logfile,
 				       options->servnames, fragment);
 
 		} else {
@@ -1278,11 +1276,11 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				process_dest_unreach(&table, (char *) transpacket,
 						     ifname);
 
-			add_othp_entry(&othptbl, &table, 0, 0, &ip6packet->ip6_src,
+			add_othp_entry(&othptbl, 0, 0, &ip6packet->ip6_src,
 				       &ip6packet->ip6_dst, IS_IP, ip6packet->ip6_nxt,
 				       fromaddr.sll_hatype, (char *) tpacket,
 				       (char *) transpacket, readlen, ifname,
-				       &revlook, rvnfd, options->timeout,
+				       &revlook, rvnfd,
 				       logging, logfile, options->servnames,
 				       fragment);
 		}

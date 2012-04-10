@@ -162,8 +162,7 @@ void print_hostparam_line(struct filterent *fe, int idx, WINDOW * win, int attr)
 	wmove(win, idx, 0);
 }
 
-void update_hp_screen(struct filterlist *fl, struct filterent *firstvisible,
-		      WINDOW * win)
+void update_hp_screen(struct filterent *firstvisible, WINDOW * win)
 {
 	struct filterent *ftmp = firstvisible;
 	int i;
@@ -253,7 +252,7 @@ void modify_host_parameters(struct filterlist *fl)
 
 	firstvisible = fl->head;
 
-	update_hp_screen(fl, firstvisible, win);
+	update_hp_screen(firstvisible, win);
 
 	idx = 0;
 	fe = firstvisible;
@@ -343,7 +342,7 @@ void modify_host_parameters(struct filterlist *fl)
 				fl->tail = ftemp;
 
 			fe = ftemp;
-			update_hp_screen(fl, firstvisible, win);
+			update_hp_screen(firstvisible, win);
 			break;
 		case 'a':
 		case 'A':
@@ -377,7 +376,7 @@ void modify_host_parameters(struct filterlist *fl)
 
 			ftemp->next_entry = NULL;
 			fl->tail = ftemp;
-			update_hp_screen(fl, firstvisible, win);
+			update_hp_screen(firstvisible, win);
 			break;
 		case 'd':
 		case 'D':
@@ -440,7 +439,7 @@ void modify_host_parameters(struct filterlist *fl)
 
 				free(fe);
 				fe = ftemp;
-				update_hp_screen(fl, firstvisible, win);
+				update_hp_screen(firstvisible, win);
 			}
 			break;
 		case 13:
@@ -461,7 +460,7 @@ void modify_host_parameters(struct filterlist *fl)
 					      d_portstr2, inexstr, matchop,
 					      &gh_aborted);
 
-				update_hp_screen(fl, firstvisible, win);
+				update_hp_screen(firstvisible, win);
 			}
 
 			break;

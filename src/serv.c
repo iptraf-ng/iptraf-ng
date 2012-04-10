@@ -56,7 +56,7 @@ extern void writeutslog(struct portlistent *list, unsigned long nsecs, int unit,
  * SIGUSR1 logfile rotation signal handler
  */
 
-void rotate_serv_log(int s)
+void rotate_serv_log(int s UNUSED)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -1073,8 +1073,7 @@ err:
 	strcpy(current_logfile, "");
 }
 
-void portdlg(unsigned int *port_min, unsigned int *port_max, int *aborted,
-	     int mode)
+void portdlg(unsigned int *port_min, unsigned int *port_max, int *aborted)
 {
 	WINDOW *bw;
 	PANEL *bp;
@@ -1178,7 +1177,7 @@ void addmoreports(struct porttab **table)
 	int aborted;
 	struct porttab *ptmp;
 
-	portdlg(&port_min, &port_max, &aborted, 0);
+	portdlg(&port_min, &port_max, &aborted);
 
 	if (!aborted) {
 		if (dup_portentry(*table, port_min, port_max))

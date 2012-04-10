@@ -277,7 +277,7 @@ void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 	fflush(fd);
 }
 
-void writedstatlog(char *ifname, int unit, float activity, float pps,
+void writedstatlog(char *ifname, int unit,
 		   float peakactivity, float peakpps, float peakactivity_in,
 		   float peakpps_in, float peakactivity_out, float peakpps_out,
 		   struct ifcounts *ts, unsigned long nsecs, FILE * fd)

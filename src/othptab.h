@@ -124,14 +124,14 @@ void init_othp_table(struct othptable *table, int mac);
 void process_dest_unreach(struct tcptable *table, char *packet, char *ifname);
 
 struct othptabent *add_othp_entry(struct othptable *table,
-				  struct tcptable *tcptab, unsigned long saddr,
+				  unsigned long saddr,
 				  unsigned long daddr, struct in6_addr *s6addr,
 				  struct in6_addr *d6addr, int is_ip,
 				  int protocol, unsigned short linkproto,
 				  char *packet, char *netpacket,
 				  unsigned int br, char *ifname,
 				  int *rev_lookup, int rvnamedon,
-				  unsigned int tm, int logging, FILE * logfile,
+				  int logging, FILE * logfile,
 				  int servnames, int fragment);
 
 char *packetlookup(unsigned int protocol);

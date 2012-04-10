@@ -43,7 +43,7 @@ extern void write_size_log(struct ifstat_brackets *brackets,
 			   unsigned long interval, char *ifname,
 			   unsigned int mtu, FILE * logfile);
 
-void rotate_size_log(int s)
+void rotate_size_log(int s UNUSED)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);

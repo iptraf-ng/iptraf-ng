@@ -46,7 +46,7 @@ extern int daemonized;
 
 void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 		   FILE * logfile);
-void writedstatlog(char *ifname, int unit, float activity, float pps,
+void writedstatlog(char *ifname, int unit,
 		   float peakactivity, float peakpps, float peakactivity_in,
 		   float peakpps_in, float peakactivity_out, float peakpps_out,
 		   struct ifcounts *ts, unsigned long nsecs, FILE * logfile);
@@ -55,14 +55,14 @@ void writedstatlog(char *ifname, int unit, float activity, float pps,
  * USR1 log-rotation signal handlers
  */
 
-void rotate_gstat_log(int s)
+void rotate_gstat_log(int s UNUSED)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, GSTATLOG);
 	signal(SIGUSR1, rotate_gstat_log);
 }
 
-void rotate_dstat_log(int s)
+void rotate_dstat_log(int s UNUSED)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -956,7 +956,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 				peakpps_out = pps_out;
 		}
 		if ((now - startlog) >= options->logspan && logging) {
-			writedstatlog(iface, options->actmode, activity, pps,
+			writedstatlog(iface, options->actmode,
 				      peakactivity, peakpps, peakactivity_in,
 				      peakpps_in, peakactivity_out, peakpps_out,
 				      &ifcounts,
@@ -1086,7 +1086,7 @@ err:
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writedstatlog(iface, options->actmode, activity, pps,
+		writedstatlog(iface, options->actmode,
 			      peakactivity, peakpps, peakactivity_in,
 			      peakpps_in, peakactivity_out, peakpps_out,
 			      &ifcounts, time((time_t *) NULL) - statbegin,

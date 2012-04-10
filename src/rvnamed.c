@@ -53,6 +53,8 @@ details.
 #define NUM_CACHE_ENTRIES 2048
 #define TIME_TARGET_MAX 30
 
+#define UNUSED __attribute__((unused))
+
 struct hosts {
 	unsigned long addr;
 	uint8_t addr6[16];
@@ -67,7 +69,7 @@ static int max_fork_count = 0;
  * This is the classic zombie-preventer
  */
 
-void childreap(int s)
+void childreap(int s UNUSED)
 {
 	signal(SIGCHLD, childreap);
 
@@ -75,7 +77,7 @@ void childreap(int s)
 		fork_count--;
 }
 
-void auto_terminate(int s)
+void auto_terminate(int s UNUSED)
 {
 	exit(2);
 }

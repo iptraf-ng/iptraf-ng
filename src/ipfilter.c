@@ -296,7 +296,7 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		strncpy(data->protolist, cptr, 60);
 
 		do {
-			get_next_protorange(fieldptr->buf, &cptr, &rangeproto1,
+			get_next_protorange(&cptr, &rangeproto1,
 					    &rangeproto2, &parse_result, &bptr);
 			if (parse_result == RANGE_OK) {
 				if (rangeproto2 != 0) {
