@@ -814,7 +814,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, table.tabwin);
+		getpacket(fd, buf, &fromaddr, &ch, &br, table.tabwin);
 
 		if (ch != ERR) {
 			if (keymode == 0) {
@@ -866,7 +866,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 			    processpacket(buf, &ipacket, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG, NULL,
+					  MATCH_OPPOSITE_USECONFIG,
 					  0);
 
 			if (pkt_result != PACKET_OK)

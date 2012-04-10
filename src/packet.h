@@ -27,12 +27,12 @@ extern int isdnfd;
 
 void open_socket(int *fd);
 void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
-	       int *br, char *ifname, WINDOW * win);
+	       int *br, WINDOW * win);
 int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  unsigned int *total_br, unsigned int *sport,
 		  unsigned int *dport, struct sockaddr_ll *fromaddr,
 		  struct filterstate *ofilter,
-		  int match_opposite, char *ifname, int v6inv4asv6);
+		  int match_opposite, int v6inv4asv6);
 void pkt_cleanup(void);
 
 #endif	/* IPTRAF_NG_PACKET_H */

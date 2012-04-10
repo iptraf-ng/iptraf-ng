@@ -835,7 +835,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			rotate_flag = 0;
 		}
 
-		getpacket(fd, tpacket, &fromaddr, &ch, &readlen, NULL,
+		getpacket(fd, tpacket, &fromaddr, &ch, &readlen,
 			  table.tcpscreen);
 
 		if (ch == ERR)
@@ -1044,7 +1044,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				  (unsigned int *) &readlen, &br,
 				  &sport, &dport, &fromaddr,
 				  ofilter, MATCH_OPPOSITE_ALWAYS,
-				  NULL, options->v6inv4asv6);
+				  options->v6inv4asv6);
 
 		if (pkt_result != PACKET_OK)
 			continue;

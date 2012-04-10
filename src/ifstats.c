@@ -520,7 +520,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, table.statwin);
+		getpacket(fd, buf, &fromaddr, &ch, &br, table.statwin);
 
 		switch (ch) {
 		case ERR:
@@ -561,7 +561,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 					   NULL, NULL, NULL, &fromaddr,
 					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
-					   NULL, options->v6inv4asv6);
+					   options->v6inv4asv6);
 
 		if (pkt_result != PACKET_OK
 		    && pkt_result != MORE_FRAGMENTS)
@@ -982,7 +982,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, statwin);
+		getpacket(fd, buf, &fromaddr, &ch, &br, statwin);
 
 		switch (ch) {
 		case ERR:
@@ -1012,7 +1012,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			    processpacket(buf, &packet, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG, NULL,
+					  MATCH_OPPOSITE_USECONFIG,
 					  options->v6inv4asv6);
 
 			if (pkt_result != PACKET_OK

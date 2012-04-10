@@ -123,13 +123,12 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
  */
 
 void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
-	       int *br, char *ifname, WINDOW * win)
+	       int *br, WINDOW * win)
 {
 	socklen_t fromlen;
 	fd_set set;
 	struct timeval tv;
 	int ss;
-	struct ifreq ifr;
 
 	FD_ZERO(&set);
 
@@ -160,11 +159,6 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
 		fromlen = sizeof(struct sockaddr_ll);
 		*br = recvfrom(fd, buf, MAX_PACKET_SIZE, 0,
 			       (struct sockaddr *) fromaddr, &fromlen);
-		if (ifname) {
-			ifr.ifr_ifindex = fromaddr->sll_ifindex;
-			ioctl(fd, SIOCGIFNAME, &ifr);
-			strcpy(ifname, ifr.ifr_name);
-		}
 	}
 	if (!daemonized && FD_ISSET(0, &set))
 		*ch = wgetch(win);
@@ -174,16 +168,8 @@ int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  unsigned int *total_br, unsigned int *sport,
 		  unsigned int *dport, struct sockaddr_ll *fromaddr,
 		  struct filterstate *filter,
-		  int match_opposite, char *ifname, int v6inv4asv6)
+		  int match_opposite, int v6inv4asv6)
 {
-#if 0				/* reenable isdn */
-	/*
-	 * Prepare ISDN reference descriptor and table.
-	 */
-
-	memset(&isdntable, 0, sizeof(struct isdntab));
-	isdn_iface_check(&isdnfd, ifname);
-#endif
 	/*
 	 * Get IPTraf link type based on returned information and move past
 	 * data link header.
