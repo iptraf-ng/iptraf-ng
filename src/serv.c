@@ -56,7 +56,7 @@ extern void writeutslog(struct portlistent *list, unsigned long nsecs, int unit,
  * SIGUSR1 logfile rotation signal handler
  */
 
-void rotate_serv_log(int s UNUSED)
+void rotate_serv_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -66,7 +66,7 @@ void rotate_serv_log(int s UNUSED)
 void initportlist(struct portlist *list)
 {
 	float screen_scale = ((float) COLS / 80 + 1) / 2;
-	int scratchx UNUSED;
+	int scratchx __unused;
 
 	list->head = list->tail = list->barptr = NULL;
 	list->firstvisible = list->lastvisible = NULL;

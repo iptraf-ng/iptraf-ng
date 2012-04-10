@@ -55,14 +55,14 @@ void writedstatlog(char *ifname, int unit,
  * USR1 log-rotation signal handlers
  */
 
-void rotate_gstat_log(int s UNUSED)
+void rotate_gstat_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, GSTATLOG);
 	signal(SIGUSR1, rotate_gstat_log);
 }
 
-void rotate_dstat_log(int s UNUSED)
+void rotate_dstat_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);

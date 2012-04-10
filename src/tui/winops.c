@@ -50,8 +50,8 @@ void tx_colorwin(WINDOW * win)
 void tx_wcoloreol(WINDOW * win)
 {
 	int x, curx;
-	int y UNUSED;
-	int cury UNUSED;
+	int y __unused;
+	int cury __unused;
 	char sp_buf[10];
 
 	getyx(win, cury, curx);

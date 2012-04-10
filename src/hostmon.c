@@ -55,7 +55,7 @@ extern char *ltrim(char *buf);
  * SIGUSR1 logfile rotation handler
  */
 
-void rotate_lanlog(int s UNUSED)
+void rotate_lanlog(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);

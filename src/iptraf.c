@@ -109,7 +109,7 @@ void remove_sockets(void)
  * USR2 handler.  Used to normally exit a daemonized facility.
  */
 
-void term_usr2_handler(int s UNUSED)
+void term_usr2_handler(int s __unused)
 {
 	exitloop = 1;
 }

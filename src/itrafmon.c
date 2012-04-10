@@ -50,7 +50,7 @@ void writetcplog(int logging, FILE * fd, struct tcptableent *entry,
 		 unsigned int pktlen, int mac, char *message);
 void write_tcp_unclosed(int logging, FILE * fd, struct tcptable *table);
 
-void rotate_ipmon_log(int s UNUSED)
+void rotate_ipmon_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -96,7 +96,7 @@ void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 {
 	WINDOW *win1;
 	WINDOW *win2;
-	int x1 UNUSED, y1, x2 UNUSED, y2;
+	int x1 __unused, y1, x2 __unused, y2;
 
 	if (!curwin) {
 		win1 = tw;
