@@ -521,7 +521,7 @@ void quicksort_port_entries(struct portlist *table, struct portlistent *low,
 	}
 }
 
-void sortportents(struct portlist *list, int *idx, int command)
+void sortportents(struct portlist *list, unsigned int *idx, int command)
 {
 	struct portlistent *ptemp1;
 	unsigned int idxtmp;
@@ -551,7 +551,7 @@ void sortportents(struct portlist *list, int *idx, int command)
 	}
 }
 
-void scrollservwin(struct portlist *table, int direction, int *idx)
+void scrollservwin(struct portlist *table, int direction, unsigned int *idx)
 {
 	char sp_buf[10];
 
@@ -582,7 +582,7 @@ void scrollservwin(struct portlist *table, int direction, int *idx)
 	}
 }
 
-void pageservwin(struct portlist *table, int direction, int *idx)
+void pageservwin(struct portlist *table, int direction, unsigned int *idx)
 {
 	int i = 1;
 
@@ -884,7 +884,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 				printportent(&list, serv_tmp, idx);
 
 				if (list.baridx == 1)
-					scrollservwin(&list, SCROLLDOWN, (int *) &idx);
+					scrollservwin(&list, SCROLLDOWN, &idx);
 				else
 					list.baridx--;
 
@@ -905,7 +905,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 				printportent(&list,serv_tmp, idx);
 
 				if (list.baridx == list.imaxy)
-					scrollservwin(&list, SCROLLUP, (int *) &idx);
+					scrollservwin(&list, SCROLLUP, &idx);
 				else
 					list.baridx++;
 
@@ -916,7 +916,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 				if (!list.barptr)
 					break;
 
-				pageservwin(&list, SCROLLDOWN, (int *) &idx);
+				pageservwin(&list, SCROLLDOWN, &idx);
 
 				set_barptr((void *) &(list.barptr),
 					   list.lastvisible,
@@ -933,7 +933,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 				if (!list.barptr)
 					break;
 
-				pageservwin(&list, SCROLLUP, (int *) &idx);
+				pageservwin(&list, SCROLLUP, &idx);
 
 				set_barptr((void *) &(list.barptr),
 					   list.firstvisible,
@@ -968,7 +968,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		} else if (keymode == 1) {
 			del_panel(sortpanel);
 			delwin(sortwin);
-			sortportents(&list, (int *) &idx, ch);
+			sortportents(&list, &idx, ch);
 			keymode = 0;
 			if (list.barptr != NULL) {
 				set_barptr((void *) &(list.barptr),
