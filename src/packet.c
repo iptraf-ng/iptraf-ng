@@ -160,9 +160,11 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
 		fromlen = sizeof(struct sockaddr_ll);
 		*br = recvfrom(fd, buf, MAX_PACKET_SIZE, 0,
 			       (struct sockaddr *) fromaddr, &fromlen);
-		ifr.ifr_ifindex = fromaddr->sll_ifindex;
-		ioctl(fd, SIOCGIFNAME, &ifr);
-		strcpy(ifname, ifr.ifr_name);
+		if (ifname) {
+			ifr.ifr_ifindex = fromaddr->sll_ifindex;
+			ioctl(fd, SIOCGIFNAME, &ifr);
+			strcpy(ifname, ifr.ifr_name);
+		}
 	}
 	if (!daemonized && FD_ISSET(0, &set))
 		*ch = wgetch(win);

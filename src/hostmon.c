@@ -678,7 +678,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	int is_ip;
 	int ch;
 
-	char ifname[IFNAMSIZ];
+	char *ifname = ifptr;
 
 	struct timeval tv;
 	unsigned long starttime;
@@ -814,7 +814,7 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, ifname, table.tabwin);
+		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, table.tabwin);
 
 		if (ch != ERR) {
 			if (keymode == 0) {
@@ -860,15 +860,29 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 			}
 		}
 		if (br > 0) {
+			char ifnamebuf[IFNAMSIZ];
+
 			pkt_result =
 			    processpacket(buf, &ipacket, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG, ifname,
+					  MATCH_OPPOSITE_USECONFIG, NULL,
 					  0);
 
 			if (pkt_result != PACKET_OK)
 				continue;
+
+			if (!ifptr) {
+				/* we're capturing on "All interfaces", */
+				/* so get the name of the interface */
+				/* of this packet */
+				int r = iface_get_ifname(fromaddr.sll_ifindex, ifnamebuf);
+				if (r != 0) {
+					write_error("Unable to get interface name");
+					break;	/* can't get interface name, get out! */
+				}
+				ifname = ifnamebuf;
+			}
 
 			if ((fromaddr.sll_hatype == ARPHRD_ETHER)
 			    || (fromaddr.sll_hatype == ARPHRD_FDDI)

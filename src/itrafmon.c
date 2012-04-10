@@ -602,7 +602,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	int curwin = 0;
 
 	int readlen;
-	char ifname[IFNAMSIZ];
+	char *ifname = ifptr;
 
 	unsigned long long total_pkts = 0;
 
@@ -758,6 +758,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	starttime = timeint = closedint = tv.tv_sec;
 
 	while (!exitloop) {
+		char ifnamebuf[IFNAMSIZ];
+
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
 		unow = tv.tv_sec * 1e+06 + tv.tv_usec;
@@ -833,7 +835,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			rotate_flag = 0;
 		}
 
-		getpacket(fd, tpacket, &fromaddr, &ch, &readlen, ifname,
+		getpacket(fd, tpacket, &fromaddr, &ch, &readlen, NULL,
 			  table.tcpscreen);
 
 		if (ch == ERR)
@@ -1042,10 +1044,22 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				  (unsigned int *) &readlen, &br,
 				  &sport, &dport, &fromaddr,
 				  ofilter, MATCH_OPPOSITE_ALWAYS,
-				  ifname, options->v6inv4asv6);
+				  NULL, options->v6inv4asv6);
 
 		if (pkt_result != PACKET_OK)
 			continue;
+
+		if (!ifptr) {
+			/* we're capturing on "All interfaces", */
+			/* so get the name of the interface */
+			/* of this packet */
+			int r = iface_get_ifname(fromaddr.sll_ifindex, ifnamebuf);
+			if (r != 0) {
+				write_error("Unable to get interface name");
+				break;          /* error getting interface name, get out! */
+			}
+			ifname = ifnamebuf;
+		}
 
 		switch(fromaddr.sll_protocol) {
 		case ETH_P_IP:

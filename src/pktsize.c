@@ -155,7 +155,6 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	char buf[MAX_PACKET_SIZE];
 	int br;
 	char *ipacket;
-	char iface[IFNAMSIZ];
 	unsigned int mtu;
 
 	struct sockaddr_ll fromaddr;
@@ -294,7 +293,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		    && (((now - starttime) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, iface, win);
+		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, win);
 
 		if (ch != ERR) {
 			switch (ch) {
@@ -317,7 +316,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 			    processpacket(buf, &ipacket, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG, iface,
+					  MATCH_OPPOSITE_USECONFIG, NULL,
 					  0);
 
 			if (pkt_result != PACKET_OK)

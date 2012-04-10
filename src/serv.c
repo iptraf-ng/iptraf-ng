@@ -699,7 +699,6 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	struct sockaddr_ll fromaddr;
 	int br;
 
-	char iface[IFNAMSIZ];
 	unsigned int idx = 1;
 
 	unsigned int sport = 0;
@@ -863,7 +862,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		    && (((now - starttime) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, iface, list.win);
+		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, list.win);
 
 		if (ch == ERR)
 			goto no_key_ready;
@@ -998,7 +997,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 			processpacket(buf, &ipacket, (unsigned int *) &br,
 				      &tot_br, &sport, &dport, &fromaddr,
 				      ofilter,
-				      MATCH_OPPOSITE_USECONFIG, iface,
+				      MATCH_OPPOSITE_USECONFIG, NULL,
 				      options->v6inv4asv6);
 
 		if (pkt_result != PACKET_OK)

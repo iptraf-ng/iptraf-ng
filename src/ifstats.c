@@ -130,6 +130,9 @@ void initiflist(struct iflist **list)
 		if (!iface_up(ifname))
 			continue;
 
+		int ifindex = iface_get_ifindex(ifname);
+		if (ifindex < 0)
+			continue;
 		/*
 		 * At this point, the interface is now sure to be up and running.
 		 */
@@ -137,6 +140,7 @@ void initiflist(struct iflist **list)
 		itmp = xmalloc(sizeof(struct iflist));
 		memset(itmp, 0, sizeof(struct iflist));
 		strcpy(itmp->ifname, ifname);
+		itmp->ifindex = ifindex;
 		index++;
 		itmp->index = index;
 
@@ -155,36 +159,33 @@ void initiflist(struct iflist **list)
 	fclose(fd);
 }
 
-void positionptr(struct iftab *table, struct iflist **ptmp, char *ifname)
+struct iflist *positionptr(struct iflist *iflist, const int ifindex)
 {
-	struct iflist *plast = NULL;
-	int ok = 0;
+	struct iflist *ptmp = iflist;
+	struct iflist *last = ptmp;
 
-	*ptmp = table->head;
-
-	while ((*ptmp != NULL) && (!ok)) {
-		ok = (strcmp((*ptmp)->ifname, ifname) == 0);
-
-		if (!ok) {
-			if ((*ptmp)->next_entry == NULL)
-				plast = *ptmp;
-
-			*ptmp = (*ptmp)->next_entry;
+	while ((ptmp != NULL) && (ptmp->ifindex != ifindex)) {
+		last = ptmp;
+		ptmp = ptmp->next_entry;
+	}
+	/* no interface was found, try to create new one */
+	if (ptmp == NULL) {
+		struct iflist *itmp = xmallocz(sizeof(struct iflist));
+		itmp->ifindex = ifindex;
+		itmp->index = last->index + 1;
+		int r = iface_get_ifname(ifindex, itmp->ifname);
+		if (r != 0) {
+			write_error("Error getting interface name");
+			return(NULL);
 		}
-	}
 
-	if (*ptmp == NULL) {
-		*ptmp = xmalloc(sizeof(struct iflist));
-		memset(*ptmp, 0, sizeof(struct iflist));
-		(*ptmp)->index = plast->index + 1;
-		plast->next_entry = *ptmp;
-		(*ptmp)->prev_entry = plast;
-		(*ptmp)->next_entry = NULL;
-		strcpy((*ptmp)->ifname, ifname);
-
-		if ((*ptmp)->index <= LINES - 4)
-			table->lastvisible = *ptmp;
+		/* last can't be NULL otherwise we will have empty iflist */
+		last->next_entry = itmp;
+		itmp->prev_entry = last;
+		itmp->next_entry = NULL;
+		ptmp = itmp;
 	}
+	return(ptmp);
 }
 
 void destroyiflist(struct iflist *list)
@@ -406,7 +407,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	FILE *logfile = NULL;
 
 	int br;
-	char ifname[IFNAMSIZ];
 
 	int ch;
 
@@ -520,7 +520,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, ifname, table.statwin);
+		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, table.statwin);
 
 		switch (ch) {
 		case ERR:
@@ -561,13 +561,15 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 					   NULL, NULL, NULL, &fromaddr,
 					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
-					   ifname, options->v6inv4asv6);
+					   NULL, options->v6inv4asv6);
 
 		if (pkt_result != PACKET_OK
 		    && pkt_result != MORE_FRAGMENTS)
 			continue;
 
-		positionptr(&table, &ptmp, ifname);
+		ptmp = positionptr(table.head, fromaddr.sll_ifindex);
+		if (!ptmp)
+			continue;
 
 		ptmp->total++;
 
@@ -743,7 +745,6 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	struct iphdr *ipacket = NULL;
 	struct ip6_hdr *ip6packet = NULL;
 
-	char ifname[IFNAMSIZ];
 	struct sockaddr_ll fromaddr;
 
 	int br;
@@ -981,7 +982,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, ifname, statwin);
+		getpacket(fd, buf, &fromaddr, &ch, &br, NULL, statwin);
 
 		switch (ch) {
 		case ERR:
@@ -1011,7 +1012,7 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 			    processpacket(buf, &packet, (unsigned int *) &br,
 					  NULL, NULL, NULL, &fromaddr,
 					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG, ifname,
+					  MATCH_OPPOSITE_USECONFIG, NULL,
 					  options->v6inv4asv6);
 
 			if (pkt_result != PACKET_OK
@@ -1124,6 +1125,7 @@ void selectiface(char *ifname, int withall, int *aborted)
 	if ((withall) && (list != NULL)) {
 		ptmp = xmalloc(sizeof(struct iflist));
 		strncpy(ptmp->ifname, "All interfaces", sizeof(ptmp->ifname));
+		ptmp->ifindex = 0;
 
 		ptmp->prev_entry = NULL;
 		list->prev_entry = ptmp;
