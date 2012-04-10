@@ -85,7 +85,7 @@
 #define dispmode(mode)				\
 	(((mode) == KBITS) ? "kbps": "kBps")
 
-#define NORETURN __attribute__((noreturn))
+#define __noreturn __attribute__((noreturn))
 #define UNUSED __attribute__((unused))
 
 extern void *xmalloc(size_t size);
@@ -101,7 +101,7 @@ extern int socket_bind_to_iface(const int fd, const int ifindex);
 extern int socket_bind_to_iface_by_name(const int fd, const char const *ifname);
 
 extern void die(const char *err, ...);
-extern void NORETURN die_errno(const char *err);
+extern void die_errno(const char *err) __noreturn;
 extern void error(const char *err, ...);
 
 static inline char *skip_whitespace(const char *str)

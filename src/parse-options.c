@@ -33,7 +33,7 @@ static int parse_opt_size(const struct options *opt)
 #define USAGE_OPTS_WIDTH 24
 #define USAGE_GAP         2
 
-void NORETURN parse_usage_and_die(const char *const *usage,
+void __noreturn parse_usage_and_die(const char *const *usage,
 				  const struct options *opt)
 {
 	fprintf(stderr, "usage: %s\n", *usage++);

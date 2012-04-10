@@ -26,7 +26,7 @@ static void vreportf(const char *prefix, const char *err, va_list params)
 	fprintf(stderr, "%s%s\n", prefix, msg);
 }
 
-static NORETURN void die_buildin(const char *err, va_list params)
+static __noreturn void die_buildin(const char *err, va_list params)
 {
 	vreportf("fatal: ", err, params);
 	exit(129);
