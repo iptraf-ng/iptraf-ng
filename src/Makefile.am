@@ -65,7 +65,6 @@ LIB_H += externs.h
 LIB_H += attrs.h
 LIB_H += fltdefs.h
 LIB_H += logvars.h
-LIB_H += tr.h
 LIB_H += list.h
 
 LIB_C += error.c
@@ -101,7 +100,6 @@ LIB_C += ifstats.c
 LIB_C += deskman.c
 LIB_C += hostmon.c
 LIB_C += fltedit.c
-LIB_C += tr.c
 LIB_C += cidr.c
 
 iptraf_ng_SOURCES = \

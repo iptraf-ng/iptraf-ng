@@ -29,8 +29,6 @@ details.
 #include "ifaces.h"
 #include "packet.h"
 #include "ipfrag.h"
-#include "tr.h"
-
 
 /* Reimplement again
  * Removed PPP, LINK_ISDN, PLIP
@@ -60,6 +58,24 @@ static int in_cksum(u_short * addr, int len)
 		sum = (sum & 0xffff) + (sum >> 16);
 
 	return (u_short) (~sum);
+}
+
+static unsigned int get_tr_ip_offset(char *pkt)
+{
+	struct trh_hdr *trh;
+	unsigned int riflen = 0;
+
+	trh = (struct trh_hdr *) pkt;
+
+	/*
+	 * Check if this packet has TR routing information and get
+	 * its length.
+	 */
+	if (trh->saddr[0] & TR_RII)
+		riflen = (ntohs(trh->rcf) & TR_RCF_LEN_MASK) >> 8;
+
+	return sizeof(struct trh_hdr) - TR_MAXRIFLEN + riflen +
+	    sizeof(struct trllc);
 }
 
 static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
@@ -101,14 +117,9 @@ static void adjustpacket(char *tpacket, struct sockaddr_ll *fromaddr,
 		break;
 	case ARPHRD_IEEE802_TR:
 	case ARPHRD_IEEE802:
-		/*
-		 * Token Ring patch supplied by Tomas Dvorak
-		 */
-
-		/*
-		 * Get the start of the IP packet from the Token Ring frame.
-		 */
-		dataoffset = get_tr_ip_offset((unsigned char *) tpacket);
+		/* Token Ring patch supplied by Tomas Dvorak */
+		/* Get the start of the IP packet from the Token Ring frame. */
+		dataoffset = get_tr_ip_offset(tpacket);
 		*packet = tpacket + dataoffset;
 		*readlen -= dataoffset;
 		break;
