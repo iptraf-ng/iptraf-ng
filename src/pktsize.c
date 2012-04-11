@@ -140,7 +140,7 @@ void update_size_distrib(unsigned int length, struct ifstat_brackets *brackets,
 }
 
 void packet_size_breakdown(struct OPTIONS *options, char *ifname,
-			   int facilitytime, struct filterstate *ofilter)
+			   time_t facilitytime, struct filterstate *ofilter)
 {
 	WINDOW *win;
 	PANEL *panel;
@@ -161,10 +161,10 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	int pkt_result;
 
 	struct timeval tv;
-	unsigned long starttime, startlog, timeint;
-	unsigned long now;
+	time_t starttime, startlog, timeint;
+	time_t now;
 	unsigned long long unow;
-	unsigned long updtime = 0;
+	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
 
 	int logging = options->logging;

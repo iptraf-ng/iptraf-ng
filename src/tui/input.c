@@ -35,7 +35,7 @@ void tx_addfield(struct FIELDLIST *list, unsigned int len, unsigned int y,
 		 unsigned int x, const char *initstr)
 {
 	struct FIELD *newfield;
-	int i;
+	unsigned int i;
 
 	newfield = malloc(sizeof(struct FIELD));
 

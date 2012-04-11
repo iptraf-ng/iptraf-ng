@@ -46,7 +46,8 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 	unsigned int rangeproto1, rangeproto2;
 	int parse_result;
 	char *bptr, *cptr;
-	int i, doagain;
+	int doagain;
+	unsigned int i;
 	char msgstr[60];
 	char actual_address[30];
 	unsigned int maskbits;

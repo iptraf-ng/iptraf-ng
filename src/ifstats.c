@@ -388,7 +388,7 @@ void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
  */
 
 void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
-	     int facilitytime)
+	     time_t facilitytime)
 {
 	int logging = options->logging;
 	struct iftab table;
@@ -412,12 +412,12 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	int fd;
 
 	struct timeval tv;
-	unsigned long starttime = 0;
-	unsigned long statbegin = 0;
-	unsigned long now = 0;
+	time_t starttime = 0;
+	time_t statbegin = 0;
+	time_t now = 0;
 	unsigned long long unow = 0;
-	unsigned long startlog = 0;
-	unsigned long updtime = 0;
+	time_t startlog = 0;
+	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
 
 	struct promisc_states *promisc_list;
@@ -730,7 +730,7 @@ void update_proto_counter(struct proto_counter *proto_counter, int outgoing, int
  * The detailed interface statistics function
  */
 
-void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
+void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	      struct filterstate *ofilter)
 {
 	int logging = options->logging;
@@ -758,11 +758,13 @@ void detstats(char *iface, const struct OPTIONS *options, int facilitytime,
 	int ch;
 
 	struct timeval tv;
-	unsigned long updtime = 0;
+	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
-	unsigned long starttime, now;
-	unsigned long statbegin, startlog;
-	unsigned long rate_interval;
+	time_t starttime;
+	time_t now;
+	time_t statbegin;
+	time_t startlog;
+	time_t rate_interval;
 	unsigned long long unow;
 
 	struct proto_counter span;

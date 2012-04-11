@@ -630,7 +630,7 @@ void quicksort_lan_entries(struct ethtab *table, struct ethtabent *low,
 void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
 {
 	struct ethtabent *ptemp1;
-	unsigned int idxtmp;
+	int idxtmp;
 
 	if (!list->head)
 		return;
@@ -662,7 +662,7 @@ void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
  * The LAN station monitor
  */
 
-void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
+void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 	     struct filterstate *ofilter)
 {
 	int logging = options->logging;
@@ -681,11 +681,12 @@ void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	char *ifname = ifptr;
 
 	struct timeval tv;
-	unsigned long starttime;
-	unsigned long now = 0;
+	time_t starttime;
+	time_t now = 0;
 	unsigned long long unow = 0;
-	unsigned long statbegin = 0, startlog = 0;
-	unsigned long updtime = 0;
+	time_t statbegin = 0;
+	time_t startlog = 0;
+	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
 
 	struct eth_desc *list = NULL;

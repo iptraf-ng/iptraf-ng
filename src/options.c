@@ -200,13 +200,13 @@ void showoptions(struct OPTIONS *options, WINDOW * win)
 	updatetimes(options, win);
 }
 
-void settimeout(unsigned int *value, const char *units, int allow_zero,
+void settimeout(time_t *value, const char *units, int allow_zero,
 		int *aborted)
 {
 	WINDOW *dlgwin;
 	PANEL *dlgpanel;
 	struct FIELDLIST field;
-	unsigned int tmval = 0;
+	time_t tmval = 0;
 
 	dlgwin = newwin(7, 40, (LINES - 7) / 2, (COLS - 40) / 4);
 	dlgpanel = new_panel(dlgwin);
@@ -335,8 +335,7 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
 						updatetimes(options, statwin);
 					break;
 				case 2:
-					settimeout((unsigned int *)
-						   &(options->logspan),
+					settimeout(&(options->logspan),
 						   "minutes", DONT_ALLOW_ZERO,
 						   &aborted);
 					if (!aborted) {

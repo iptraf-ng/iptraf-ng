@@ -163,7 +163,7 @@ void scrollupperwin(struct tcptable *table, int direction, unsigned long *idx,
 
 void pageupperwin(struct tcptable *table, int direction, unsigned long *idx)
 {
-	int i = 1;
+	unsigned int i = 1;
 
 	wattrset(table->tcpscreen, STDATTR);
 	if (direction == SCROLLUP) {
@@ -224,7 +224,7 @@ void scrolllowerwin(struct othptable *table, int direction)
 
 void pagelowerwin(struct othptable *table, int direction)
 {
-	int i = 1;
+	unsigned int i = 1;
 
 	if (direction == SCROLLUP) {
 		while ((i <= table->oimaxy - 2)
@@ -564,7 +564,7 @@ void update_flowrate(WINDOW * win, struct tcptableent *entry, time_t now,
  */
 
 void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
-	   int facilitytime, char *ifptr)
+	   time_t facilitytime, char *ifptr)
 {
 	int logging = options->logging;
 	struct sockaddr_ll fromaddr;	/* iface info */
@@ -582,13 +582,13 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	unsigned long screen_idx = 1;
 
 	struct timeval tv;
-	unsigned long starttime = 0;
-	unsigned long now = 0;
-	unsigned long timeint = 0;
-	unsigned long updtime = 0;
+	time_t starttime = 0;
+	time_t now = 0;
+	time_t timeint = 0;
+	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
 	unsigned long long unow = 0;
-	unsigned long closedint = 0;
+	time_t closedint = 0;
 
 	WINDOW *statwin;
 	PANEL *statpanel;

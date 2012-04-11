@@ -65,7 +65,7 @@ unsigned int tcp_hash(unsigned long saddr, uint32_t * s6addr,
 		      unsigned int sport, unsigned long daddr,
 		      uint32_t * d6addr, unsigned int dport, char *ifname)
 {
-	int i;
+	size_t i;
 	int ifsum = 0;
 
 	for (i = 0; i <= strlen(ifname) - 1; i++)

@@ -524,7 +524,7 @@ void quicksort_port_entries(struct portlist *table, struct portlistent *low,
 void sortportents(struct portlist *list, unsigned int *idx, int command)
 {
 	struct portlistent *ptemp1;
-	unsigned int idxtmp;
+	int idxtmp;
 
 	if (!(list->head))
 		return;
@@ -686,7 +686,7 @@ void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
  */
 
 void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
-	     int facilitytime, struct filterstate *ofilter)
+	     time_t facilitytime, struct filterstate *ofilter)
 {
 	int logging = options->logging;
 	int pkt_result;
@@ -705,10 +705,10 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	unsigned int dport = 0;
 
 	struct timeval tv;
-	unsigned long starttime, startlog, timeint;
-	unsigned long now;
+	time_t starttime, startlog, timeint;
+	time_t now;
 	unsigned long long unow;
-	unsigned long updtime = 0;
+	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
 
 	unsigned int tot_br;
