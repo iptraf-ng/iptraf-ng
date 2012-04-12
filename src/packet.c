@@ -138,28 +138,23 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
 {
 	socklen_t fromlen;
 	fd_set set;
-	struct timeval tv;
 	int ss;
 
-	FD_ZERO(&set);
-
-	/*
-	 * Monitor stdin only if in interactive, not daemon mode.
-	 */
-
-	if (!daemonized)
-		FD_SET(0, &set);
-
-	/*
-	 * Monitor raw socket
-	 */
-
-	FD_SET(fd, &set);
-
-	tv.tv_sec = 0;
-	tv.tv_usec = DEFAULT_UPDATE_DELAY;
-
 	do {
+		FD_ZERO(&set);
+
+		/* Monitor stdin only if in interactive, not daemon mode. */
+		if (!daemonized)
+			FD_SET(0, &set);
+
+		/* Monitor raw socket */
+		FD_SET(fd, &set);
+
+		struct timeval tv = {
+			.tv_sec = 0,
+			.tv_usec = DEFAULT_UPDATE_DELAY
+		};
+
 		ss = select(fd + 1, &set, 0, 0, &tv);
 	} while ((ss < 0) && (errno == EINTR));
 
