@@ -46,14 +46,14 @@ void writedstatlog(char *ifname, int unit,
 		   struct ifcounts *ts, unsigned long nsecs, FILE * logfile);
 
 /* USR1 log-rotation signal handlers */
-void rotate_dstat_log(int s __unused)
+static void rotate_dstat_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
 	signal(SIGUSR1, rotate_dstat_log);
 }
 
-void printdetlabels(WINDOW * win)
+static void printdetlabels(WINDOW * win)
 {
 	wattrset(win, BOXATTR);
 	mvwprintw(win, 2, 14,
@@ -81,7 +81,7 @@ void printdetlabels(WINDOW * win)
 	doupdate();
 }
 
-void printstatrow(WINDOW * win, int row, unsigned long long total,
+static void printstatrow(WINDOW * win, int row, unsigned long long total,
 		  unsigned long long btotal, unsigned long long total_in,
 		  unsigned long long btotal_in, unsigned long long total_out,
 		  unsigned long long btotal_out)
@@ -100,7 +100,7 @@ void printstatrow(WINDOW * win, int row, unsigned long long total,
 	printlargenum(btotal_out, win);
 }
 
-void printstatrow_proto(WINDOW *win, int row, struct proto_counter *proto_counter)
+static void printstatrow_proto(WINDOW *win, int row, struct proto_counter *proto_counter)
 {
 	printstatrow(win, row,
 		     proto_counter->proto_total.pc_packets,
@@ -111,7 +111,7 @@ void printstatrow_proto(WINDOW *win, int row, struct proto_counter *proto_counte
 		     proto_counter->proto_out.pc_bytes);
 }
 
-void printdetails(struct ifcounts *ifcounts, WINDOW * win)
+static void printdetails(struct ifcounts *ifcounts, WINDOW * win)
 {
 	wattrset(win, HIGHATTR);
 	/* Print totals on the IP protocols */
@@ -138,7 +138,7 @@ void printdetails(struct ifcounts *ifcounts, WINDOW * win)
 	mvwprintw(win, 19, 68, "%8lu", ifcounts->bad.pc_packets);
 }
 
-void update_counter(struct pkt_counter *count, int bytes)
+static void update_counter(struct pkt_counter *count, int bytes)
 {
 	if (count) {
 		count->pc_packets++;
@@ -146,7 +146,7 @@ void update_counter(struct pkt_counter *count, int bytes)
 	}
 }
 
-void update_proto_counter(struct proto_counter *proto_counter, int outgoing, int bytes)
+static void update_proto_counter(struct proto_counter *proto_counter, int outgoing, int bytes)
 {
 	if (proto_counter) {
 		update_counter(&proto_counter->proto_total, bytes);
