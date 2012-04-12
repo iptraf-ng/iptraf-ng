@@ -97,6 +97,7 @@ LIB_C += packet.c
 LIB_C += tcptable.c
 LIB_C += othptab.c
 LIB_C += ifstats.c
+LIB_C += detstats.c
 LIB_C += deskman.c
 LIB_C += hostmon.c
 LIB_C += fltedit.c
