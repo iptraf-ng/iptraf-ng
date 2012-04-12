@@ -51,7 +51,7 @@ void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
  * USR1 log-rotation signal handlers
  */
 
-void rotate_gstat_log(int s __unused)
+static void rotate_gstat_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, GSTATLOG);
@@ -63,7 +63,7 @@ void rotate_gstat_log(int s __unused)
  * This eliminates duplicate interface entries due to aliases
  */
 
-int ifinlist(struct iflist *list, char *ifname)
+static int ifinlist(struct iflist *list, char *ifname)
 {
 	struct iflist *ptmp = list;
 	int result = 0;
@@ -86,7 +86,7 @@ int ifinlist(struct iflist *list, char *ifname)
  * lists.
  */
 
-void initiflist(struct iflist **list)
+static void initiflist(struct iflist **list)
 {
 	FILE *fd;
 	char ifname[IFNAMSIZ];
@@ -147,7 +147,7 @@ void initiflist(struct iflist **list)
 	fclose(fd);
 }
 
-struct iflist *positionptr(struct iflist *iflist, const int ifindex)
+static struct iflist *positionptr(struct iflist *iflist, const int ifindex)
 {
 	struct iflist *ptmp = iflist;
 	struct iflist *last = ptmp;
@@ -176,7 +176,7 @@ struct iflist *positionptr(struct iflist *iflist, const int ifindex)
 	return(ptmp);
 }
 
-void destroyiflist(struct iflist *list)
+static void destroyiflist(struct iflist *list)
 {
 	struct iflist *ctmp;
 	struct iflist *ptmp;
@@ -194,13 +194,13 @@ void destroyiflist(struct iflist *list)
 	}
 }
 
-void no_ifaces_error(void)
+static void no_ifaces_error(void)
 {
 	write_error("No active interfaces. Check their status or the /proc filesystem");
 }
 
-void updaterates(struct iftab *table, int unit, time_t starttime, time_t now,
-		 unsigned int idx)
+static void updaterates(struct iftab *table, int unit, time_t starttime,
+		 time_t now, unsigned int idx)
 {
 	struct iflist *ptmp = table->firstvisible;
 
@@ -227,7 +227,7 @@ void updaterates(struct iftab *table, int unit, time_t starttime, time_t now,
 	} while (ptmp != table->lastvisible->next_entry);
 }
 
-void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
+static void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 {
 	unsigned int target_row;
 
@@ -252,7 +252,7 @@ void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 	wprintw(win, "%7lu", ptmp->badtotal);
 }
 
-void preparescreen(struct iftab *table)
+static void preparescreen(struct iftab *table)
 {
 	struct iflist *ptmp = table->head;
 	unsigned int i = 1;
@@ -272,7 +272,7 @@ void preparescreen(struct iftab *table)
 	} while ((ptmp != NULL) && (i <= winht));
 }
 
-void labelstats(WINDOW * win)
+static void labelstats(WINDOW *win)
 {
 	wmove(win, 0, 1);
 	wprintw(win, " Iface ");
@@ -294,7 +294,7 @@ void labelstats(WINDOW * win)
 	wprintw(win, " Activity ");
 }
 
-void initiftab(struct iftab *table)
+static void initiftab(struct iftab *table)
 {
 	table->borderwin = newwin(LINES - 2, COLS, 1, 0);
 	table->borderpanel = new_panel(table->borderwin);
@@ -321,7 +321,8 @@ void initiftab(struct iftab *table)
  * Scrolling routines for the general interface statistics window
  */
 
-void scrollgstatwin(struct iftab *table, int direction, unsigned int *idx)
+static void scrollgstatwin(struct iftab *table, int direction,
+			   unsigned int *idx)
 {
 	char buf[255];
 
@@ -352,7 +353,7 @@ void scrollgstatwin(struct iftab *table, int direction, unsigned int *idx)
 	}
 }
 
-void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
+static void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
 {
 	int i = 1;
 
