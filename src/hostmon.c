@@ -955,10 +955,15 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 */
 			    || (fromaddr.sll_hatype == ARPHRD_IEEE802_TR)
 			    || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
-				if (fromaddr.sll_protocol == ETH_P_IP)
+				switch(fromaddr.sll_protocol) {
+				case ETH_P_IP:
+				case ETH_P_IPV6:
 					is_ip = 1;
-				else
+					break;
+				default:
 					is_ip = 0;
+					break;
+				}
 
 				/*
 				 * Check source address entry
