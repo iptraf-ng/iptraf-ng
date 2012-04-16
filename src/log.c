@@ -30,10 +30,10 @@ details.
 #include "serv.h"
 #include "pktsize.h"
 #include "hostmon.h"
+#include "log.h"
 
 #define MSGSTRING_MAX		240
 #define TARGET_LOGNAME_MAX	160
-#define TIME_TARGET_MAX		30
 
 int rotate_flag;
 char target_logname[TARGET_LOGNAME_MAX];
@@ -276,134 +276,6 @@ void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 	}
 
 	fprintf(fd, "\n%lu seconds running time\n", nsecs);
-	fflush(fd);
-}
-
-void writedstatlog(char *ifname, int unit,
-		   float peakactivity, float peakpps, float peakactivity_in,
-		   float peakpps_in, float peakactivity_out, float peakpps_out,
-		   struct ifcounts *ts, unsigned long nsecs, FILE * fd)
-{
-	char atime[TIME_TARGET_MAX];
-
-	genatime(time((time_t *) NULL), atime);
-
-	fprintf(fd,
-		"\n*** Detailed statistics for interface %s, generated %s\n\n",
-		ifname, atime);
-
-	fprintf(fd, "Total: \t%llu packets, %llu bytes\n",
-		ts->total.proto_total.pc_packets,
-		ts->total.proto_total.pc_bytes);
-	fprintf(fd,
-		"\t(incoming: %llu packets, %llu bytes; outgoing: %llu packets, %llu bytes)\n",
-		ts->total.proto_in.pc_packets,
-		ts->total.proto_in.pc_bytes,
-		ts->total.proto_out.pc_packets,
-		ts->total.proto_out.pc_bytes);
-	fprintf(fd, "IP: \t%llu packets, %llu bytes\n",
-		ts->ipv4.proto_total.pc_packets,
-		ts->ipv4.proto_total.pc_bytes);
-	fprintf(fd,
-		"\t(incoming: %llu packets, %llu bytes; outgoing: %llu packets, %llu bytes)\n",
-		ts->ipv4.proto_in.pc_packets,
-		ts->ipv4.proto_in.pc_bytes,
-		ts->ipv4.proto_out.pc_packets,
-		ts->ipv4.proto_out.pc_bytes);
-	fprintf(fd, "TCP: %llu packets, %llu bytes\n",
-		ts->tcp.proto_total.pc_packets,
-		ts->tcp.proto_total.pc_bytes);
-	fprintf(fd,
-		"\t(incoming: %llu packets, %llu bytes; outgoing: %llu packets, %llu bytes)\n",
-		ts->tcp.proto_in.pc_packets,
-		ts->tcp.proto_in.pc_bytes,
-		ts->tcp.proto_out.pc_packets,
-		ts->tcp.proto_out.pc_bytes);
-	fprintf(fd, "UDP: %llu packets, %llu bytes\n",
-		ts->udp.proto_total.pc_packets,
-		ts->udp.proto_total.pc_bytes);
-	fprintf(fd,
-		"\t(incoming: %llu packets, %llu bytes; outgoing: %llu packets, %llu bytes)\n",
-		ts->udp.proto_in.pc_packets,
-		ts->udp.proto_in.pc_bytes,
-		ts->udp.proto_out.pc_packets,
-		ts->udp.proto_out.pc_bytes);
-	fprintf(fd, "ICMP: %llu packets, %llu bytes\n",
-		ts->icmp.proto_total.pc_packets,
-		ts->icmp.proto_total.pc_bytes);
-	fprintf(fd,
-		"\t(incoming: %llu packets, %llu bytes; outgoing: %llu packets, %llu bytes)\n",
-		ts->icmp.proto_in.pc_packets,
-		ts->icmp.proto_in.pc_bytes,
-		ts->icmp.proto_out.pc_packets,
-		ts->icmp.proto_out.pc_bytes);
-	fprintf(fd, "Other IP: %llu packets, %llu bytes\n",
-		ts->other.proto_total.pc_packets,
-		ts->other.proto_total.pc_bytes);
-	fprintf(fd,
-		"\t(incoming: %llu packets, %llu bytes; outgoing: %llu packets, %llu bytes)\n",
-		ts->other.proto_in.pc_packets,
-		ts->other.proto_in.pc_bytes,
-		ts->other.proto_out.pc_packets,
-		ts->other.proto_out.pc_bytes);
-	fprintf(fd, "Non-IP: %llu packets, %llu bytes\n",
-		ts->nonip.proto_total.pc_packets,
-		ts->nonip.proto_total.pc_bytes);
-	fprintf(fd,
-		"\t(incoming: %llu packets, %llu bytes; outgoing: %llu packets, %llu bytes)\n",
-		ts->nonip.proto_in.pc_packets,
-		ts->nonip.proto_in.pc_bytes,
-		ts->nonip.proto_out.pc_packets,
-		ts->nonip.proto_out.pc_bytes);
-	fprintf(fd, "Broadcast: %llu packets, %llu bytes\n",
-		ts->bcast.pc_packets,
-		ts->bcast.pc_bytes);
-
-	if (nsecs > 5) {
-		fprintf(fd, "\nAverage rates:\n");
-
-		if (unit == KBITS) {
-			fprintf(fd, "  Total:\t%.2f kbits/s, %.2f packets/s\n",
-				((float) (ts->total.proto_total.pc_bytes * 8 / 1000) /
-				 (float) nsecs),
-				((float) (ts->total.proto_total.pc_packets) / (float) nsecs));
-			fprintf(fd,
-				"  Incoming:\t%.2f kbits/s, %.2f packets/s\n",
-				(float) (ts->total.proto_in.pc_bytes * 8 / 1000) /
-				(float) (nsecs),
-				(float) (ts->total.proto_in.pc_packets) / (float) (nsecs));
-			fprintf(fd,
-				"  Outgoing:\t%.2f kbits/s, %.2f packets/s\n",
-				(float) (ts->total.proto_out.pc_bytes * 8 / 1000) /
-				(float) (nsecs),
-				(float) (ts->total.proto_out.pc_packets) / (float) (nsecs));
-		} else {
-			fprintf(fd, "%.2f kbytes/s, %.2f packets/s\n",
-				((float) (ts->total.proto_total.pc_bytes / 1024) /
-				 (float) nsecs),
-				((float) (ts->total.proto_total.pc_packets) / (float) nsecs));
-			fprintf(fd,
-				"Incoming:\t%.2f kbytes/s, %.2f packets/s\n",
-				(float) (ts->total.proto_in.pc_bytes / 1024) /
-				(float) (nsecs),
-				(float) (ts->total.proto_in.pc_packets) / (float) (nsecs));
-			fprintf(fd,
-				"Outgoing:\t%.2f kbytes/s, %.2f packets/s\n",
-				(float) (ts->total.proto_out.pc_bytes / 1024) /
-				(float) (nsecs),
-				(float) (ts->total.proto_out.pc_packets) / (float) (nsecs));
-
-		}
-		fprintf(fd,
-			"\nPeak total activity: %.2f %s, %.2f packets/s\n",
-			peakactivity, dispmode(unit), peakpps);
-		fprintf(fd, "Peak incoming rate: %.2f %s, %.2f packets/s\n",
-			peakactivity_in, dispmode(unit), peakpps_in);
-		fprintf(fd, "Peak outgoing rate: %.2f %s, %.2f packets/s\n\n",
-			peakactivity_out, dispmode(unit), peakpps_out);
-	}
-	fprintf(fd, "IP checksum errors: %llu\n\n", ts->bad.pc_packets);
-	fprintf(fd, "Running time: %lu seconds\n", nsecs);
 	fflush(fd);
 }
 
