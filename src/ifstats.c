@@ -42,11 +42,6 @@ details.
 extern int exitloop;
 extern int daemonized;
 
-/* from log.c, applicable only to this module */
-
-void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
-		   FILE * logfile);
-
 /*
  * USR1 log-rotation signal handlers
  */
@@ -56,6 +51,48 @@ static void rotate_gstat_log(int s __unused)
 	rotate_flag = 1;
 	strcpy(target_logname, GSTATLOG);
 	signal(SIGUSR1, rotate_gstat_log);
+}
+
+static void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
+			  FILE *fd)
+{
+	struct iflist *ptmp = table->head;
+	char atime[TIME_TARGET_MAX];
+
+	genatime(time(NULL), atime);
+	fprintf(fd, "\n*** General interface statistics log generated %s\n\n",
+		atime);
+
+	while (ptmp != NULL) {
+
+		fprintf(fd,
+			"%s: %llu total, %llu IP, %llu non-IP, %lu IP checksum errors",
+			ptmp->ifname, ptmp->total, ptmp->iptotal,
+			ptmp->noniptotal, ptmp->badtotal);
+
+		if (nsecs > 5) {
+			if (unit == KBITS) {
+				fprintf(fd, ", average activity %.2f %s",
+					(float) (ptmp->br * 8 / 1000) /
+					(float) nsecs, dispmode(unit));
+			} else {
+				fprintf(fd, ", average activity %.2f %s",
+					(float) (ptmp->br / 1024) /
+					(float) nsecs, dispmode(unit));
+			}
+
+			fprintf(fd, ", peak activity %.2f %s", ptmp->peakrate,
+				dispmode(unit));
+			fprintf(fd, ", last 5-second activity %.2f %s",
+				ptmp->rate, dispmode(unit));
+		}
+		fprintf(fd, "\n");
+
+		ptmp = ptmp->next_entry;
+	}
+
+	fprintf(fd, "\n%lu seconds running time\n", nsecs);
+	fflush(fd);
 }
 
 /*
