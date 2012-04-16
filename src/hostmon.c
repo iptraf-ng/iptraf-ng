@@ -47,8 +47,6 @@ extern int daemonized;
  * from log.c, applicable only to this module
  */
 
-extern void writeethlog(struct ethtabent *list, int units, unsigned long nsecs,
-			FILE * logfile);
 extern char *ltrim(char *buf);
 
 /*
@@ -60,6 +58,74 @@ void rotate_lanlog(int s __unused)
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
 	signal(SIGUSR1, rotate_lanlog);
+}
+
+static void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
+			FILE * fd)
+{
+	char atime[TIME_TARGET_MAX];
+	struct ethtabent *ptmp = list;
+
+	genatime(time(NULL), atime);
+
+	fprintf(fd, "\n*** LAN traffic log, generated %s\n\n", atime);
+
+	while (ptmp != NULL) {
+		if (ptmp->type == 0) {
+			if (ptmp->un.desc.linktype == ARPHRD_ETHER)
+				fprintf(fd, "\nEthernet address: %s",
+					ptmp->un.desc.ascaddr);
+/* fix this
+            else if (ptmp->un.desc.linktype == LINK_PLIP)
+                fprintf(fd, "\nPLIP address: %s", ptmp->un.desc.ascaddr);
+*/
+			else if (ptmp->un.desc.linktype == ARPHRD_FDDI)
+				fprintf(fd, "\nFDDI address: %s",
+					ptmp->un.desc.ascaddr);
+
+			if (ptmp->un.desc.withdesc)
+				fprintf(fd, " (%s)", ptmp->un.desc.desc);
+
+			fprintf(fd, "\n");
+		} else {
+			fprintf(fd,
+				"\tIncoming total %llu packets, %llu bytes; %llu IP packets\n",
+				ptmp->un.figs.inpcount, ptmp->un.figs.inbcount,
+				ptmp->un.figs.inippcount);
+			fprintf(fd,
+				"\tOutgoing total %llu packets, %llu bytes; %llu IP packets\n",
+				ptmp->un.figs.outpcount,
+				ptmp->un.figs.outbcount,
+				ptmp->un.figs.outippcount);
+
+			fprintf(fd, "\tAverage rates: ");
+			if (unit == KBITS)
+				fprintf(fd,
+					"%.2f kbits/s incoming, %.2f kbits/s outgoing\n",
+					(float) (ptmp->un.figs.inbcount * 8 /
+						 1000) / (float) nsecs,
+					(float) (ptmp->un.figs.outbcount * 8 /
+						 1000) / (float) nsecs);
+			else
+				fprintf(fd,
+					"%.2f kbytes/s incoming, %.2f kbytes/s outgoing\n",
+					(float) (ptmp->un.figs.inbcount /
+						 1024) / (float) nsecs,
+					(float) (ptmp->un.figs.outbcount /
+						 1024) / (float) nsecs);
+
+			if (nsecs > 5)
+				fprintf(fd,
+					"\tLast 5-second rates: %.2f %s incoming, %.2f %s outgoing\n",
+					ptmp->un.figs.inrate, dispmode(unit),
+					ptmp->un.figs.outrate, dispmode(unit));
+		}
+
+		ptmp = ptmp->next_entry;
+	}
+
+	fprintf(fd, "\nRunning time: %lu seconds\n", nsecs);
+	fflush(fd);
 }
 
 void initethtab(struct ethtab *table, int unit)
