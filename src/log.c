@@ -142,50 +142,6 @@ void write_daemon_err(char *msg, va_list vararg)
 	fclose(fd);
 }
 
-void writetcplog(int logging, FILE * fd, struct tcptableent *entry,
-		 unsigned int pktlen, int mac, char *message)
-{
-	char msgbuf[MSGSTRING_MAX];
-
-	if (logging) {
-		if (mac) {
-			snprintf(msgbuf, MSGSTRING_MAX,
-				 "TCP; %s; %u bytes; from %s:%s to %s:%s (source MAC addr %s); %s",
-				 entry->ifname, pktlen, entry->s_fqdn,
-				 entry->s_sname, entry->d_fqdn, entry->d_sname,
-				 entry->smacaddr, message);
-		} else {
-			snprintf(msgbuf, MSGSTRING_MAX,
-				 "TCP; %s; %u bytes; from %s:%s to %s:%s; %s",
-				 entry->ifname, pktlen, entry->s_fqdn,
-				 entry->s_sname, entry->d_fqdn, entry->d_sname,
-				 message);
-		}
-
-		writelog(logging, fd, msgbuf);
-	}
-}
-
-void write_tcp_unclosed(int logging, FILE * fd, struct tcptable *table)
-{
-	char msgbuf[MSGSTRING_MAX];
-
-	struct tcptableent *entry = table->head;
-
-	while (entry != NULL) {
-		if ((entry->finsent == 0) && ((entry->stat & FLAG_RST) == 0)
-		    && (!(entry->inclosed))) {
-			sprintf(msgbuf,
-				"TCP; %s; active; from %s:%s to %s:%s; %lu packets, %lu bytes",
-				entry->ifname, entry->s_fqdn, entry->s_sname,
-				entry->d_fqdn, entry->d_sname, entry->pcount,
-				entry->bcount);
-			writelog(logging, fd, msgbuf);
-		}
-		entry = entry->next_entry;
-	}
-}
-
 void rotate_logfile(FILE ** fd, char *name)
 {
 	fclose(*fd);

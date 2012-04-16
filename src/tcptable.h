@@ -133,4 +133,9 @@ void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
 void write_timeout_log(int logging, FILE * logfile, struct tcptableent *tcpnode,
 		       struct OPTIONS *opts);
 
+void writetcplog(int logging, FILE *fd, struct tcptableent *entry,
+		 unsigned int pktlen, int mac, char *message);
+
+void write_tcp_unclosed(int logging, FILE *fd, struct tcptable *table);
+
 #endif	/* IPTRAF_NG_TCPTABLE_H */
