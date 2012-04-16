@@ -163,7 +163,7 @@ void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
 
 	if (FD_ISSET(fd, &set)) {
 		fromlen = sizeof(struct sockaddr_ll);
-		*br = recvfrom(fd, buf, MAX_PACKET_SIZE, 0,
+		*br = recvfrom(fd, buf, MAX_PACKET_SIZE, MSG_TRUNC,
 			       (struct sockaddr *) fromaddr, &fromlen);
 	}
 	if (!daemonized && FD_ISSET(0, &set))
