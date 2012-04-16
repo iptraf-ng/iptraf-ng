@@ -23,16 +23,8 @@ details.
 #include "attrs.h"
 #include "deskman.h"
 #include "dirs.h"
-#include "options.h"
-#include "tcptable.h"
-#include "othptab.h"
-#include "ifstats.h"
-#include "serv.h"
-#include "pktsize.h"
-#include "hostmon.h"
 #include "log.h"
 
-#define MSGSTRING_MAX		240
 #define TARGET_LOGNAME_MAX	160
 
 int rotate_flag;
