@@ -237,27 +237,6 @@ void writeothplog(int logging, FILE * fd, char *protname, char *description,
 	}
 }
 
-void write_size_log(struct ifstat_brackets *brackets, unsigned long nsecs,
-		    char *ifname, unsigned int mtu, FILE * logfile)
-{
-	char atime[TIME_TARGET_MAX];
-	int i;
-
-	genatime(time((time_t *) NULL), atime);
-	fprintf(logfile, "*** Packet Size Distribution, generated %s\n\n",
-		atime);
-	fprintf(logfile, "Interface: %s   MTU: %u\n\n", ifname, mtu);
-	fprintf(logfile, "Packet Size (bytes)\tCount\n");
-
-	for (i = 0; i <= 19; i++) {
-		fprintf(logfile, "%u to %u:\t\t%lu\n", brackets[i].floor,
-			brackets[i].ceil, brackets[i].count);
-	}
-	fprintf(logfile, "\nRunning time: %lu seconds\n", nsecs);
-	fflush(logfile);
-}
-
-
 void rotate_logfile(FILE ** fd, char *name)
 {
 	fclose(*fd);

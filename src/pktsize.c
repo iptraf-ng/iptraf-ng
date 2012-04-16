@@ -39,15 +39,32 @@ details.
 extern int exitloop;
 extern int daemonized;
 
-extern void write_size_log(struct ifstat_brackets *brackets,
-			   unsigned long interval, char *ifname,
-			   unsigned int mtu, FILE * logfile);
-
 void rotate_size_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
 	signal(SIGUSR1, rotate_size_log);
+}
+
+static void write_size_log(struct ifstat_brackets *brackets,
+			   unsigned long nsecs, char *ifname, unsigned int mtu,
+			   FILE *logfile)
+{
+	char atime[TIME_TARGET_MAX];
+	int i;
+
+	genatime(time((time_t *) NULL), atime);
+	fprintf(logfile, "*** Packet Size Distribution, generated %s\n\n",
+		atime);
+	fprintf(logfile, "Interface: %s   MTU: %u\n\n", ifname, mtu);
+	fprintf(logfile, "Packet Size (bytes)\tCount\n");
+
+	for (i = 0; i <= 19; i++) {
+		fprintf(logfile, "%u to %u:\t\t%lu\n", brackets[i].floor,
+			brackets[i].ceil, brackets[i].count);
+	}
+	fprintf(logfile, "\nRunning time: %lu seconds\n", nsecs);
+	fflush(logfile);
 }
 
 int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
