@@ -15,7 +15,7 @@ Written by Gerard Paul Java
  * with reasonable numbers of options.
  */
 
-#define MAX_PACKET_SIZE 17664
+#define MAX_PACKET_SIZE 256	/* 256B should be enough to see all headers */
 
 #define INVALID_PACKET 0
 #define PACKET_OK 1
