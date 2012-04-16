@@ -49,9 +49,6 @@ details.
 extern int exitloop;
 extern int daemonized;
 
-extern void writeutslog(struct portlistent *list, unsigned long nsecs, int unit,
-			FILE * logfile);
-
 /*
  * SIGUSR1 logfile rotation signal handler
  */
@@ -61,6 +58,76 @@ void rotate_serv_log(int s __unused)
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
 	signal(SIGUSR1, rotate_serv_log);
+}
+
+static void writeutslog(struct portlistent *list, unsigned long nsecs,
+			int units, FILE *fd)
+{
+	char atime[TIME_TARGET_MAX];
+	struct portlistent *ptmp = list;
+	float inrate, outrate, totalrate;
+	time_t now = time(NULL);
+
+	genatime(time(NULL), atime);
+
+	fprintf(fd, "\n*** TCP/UDP traffic log, generated %s\n\n", atime);
+
+	while (ptmp != NULL) {
+		if (now - ptmp->proto_starttime < 5)
+			inrate = outrate = totalrate = -1.0;
+		else {
+			if (units == KBITS) {
+				inrate =
+				    (float) (ptmp->ibcount * 8 / 1000) /
+				    (float) (now - ptmp->proto_starttime);
+				outrate =
+				    (float) (ptmp->obcount * 8 / 1000) /
+				    (float) (now - ptmp->proto_starttime);
+				totalrate =
+				    (float) (ptmp->bcount * 8 / 1000) /
+				    (float) (now - ptmp->proto_starttime);
+			} else {
+				inrate =
+				    (float) (ptmp->obcount / 1024) /
+				    (float) (now - ptmp->proto_starttime);
+				outrate =
+				    (float) (ptmp->obcount / 1024) /
+				    (float) (now - ptmp->proto_starttime);
+				totalrate =
+				    (float) (ptmp->obcount / 1024) /
+				    (float) (now - ptmp->proto_starttime);
+			}
+		}
+
+		if (ptmp->protocol == IPPROTO_TCP)
+			fprintf(fd, "TCP/%s: ", ptmp->servname);
+		else
+			fprintf(fd, "UDP/%s: ", ptmp->servname);
+
+		fprintf(fd, "%llu packets, %llu bytes total", ptmp->count,
+			ptmp->bcount);
+
+		if (totalrate >= 0.0)
+			fprintf(fd, ", %.2f %s", totalrate, dispmode(units));
+
+		fprintf(fd, "; %llu packets, %llu bytes incoming", ptmp->icount,
+			ptmp->ibcount);
+
+		if (inrate >= 0.0)
+			fprintf(fd, ", %.2f %s", inrate, dispmode(units));
+
+		fprintf(fd, "; %llu packets, %llu bytes outgoing", ptmp->ocount,
+			ptmp->obcount);
+
+		if (outrate >= 0.0)
+			fprintf(fd, ", %.2f %s", outrate, dispmode(units));
+
+		fprintf(fd, "\n\n");
+		ptmp = ptmp->next_entry;
+	}
+
+	fprintf(fd, "\nRunning time: %lu seconds\n", nsecs);
+	fflush(fd);
 }
 
 void initportlist(struct portlist *list)
