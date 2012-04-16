@@ -40,9 +40,57 @@ details.
 #define uninitialized_var(x) x = x
 
 void convmacaddr(char *addr, char *result);	/* external; from hostmon.c */
-void writeothplog(int logging, FILE * fd, char *protname, char *description,
-		  char *additional, int is_ip, int withmac,
-		  struct othptabent *entry);
+
+static void writeothplog(int logging, FILE *fd, char *protname,
+			 char *description, char *additional, int is_ip,
+			 int withmac, struct othptabent *entry)
+{
+	char msgbuffer[MSGSTRING_MAX];
+	char scratchpad[MSGSTRING_MAX];
+
+	if (logging) {
+		memset(msgbuffer, 0, MSGSTRING_MAX);
+
+		strcpy(msgbuffer, protname);
+		strcat(msgbuffer, "; ");
+		strcat(msgbuffer, entry->iface);
+		sprintf(scratchpad, "; %u bytes;", entry->pkt_length);
+		strcat(msgbuffer, scratchpad);
+
+		if ((entry->smacaddr[0] != '\0') && (withmac)) {
+			sprintf(scratchpad, " source MAC address %s;",
+				entry->smacaddr);
+			strcat(msgbuffer, scratchpad);
+		}
+
+		if (is_ip) {
+			if (((entry->protocol == IPPROTO_UDP)
+			     && (!(entry->fragment)))
+			    || (entry->protocol == IPPROTO_TCP))
+				sprintf(scratchpad, " from %s:%s to %s:%s",
+					entry->s_fqdn, entry->un.udp.s_sname,
+					entry->d_fqdn, entry->un.udp.d_sname);
+			else
+				sprintf(scratchpad, " from %s to %s",
+					entry->s_fqdn, entry->d_fqdn);
+		} else
+			sprintf(scratchpad, " from %s to %s ", entry->smacaddr,
+				entry->dmacaddr);
+
+		strcat(msgbuffer, scratchpad);
+		strcpy(scratchpad, "");
+		if (strcmp(description, "") != 0) {
+			sprintf(scratchpad, "; %s", description);
+			strcat(msgbuffer, scratchpad);
+		}
+		strcpy(scratchpad, "");
+		if (strcmp(additional, "") != 0) {
+			sprintf(scratchpad, " (%s)", additional);
+			strcat(msgbuffer, scratchpad);
+		}
+		writelog(logging, fd, msgbuffer);
+	}
+}
 
 void init_othp_table(struct othptable *table, int mac)
 {
