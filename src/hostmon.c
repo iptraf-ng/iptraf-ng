@@ -955,7 +955,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 */
 			    || (fromaddr.sll_hatype == ARPHRD_IEEE802_TR)
 			    || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
-				if (fromaddr.sll_protocol == htons(ETH_P_IP))
+				if (fromaddr.sll_protocol == ETH_P_IP)
 					is_ip = 1;
 				else
 					is_ip = 0;
