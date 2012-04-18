@@ -134,8 +134,6 @@ struct othptabent *add_othp_entry(struct othptable *table,
 				  int logging, FILE * logfile,
 				  int servnames, int fragment);
 
-char *packetlookup(unsigned int protocol);
-
 void printothpentry(struct othptable *table, struct othptabent *entry,
 		    unsigned int screen_idx, int logging, FILE * logfile);
 

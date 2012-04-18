@@ -336,7 +336,7 @@ struct othptabent *add_othp_entry(struct othptable *table,
  * provided beyond the type.
  */
 
-char *packetlookup(unsigned int protocol)
+static char *packetlookup(unsigned int protocol)
 {
 	unsigned int i = 0;
 	static struct packetstruct packettypes[] = {
