@@ -59,13 +59,13 @@ char graphing_filter[80];
 
 extern void about(void);
 
-void press_enter_to_continue(void)
+static void press_enter_to_continue(void)
 {
 	fprintf(stderr, "Press Enter to continue.\n");
 	getchar();
 }
 
-void clearfiles(char *prefix, char *directory)
+static void clearfiles(char *prefix, char *directory)
 {
 	DIR *dir;
 	struct dirent *dir_entry;
@@ -95,12 +95,12 @@ void clearfiles(char *prefix, char *directory)
 	closedir(dir);
 }
 
-void removetags(void)
+static void removetags(void)
 {
 	clearfiles("iptraf", LOCKDIR);
 }
 
-void remove_sockets(void)
+static void remove_sockets(void)
 {
 	clearfiles(SOCKET_PREFIX, WORKDIR);
 }
@@ -109,12 +109,12 @@ void remove_sockets(void)
  * USR2 handler.  Used to normally exit a daemonized facility.
  */
 
-void term_usr2_handler(int s __unused)
+static void term_usr2_handler(int s __unused)
 {
 	exitloop = 1;
 }
 
-void init_break_menu(struct MENU *break_menu)
+static void init_break_menu(struct MENU *break_menu)
 {
 	tx_initmenu(break_menu, 6, 20, (LINES - 6) / 2, COLS / 2, BOXATTR,
 		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
@@ -130,7 +130,7 @@ void init_break_menu(struct MENU *break_menu)
  * Get the ball rolling: The program interface routine.
  */
 
-void program_interface(struct OPTIONS *options)
+static void program_interface(struct OPTIONS *options)
 {
 	struct MENU menu;
 	struct MENU break_menu;
@@ -274,7 +274,7 @@ void program_interface(struct OPTIONS *options)
 	doupdate();
 }
 
-int first_instance(void)
+static int first_instance(void)
 {
 	int fd;
 
@@ -288,7 +288,7 @@ int first_instance(void)
 	}
 }
 
-void mark_first_instance(void)
+static void mark_first_instance(void)
 {
 	int fd;
 
