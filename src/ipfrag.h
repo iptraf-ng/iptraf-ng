@@ -35,19 +35,7 @@ struct fragfreelistent {
 	struct fragfreelist *next_entry;
 };
 
-
-struct fragent *addnewdgram(struct iphdr *packet);
-
-struct fragdescent *addnewhole(struct fragent *frag);
-
-struct fragent *searchfrags(unsigned long saddr, unsigned long daddr,
-			    unsigned int protocol, unsigned int id);
-
-void deldgram(struct fragent *ftmp);
-void destroyholes(struct fragent *ftmp);
-
 void destroyfraglist(void);
-
 unsigned int processfragment(struct iphdr *packet, unsigned int *sport,
 			     unsigned int *dport, int *firstin);
 

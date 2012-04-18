@@ -30,7 +30,7 @@ details.
 static struct fragent *fraglist = NULL;
 static struct fragent *fragtail = NULL;
 
-struct fragent *addnewdgram(struct iphdr *packet)
+static struct fragent *addnewdgram(struct iphdr *packet)
 {
 	struct fragent *ptmp;
 
@@ -62,7 +62,7 @@ struct fragent *addnewdgram(struct iphdr *packet)
 	return ptmp;
 }
 
-struct fragdescent *addnewhole(struct fragent *frag)
+static struct fragdescent *addnewhole(struct fragent *frag)
 {
 	struct fragdescent *ptmp;
 
@@ -82,8 +82,8 @@ struct fragdescent *addnewhole(struct fragent *frag)
 	return ptmp;
 }
 
-struct fragent *searchfrags(unsigned long saddr, unsigned long daddr,
-			    unsigned int protocol, unsigned int id)
+static struct fragent *searchfrags(unsigned long saddr, unsigned long daddr,
+				   unsigned int protocol, unsigned int id)
 {
 	struct fragent *ftmp = fraglist;
 
@@ -98,7 +98,7 @@ struct fragent *searchfrags(unsigned long saddr, unsigned long daddr,
 	return NULL;
 }
 
-void deldgram(struct fragent *ftmp)
+static void deldgram(struct fragent *ftmp)
 {
 	if (ftmp->prev_entry != NULL)
 		ftmp->prev_entry->next_entry = ftmp->next_entry;
@@ -118,7 +118,7 @@ void deldgram(struct fragent *ftmp)
  * Destroy hole descriptor list
  */
 
-void destroyholes(struct fragent *ftmp)
+static void destroyholes(struct fragent *ftmp)
 {
 	struct fragdescent *dtmp = ftmp->fragdesclist;
 	struct fragdescent *ntmp = NULL;
