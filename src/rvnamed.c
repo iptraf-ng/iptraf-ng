@@ -69,7 +69,7 @@ static int max_fork_count = 0;
  * This is the classic zombie-preventer
  */
 
-void childreap(int s __unused)
+static void childreap(int s __unused)
 {
 	signal(SIGCHLD, childreap);
 
@@ -77,7 +77,7 @@ void childreap(int s __unused)
 		fork_count--;
 }
 
-void auto_terminate(int s __unused)
+static void auto_terminate(int s __unused)
 {
 	exit(2);
 }
@@ -86,7 +86,7 @@ void auto_terminate(int s __unused)
  * Process reverse DNS request from the client
  */
 
-void process_rvn_packet(struct rvn *rvnpacket)
+static void process_rvn_packet(struct rvn *rvnpacket)
 {
 	int ccfd;
 	extern int h_errno;
@@ -127,8 +127,8 @@ void process_rvn_packet(struct rvn *rvnpacket)
  * Check if name is already resolved and in the cache.
  */
 
-int name_resolved(struct rvn *rvnpacket, struct hosts *hostlist,
-		  unsigned int lastfree)
+static int name_resolved(struct rvn *rvnpacket, struct hosts *hostlist,
+			 unsigned int lastfree)
 {
 	unsigned int i = 0;
 
@@ -154,8 +154,8 @@ int name_resolved(struct rvn *rvnpacket, struct hosts *hostlist,
  * the given IP address
  */
 
-int addrstat(struct rvn *rvnpacket, struct hosts *hostlist,
-	     unsigned int lastfree)
+static int addrstat(struct rvn *rvnpacket, struct hosts *hostlist,
+		    unsigned int lastfree)
 {
 	unsigned int i = 0;
 
@@ -172,7 +172,7 @@ int addrstat(struct rvn *rvnpacket, struct hosts *hostlist,
 	return NOTRESOLVED;
 }
 
-void writervnlog(FILE * fd, char *msg)
+static void writervnlog(FILE * fd, char *msg)
 {
 	time_t now;
 	char atime[TIME_TARGET_MAX] = "";
