@@ -31,7 +31,7 @@ details.
 #define ALLOW_ZERO 1
 #define DONT_ALLOW_ZERO 0
 
-void makeoptionmenu(struct MENU *menu)
+static void makeoptionmenu(struct MENU *menu)
 {
 	tx_initmenu(menu, 20, 40, (LINES - 19) / 2 - 1, (COLS - 40) / 16,
 		    BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
@@ -68,7 +68,7 @@ void makeoptionmenu(struct MENU *menu)
 	tx_additem(menu, " E^x^it configuration", "Returns to main menu");
 }
 
-void maketimermenu(struct MENU *menu)
+static void maketimermenu(struct MENU *menu)
 {
 	tx_initmenu(menu, 8, 35, (LINES - 19) / 2 + 7, (COLS - 35) / 2, BOXATTR,
 		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
@@ -85,7 +85,7 @@ void maketimermenu(struct MENU *menu)
 	tx_additem(menu, " E^x^it menu", "Returns to the configuration menu");
 }
 
-void printoptonoff(unsigned int option, WINDOW * win)
+static void printoptonoff(unsigned int option, WINDOW * win)
 {
 	if (option)
 		wprintw(win, " On");
@@ -93,7 +93,7 @@ void printoptonoff(unsigned int option, WINDOW * win)
 		wprintw(win, "Off");
 }
 
-void indicatesetting(int row, struct OPTIONS *options, WINDOW * win)
+static void indicatesetting(int row, struct OPTIONS *options, WINDOW * win)
 {
 	wmove(win, row, 30);
 	wattrset(win, HIGHATTR);
@@ -150,7 +150,7 @@ void saveoptions(struct OPTIONS *options)
 	close(fd);
 }
 
-void setdefaultopts(struct OPTIONS *options)
+static void setdefaultopts(struct OPTIONS *options)
 {
 	options->revlook = 0;
 	options->promisc = 0;
@@ -181,7 +181,7 @@ void loadoptions(struct OPTIONS *options)
 	close(fd);
 }
 
-void updatetimes(struct OPTIONS *options, WINDOW * win)
+static void updatetimes(struct OPTIONS *options, WINDOW *win)
 {
 	wattrset(win, HIGHATTR);
 	mvwprintw(win, 10, 25, "%3u mins", options->timeout);
@@ -190,7 +190,7 @@ void updatetimes(struct OPTIONS *options, WINDOW * win)
 	mvwprintw(win, 13, 25, "%3u mins", options->closedint);
 }
 
-void showoptions(struct OPTIONS *options, WINDOW * win)
+static void showoptions(struct OPTIONS *options, WINDOW *win)
 {
 	int i;
 
@@ -200,8 +200,8 @@ void showoptions(struct OPTIONS *options, WINDOW * win)
 	updatetimes(options, win);
 }
 
-void settimeout(time_t *value, const char *units, int allow_zero,
-		int *aborted)
+static void settimeout(time_t *value, const char *units, int allow_zero,
+		       int *aborted)
 {
 	WINDOW *dlgwin;
 	PANEL *dlgpanel;
