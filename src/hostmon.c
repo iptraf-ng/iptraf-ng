@@ -53,7 +53,7 @@ extern char *ltrim(char *buf);
  * SIGUSR1 logfile rotation handler
  */
 
-void rotate_lanlog(int s __unused)
+static void rotate_lanlog(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -128,7 +128,7 @@ static void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 	fflush(fd);
 }
 
-void initethtab(struct ethtab *table, int unit)
+static void initethtab(struct ethtab *table, int unit)
 {
 	table->head = table->tail = NULL;
 	table->firstvisible = table->lastvisible = NULL;
@@ -174,7 +174,7 @@ void initethtab(struct ethtab *table, int unit)
 	doupdate();
 }
 
-struct ethtabent *addethnode(struct ethtab *table)
+static struct ethtabent *addethnode(struct ethtab *table)
 {
 	struct ethtabent *ptemp;
 
@@ -214,8 +214,9 @@ void convmacaddr(char *addr, char *result)
 			*(ptmp + 5));
 }
 
-struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
-			      char *ifname, char *addr, struct eth_desc *list)
+static struct ethtabent *addethentry(struct ethtab *table,
+				     unsigned int linktype, char *ifname,
+				     char *addr, struct eth_desc *list)
 {
 	struct ethtabent *ptemp;
 
@@ -268,8 +269,8 @@ struct ethtabent *addethentry(struct ethtab *table, unsigned int linktype,
 	return ptemp;
 }
 
-struct ethtabent *in_ethtable(struct ethtab *table, unsigned int linktype,
-			      char *addr)
+static struct ethtabent *in_ethtable(struct ethtab *table,
+				     unsigned int linktype, char *addr)
 {
 	struct ethtabent *ptemp = table->head;
 
@@ -285,7 +286,8 @@ struct ethtabent *in_ethtable(struct ethtab *table, unsigned int linktype,
 	return NULL;
 }
 
-void updateethent(struct ethtabent *entry, int pktsize, int is_ip, int inout)
+static void updateethent(struct ethtabent *entry, int pktsize, int is_ip,
+			 int inout)
 {
 	if (inout == 0) {
 		entry->un.figs.inpcount++;
@@ -302,8 +304,8 @@ void updateethent(struct ethtabent *entry, int pktsize, int is_ip, int inout)
 	}
 }
 
-void printethent(struct ethtab *table, struct ethtabent *entry,
-		 unsigned int idx)
+static void printethent(struct ethtab *table, struct ethtabent *entry,
+			unsigned int idx)
 {
 	unsigned int target_row;
 
@@ -360,7 +362,7 @@ void printethent(struct ethtab *table, struct ethtabent *entry,
 	}
 }
 
-void destroyethtab(struct ethtab *table)
+static void destroyethtab(struct ethtab *table)
 {
 	struct ethtabent *ptemp = table->head;
 	struct ethtabent *cnext = NULL;
@@ -377,7 +379,7 @@ void destroyethtab(struct ethtab *table)
 	}
 }
 
-void hostmonhelp(void)
+static void hostmonhelp(void)
 {
 	move(LINES - 1, 1);
 	scrollkeyhelp();
@@ -385,8 +387,8 @@ void hostmonhelp(void)
 	stdexitkeyhelp();
 }
 
-void printrates(struct ethtab *table, unsigned int target_row,
-		struct ethtabent *ptmp)
+static void printrates(struct ethtab *table, unsigned int target_row,
+		       struct ethtabent *ptmp)
 {
 	if (ptmp->un.figs.past5) {
 		wmove(table->tabwin, target_row, 32 * COLS / 80);
@@ -396,8 +398,8 @@ void printrates(struct ethtab *table, unsigned int target_row,
 	}
 }
 
-void updateethrates(struct ethtab *table, int unit, time_t starttime,
-		    time_t now, unsigned int idx)
+static void updateethrates(struct ethtab *table, int unit, time_t starttime,
+			   time_t now, unsigned int idx)
 {
 	struct ethtabent *ptmp = table->head;
 	unsigned int target_row = 0;
@@ -438,7 +440,7 @@ void updateethrates(struct ethtab *table, int unit, time_t starttime,
 	}
 }
 
-void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
+static void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
 {
 	struct ethtabent *ptmp = table->firstvisible;
 
@@ -454,7 +456,7 @@ void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
 	doupdate();
 }
 
-void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
+static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 {
 	char sp_buf[10];
 
@@ -490,7 +492,7 @@ void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 	}
 }
 
-void pageethwin(struct ethtab *table, int direction, unsigned int *idx)
+static void pageethwin(struct ethtab *table, int direction, unsigned int *idx)
 {
 	int i = 1;
 
@@ -512,7 +514,7 @@ void pageethwin(struct ethtab *table, int direction, unsigned int *idx)
 	refresh_hostmon_screen(table, *idx);
 }
 
-void show_hostsort_keywin(WINDOW ** win, PANEL ** panel)
+static void show_hostsort_keywin(WINDOW ** win, PANEL ** panel)
 {
 	*win = newwin(13, 35, (LINES - 10) / 2, COLS - 40);
 	*panel = new_panel(*win);
@@ -552,8 +554,8 @@ void show_hostsort_keywin(WINDOW ** win, PANEL ** panel)
  * Swap two host table entries.
  */
 
-void swaphostents(struct ethtab *list, struct ethtabent *p1,
-		  struct ethtabent *p2)
+static void swaphostents(struct ethtab *list, struct ethtabent *p1,
+			 struct ethtabent *p2)
 {
 	register unsigned int tmp;
 	struct ethtabent *p1prevsaved;
@@ -595,7 +597,7 @@ void swaphostents(struct ethtab *list, struct ethtabent *p1,
 	p1->next_entry->next_entry = p2nextsaved;
 }
 
-unsigned long long ql_getkey(struct ethtabent *entry, int ch)
+static unsigned long long ql_getkey(struct ethtabent *entry, int ch)
 {
 	unsigned long long result = 0;
 
@@ -622,8 +624,9 @@ unsigned long long ql_getkey(struct ethtabent *entry, int ch)
 	return result;
 }
 
-struct ethtabent *ql_partition(struct ethtab *table, struct ethtabent **low,
-			       struct ethtabent **high, int ch)
+static struct ethtabent *ql_partition(struct ethtab *table,
+				      struct ethtabent **low,
+				      struct ethtabent **high, int ch)
 {
 	struct ethtabent *pivot = *low;
 
@@ -672,8 +675,8 @@ struct ethtabent *ql_partition(struct ethtab *table, struct ethtabent **low,
  * Quicksort routine for the LAN station monitor
  */
 
-void quicksort_lan_entries(struct ethtab *table, struct ethtabent *low,
-			   struct ethtabent *high, int ch)
+static void quicksort_lan_entries(struct ethtab *table, struct ethtabent *low,
+				  struct ethtabent *high, int ch)
 {
 	struct ethtabent *pivot;
 
@@ -693,7 +696,7 @@ void quicksort_lan_entries(struct ethtab *table, struct ethtabent *low,
 	}
 }
 
-void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
+static void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
 {
 	struct ethtabent *ptemp1;
 	int idxtmp;
