@@ -24,7 +24,7 @@
 /*
  * Extracts next token from the buffer.
  */
-char *get_next_token(char **cptr)
+static char *get_next_token(char **cptr)
 {
 	static char rtoken[32];
 	int i;
