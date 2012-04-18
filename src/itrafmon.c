@@ -50,7 +50,7 @@ void writetcplog(int logging, FILE * fd, struct tcptableent *entry,
 		 unsigned int pktlen, int mac, char *message);
 void write_tcp_unclosed(int logging, FILE * fd, struct tcptable *table);
 
-void rotate_ipmon_log(int s __unused)
+static void rotate_ipmon_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -59,7 +59,7 @@ void rotate_ipmon_log(int s __unused)
 
 /* Hot key indicators for the bottom line */
 
-void ipmonhelp(void)
+static void ipmonhelp(void)
 {
 	move(LINES - 1, 1);
 	tx_printkeyhelp("Up/Dn/PgUp/PgDn", "-scroll  ", stdscr, HIGHATTR,
@@ -71,7 +71,7 @@ void ipmonhelp(void)
 	stdexitkeyhelp();
 }
 
-void uniq_help(int what)
+static void uniq_help(int what)
 {
 	move(LINES - 1, 25);
 	if (!what)
@@ -84,7 +84,7 @@ void uniq_help(int what)
 
 /* Mark general packet count indicators */
 
-void prepare_statwin(WINDOW * win)
+static void prepare_statwin(WINDOW * win)
 {
 	wattrset(win, IPSTATLABELATTR);
 	wmove(win, 0, 1);
@@ -92,7 +92,7 @@ void prepare_statwin(WINDOW * win)
 	mvwaddch(win, 0, 45 * COLS / 80, ACS_VLINE);
 }
 
-void markactive(int curwin, WINDOW * tw, WINDOW * ow)
+static void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 {
 	WINDOW *win1;
 	WINDOW *win2;
@@ -117,7 +117,7 @@ void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 	whline(win2, ACS_HLINE, 8);
 }
 
-void show_stats(WINDOW * win, unsigned long long total)
+static void show_stats(WINDOW * win, unsigned long long total)
 {
 	wattrset(win, IPSTATATTR);
 	wmove(win, 0, 35 * COLS / 80);
@@ -129,8 +129,8 @@ void show_stats(WINDOW * win, unsigned long long total)
  * Scrolling and paging routines for the upper (TCP) window
  */
 
-void scrollupperwin(struct tcptable *table, int direction, unsigned long *idx,
-		    int mode)
+static void scrollupperwin(struct tcptable *table, int direction,
+			   unsigned long *idx, int mode)
 {
 	char sp_buf[10];
 
@@ -161,7 +161,8 @@ void scrollupperwin(struct tcptable *table, int direction, unsigned long *idx,
 	}
 }
 
-void pageupperwin(struct tcptable *table, int direction, unsigned long *idx)
+static void pageupperwin(struct tcptable *table, int direction,
+			 unsigned long *idx)
 {
 	unsigned int i = 1;
 
@@ -189,7 +190,7 @@ void pageupperwin(struct tcptable *table, int direction, unsigned long *idx)
  * Scrolling and paging routines for the lower (non-TCP) window.
  */
 
-void scrolllowerwin(struct othptable *table, int direction)
+static void scrolllowerwin(struct othptable *table, int direction)
 {
 	if (direction == SCROLLUP) {
 		if (table->lastvisible != table->tail) {
@@ -222,7 +223,7 @@ void scrolllowerwin(struct othptable *table, int direction)
 	}
 }
 
-void pagelowerwin(struct othptable *table, int direction)
+static void pagelowerwin(struct othptable *table, int direction)
 {
 	unsigned int i = 1;
 
@@ -259,7 +260,7 @@ void pagelowerwin(struct othptable *table, int direction)
  * Pop up sorting key window
  */
 
-void show_tcpsort_win(WINDOW ** win, PANEL ** panel)
+static void show_tcpsort_win(WINDOW ** win, PANEL ** panel)
 {
 	*win = newwin(9, 35, (LINES - 8) / 2, COLS - 40);
 	*panel = new_panel(*win);
@@ -286,7 +287,7 @@ void show_tcpsort_win(WINDOW ** win, PANEL ** panel)
  * Routine to swap two TCP entries.  p1 and p2 are pointers to TCP entries,
  * but p1 must be ahead of p2.  It's a linked list thing.
  */
-void swap_tcp_entries(struct tcptable *table, struct tcptableent *p1,
+static void swap_tcp_entries(struct tcptable *table, struct tcptableent *p1,
 		      struct tcptableent *p2)
 {
 	struct tcptableent *p2nextsaved;
@@ -330,7 +331,7 @@ void swap_tcp_entries(struct tcptable *table, struct tcptableent *p1,
 	p1->next_entry->next_entry = p2nextsaved;
 }
 
-unsigned long long qt_getkey(struct tcptableent *entry, int ch)
+static unsigned long long qt_getkey(struct tcptableent *entry, int ch)
 {
 	if (ch == 'B')
 		return (max(entry->bcount, entry->oth_connection->bcount));
@@ -338,11 +339,11 @@ unsigned long long qt_getkey(struct tcptableent *entry, int ch)
 	return (max(entry->pcount, entry->oth_connection->pcount));
 }
 
-struct tcptableent *qt_partition(struct tcptable *table,
-				 struct tcptableent **low,
-				 struct tcptableent **high, int ch,
-				 struct OPTIONS *opts, int logging,
-				 FILE * logfile)
+static struct tcptableent *qt_partition(struct tcptable *table,
+					struct tcptableent **low,
+					struct tcptableent **high, int ch,
+					struct OPTIONS *opts, int logging,
+					FILE * logfile)
 {
 	struct tcptableent *pivot = *low;
 
@@ -426,9 +427,11 @@ struct tcptableent *qt_partition(struct tcptable *table,
 /*
  * Quicksort the TCP entries.
  */
-void quicksort_tcp_entries(struct tcptable *table, struct tcptableent *low,
-			   struct tcptableent *high, int ch,
-			   struct OPTIONS *opts, int logging, FILE * logfile)
+static void quicksort_tcp_entries(struct tcptable *table,
+				  struct tcptableent *low,
+				  struct tcptableent *high, int ch,
+				  struct OPTIONS *opts, int logging,
+				  FILE *logfile)
 {
 	struct tcptableent *pivot;
 
@@ -454,9 +457,9 @@ void quicksort_tcp_entries(struct tcptable *table, struct tcptableent *low,
  * replaced with a Quicksort algorithm.
  */
 
-void sortipents(struct tcptable *table, unsigned long *idx, int ch,
-		int logging, FILE * logfile,
-		struct OPTIONS *opts)
+static void sortipents(struct tcptable *table, unsigned long *idx, int ch,
+		       int logging, FILE * logfile,
+		       struct OPTIONS *opts)
 {
 	struct tcptableent *tcptmp1;
 	unsigned int idxtmp;
@@ -494,7 +497,7 @@ void sortipents(struct tcptable *table, unsigned long *idx, int ch,
  * to start it.
  */
 
-int checkrvnamed(void)
+static int checkrvnamed(void)
 {
 	pid_t cpid = 0;
 	int cstat;
@@ -536,7 +539,7 @@ int checkrvnamed(void)
 	return 1;
 }
 
-void update_flowrate(WINDOW * win, struct tcptableent *entry, time_t now,
+static void update_flowrate(WINDOW * win, struct tcptableent *entry, time_t now,
 		     int *cleared, int mode)
 {
 	float rate = 0;
