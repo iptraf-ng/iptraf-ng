@@ -56,14 +56,6 @@ struct porttab {
 	struct porttab *next_entry;
 };
 
-void initportlist(struct portlist *list);
-struct portlistent *inportlist(struct portlist *list, unsigned int protocol,
-			       unsigned int port);
-int goodport(unsigned int port, struct porttab *table);
-int portinlist(struct porttab *table, unsigned int port);
-void printportent(struct portlist *list, struct portlistent *entry,
-		  unsigned int idx);
-void destroyportlist(struct portlist *list);
 void addmoreports(struct porttab **table);
 void loadaddports(struct porttab **table);
 void destroyporttab(struct porttab *table);

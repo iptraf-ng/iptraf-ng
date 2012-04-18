@@ -53,7 +53,7 @@ extern int daemonized;
  * SIGUSR1 logfile rotation signal handler
  */
 
-void rotate_serv_log(int s __unused)
+static void rotate_serv_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -130,7 +130,7 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs,
 	fflush(fd);
 }
 
-void initportlist(struct portlist *list)
+static void initportlist(struct portlist *list)
 {
 	float screen_scale = ((float) COLS / 80 + 1) / 2;
 	int scratchx __unused;
@@ -172,7 +172,8 @@ void initportlist(struct portlist *list)
 	doupdate();
 }
 
-static struct portlistent *addtoportlist(struct portlist *list, unsigned int protocol,
+static struct portlistent *addtoportlist(struct portlist *list,
+					 unsigned int protocol,
 					 unsigned int port, int servnames)
 {
 	struct portlistent *ptemp;
@@ -218,7 +219,7 @@ static struct portlistent *addtoportlist(struct portlist *list, unsigned int pro
 	return ptemp;
 }
 
-int portinlist(struct porttab *table, unsigned int port)
+static int portinlist(struct porttab *table, unsigned int port)
 {
 	struct porttab *ptmp = table;
 
@@ -233,13 +234,13 @@ int portinlist(struct porttab *table, unsigned int port)
 	return 0;
 }
 
-int goodport(unsigned int port, struct porttab *table)
+static int goodport(unsigned int port, struct porttab *table)
 {
 	return ((port < 1024) || (portinlist(table, port)));
 }
 
-struct portlistent *inportlist(struct portlist *list, unsigned int protocol,
-			       unsigned int port)
+static struct portlistent *inportlist(struct portlist *list,
+				      unsigned int protocol, unsigned int port)
 {
 	struct portlistent *ptmp = list->head;
 
@@ -253,7 +254,7 @@ struct portlistent *inportlist(struct portlist *list, unsigned int protocol,
 	return NULL;
 }
 
-void printportent(struct portlist *list, struct portlistent *entry,
+static void printportent(struct portlist *list, struct portlistent *entry,
 		  unsigned int idx)
 {
 	unsigned int target_row;
@@ -309,7 +310,7 @@ void printportent(struct portlist *list, struct portlistent *entry,
 	printlargenum(entry->obcount, list->win);
 }
 
-void destroyportlist(struct portlist *list)
+static void destroyportlist(struct portlist *list)
 {
 	struct portlistent *ptmp = list->head;
 	struct portlistent *ctmp = NULL;
@@ -326,9 +327,10 @@ void destroyportlist(struct portlist *list)
 	}
 }
 
-void updateportent(struct portlist *list, unsigned int protocol,
-		   unsigned int sport, unsigned int dport, int br,
-		   unsigned int idx, struct porttab *ports, int servnames)
+static void updateportent(struct portlist *list, unsigned int protocol,
+			  unsigned int sport, unsigned int dport, int br,
+			  unsigned int idx, struct porttab *ports,
+			  int servnames)
 {
 	struct portlistent *sport_listent = NULL;
 	struct portlistent *dport_listent = NULL;
@@ -384,8 +386,8 @@ void updateportent(struct portlist *list, unsigned int protocol,
  * Swap two port list entries.  p1 must be previous to p2.
  */
 
-void swapportents(struct portlist *list, struct portlistent *p1,
-		  struct portlistent *p2)
+static void swapportents(struct portlist *list, struct portlistent *p1,
+			 struct portlistent *p2)
 {
 	register unsigned int tmp;
 	struct portlistent *p1prevsaved;
@@ -428,7 +430,7 @@ void swapportents(struct portlist *list, struct portlistent *p1,
 /*
  * Retrieve the appropriate sort criterion based on keystroke.
  */
-unsigned long long qp_getkey(struct portlistent *entry, int ch)
+static unsigned long long qp_getkey(struct portlistent *entry, int ch)
 {
 	unsigned long long result = 0;
 
@@ -463,7 +465,7 @@ unsigned long long qp_getkey(struct portlistent *entry, int ch)
  * Refresh TCP/UDP service screen.
  */
 
-void refresh_serv_screen(struct portlist *table, int idx)
+static void refresh_serv_screen(struct portlist *table, int idx)
 {
 	struct portlistent *ptmp = table->firstvisible;
 
@@ -494,7 +496,7 @@ void refresh_serv_screen(struct portlist *table, int idx)
  *     in a descending sort. 
  */
 
-int qp_compare(struct portlistent *entry, unsigned long long pv, int ch,
+static int qp_compare(struct portlistent *entry, unsigned long long pv, int ch,
 	       int side)
 {
 	int result = 0;
@@ -523,9 +525,9 @@ int qp_compare(struct portlistent *entry, unsigned long long pv, int ch,
  * and that all values right of the pivot are greater (or less) than
  * the pivot.
  */
-struct portlistent *qp_partition(struct portlist *table,
-				 struct portlistent **low,
-				 struct portlistent **high, int ch)
+static struct portlistent *qp_partition(struct portlist *table,
+					struct portlistent **low,
+					struct portlistent **high, int ch)
 {
 	struct portlistent *pivot = *low;
 
@@ -572,8 +574,9 @@ struct portlistent *qp_partition(struct portlist *table,
 /*
  * Quicksort for the port list.
  */
-void quicksort_port_entries(struct portlist *table, struct portlistent *low,
-			    struct portlistent *high, int ch)
+static void quicksort_port_entries(struct portlist *table,
+				   struct portlistent *low,
+				   struct portlistent *high, int ch)
 {
 	struct portlistent *pivot;
 
@@ -588,7 +591,7 @@ void quicksort_port_entries(struct portlist *table, struct portlistent *low,
 	}
 }
 
-void sortportents(struct portlist *list, unsigned int *idx, int command)
+static void sortportents(struct portlist *list, unsigned int *idx, int command)
 {
 	struct portlistent *ptemp1;
 	int idxtmp;
@@ -618,7 +621,8 @@ void sortportents(struct portlist *list, unsigned int *idx, int command)
 	}
 }
 
-void scrollservwin(struct portlist *table, int direction, unsigned int *idx)
+static void scrollservwin(struct portlist *table, int direction,
+			  unsigned int *idx)
 {
 	char sp_buf[10];
 
@@ -649,7 +653,8 @@ void scrollservwin(struct portlist *table, int direction, unsigned int *idx)
 	}
 }
 
-void pageservwin(struct portlist *table, int direction, unsigned int *idx)
+static void pageservwin(struct portlist *table, int direction,
+			unsigned int *idx)
 {
 	int i = 1;
 
@@ -671,7 +676,7 @@ void pageservwin(struct portlist *table, int direction, unsigned int *idx)
 	refresh_serv_screen(table, *idx);
 }
 
-void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
+static void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
 {
 	*win = newwin(14, 35, (LINES - 10) / 2, COLS - 40);
 	*panel = new_panel(*win);
@@ -704,7 +709,7 @@ void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
 	doupdate();
 }
 
-void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
+static void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
 		       int *cleared)
 {
 	float inrate, outrate, totalrate;
@@ -1137,7 +1142,8 @@ err:
 	strcpy(current_logfile, "");
 }
 
-void portdlg(unsigned int *port_min, unsigned int *port_max, int *aborted)
+static void portdlg(unsigned int *port_min, unsigned int *port_max,
+		    int *aborted)
 {
 	WINDOW *bw;
 	PANEL *bp;
@@ -1192,7 +1198,7 @@ void portdlg(unsigned int *port_min, unsigned int *port_max, int *aborted)
 	tx_destroyfields(&list);
 }
 
-void saveportlist(struct porttab *table)
+static void saveportlist(struct porttab *table)
 {
 	struct porttab *ptmp = table;
 	int fd;
@@ -1221,7 +1227,8 @@ void saveportlist(struct porttab *table)
 	close(fd);
 }
 
-int dup_portentry(struct porttab *table, unsigned int min, unsigned int max)
+static int dup_portentry(struct porttab *table, unsigned int min,
+			 unsigned int max)
 {
 	struct porttab *ptmp = table;
 
@@ -1309,14 +1316,14 @@ void loadaddports(struct porttab **table)
 	close(fd);
 }
 
-void displayportentry(struct porttab *ptmp, WINDOW * win)
+static void displayportentry(struct porttab *ptmp, WINDOW *win)
 {
 	wprintw(win, "%u", ptmp->port_min);
 	if (ptmp->port_max != 0)
 		wprintw(win, " to %u", ptmp->port_max);
 }
 
-void displayports(struct porttab **table, WINDOW * win)
+static void displayports(struct porttab **table, WINDOW *win)
 {
 	struct porttab *ptmp = *table;
 	short i = 0;
@@ -1333,8 +1340,8 @@ void displayports(struct porttab **table, WINDOW * win)
 	doupdate();
 }
 
-void operate_portselect(struct porttab **table, struct porttab **node,
-			int *aborted)
+static void operate_portselect(struct porttab **table, struct porttab **node,
+			       int *aborted)
 {
 	int ch = 0;
 	struct scroll_list list;
@@ -1363,7 +1370,8 @@ void operate_portselect(struct porttab **table, struct porttab **node,
 	tx_destroy_list(&list);
 }
 
-void selectport(struct porttab **table, struct porttab **node, int *aborted)
+static void selectport(struct porttab **table, struct porttab **node,
+		       int *aborted)
 {
 	if (*table == NULL) {
 		tui_error(ANYKEY_MSG, "No custom ports");
@@ -1373,7 +1381,7 @@ void selectport(struct porttab **table, struct porttab **node, int *aborted)
 	operate_portselect(table, node, aborted);
 }
 
-void delport(struct porttab **table, struct porttab *ptmp)
+static void delport(struct porttab **table, struct porttab *ptmp)
 {
 	if (ptmp != NULL) {
 		if (ptmp == *table) {
