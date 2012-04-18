@@ -39,7 +39,7 @@ details.
 extern int exitloop;
 extern int daemonized;
 
-void rotate_size_log(int s __unused)
+static void rotate_size_log(int s __unused)
 {
 	rotate_flag = 1;
 	strcpy(target_logname, current_logfile);
@@ -67,8 +67,9 @@ static void write_size_log(struct ifstat_brackets *brackets,
 	fflush(logfile);
 }
 
-int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
-			unsigned int *interval, unsigned int *mtu, WINDOW * win)
+static int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
+			       unsigned int *interval, unsigned int *mtu,
+			       WINDOW *win)
 {
 	struct ifreq ifr;
 	int istat;
@@ -134,8 +135,9 @@ int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
 	return 0;
 }
 
-void update_size_distrib(unsigned int length, struct ifstat_brackets *brackets,
-			 unsigned int interval, WINDOW * win)
+static void update_size_distrib(unsigned int length,
+				struct ifstat_brackets *brackets,
+				unsigned int interval, WINDOW *win)
 {
 	unsigned int i;
 
