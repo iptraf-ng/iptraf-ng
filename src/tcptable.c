@@ -35,7 +35,7 @@ unsigned int imaxy = 0;
 
 void convmacaddr(char *addr, char *result);
 
-void setlabels(WINDOW * win, int mode)
+static void setlabels(WINDOW *win, int mode)
 {
 	wmove(win, 0, 42 * COLS / 80);
 	whline(win, ACS_HLINE, 23 * COLS / 80);
@@ -59,9 +59,10 @@ void setlabels(WINDOW * win, int mode)
  * The hash function for the TCP hash table
  */
 
-unsigned int tcp_hash(unsigned long saddr, uint32_t * s6addr,
-		      unsigned int sport, unsigned long daddr,
-		      uint32_t * d6addr, unsigned int dport, char *ifname)
+static unsigned int tcp_hash(unsigned long saddr, uint32_t *s6addr,
+			     unsigned int sport, unsigned long daddr,
+			     uint32_t *d6addr, unsigned int dport,
+			     char *ifname)
 {
 	size_t i;
 	int ifsum = 0;
@@ -80,7 +81,7 @@ unsigned int tcp_hash(unsigned long saddr, uint32_t * s6addr,
 		 dport) % ENTRIES_IN_HASH_TABLE);
 }
 
-void print_tcp_num_entries(struct tcptable *table)
+static void print_tcp_num_entries(struct tcptable *table)
 {
 	mvwprintw(table->borderwin, table->bmaxy - 1, 1, " TCP: %6u entries ",
 		  table->count);
@@ -185,7 +186,7 @@ static void add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry
  * Delete a hash table node
  */
 
-void del_tcp_hash_node(struct tcptable *table, struct tcptableent *entry)
+static void del_tcp_hash_node(struct tcptable *table, struct tcptableent *entry)
 {
 	struct tcp_hashentry *ptmp;
 
@@ -444,7 +445,8 @@ void addtoclosedlist(struct tcptable *table, struct tcptableent *entry)
 
 }
 
-char *tcplog_flowrate_msg(struct tcptableent *entry, struct OPTIONS *opts)
+static char *tcplog_flowrate_msg(struct tcptableent *entry,
+				 struct OPTIONS *opts)
 {
 	char rateunit[10];
 	float rate = 0;
@@ -980,7 +982,7 @@ void refreshtcpwin(struct tcptable *table, unsigned int idx, int mode)
 	doupdate();
 }
 
-void destroy_closed_entries(struct tcptable *table)
+static void destroy_closed_entries(struct tcptable *table)
 {
 	struct closedlist *closedtemp;
 	struct closedlist *closedtemp_next;
@@ -1060,7 +1062,7 @@ void destroytcptable(struct tcptable *table)
  * Kill an entry from the TCP table
  */
 
-void destroy_tcp_entry(struct tcptable *table, struct tcptableent *ptmp)
+static void destroy_tcp_entry(struct tcptable *table, struct tcptableent *ptmp)
 {
 	if (ptmp->prev_entry != NULL)
 		ptmp->prev_entry->next_entry = ptmp->next_entry;
