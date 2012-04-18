@@ -28,7 +28,7 @@ details.
 
 char revname_socket[80];
 
-char *gen_unix_sockname(void)
+static char *gen_unix_sockname(void)
 {
 	static char scratch[80];
 
