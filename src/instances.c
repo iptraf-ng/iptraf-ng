@@ -22,7 +22,7 @@ details.
 #include "dirs.h"
 #include "instances.h"
 
-void gen_lockfile_name(char *tagfile, char *iface, char *result)
+static void gen_lockfile_name(char *tagfile, char *iface, char *result)
 {
 	if (iface == NULL)
 		snprintf(result, 64, "%s.all", tagfile);
