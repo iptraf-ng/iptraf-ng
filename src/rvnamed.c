@@ -89,7 +89,6 @@ static void auto_terminate(int s __unused)
 static void process_rvn_packet(struct rvn *rvnpacket)
 {
 	int ccfd;
-	extern int h_errno;
 	struct sockaddr_un ccsa;
 
 	struct hostent *he;
@@ -213,8 +212,6 @@ int main(void)
 	socklen_t fromlen;
 
 	FILE *logfile;
-
-	extern int errno;
 
 	/* Daemonization Sequence */
 

@@ -47,8 +47,6 @@ extern int daemonized;
  * from log.c, applicable only to this module
  */
 
-extern char *ltrim(char *buf);
-
 /*
  * SIGUSR1 logfile rotation handler
  */

@@ -31,8 +31,6 @@ details.
 
 #define PROMISC_MSG_MAX 80
 
-extern int accept_unsupported_interfaces;
-
 void init_promisc_list(struct promisc_states **list)
 {
 	FILE *fd;

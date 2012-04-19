@@ -46,10 +46,6 @@ details.
 extern int exitloop;
 extern int daemonized;
 
-void writetcplog(int logging, FILE * fd, struct tcptableent *entry,
-		 unsigned int pktlen, int mac, char *message);
-void write_tcp_unclosed(int logging, FILE * fd, struct tcptable *table);
-
 static void rotate_ipmon_log(int s __unused)
 {
 	rotate_flag = 1;
