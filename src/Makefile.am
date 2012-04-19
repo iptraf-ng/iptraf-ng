@@ -59,7 +59,6 @@ LIB_H += options.h
 LIB_H += promisc.h
 LIB_H += parseproto.h
 LIB_H += addproto.h
-LIB_H += tcptimeout.h
 LIB_H += arphdr.h
 LIB_H += externs.h
 LIB_H += attrs.h
