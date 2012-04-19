@@ -31,7 +31,7 @@ details.
 #include "ipfrag.h"
 
 /* Reimplement again
- * Removed PPP, LINK_ISDN, PLIP
+ * Removed PPP, LINK_ISDN
  */
 
 extern int daemonized;

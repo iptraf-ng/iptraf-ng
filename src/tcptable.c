@@ -625,8 +625,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	if (opts->mac) {
 		memset(newmacaddr, 0, 15);
 
-		if ((linkproto ==
-		     ARPHRD_ETHER) /* || (linkproto == LINK_PLIP) */ ) {
+		if (linkproto == ARPHRD_ETHER) {
 			convmacaddr((char *) (((struct ethhdr *) packet)->
 					      h_source), newmacaddr);
 		} else if (linkproto == ARPHRD_FDDI) {

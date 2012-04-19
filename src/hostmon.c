@@ -73,10 +73,6 @@ static void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 			if (ptmp->un.desc.linktype == ARPHRD_ETHER)
 				fprintf(fd, "\nEthernet address: %s",
 					ptmp->un.desc.ascaddr);
-/* fix this
-            else if (ptmp->un.desc.linktype == LINK_PLIP)
-                fprintf(fd, "\nPLIP address: %s", ptmp->un.desc.ascaddr);
-*/
 			else if (ptmp->un.desc.linktype == ARPHRD_FDDI)
 				fprintf(fd, "\nFDDI address: %s",
 					ptmp->un.desc.ascaddr);
@@ -318,10 +314,6 @@ static void printethent(struct ethtab *table, struct ethtabent *entry,
 
 		if (entry->un.desc.linktype == ARPHRD_ETHER)
 			wprintw(table->tabwin, "Ethernet");
-/* fix me
-        else if (entry->un.desc.linktype == LINK_PLIP)
-            wprintw(table->tabwin, "PLIP");
-*/
 		else if (entry->un.desc.linktype == ARPHRD_FDDI)
 			wprintw(table->tabwin, "FDDI");
 
@@ -951,9 +943,6 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 
 			if ((fromaddr.sll_hatype == ARPHRD_ETHER)
 			    || (fromaddr.sll_hatype == ARPHRD_FDDI)
-/* fix me
-                || (linktype == LINK_PLIP)
-*/
 			    || (fromaddr.sll_hatype == ARPHRD_IEEE802_TR)
 			    || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
 				switch(fromaddr.sll_protocol) {
@@ -970,11 +959,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				 * Check source address entry
 				 */
 
-				if ((fromaddr.sll_hatype == ARPHRD_ETHER)
-/* fix me
-                    || (linktype == LINK_PLIP)
-*/
-				    ) {
+				if (fromaddr.sll_hatype == ARPHRD_ETHER) {
 					struct ethhdr *hdr_eth =
 					    (struct ethhdr *) buf;
 					memcpy(scratch_saddr,
