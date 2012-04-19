@@ -974,9 +974,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 /* fix me
                     || (linktype == LINK_PLIP)
 */
-				    || (fromaddr.sll_hatype ==
-					ARPHRD_IEEE802_TR)
-				    || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
+				    ) {
 					struct ethhdr *hdr_eth =
 					    (struct ethhdr *) buf;
 					memcpy(scratch_saddr,
