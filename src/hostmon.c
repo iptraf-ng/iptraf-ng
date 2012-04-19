@@ -941,93 +941,79 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				ifname = ifnamebuf;
 			}
 
-			if ((fromaddr.sll_hatype == ARPHRD_ETHER)
-			    || (fromaddr.sll_hatype == ARPHRD_FDDI)
-			    || (fromaddr.sll_hatype == ARPHRD_IEEE802_TR)
-			    || (fromaddr.sll_hatype == ARPHRD_IEEE802)) {
-				switch(fromaddr.sll_protocol) {
-				case ETH_P_IP:
-				case ETH_P_IPV6:
-					is_ip = 1;
-					break;
-				default:
-					is_ip = 0;
-					break;
-				}
+			/* get HW addresses */
+			switch (fromaddr.sll_hatype) {
+			case ARPHRD_ETHER: {
+				struct ethhdr *hdr_eth = (struct ethhdr *)buf;
+				memcpy(scratch_saddr, hdr_eth->h_source,
+				       ETH_ALEN);
+				memcpy(scratch_daddr, hdr_eth->h_dest,
+				       ETH_ALEN);
+				list = elist;
+				break; }
+			case ARPHRD_FDDI: {
+				struct fddihdr *hdr_fddi = (struct fddihdr *)buf;
+				memcpy(scratch_saddr, hdr_fddi->saddr,
+				       FDDI_K_ALEN);
+				memcpy(scratch_daddr, hdr_fddi->daddr,
+				       FDDI_K_ALEN);
+				list = flist;
+				break; }
+			case ARPHRD_IEEE802:
+			case ARPHRD_IEEE802_TR: {
+				struct trh_hdr *hdr_trh = (struct trh_hdr *)buf;
+				memcpy(scratch_saddr, hdr_trh->saddr,
+				       TR_ALEN);
+				memcpy(scratch_daddr, hdr_trh->daddr,
+				       TR_ALEN);
+				list = flist;
+				break; }
+			default:
+				/* unknown link protocol */
+				continue;
+			}
 
-				/*
-				 * Check source address entry
-				 */
+			switch(fromaddr.sll_protocol) {
+			case ETH_P_IP:
+			case ETH_P_IPV6:
+				is_ip = 1;
+				break;
+			default:
+				is_ip = 0;
+				break;
+			}
 
-				if (fromaddr.sll_hatype == ARPHRD_ETHER) {
-					struct ethhdr *hdr_eth =
-					    (struct ethhdr *) buf;
-					memcpy(scratch_saddr,
-					       (hdr_eth)->h_source, ETH_ALEN);
-					memcpy(scratch_daddr, (hdr_eth)->h_dest,
-					       ETH_ALEN);
-					list = elist;
-				} else if (fromaddr.sll_hatype == ARPHRD_FDDI) {
-					struct fddihdr *hdr_fddi =
-					    (struct fddihdr *) buf;
-					memcpy(scratch_saddr, (hdr_fddi)->saddr,
-					       FDDI_K_ALEN);
-					memcpy(scratch_daddr, (hdr_fddi)->daddr,
-					       FDDI_K_ALEN);
-					list = flist;
-				} else
-				    if ((fromaddr.sll_hatype ==
-					 ARPHRD_IEEE802_TR)
-					|| (fromaddr.sll_hatype ==
-					    ARPHRD_IEEE802)) {
-					struct trh_hdr *hdr_trh =
-					    (struct trh_hdr *) buf;
-					memcpy(scratch_saddr, (hdr_trh)->saddr,
-					       TR_ALEN);
-					memcpy(scratch_daddr, (hdr_trh)->daddr,
-					       TR_ALEN);
-					list = flist;
-				}
+			/* Check source address entry */
+			entry = in_ethtable(&table, fromaddr.sll_hatype,
+					scratch_saddr);
 
-				entry =
-				    in_ethtable(&table, fromaddr.sll_hatype,
-						scratch_saddr);
+			if (!entry)
+				entry = addethentry(&table, fromaddr.sll_hatype,
+						ifname, scratch_saddr, list);
 
-				if (!entry)
-					entry =
-					    addethentry(&table, fromaddr.sll_hatype,
-							ifname, scratch_saddr, list);
+			if (entry != NULL) {
+				updateethent(entry, br, is_ip, 1);
+				if (!entry->prev_entry->un.desc.printed)
+					printethent(&table, entry->prev_entry,
+						    idx);
 
-				if (entry != NULL) {
-					updateethent(entry, br, is_ip, 1);
-					if (!entry->prev_entry->un.desc.printed)
-						printethent(&table,
-							    entry->prev_entry,
-							    idx);
+				printethent(&table, entry, idx);
+			}
 
-					printethent(&table, entry, idx);
-				}
-				/*
-				 * Check destination address entry
-				 */
+			/* Check destination address entry */
+			entry = in_ethtable(&table, fromaddr.sll_hatype,
+					scratch_daddr);
+			if (!entry)
+				entry = addethentry(&table, fromaddr.sll_hatype,
+						ifname, scratch_daddr, list);
 
-				entry =
-				    in_ethtable(&table, fromaddr.sll_hatype,
-						scratch_daddr);
-				if (!entry)
-					entry =
-					    addethentry(&table, fromaddr.sll_hatype,
-							ifname, scratch_daddr, list);
+			if (entry != NULL) {
+				updateethent(entry, br, is_ip, 0);
+				if (!entry->prev_entry->un.desc.printed)
+					printethent(&table, entry->prev_entry,
+						    idx);
 
-				if (entry != NULL) {
-					updateethent(entry, br, is_ip, 0);
-					if (!entry->prev_entry->un.desc.printed)
-						printethent(&table,
-							    entry->prev_entry,
-							    idx);
-
-					printethent(&table, entry, idx);
-				}
+				printethent(&table, entry, idx);
 			}
 		}
 	} while (!exitloop);
