@@ -9,6 +9,8 @@ Copyright (c) Gerard Paul Java 1997
 
 ***/
 
+#include "packet.h"
+
 #define NONIP -1
 #define IS_IP 1
 #define NOT_IP 0
@@ -123,14 +125,13 @@ void init_othp_table(struct othptable *table, int mac);
 
 void process_dest_unreach(struct tcptable *table, char *packet, char *ifname);
 
-struct othptabent *add_othp_entry(struct othptable *table,
+struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				  unsigned long saddr,
 				  unsigned long daddr, struct in6_addr *s6addr,
 				  struct in6_addr *d6addr, int is_ip,
-				  int protocol, unsigned short linkproto,
-				  char *packet, char *netpacket,
-				  unsigned int br, char *ifname,
-				  int *rev_lookup, int rvnamedon,
+				  int protocol,
+				  char *packet2,
+				  char *ifname, int *rev_lookup, int rvnamedon,
 				  int logging, FILE * logfile,
 				  int servnames, int fragment);
 

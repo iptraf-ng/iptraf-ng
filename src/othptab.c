@@ -29,6 +29,7 @@ details.
 #include "rvnamed.h"
 #include "servname.h"
 #include "addproto.h"
+#include "packet.h"
 
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
@@ -168,12 +169,12 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 	}
 }
 
-struct othptabent *add_othp_entry(struct othptable *table,
+struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				  unsigned long saddr,
 				  unsigned long daddr, struct in6_addr *s6addr,
 				  struct in6_addr *d6addr, int is_ip,
-				  int protocol, unsigned short linkproto,
-				  char *packet, char *packet2, unsigned int br,
+				  int protocol,
+				  char *packet2,
 				  char *ifname, int *rev_lookup, int rvnfd,
 				  int logging, FILE * logfile,
 				  int servnames, int fragment)
@@ -181,6 +182,7 @@ struct othptabent *add_othp_entry(struct othptable *table,
 	struct othptabent *new_entry;
 	struct othptabent *temp;
 	struct in_addr isaddr, idaddr;
+	char *packet = pkt->pkt_buf;
 
 	new_entry = xmalloc(sizeof(struct othptabent));
 	memset(new_entry, 0, sizeof(struct othptabent));
@@ -189,18 +191,18 @@ struct othptabent *add_othp_entry(struct othptable *table,
 	new_entry->fragment = fragment;
 
 	if ((table->mac) || (!is_ip)) {
-		if (linkproto == ARPHRD_ETHER) {
+		if (pkt->pkt_hatype == ARPHRD_ETHER) {
 			convmacaddr((char *) (((struct ethhdr *) packet)->
 					      h_source), new_entry->smacaddr);
 			convmacaddr((char *) (((struct ethhdr *) packet)->
 					      h_dest), new_entry->dmacaddr);
-		} else if (linkproto == ARPHRD_FDDI) {
+		} else if (pkt->pkt_hatype == ARPHRD_FDDI) {
 			convmacaddr((char *) (((struct fddihdr *) packet)->
 					      saddr), new_entry->smacaddr);
 			convmacaddr((char *) (((struct fddihdr *) packet)->
 					      daddr), new_entry->dmacaddr);
-		} else if ((linkproto == ARPHRD_IEEE802)
-			   || (linkproto == ARPHRD_IEEE802_TR)) {
+		} else if ((pkt->pkt_hatype == ARPHRD_IEEE802)
+			   || (pkt->pkt_hatype == ARPHRD_IEEE802_TR)) {
 			convmacaddr((char *) (((struct trh_hdr *) packet)->
 					      saddr), new_entry->smacaddr);
 			convmacaddr((char *) (((struct trh_hdr *) packet)->
@@ -257,7 +259,7 @@ struct othptabent *add_othp_entry(struct othptable *table,
 			}
 		}
 	} else {
-		new_entry->linkproto = linkproto;
+		new_entry->linkproto = pkt->pkt_hatype;
 
 		if (protocol == ETH_P_ARP) {
 			new_entry->un.arp.opcode =
@@ -279,7 +281,7 @@ struct othptabent *add_othp_entry(struct othptable *table,
 	new_entry->protocol = protocol;
 	strcpy(new_entry->iface, ifname);
 
-	new_entry->pkt_length = br;
+	new_entry->pkt_length = pkt->pkt_len;
 
 	if (table->head == NULL) {
 		new_entry->prev_entry = NULL;

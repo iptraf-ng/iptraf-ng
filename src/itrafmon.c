@@ -566,10 +566,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	   time_t facilitytime, char *ifptr)
 {
 	int logging = options->logging;
-	struct sockaddr_ll fromaddr;	/* iface info */
 
-	char tpacket[MAX_PACKET_SIZE];	/* raw packet data */
-	char *packet = NULL;	/* network packet ptr */
 	struct iphdr *ippacket;
 	struct ip6_hdr *ip6packet;
 	unsigned int protocol;
@@ -599,7 +596,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 	int curwin = 0;
 
-	int readlen;
 	char *ifname = ifptr;
 
 	unsigned long long total_pkts = 0;
@@ -752,6 +748,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	gettimeofday(&tv, NULL);
 	starttime = timeint = closedint = tv.tv_sec;
 
+	PACKET_INIT(pkt);
+
 	while (!exitloop) {
 		char ifnamebuf[IFNAMSIZ];
 
@@ -830,8 +828,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			rotate_flag = 0;
 		}
 
-		getpacket(fd, tpacket, &fromaddr, &ch, &readlen,
-			  table.tcpscreen);
+		packet_get(fd, &pkt, &ch, table.tcpscreen);
 
 		if (ch == ERR)
 			goto no_key_ready;
@@ -1027,16 +1024,14 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		}
 	no_key_ready:
 
-		if (readlen <= 0)
+		if (pkt.pkt_len <= 0)
 			continue;
 
 		total_pkts++;
 		show_stats(statwin, total_pkts);
 
 		pkt_result =
-		    processpacket((char *) tpacket, &packet,
-				  (unsigned int *) &readlen, &br,
-				  &sport, &dport, &fromaddr,
+		    packet_process(&pkt, &br, &sport, &dport,
 				  ofilter, MATCH_OPPOSITE_ALWAYS,
 				  options->v6inv4asv6);
 
@@ -1047,7 +1042,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			/* we're capturing on "All interfaces", */
 			/* so get the name of the interface */
 			/* of this packet */
-			int r = iface_get_ifname(fromaddr.sll_ifindex, ifnamebuf);
+			int r = iface_get_ifname(pkt.pkt_ifindex, ifnamebuf);
 			if (r != 0) {
 				write_error("Unable to get interface name");
 				break;          /* error getting interface name, get out! */
@@ -1055,33 +1050,32 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			ifname = ifnamebuf;
 		}
 
-		switch(fromaddr.sll_protocol) {
+		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
-			ippacket = (struct iphdr *) packet;
+			ippacket = (struct iphdr *) pkt.pkt_payload;
 			iphlen = ippacket->ihl * 4;
 			ip6packet = NULL;
 			protocol = ippacket->protocol;
 			frag_off = ippacket->frag_off;
 			break;
 		case ETH_P_IPV6:
-			ip6packet = (struct ip6_hdr *) packet;
+			ip6packet = (struct ip6_hdr *) pkt.pkt_payload;
 			iphlen = 40;
 			ippacket = NULL;
 			protocol = ip6packet->ip6_nxt;
 			frag_off = 0;
 			break;
 		default:
-			add_othp_entry(&othptbl, 0, 0, NULL,
+			add_othp_entry(&othptbl, &pkt, 0, 0, NULL,
 				       NULL, NOT_IP,
-				       fromaddr.sll_protocol, fromaddr.sll_hatype,
-				       (char *) tpacket,
-				       (char *) packet, br, ifname, 0,
+				       pkt.pkt_protocol,
+				       pkt.pkt_payload, ifname, 0,
 				       0, logging, logfile,
 				       options->servnames, 0);
 			continue;
 		}
 
-		transpacket = (struct tcphdr *) (packet + iphlen);
+		transpacket = (struct tcphdr *) (pkt.pkt_payload + iphlen);
 
 		if (protocol == IPPROTO_TCP) {
 			if (ippacket != NULL) {
@@ -1183,14 +1177,14 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 				if (ippacket != NULL)
 					updateentry(&table, tcpentry, transpacket,
-						    tpacket, fromaddr.sll_hatype,
-						    readlen, br, ippacket->frag_off,
+						    pkt.pkt_buf, pkt.pkt_hatype,
+						    pkt.pkt_len, br, ippacket->frag_off,
 						    logging, &revlook, rvnfd, options,
 						    logfile);
 				else
 					updateentry(&table, tcpentry, transpacket,
-						    tpacket, fromaddr.sll_hatype,
-						    readlen, readlen, 0, logging,
+						    pkt.pkt_buf, pkt.pkt_hatype,
+						    pkt.pkt_len, pkt.pkt_len, 0, logging,
 						    &revlook, rvnfd, options,
 						    logfile);
 				/*
@@ -1207,7 +1201,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 						strcat(msgstring, " (SYN)");
 
 					writetcplog(logging, logfile, tcpentry,
-						    readlen, options->mac,
+						    pkt.pkt_len, options->mac,
 						    msgstring);
 				}
 
@@ -1258,11 +1252,11 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					process_dest_unreach(&table, (char *) transpacket,
 							     ifname);
 			}
-			add_othp_entry(&othptbl, ippacket->saddr,
+			add_othp_entry(&othptbl, &pkt, ippacket->saddr,
 				       ippacket->daddr, NULL, NULL, IS_IP,
-				       ippacket->protocol, fromaddr.sll_hatype,
-				       (char *) tpacket, (char *) transpacket,
-				       readlen, ifname, &revlook, rvnfd,
+				       ippacket->protocol,
+				       (char *) transpacket,
+				       ifname, &revlook, rvnfd,
 				       logging, logfile,
 				       options->servnames, fragment);
 
@@ -1272,10 +1266,10 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				process_dest_unreach(&table, (char *) transpacket,
 						     ifname);
 
-			add_othp_entry(&othptbl, 0, 0, &ip6packet->ip6_src,
-				       &ip6packet->ip6_dst, IS_IP, ip6packet->ip6_nxt,
-				       fromaddr.sll_hatype, (char *) tpacket,
-				       (char *) transpacket, readlen, ifname,
+			add_othp_entry(&othptbl, &pkt, 0, 0,
+				       &ip6packet->ip6_src, &ip6packet->ip6_dst,
+				       IS_IP, ip6packet->ip6_nxt,
+				       (char *) transpacket, ifname,
 				       &revlook, rvnfd,
 				       logging, logfile, options->servnames,
 				       fragment);
