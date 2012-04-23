@@ -95,8 +95,6 @@ extern char *xvasprintf(const char *format, va_list p);
 extern void *xmallocz(size_t size);
 extern char *xstrdup(const char *s);
 
-extern int xsocket(int domain, int type, int protocol);
-extern int xsocket_raw_eth_p_all(void);
 extern int socket_bind_to_iface(const int fd, const int ifindex);
 extern int socket_bind_to_iface_by_name(const int fd, const char const *ifname);
 
