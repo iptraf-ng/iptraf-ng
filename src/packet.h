@@ -48,14 +48,7 @@ struct pkt_hdr {
 	};
 
 void open_socket(int *fd);
-void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
-	       int *br, WINDOW * win);
 void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
-int processpacket(char *tpacket, char **packet, unsigned int *br,
-		  unsigned int *total_br, unsigned int *sport,
-		  unsigned int *dport, struct sockaddr_ll *fromaddr,
-		  struct filterstate *ofilter,
-		  int match_opposite, int v6inv4asv6);
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   unsigned int *sport, unsigned int *dport,
 		   struct filterstate *filter, int match_opposite,
