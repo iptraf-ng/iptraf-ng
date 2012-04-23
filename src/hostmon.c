@@ -727,10 +727,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 	int logging = options->logging;
 	struct ethtab table;
 	struct ethtabent *entry;
-	struct sockaddr_ll fromaddr;
 
-	int br;
-	char buf[MAX_PACKET_SIZE];
 	char scratch_saddr[ETH_ALEN];
 	char scratch_daddr[ETH_ALEN];
 	unsigned int idx = 1;
@@ -753,7 +750,6 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 	FILE *logfile = NULL;
 
 	int pkt_result;
-	char *ipacket;
 
 	WINDOW *sortwin;
 	PANEL *sortpanel;
@@ -839,6 +835,8 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 	gettimeofday(&tv, NULL);
 	starttime = statbegin = startlog = tv.tv_sec;
 
+	PACKET_INIT(pkt);
+
 	do {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
@@ -871,7 +869,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, table.tabwin);
+		packet_get(fd, &pkt, &ch, table.tabwin);
 
 		if (ch != ERR) {
 			if (keymode == 0) {
@@ -916,12 +914,11 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				keymode = 0;
 			}
 		}
-		if (br > 0) {
+		if (pkt.pkt_len > 0) {
 			char ifnamebuf[IFNAMSIZ];
 
 			pkt_result =
-			    processpacket(buf, &ipacket, (unsigned int *) &br,
-					  NULL, NULL, NULL, &fromaddr,
+			    packet_process(&pkt, NULL, NULL, NULL,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG,
 					  0);
@@ -933,7 +930,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				/* we're capturing on "All interfaces", */
 				/* so get the name of the interface */
 				/* of this packet */
-				int r = iface_get_ifname(fromaddr.sll_ifindex, ifnamebuf);
+				int r = iface_get_ifname(pkt.pkt_ifindex, ifnamebuf);
 				if (r != 0) {
 					write_error("Unable to get interface name");
 					break;	/* can't get interface name, get out! */
@@ -942,9 +939,10 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 			}
 
 			/* get HW addresses */
-			switch (fromaddr.sll_hatype) {
+			switch (pkt.pkt_hatype) {
 			case ARPHRD_ETHER: {
-				struct ethhdr *hdr_eth = (struct ethhdr *)buf;
+				struct ethhdr *hdr_eth =
+					(struct ethhdr *)pkt.pkt_buf;
 				memcpy(scratch_saddr, hdr_eth->h_source,
 				       ETH_ALEN);
 				memcpy(scratch_daddr, hdr_eth->h_dest,
@@ -952,7 +950,8 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				list = elist;
 				break; }
 			case ARPHRD_FDDI: {
-				struct fddihdr *hdr_fddi = (struct fddihdr *)buf;
+				struct fddihdr *hdr_fddi =
+					(struct fddihdr *)pkt.pkt_buf;
 				memcpy(scratch_saddr, hdr_fddi->saddr,
 				       FDDI_K_ALEN);
 				memcpy(scratch_daddr, hdr_fddi->daddr,
@@ -961,7 +960,8 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				break; }
 			case ARPHRD_IEEE802:
 			case ARPHRD_IEEE802_TR: {
-				struct trh_hdr *hdr_trh = (struct trh_hdr *)buf;
+				struct trh_hdr *hdr_trh =
+					(struct trh_hdr *)pkt.pkt_buf;
 				memcpy(scratch_saddr, hdr_trh->saddr,
 				       TR_ALEN);
 				memcpy(scratch_daddr, hdr_trh->daddr,
@@ -973,7 +973,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				continue;
 			}
 
-			switch(fromaddr.sll_protocol) {
+			switch(pkt.pkt_protocol) {
 			case ETH_P_IP:
 			case ETH_P_IPV6:
 				is_ip = 1;
@@ -984,15 +984,15 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 			}
 
 			/* Check source address entry */
-			entry = in_ethtable(&table, fromaddr.sll_hatype,
+			entry = in_ethtable(&table, pkt.pkt_hatype,
 					scratch_saddr);
 
 			if (!entry)
-				entry = addethentry(&table, fromaddr.sll_hatype,
+				entry = addethentry(&table, pkt.pkt_hatype,
 						ifname, scratch_saddr, list);
 
 			if (entry != NULL) {
-				updateethent(entry, br, is_ip, 1);
+				updateethent(entry, pkt.pkt_len, is_ip, 1);
 				if (!entry->prev_entry->un.desc.printed)
 					printethent(&table, entry->prev_entry,
 						    idx);
@@ -1001,14 +1001,14 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 			}
 
 			/* Check destination address entry */
-			entry = in_ethtable(&table, fromaddr.sll_hatype,
+			entry = in_ethtable(&table, pkt.pkt_hatype,
 					scratch_daddr);
 			if (!entry)
-				entry = addethentry(&table, fromaddr.sll_hatype,
+				entry = addethentry(&table, pkt.pkt_hatype,
 						ifname, scratch_daddr, list);
 
 			if (entry != NULL) {
-				updateethent(entry, br, is_ip, 0);
+				updateethent(entry, pkt.pkt_len, is_ip, 0);
 				if (!entry->prev_entry->un.desc.printed)
 					printethent(&table, entry->prev_entry,
 						    idx);
