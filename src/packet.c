@@ -169,7 +169,8 @@ void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 		socklen_t fromlen = sizeof(struct sockaddr_ll);
 		ssize_t len;
 
-		len = recvfrom(fd, pkt->pkt_buf, pkt->pkt_bufsize, MSG_TRUNC,
+		len = recvfrom(fd, pkt->pkt_buf, pkt->pkt_bufsize,
+			       MSG_TRUNC | MSG_DONTWAIT,
 			       (struct sockaddr *) &from, &fromlen);
 		if (len > 0) {
 			pkt->pkt_len = len;
