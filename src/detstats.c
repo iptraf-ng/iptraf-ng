@@ -291,14 +291,9 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	WINDOW *statwin;
 	PANEL *statpanel;
 
-	char buf[MAX_PACKET_SIZE];
-	char *packet;
 	struct iphdr *ipacket = NULL;
 	struct ip6_hdr *ip6packet = NULL;
 
-	struct sockaddr_ll fromaddr;
-
-	int br;
 	int framelen = 0;
 	int pkt_result = 0;
 
@@ -431,6 +426,8 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	//isdnfd = -1;
 	exitloop = 0;
 
+	PACKET_INIT(pkt);
+
 	/*
 	 * Data-gathering loop
 	 */
@@ -531,7 +528,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, statwin);
+		packet_get(fd, &pkt, &ch, statwin);
 
 		switch (ch) {
 		case ERR:
@@ -552,14 +549,13 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			exitloop = 1;
 			break;
 		}
-		if (br > 0) {
+		if (pkt.pkt_len > 0) {
 			int outgoing;
 			short ipproto;
 
-			framelen = br;
+			framelen = pkt.pkt_len;
 			pkt_result =
-			    processpacket(buf, &packet, (unsigned int *) &br,
-					  NULL, NULL, NULL, &fromaddr,
+			    packet_process(&pkt, NULL, NULL, NULL,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG,
 					  options->v6inv4asv6);
@@ -568,30 +564,30 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			    && pkt_result != MORE_FRAGMENTS)
 				continue;
 
-			outgoing = (fromaddr.sll_pkttype == PACKET_OUTGOING);
+			outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
 			update_proto_counter(&ifcounts.total, outgoing, framelen);
-			if (fromaddr.sll_pkttype == PACKET_BROADCAST) {
+			if (pkt.pkt_pkttype == PACKET_BROADCAST) {
 				update_counter(&ifcounts.bcast, framelen);
 			}
 
 			update_proto_counter(&span, outgoing, framelen);
 
 			/* account network layer protocol */
-			switch(fromaddr.sll_protocol) {
+			switch(pkt.pkt_protocol) {
 			case ETH_P_IP:
 				if (pkt_result == CHECKSUM_ERROR) {
 					update_counter(&ifcounts.bad, framelen);
 					continue;
 				}
 
-				ipacket = (struct iphdr *) packet;
+				ipacket = (struct iphdr *) pkt.pkt_payload;
 				iplen = ntohs(ipacket->tot_len);
 				ipproto = ipacket->protocol;
 
 				update_proto_counter(&ifcounts.ipv4, outgoing, iplen);
 				break;
 			case ETH_P_IPV6:
-				ip6packet = (struct ip6_hdr *) packet;
+				ip6packet = (struct ip6_hdr *) pkt.pkt_payload;
 				iplen = ntohs(ip6packet->ip6_plen) + 40;
 				ipproto = ip6packet->ip6_nxt;
 
