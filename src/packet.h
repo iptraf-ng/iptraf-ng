@@ -25,14 +25,39 @@ Written by Gerard Paul Java
 
 extern int isdnfd;
 
+struct pkt_hdr {
+	char		pkt_buf[MAX_PACKET_SIZE];
+	size_t		pkt_bufsize;
+	char	       *pkt_payload;
+	size_t		pkt_caplen;	/* bytes captured */
+	size_t		pkt_len;	/* bytes on-the-wire */
+	unsigned short	pkt_protocol;	/* Physical layer protocol: ETH_P_* */
+	int		pkt_ifindex;	/* Interface number */
+	unsigned short	pkt_hatype;	/* Header type: ARPHRD_* */
+	unsigned char	pkt_pkttype;	/* Packet type: PACKET_OUTGOING, PACKET_BROADCAST, ... */
+	unsigned char	pkt_halen;	/* Length of address */
+	unsigned char	pkt_addr[8];	/* Physical layer address */
+};
+
+#define PACKET_INIT(packet) \
+	struct pkt_hdr packet = { \
+		.pkt_bufsize = MAX_PACKET_SIZE, \
+		.pkt_payload = NULL \
+	};
+
 void open_socket(int *fd);
 void getpacket(int fd, char *buf, struct sockaddr_ll *fromaddr, int *ch,
 	       int *br, WINDOW * win);
+void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
 int processpacket(char *tpacket, char **packet, unsigned int *br,
 		  unsigned int *total_br, unsigned int *sport,
 		  unsigned int *dport, struct sockaddr_ll *fromaddr,
 		  struct filterstate *ofilter,
 		  int match_opposite, int v6inv4asv6);
+int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
+		   unsigned int *sport, unsigned int *dport,
+		   struct filterstate *filter, int match_opposite,
+		   int v6inv4asv6);
 void pkt_cleanup(void);
 
 #endif	/* IPTRAF_NG_PACKET_H */
