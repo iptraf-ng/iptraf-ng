@@ -157,12 +157,8 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 
 	int ch;
 
-	char buf[MAX_PACKET_SIZE];
-	int br;
-	char *ipacket;
 	int mtu;
 
-	struct sockaddr_ll fromaddr;
 	int pkt_result;
 
 	struct timeval tv;
@@ -271,6 +267,8 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		goto err_close;
 	}
 
+	PACKET_INIT(pkt);
+
 	do {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
@@ -301,7 +299,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		    && (((now - starttime) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, win);
+		packet_get(fd, &pkt, &ch, win);
 
 		if (ch != ERR) {
 			switch (ch) {
@@ -319,17 +317,16 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 				exitloop = 1;
 			}
 		}
-		if (br > 0) {
+		if (pkt.pkt_len > 0) {
 			pkt_result =
-			    processpacket(buf, &ipacket, (unsigned int *) &br,
-					  NULL, NULL, NULL, &fromaddr,
+			    packet_process(&pkt, NULL, NULL, NULL,
 					  ofilter,
 					  MATCH_OPPOSITE_USECONFIG, 0);
 
 			if (pkt_result != PACKET_OK)
 				continue;
 
-			update_size_distrib(br, brackets, interval, win);
+			update_size_distrib(pkt.pkt_len, brackets, interval, win);
 		}
 	} while (!exitloop);
 
