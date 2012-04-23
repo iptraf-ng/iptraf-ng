@@ -124,6 +124,30 @@ int iface_get_ifindex(const char *iface)
 	return ifr.ifr_ifindex;
 }
 
+int iface_get_mtu(const char *iface)
+{
+	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (fd == -1)
+		return fd;
+
+	struct ifreq ifr;
+	strcpy(ifr.ifr_name, iface);
+	int ir = ioctl(fd, SIOCGIFMTU, &ifr);
+
+	/* need to preserve errno across call to close() */
+	int saved_errno = errno;
+
+	close(fd);
+
+	/* bug out if ioctl() failed */
+	if (ir != 0) {
+		errno = saved_errno;
+		return ir;
+	}
+
+	return ifr.ifr_mtu;
+}
+
 int iface_get_ifname(int ifindex, char *ifname)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);

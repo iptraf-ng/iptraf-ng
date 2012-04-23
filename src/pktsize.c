@@ -67,26 +67,13 @@ static void write_size_log(struct ifstat_brackets *brackets,
 	fflush(logfile);
 }
 
-static int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
-			       unsigned int *interval, unsigned int *mtu,
+static int initialize_brackets(struct ifstat_brackets *brackets,
+			       unsigned int *interval, int mtu,
 			       WINDOW *win)
 {
-	struct ifreq ifr;
-	int istat;
 	int i;
 
-	strcpy(ifr.ifr_name, ifname);
-
-	int fd = xsocket_raw_eth_p_all();
-
-	istat = ioctl(fd, SIOCGIFMTU, &ifr);
-
-	close(fd);
-	if (istat < 0) {
-		write_error("Unable to obtain interface MTU");
-		return 1;
-	}
-	*interval = ifr.ifr_mtu / 20;	/* There are 20 packet size brackets */
+	*interval = mtu / 20;	/* There are 20 packet size brackets */
 
 	for (i = 0; i <= 19; i++) {
 		brackets[i].floor = *interval * i + 1;
@@ -94,7 +81,7 @@ static int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
 		brackets[i].count = 0;
 	}
 
-	brackets[19].ceil = ifr.ifr_mtu;
+	brackets[19].ceil = mtu;
 
 	for (i = 0; i <= 9; i++) {
 		wattrset(win, STDATTR);
@@ -125,13 +112,12 @@ static int initialize_brackets(char *ifname, struct ifstat_brackets *brackets,
 	wattrset(win, STDATTR);
 	mvwprintw(win, 17, 1,
 		  "Interface MTU is %d bytes, not counting the data-link header",
-		  ifr.ifr_mtu);
+		  mtu);
 	mvwprintw(win, 18, 1,
 		  "Maximum packet size is the MTU plus the data-link header length");
 	mvwprintw(win, 19, 1,
 		  "Packet size computations include data-link headers, if any");
 
-	*mtu = ifr.ifr_mtu;
 	return 0;
 }
 
@@ -174,7 +160,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	char buf[MAX_PACKET_SIZE];
 	int br;
 	char *ipacket;
-	unsigned int mtu;
+	int mtu;
 
 	struct sockaddr_ll fromaddr;
 	int pkt_result;
@@ -202,9 +188,15 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 
 	if (!iface_up(ifname)) {
 		err_iface_down();
-		unmark_facility(PKTSIZEIDFILE, ifname);
-		return;
+		goto err_unmark;
 	}
+
+	mtu = iface_get_mtu(ifname);
+	if (mtu < 0) {
+		write_error("Unable to obtain interface MTU");
+		goto err_unmark;
+	}
+
 	borderwin = newwin(LINES - 2, COLS, 1, 0);
 	borderpanel = new_panel(borderwin);
 
@@ -223,7 +215,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	move(LINES - 1, 1);
 	stdexitkeyhelp();
 
-	initialize_brackets(ifname, brackets, &interval, &mtu, win);
+	initialize_brackets(brackets, &interval, mtu, win);
 
 	mvwprintw(win, 1, 1, "Packet size brackets for interface %s", ifname);
 	wattrset(win, BOXATTR);
@@ -364,6 +356,7 @@ err:
 	delwin(win);
 	del_panel(borderpanel);
 	delwin(borderwin);
+err_unmark:
 	unmark_facility(PKTSIZEIDFILE, ifname);
 	strcpy(current_logfile, "");
 }
