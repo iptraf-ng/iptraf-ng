@@ -763,13 +763,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 	int logging = options->logging;
 	int pkt_result;
 
-	char buf[MAX_PACKET_SIZE];
-	char *ipacket;
-
 	int keymode = 0;
-
-	struct sockaddr_ll fromaddr;
-	int br;
 
 	unsigned int idx = 1;
 
@@ -892,6 +886,8 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		goto err_close;
 	}
 
+	PACKET_INIT(pkt);
+
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
@@ -931,7 +927,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		    && (((now - starttime) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, list.win);
+		packet_get(fd, &pkt, &ch, list.win);
 
 		if (ch == ERR)
 			goto no_key_ready;
@@ -1056,15 +1052,14 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		}
 	no_key_ready:
 
-		if (br <= 0)
+		if (pkt.pkt_len <= 0)
 			continue;
 
 		unsigned short ipproto;
 		unsigned short iplen;
 
 		pkt_result =
-			processpacket(buf, &ipacket, (unsigned int *) &br,
-				      &tot_br, &sport, &dport, &fromaddr,
+			packet_process(&pkt, &tot_br, &sport, &dport,
 				      ofilter,
 				      MATCH_OPPOSITE_USECONFIG,
 				      options->v6inv4asv6);
@@ -1072,14 +1067,14 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		if (pkt_result != PACKET_OK)
 			continue;
 
-		switch (fromaddr.sll_protocol) {
+		switch (pkt.pkt_protocol) {
 		case ETH_P_IP:
-			ipproto = ((struct iphdr *) ipacket)->protocol;
-			iplen =	ntohs(((struct iphdr *) ipacket)->tot_len);
+			ipproto = ((struct iphdr *) pkt.pkt_payload)->protocol;
+			iplen =	ntohs(((struct iphdr *) pkt.pkt_payload)->tot_len);
 			break;
 		case ETH_P_IPV6:
-			ipproto = ((struct ip6_hdr *) ipacket)->ip6_nxt;	/* FIXME: extension headers ??? */
-			iplen = ntohs(((struct ip6_hdr *) ipacket)->ip6_plen) + 40;
+			ipproto = ((struct ip6_hdr *) pkt.pkt_payload)->ip6_nxt;	/* FIXME: extension headers ??? */
+			iplen = ntohs(((struct ip6_hdr *) pkt.pkt_payload)->ip6_plen) + 40;
 			break;
 		default:
 			/* unknown link protocol */
