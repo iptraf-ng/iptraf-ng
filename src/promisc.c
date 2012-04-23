@@ -34,14 +34,9 @@ details.
 void init_promisc_list(struct promisc_states **list)
 {
 	FILE *fd;
-	int ifd;
 	char buf[IFNAMSIZ];
 	struct promisc_states *ptmp;
 	struct promisc_states *tail = NULL;
-	struct ifreq ifr;
-	int istat;
-
-	ifd = socket(PF_INET, SOCK_DGRAM, 0);
 
 	*list = NULL;
 	fd = open_procnetdev();
@@ -76,17 +71,14 @@ void init_promisc_list(struct promisc_states **list)
 			    || (strncmp(buf, "vmnet", 5) == 0)
 			    || (strncmp(ptmp->params.ifname, "wvlan", 4) == 0)
 			    || (strncmp(ptmp->params.ifname, "lec", 3) == 0)) {
-				strcpy(ifr.ifr_name, buf);
+				int flags = iface_get_flags(buf);
 
-				istat = ioctl(ifd, SIOCGIFFLAGS, &ifr);
-
-				if (istat < 0) {
+				if (flags < 0) {
 					write_error("Unable to obtain interface parameters for %s",
 						buf);
 					ptmp->params.state_valid = 0;
 				} else {
-					ptmp->params.saved_state =
-					    ifr.ifr_flags;
+					ptmp->params.saved_state = flags;
 					ptmp->params.state_valid = 1;
 				}
 			}
@@ -166,19 +158,9 @@ void load_promisc_list(struct promisc_states **list)
 
 void srpromisc(int mode, struct promisc_states *list)
 {
-	int fd;
-	struct ifreq ifr;
 	struct promisc_states *ptmp;
-	int istat;
 
 	ptmp = list;
-
-	fd = socket(PF_INET, SOCK_DGRAM, 0);
-
-	if (fd < 0) {
-		write_error("Unable to open socket for flag change");
-		return;
-	}
 
 	while (ptmp != NULL) {
 		if (((strncmp(ptmp->params.ifname, "eth", 3) == 0)
@@ -189,26 +171,24 @@ void srpromisc(int mode, struct promisc_states *list)
 		     || (strncmp(ptmp->params.ifname, "wvlan", 4) == 0)
 		     || (strncmp(ptmp->params.ifname, "lec", 3) == 0))
 		    && (ptmp->params.state_valid)) {
-
-			strcpy(ifr.ifr_name, ptmp->params.ifname);
-
-			if (mode)
-				ifr.ifr_flags =
-				    ptmp->params.saved_state | IFF_PROMISC;
-			else
-				ifr.ifr_flags = ptmp->params.saved_state;
-
-			istat = ioctl(fd, SIOCSIFFLAGS, &ifr);
-
-			if (istat < 0) {
-				write_error("Promisc change failed for %s",
-					ptmp->params.ifname);
+			if (mode) {
+				/* set promiscuous */
+				int r = iface_set_promisc(ptmp->params.ifname);
+				if(r < 0)
+					write_error("Failed to set promiscuous mode on %s", ptmp->params.ifname);
+			} else {
+				/* restore saved state */
+				if (ptmp->params.saved_state & IFF_PROMISC)
+					/* was promisc, so leave it as is */
+					continue;
+				/* wasn't promisc, clear it */
+				int r = iface_clear_promisc(ptmp->params.ifname);
+				if(r < 0)
+					write_error("Failed to clear promiscuous mode on %s", ptmp->params.ifname);
 			}
 		}
 		ptmp = ptmp->next_entry;
 	}
-
-	close(fd);
 }
 
 void destroy_promisc_list(struct promisc_states **list)

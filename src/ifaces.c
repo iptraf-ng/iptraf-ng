@@ -148,6 +148,96 @@ int iface_get_mtu(const char *iface)
 	return ifr.ifr_mtu;
 }
 
+int iface_get_flags(const char *iface)
+{
+	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (fd == -1)
+		return fd;
+
+	struct ifreq ifr;
+	strcpy(ifr.ifr_name, iface);
+	int ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
+
+	/* need to preserve errno across call to close() */
+	int saved_errno = errno;
+
+	close(fd);
+
+	/* bug out if ioctl() failed */
+	if (ir != 0) {
+		errno = saved_errno;
+		return ir;
+	}
+
+	return ifr.ifr_flags;
+}
+
+int iface_set_flags(const char *iface, int flags)
+{
+	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (fd == -1)
+		return fd;
+
+	struct ifreq ifr;
+	strcpy(ifr.ifr_name, iface);
+	int ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
+	if (ir == -1)
+		goto err;
+
+	ifr.ifr_flags |= flags;
+	ir = ioctl(fd, SIOCSIFFLAGS, &ifr);
+
+	int saved_errno;
+err:	/* need to preserve errno across call to close() */
+	saved_errno = errno;
+
+	close(fd);
+
+	/* bug out if ioctl() failed */
+	if (ir != 0)
+		errno = saved_errno;
+
+	return ir;
+}
+
+int iface_clear_flags(const char *iface, int flags)
+{
+	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (fd == -1)
+		return fd;
+
+	struct ifreq ifr;
+	strcpy(ifr.ifr_name, iface);
+	int ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
+	if (ir == -1)
+		goto err;
+
+	ifr.ifr_flags &= ~flags;
+	ir = ioctl(fd, SIOCSIFFLAGS, &ifr);
+
+	int saved_errno;
+err:	/* need to preserve errno across call to close() */
+	saved_errno = errno;
+
+	close(fd);
+
+	/* bug out if ioctl() failed */
+	if (ir != 0)
+		errno = saved_errno;
+
+	return ir;
+}
+
+int iface_set_promisc(char *ifname)
+{
+	return iface_set_flags(ifname, IFF_PROMISC);
+}
+
+int iface_clear_promisc(char *ifname)
+{
+	return iface_clear_flags(ifname, IFF_PROMISC);
+}
+
 int iface_get_ifname(int ifindex, char *ifname)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
