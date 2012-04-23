@@ -419,19 +419,13 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	int logging = options->logging;
 	struct iftab table;
 
-	char buf[MAX_PACKET_SIZE];
-	char *packet;
 	int pkt_result = 0;
-
-	struct sockaddr_ll fromaddr;
 
 	struct iflist *ptmp = NULL;
 
 	unsigned int idx = 1;
 
 	FILE *logfile = NULL;
-
-	int br;
 
 	int ch;
 
@@ -511,6 +505,8 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	gettimeofday(&tv, NULL);
 	starttime = startlog = statbegin = tv.tv_sec;
 
+	PACKET_INIT(pkt);
+
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
@@ -544,7 +540,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		getpacket(fd, buf, &fromaddr, &ch, &br, table.statwin);
+		packet_get(fd, &pkt, &ch, table.statwin);
 
 		switch (ch) {
 		case ERR:
@@ -578,11 +574,10 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 			exitloop = 1;
 			break;
 		}
-		if (br <= 0)
+		if (pkt.pkt_len <= 0)
 			continue;
 
-		pkt_result = processpacket(buf, &packet, (unsigned int *) &br,
-					   NULL, NULL, NULL, &fromaddr,
+		pkt_result = packet_process(&pkt, NULL, NULL, NULL,
 					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
 					   options->v6inv4asv6);
@@ -591,23 +586,23 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		    && pkt_result != MORE_FRAGMENTS)
 			continue;
 
-		ptmp = positionptr(table.head, fromaddr.sll_ifindex);
+		ptmp = positionptr(table.head, pkt.pkt_ifindex);
 		if (!ptmp)
 			continue;
 
 		ptmp->total++;
 
-		ptmp->spanbr += br;
-		ptmp->br += br;
+		ptmp->spanbr += pkt.pkt_len;
+		ptmp->br += pkt.pkt_len;
 
-		if (fromaddr.sll_protocol == ETH_P_IP) {
+		if (pkt.pkt_protocol == ETH_P_IP) {
 			ptmp->iptotal++;
 
 			if (pkt_result == CHECKSUM_ERROR) {
 				(ptmp->badtotal)++;
 				continue;
 			}
-		} else if (fromaddr.sll_protocol == ETH_P_IPV6) {
+		} else if (pkt.pkt_protocol == ETH_P_IPV6) {
 			ptmp->ip6total++;
 		} else {
 			(ptmp->noniptotal)++;
