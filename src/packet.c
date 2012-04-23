@@ -25,6 +25,7 @@ details.
 #include "options.h"
 #include "fltdefs.h"
 #include "fltselect.h"
+#include "ipfilter.h"
 #include "isdntab.h"
 #include "ifaces.h"
 #include "packet.h"

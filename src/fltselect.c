@@ -27,6 +27,7 @@ details.
 #include "fltselect.h"
 #include "fltedit.h"
 #include "fltmgr.h"
+#include "ipfilter.h"
 #include "deskman.h"
 #include "attrs.h"
 #include "instances.h"

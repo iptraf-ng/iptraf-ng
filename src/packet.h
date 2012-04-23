@@ -15,6 +15,8 @@ Written by Gerard Paul Java
  * with reasonable numbers of options.
  */
 
+#include "fltselect.h"
+
 #define MAX_PACKET_SIZE 256	/* 256B should be enough to see all headers */
 
 #define INVALID_PACKET 0
