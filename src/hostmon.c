@@ -857,7 +857,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		if (((options->updrate != 0)
 		     && (now - updtime >= options->updrate))
 		    || ((options->updrate == 0)
-			&& (unow - updtime_usec >= HOSTMON_UPDATE_DELAY))) {
+			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
 			update_panels();
 			doupdate();
 			updtime = now;

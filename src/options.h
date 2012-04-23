@@ -11,6 +11,5 @@ struct OPTIONS {
 };
 
 #define DEFAULT_UPDATE_DELAY 50000	/* usec screen delay if update rate 0 */
-#define HOSTMON_UPDATE_DELAY 100000
 
 #endif	/* IPTRAF_NG_OPTIONS_H */
