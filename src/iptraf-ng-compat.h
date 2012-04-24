@@ -94,6 +94,8 @@ extern void *xrealloc(void *ptr, size_t size);
 extern char *xvasprintf(const char *format, va_list p);
 extern void *xmallocz(size_t size);
 extern char *xstrdup(const char *s);
+extern int strtoul_ui(char const *s, int base, unsigned int *result);
+extern int strtol_i(char const *s, int base, int *result);
 
 extern void die(const char *err, ...);
 extern void die_errno(const char *err) __noreturn;
@@ -106,33 +108,5 @@ static inline char *skip_whitespace(const char *str)
 
 	return (char *) str;
 }
-
-#if 0
-static inline int strtoul_ui(char const *s, int base, unsigned int *result)
-{
-	unsigned long ul;
-	char *p;
-
-	errno = 0;
-	ul = strtoul(s, &p, base);
-	if (errno || *p || p == s || (unsigned int) ul != ul)
-		return -1;
-	*result = ul;
-	return 0;
-}
-
-static inline int strtol_i(char const *s, int base, int *result)
-{
-	long ul;
-	char *p;
-
-	errno = 0;
-	ul = strtol(s, &p, base);
-	if (errno || *p || p == s || (int) ul != ul)
-		return -1;
-	*result = ul;
-	return 0;
-}
-#endif
 
 #endif	/* IPTRAF_NG_COMPAT_H */
