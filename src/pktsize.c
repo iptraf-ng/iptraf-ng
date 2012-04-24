@@ -182,7 +182,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		return;
 	}
 
-	if (!iface_up(ifname)) {
+	if (!dev_up(ifname)) {
 		err_iface_down();
 		goto err_unmark;
 	}

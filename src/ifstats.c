@@ -152,7 +152,7 @@ static void initiflist(struct iflist **list)
 		 * interface lists used by IPTraf.
 		 */
 
-		if (!iface_up(ifname))
+		if (!dev_up(ifname))
 			continue;
 
 		int ifindex = iface_get_ifindex(ifname);

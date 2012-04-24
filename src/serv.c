@@ -812,7 +812,7 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		return;
 	}
 
-	if (!iface_up(ifname)) {
+	if (!dev_up(ifname)) {
 		err_iface_down();
 		unmark_facility(TCPUDPIDFILE, ifname);
 		return;

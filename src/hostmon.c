@@ -770,7 +770,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 	}
 
 	if (ifptr != NULL) {
-		if (!iface_up(ifptr)) {
+		if (!dev_up(ifptr)) {
 			err_iface_down();
 			unmark_facility(LANMONIDFILE, ifptr);
 			return;

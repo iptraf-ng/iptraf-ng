@@ -648,7 +648,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	}
 
 	if (ifptr != NULL) {
-		if (!iface_up(ifptr)) {
+		if (!dev_up(ifptr)) {
 			err_iface_down();
 			unmark_facility(IPMONIDFILE, ifptr);
 			return;

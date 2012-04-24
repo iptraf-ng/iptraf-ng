@@ -346,7 +346,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		return;
 	}
 
-	if (!iface_up(iface)) {
+	if (!dev_up(iface)) {
 		err_iface_down();
 		unmark_facility(DSTATIDFILE, iface);
 		return;
