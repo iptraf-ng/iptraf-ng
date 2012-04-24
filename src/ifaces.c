@@ -228,7 +228,7 @@ err:	/* need to preserve errno across call to close() */
 	return ir;
 }
 
-int iface_set_promisc(char *ifname)
+int dev_set_promisc(char *ifname)
 {
 	return dev_set_flags(ifname, IFF_PROMISC);
 }

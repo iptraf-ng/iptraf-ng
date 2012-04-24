@@ -173,7 +173,7 @@ void srpromisc(int mode, struct promisc_states *list)
 		    && (ptmp->params.state_valid)) {
 			if (mode) {
 				/* set promiscuous */
-				int r = iface_set_promisc(ptmp->params.ifname);
+				int r = dev_set_promisc(ptmp->params.ifname);
 				if(r < 0)
 					write_error("Failed to set promiscuous mode on %s", ptmp->params.ifname);
 			} else {
