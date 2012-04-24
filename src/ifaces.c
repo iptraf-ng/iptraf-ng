@@ -172,7 +172,7 @@ int dev_get_flags(const char *iface)
 	return ifr.ifr_flags;
 }
 
-int iface_set_flags(const char *iface, int flags)
+int dev_set_flags(const char *iface, int flags)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)
@@ -230,7 +230,7 @@ err:	/* need to preserve errno across call to close() */
 
 int iface_set_promisc(char *ifname)
 {
-	return iface_set_flags(ifname, IFF_PROMISC);
+	return dev_set_flags(ifname, IFF_PROMISC);
 }
 
 int iface_clear_promisc(char *ifname)
