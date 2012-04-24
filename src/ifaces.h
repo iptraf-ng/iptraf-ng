@@ -12,7 +12,7 @@ FILE *open_procnetdev(void);
 int get_next_iface(FILE * fd, char *ifname, int n);
 int dev_up(char *iface);
 void err_iface_down(void);
-int iface_get_ifindex(const char *iface);
+int dev_get_ifindex(const char *iface);
 int iface_get_mtu(const char *iface);
 int iface_get_flags(const char *iface);
 int iface_set_flags(const char *iface, int flags);

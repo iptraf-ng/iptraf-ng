@@ -155,7 +155,7 @@ static void initiflist(struct iflist **list)
 		if (!dev_up(ifname))
 			continue;
 
-		int ifindex = iface_get_ifindex(ifname);
+		int ifindex = dev_get_ifindex(ifname);
 		if (ifindex < 0)
 			continue;
 		/*

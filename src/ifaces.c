@@ -100,7 +100,7 @@ void err_iface_down(void)
 	write_error("Specified interface not active");
 }
 
-int iface_get_ifindex(const char *iface)
+int dev_get_ifindex(const char *iface)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)
