@@ -9,8 +9,6 @@ Copyright (c) Gerard Paul Java 1997
 			
 ***/
 
-#include <sys/types.h>
-#include <netinet/udp.h>
 #include "fltdefs.h"
 
 struct filterstate {
