@@ -229,9 +229,14 @@ static void settimeout(time_t *value, const char *units, int allow_zero,
 		tx_fillfields(&field, aborted);
 
 		if (!(*aborted)) {
-			tmval = atoi(field.list->buf);
-			if ((!allow_zero) && (tmval == 0))
+			unsigned int tm;
+
+			tmval = 0;
+			int ret = strtoul_ui(field.list->buf, 10, &tm);
+			if ((ret == -1) || (!allow_zero && (tm == 0)))
 				tui_error(ANYKEY_MSG, "Invalid timeout value");
+			else
+				tmval = tm;
 		}
 	} while (((!allow_zero) && (tmval == 0)) && (!(*aborted)));
 

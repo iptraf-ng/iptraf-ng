@@ -191,16 +191,12 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		 * Process Source Port fields
 		 */
 		fieldptr = fieldptr->nextfield;
-		if (fieldptr->buf[0] == '\0')
+		if (strtoul_ui(fieldptr->buf, 10, &data->sport1) == -1)
 			data->sport1 = 0;
-		else
-			data->sport1 = atoi(fieldptr->buf);
 
 		fieldptr = fieldptr->nextfield;
-		if (fieldptr->buf[0] == '\0')
+		if (strtoul_ui(fieldptr->buf, 10, &data->sport2) == -1)
 			data->sport2 = 0;
-		else
-			data->sport2 = atoi(fieldptr->buf);
 
 		/*
 		 * Process Destination Address field
@@ -236,16 +232,12 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		 * Process Dedination Port fields
 		 */
 		fieldptr = fieldptr->nextfield;
-		if (fieldptr->buf[0] == '\0')
+		if (strtoul_ui(fieldptr->buf, 10, &data->dport1) == -1)
 			data->dport1 = 0;
-		else
-			data->dport1 = atoi(fieldptr->buf);
 
 		fieldptr = fieldptr->nextfield;
-		if (fieldptr->buf[0] == '\0')
+		if (strtoul_ui(fieldptr->buf, 10, &data->dport2) == -1)
 			data->dport2 = 0;
-		else
-			data->dport2 = atoi(fieldptr->buf);
 
 		/*
 		 * Process IP protocol filter fields

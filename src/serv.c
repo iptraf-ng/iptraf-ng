@@ -1180,12 +1180,36 @@ static void portdlg(unsigned int *port_min, unsigned int *port_max,
 	tx_addfield(&list, 5, 0, 0, "");
 	tx_addfield(&list, 5, 0, 9, "");
 
-	tx_fillfields(&list, aborted);
+	int ok;
+	do {
+		unsigned int val;
+		int ret;
 
-	if (!(*aborted)) {
-		*port_min = atoi(list.list->buf);
-		*port_max = atoi(list.list->nextfield->buf);
-	}
+		ok = 1;
+		tx_fillfields(&list, aborted);
+
+		if (*aborted)
+			break;
+
+		ret = strtoul_ui(list.list->buf, 10, &val);
+		if (ret == -1 || val > 65535) {
+			tui_error(ANYKEY_MSG, "Invalid port");
+			ok = 0;
+			continue;
+		}
+		*port_min = val;
+
+		if (list.list->nextfield->buf[0] != '\0') {
+			ret = strtoul_ui(list.list->nextfield->buf, 10, &val);
+			if (ret == -1 || val > 65535 || *port_min > val) {
+				tui_error(ANYKEY_MSG, "Invalid port");
+				ok = 0;
+				continue;
+			}
+			*port_max = val;
+		} else
+			*port_max = 0;
+	} while (!ok);
 	del_panel(bp);
 	delwin(bw);
 	del_panel(panel);
