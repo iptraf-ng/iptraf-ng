@@ -182,7 +182,7 @@ void srpromisc(int mode, struct promisc_states *list)
 					/* was promisc, so leave it as is */
 					continue;
 				/* wasn't promisc, clear it */
-				int r = iface_clear_promisc(ptmp->params.ifname);
+				int r = dev_clear_promisc(ptmp->params.ifname);
 				if(r < 0)
 					write_error("Failed to clear promiscuous mode on %s", ptmp->params.ifname);
 			}

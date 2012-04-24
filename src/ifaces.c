@@ -233,7 +233,7 @@ int dev_set_promisc(char *ifname)
 	return dev_set_flags(ifname, IFF_PROMISC);
 }
 
-int iface_clear_promisc(char *ifname)
+int dev_clear_promisc(char *ifname)
 {
 	return dev_clear_flags(ifname, IFF_PROMISC);
 }
