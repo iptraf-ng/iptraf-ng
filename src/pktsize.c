@@ -187,7 +187,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		goto err_unmark;
 	}
 
-	mtu = iface_get_mtu(ifname);
+	mtu = dev_get_mtu(ifname);
 	if (mtu < 0) {
 		write_error("Unable to obtain interface MTU");
 		goto err_unmark;
