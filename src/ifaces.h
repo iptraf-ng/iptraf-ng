@@ -14,7 +14,7 @@ int dev_up(char *iface);
 void err_iface_down(void);
 int dev_get_ifindex(const char *iface);
 int dev_get_mtu(const char *iface);
-int iface_get_flags(const char *iface);
+int dev_get_flags(const char *iface);
 int iface_set_flags(const char *iface, int flags);
 int iface_clear_flags(const char *iface, int flags);
 int iface_set_promisc(char *ifname);

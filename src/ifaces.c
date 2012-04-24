@@ -148,7 +148,7 @@ int dev_get_mtu(const char *iface)
 	return ifr.ifr_mtu;
 }
 
-int iface_get_flags(const char *iface)
+int dev_get_flags(const char *iface)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)

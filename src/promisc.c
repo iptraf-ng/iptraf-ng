@@ -71,7 +71,7 @@ void init_promisc_list(struct promisc_states **list)
 			    || (strncmp(buf, "vmnet", 5) == 0)
 			    || (strncmp(ptmp->params.ifname, "wvlan", 4) == 0)
 			    || (strncmp(ptmp->params.ifname, "lec", 3) == 0)) {
-				int flags = iface_get_flags(buf);
+				int flags = dev_get_flags(buf);
 
 				if (flags < 0) {
 					write_error("Unable to obtain interface parameters for %s",
