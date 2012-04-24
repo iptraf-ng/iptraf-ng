@@ -80,27 +80,3 @@ char *xstrdup(const char *s)
 
 	return t;
 }
-
-int socket_bind_to_iface(const int fd, const int ifindex)
-{
-	struct sockaddr_ll fromaddr;
-	socklen_t addrlen = sizeof(fromaddr);
-
-	fromaddr.sll_family = AF_PACKET;
-	fromaddr.sll_protocol = htons(ETH_P_ALL);
-	fromaddr.sll_ifindex = ifindex;
-	return bind(fd, (struct sockaddr *) &fromaddr, addrlen);
-}
-
-int socket_bind_to_iface_by_name(const int fd, const char const *ifname)
-{
-	int ir;
-	struct ifreq ifr;
-
-	strcpy(ifr.ifr_name, ifname);
-	ir = ioctl(fd, SIOCGIFINDEX, &ifr);
-	if(ir != 0)
-		return(ir);
-
-	return socket_bind_to_iface(fd, ifr.ifr_ifindex);
-}

@@ -262,7 +262,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		write_error("Unable to obtain monitoring socket");
 		goto err;
 	}
-	if(socket_bind_to_iface_by_name(fd, ifname) == -1) {
+	if(dev_bind_ifname(fd, ifname) == -1) {
 		write_error("Unable to bind interface on the socket");
 		goto err_close;
 	}

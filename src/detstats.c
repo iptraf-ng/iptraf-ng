@@ -418,7 +418,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		write_error("Unable to obtain monitoring socket");
 		goto err;
 	}
-	if(socket_bind_to_iface_by_name(fd, iface) == -1) {
+	if(dev_bind_ifname(fd, iface) == -1) {
 		write_error("Unable to bind interface on the socket");
 		goto err_close;
 	}

@@ -826,7 +826,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		write_error("Unable to obtain monitoring socket");
 		goto err;
 	}
-	if(ifptr && socket_bind_to_iface_by_name(fd, ifptr) == -1) {
+	if(ifptr && dev_bind_ifname(fd, ifptr) == -1) {
 		write_error("Unable to bind interface on the socket");
 		goto err_close;
 	}
