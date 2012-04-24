@@ -930,7 +930,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				/* we're capturing on "All interfaces", */
 				/* so get the name of the interface */
 				/* of this packet */
-				int r = iface_get_ifname(pkt.pkt_ifindex, ifnamebuf);
+				int r = dev_get_ifname(pkt.pkt_ifindex, ifnamebuf);
 				if (r != 0) {
 					write_error("Unable to get interface name");
 					break;	/* can't get interface name, get out! */

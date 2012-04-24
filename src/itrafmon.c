@@ -1042,7 +1042,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			/* we're capturing on "All interfaces", */
 			/* so get the name of the interface */
 			/* of this packet */
-			int r = iface_get_ifname(pkt.pkt_ifindex, ifnamebuf);
+			int r = dev_get_ifname(pkt.pkt_ifindex, ifnamebuf);
 			if (r != 0) {
 				write_error("Unable to get interface name");
 				break;          /* error getting interface name, get out! */

@@ -238,7 +238,7 @@ int dev_clear_promisc(char *ifname)
 	return dev_clear_flags(ifname, IFF_PROMISC);
 }
 
-int iface_get_ifname(int ifindex, char *ifname)
+int dev_get_ifname(int ifindex, char *ifname)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)

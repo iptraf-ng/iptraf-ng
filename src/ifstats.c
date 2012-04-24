@@ -198,7 +198,7 @@ static struct iflist *positionptr(struct iflist *iflist, const int ifindex)
 		struct iflist *itmp = xmallocz(sizeof(struct iflist));
 		itmp->ifindex = ifindex;
 		itmp->index = last->index + 1;
-		int r = iface_get_ifname(ifindex, itmp->ifname);
+		int r = dev_get_ifname(ifindex, itmp->ifname);
 		if (r != 0) {
 			write_error("Error getting interface name");
 			return(NULL);
