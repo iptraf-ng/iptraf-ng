@@ -200,7 +200,7 @@ err:	/* need to preserve errno across call to close() */
 	return ir;
 }
 
-int iface_clear_flags(const char *iface, int flags)
+int dev_clear_flags(const char *iface, int flags)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1)
@@ -235,7 +235,7 @@ int iface_set_promisc(char *ifname)
 
 int iface_clear_promisc(char *ifname)
 {
-	return iface_clear_flags(ifname, IFF_PROMISC);
+	return dev_clear_flags(ifname, IFF_PROMISC);
 }
 
 int iface_get_ifname(int ifindex, char *ifname)
