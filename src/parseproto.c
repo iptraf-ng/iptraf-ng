@@ -7,9 +7,7 @@
  *
  */
 
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include "iptraf-ng-compat.h"
 #include "parseproto.h"
 
 
@@ -23,13 +21,7 @@ static char *get_next_token(char **cptr)
 
 	i = 0;
 
-
-	/*
-	 * Skip over leading whitespace
-	 */
-
-	while (isspace(**cptr))
-		(*cptr)++;
+	skip_whitespace(*cptr);
 
 	if (**cptr == ',' || **cptr == '-') {
 		rtoken[0] = **cptr;

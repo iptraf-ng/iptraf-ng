@@ -105,12 +105,12 @@ extern void die(const char *err, ...);
 extern void die_errno(const char *err) __noreturn;
 extern void error(const char *err, ...);
 
-static inline char *skip_whitespace(const char *str)
+static inline char *skip_whitespace(char *str)
 {
 	while (isspace(*str))
 		++str;
 
-	return (char *) str;
+	return str;
 }
 
 #endif	/* IPTRAF_NG_COMPAT_H */

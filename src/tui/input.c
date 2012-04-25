@@ -193,13 +193,3 @@ void tx_destroyfields(struct FIELDLIST *list)
 	del_panel(list->fieldpanel);
 	delwin(list->fieldwin);
 }
-
-char *tx_ltrim(char *str)
-{
-	char *cptr = str;
-
-	while (isspace(*cptr))
-		cptr++;
-
-	return cptr;
-}

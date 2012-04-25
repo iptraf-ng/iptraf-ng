@@ -12,14 +12,6 @@ ifaces.c - routine that determines whether a given interface is supported
 
 #include "error.h"
 
-char *ltrim(char *buf)
-{
-	while ((*buf == ' ') || (*buf == '\t'))
-		buf++;
-
-	return buf;
-}
-
 /*
  * Open /proc/net/dev and move file pointer past the two table header lines
  * at the top of the file.
@@ -58,7 +50,7 @@ int get_next_iface(FILE * fd, char *ifname, int n)
 		fgets(buf, 160, fd);
 		if (strcmp(buf, "") != 0) {
 			memset(ifname, 0, n);
-			strncpy(ifname, ltrim(strtok(buf, ":")), n);
+			strncpy(ifname, skip_whitespace(strtok(buf, ":")), n);
 			if (ifname[n - 1] != '\0')
 				strcpy(ifname, "");
 			return 1;

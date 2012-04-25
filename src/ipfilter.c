@@ -111,7 +111,7 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 	tx_addfield(&fields, 1, 12, 10, (data->filters[F_IPSEC_AH]) ? "Y" : "");
 	tx_addfield(&fields, 1, 12, 23, (data->filters[F_IPSEC_ESP]) ? "Y" : "");
 
-	cptr = tx_ltrim(data->protolist);
+	cptr = skip_whitespace(data->protolist);
 	tx_addfield(&fields, 54, 15, 1, cptr);
 	tx_addfield(&fields, 1, 17, 1, initinex);
 	tx_addfield(&fields, 1, 17, 32, initmatchop);
