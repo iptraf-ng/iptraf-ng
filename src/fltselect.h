@@ -4,10 +4,8 @@
 /***
 
 othfilter.h - declarations for the non-TCP filter module
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997
-			
-***/
+
+ ***/
 
 #include "fltdefs.h"
 

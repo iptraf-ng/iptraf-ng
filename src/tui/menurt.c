@@ -1,13 +1,8 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+
 /***
 
-menurt.c- ncurses-based menu definition module
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997, 1998
-
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License in the included COPYING file for
-details.
+menurt.c - ncurses-based menu definition module
 
 ***/
 

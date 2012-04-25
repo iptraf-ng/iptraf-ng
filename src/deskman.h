@@ -3,9 +3,6 @@
 
 /*
    deskman.h - header file for deskman.c
-   Written by Gerard Paul Java
-   Copyright (c) Gerard Paul Java 1997, 1998
-
  */
 
 void draw_desktop(void);

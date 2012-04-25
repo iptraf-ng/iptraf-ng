@@ -1,8 +1,7 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+
 /*
  * listbox.c - scrollable listbox management module
- *
- * Written by Gerard Paul Java
- * Copyright (c) Gerard Paul Java 2001
  */
 
 #include <curses.h>

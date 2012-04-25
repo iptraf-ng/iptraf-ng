@@ -4,8 +4,6 @@
 /***
 
 othptab.h - header file for the non-TCP routines
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997
 
 ***/
 

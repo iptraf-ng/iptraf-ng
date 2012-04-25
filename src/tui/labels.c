@@ -1,9 +1,8 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+
 /*
  * labels.c - some common keyhelp printing routines for the iptraf
  * user interface library
- *
- * Written by Gerard Paul Java
- * Copyright (c) Gerard Paul Java 2001
  */
 
 #include <curses.h>

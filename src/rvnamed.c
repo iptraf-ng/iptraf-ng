@@ -1,3 +1,6 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+/* For authors and contributors see the AUTHORS file */
+
 /***
 
 rvnamed		- reverse DNS lookup daemon for the IPTraf network
@@ -21,16 +24,6 @@ reverse DNS lookups are enabled.
 
 rvnamed and IPTraf communicate with each other using the BSD UNIX domain
 socket protocol.
-
-This software is open-source; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License in the included COPYING file for
-details.
 
 ***/
 

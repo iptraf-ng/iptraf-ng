@@ -5,8 +5,6 @@
 
 fltmgr.h - filter list management routine prototypes
 
-Copyright (c) Gerard Paul Java 1998, 2002
-
 ***/
 
 struct filterfileent {

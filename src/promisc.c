@@ -1,23 +1,10 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+/* For authors and contributors see the AUTHORS file */
+
 /***
 
 promisc.c	- handles the promiscuous mode flag for the Ethernet/FDDI/
               Token Ring interfaces
-
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997, 2002
-
-This module contains functions that manage the promiscuous states of
-the interfaces.
-
-This software is open source; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License in the included COPYING file for
-details.
 
 ***/
 

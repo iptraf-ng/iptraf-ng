@@ -1,11 +1,8 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+
 /***
 
-input.c - a custom keyboard input module     
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997
-
-This module is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+input.c - a custom keyboard input module
 
 ***/
 

@@ -1,10 +1,10 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+
 /*
  * txbox.c - custom window bordering routine for ncurses windows.
  *
- * Copyright (c) Gerard Paul Java 2002
- *
  * This function is written to address a strange symptom in ncurses 5.2, at
- *least on RedHat 7.3.  The border drawn by the box() macro (actually an alias
+ * least on RedHat 7.3.  The border drawn by the box() macro (actually an alias
  * for a call to wborder()) no longer uses the color attributes set by
  * wattrset(). However, the addch() and wvline() functions still do.
  *

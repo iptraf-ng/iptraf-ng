@@ -1,19 +1,9 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+/* For authors and contributors see the AUTHORS file */
+
 /***
 
 ipfilter.c - user interface and filter function for all IP packets
-
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 2001, 2002
-
-This software is open-source; you may redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License in the included COPYING file for
-details.
 
 ***/
 

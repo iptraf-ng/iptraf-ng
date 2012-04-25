@@ -4,8 +4,6 @@
 /***
 
 serv.h  - TCP/UDP port statistics header file
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997
 
 ***/
 

@@ -1,3 +1,4 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
 
 /***
 

@@ -1,3 +1,6 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+/* For authors and contributors see the AUTHORS file */
+
 /***
 
 ipfrag.c - module that handles fragmented IP packets.
@@ -10,19 +13,8 @@ This module is based on RFC 815, but does not really reassemble packets.
 The routines here merely accumulate packet sizes and pass them off to
 the IP traffic monitor routine.
 
-Copyright (c) Gerard Paul Java, 1998, 2002
-
-This software is open source; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License in the included COPYING file for
-details.
-
 ***/
+
 #include "iptraf-ng-compat.h"
 
 #include "ipfrag.h"

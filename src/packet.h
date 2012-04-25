@@ -5,8 +5,6 @@
 
 packet.h - external declarations for packet.c
 
-Written by Gerard Paul Java
-
 ***/
 
 /*

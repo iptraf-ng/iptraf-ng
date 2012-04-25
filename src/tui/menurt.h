@@ -3,8 +3,6 @@
 
 /***
    menu.h - declaration file for my menu library
-   Copyright (c) Gerard Paul R. Java 1997
-
 ***/
 
 #define SELECTED 1

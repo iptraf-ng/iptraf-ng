@@ -5,7 +5,7 @@
 
 ifaces.h - prototype declaration for interface support determination
 		routine.
-		
+
 ***/
 
 FILE *open_procnetdev(void);

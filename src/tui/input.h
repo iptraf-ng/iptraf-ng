@@ -4,8 +4,6 @@
 /***
 
 input.h - structure declarations and function prototypes for input.c
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997
 
 ***/
 

@@ -4,8 +4,6 @@
 /***
 
    tcptable.h   -- table manipulation for the statistics display.
-   Written by Gerard Paul Java
-   Copyright (c) Gerard Paul Java 1997-2005
 
 ***/
 

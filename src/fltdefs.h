@@ -4,8 +4,6 @@
 /***
 
 fltdefs.h - declarations for the TCP, UDP, and misc IP filters
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997-2002
 
 ***/
 

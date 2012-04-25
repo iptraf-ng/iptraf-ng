@@ -4,8 +4,6 @@
 /***
 
 log.h - the iptraf logging facility header file
-Written by Gerard Paul Java
-Copyright (c) Gerard Paul Java 1997
 
 ***/
 

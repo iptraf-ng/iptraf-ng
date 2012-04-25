@@ -1,8 +1,7 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+
 /*
  * msgboxes.c - message and error box display functions
- *
- * Written by Gerard Paul Java
- * Copyright (c) Gerard Paul Java 2001
  */
 
 #include <curses.h>

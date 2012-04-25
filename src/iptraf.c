@@ -1,24 +1,9 @@
+/* For terms of usage/redistribution/modification see the LICENSE file */
+/* For authors and contributors see the AUTHORS file */
+
 /*
-===========================================================================
 IPTraf
 An IP Network Statistics Utility
-Written by Gerard Paul Java <riker@seul.org>
-Copyright (c) Gerard Paul Java 1997-2004
-
-Version 3.0.0
-Main Module
-
----------------------------------------------------------------------------
-This software is open-source; you may redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License in the included COPYING file for
-details.
----------------------------------------------------------------------------
 */
 
 #define MAIN_MODULE
