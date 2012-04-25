@@ -18,7 +18,6 @@
 
 #include "iptraf-ng-compat.h"
 #include "parse-options.h"
-#include "strbuf.h"
 
 static int parse_opt_size(const struct options *opt)
 {
@@ -111,7 +110,10 @@ void parse_opts(int argc, char **argv, const struct options *opt,
 		const char *const usage[])
 {
 	int size = parse_opt_size(opt);
-	struct strbuf *shortopts = strbuf_new();
+
+	int nr = 0, alloc = 0;
+
+	char *shortopts = NULL;
 	struct option *longopts = xmallocz(sizeof(longopts[0]) * (size + 2));
 	const struct options *curopt = opt;
 	struct option *curlongopts = longopts;
@@ -122,16 +124,19 @@ void parse_opts(int argc, char **argv, const struct options *opt,
 		switch (curopt->type) {
 		case OPTION_BOOL:
 			curlongopts->has_arg = no_argument;
-			if (curopt->short_name)
-				strbuf_append_char(shortopts,
-						   curopt->short_name);
+			if (curopt->short_name) {
+				ALLOC_GROW(shortopts, nr + 1, alloc);
+				shortopts[nr++] = curopt->short_name;
+			}
 			break;
 		case OPTION_INTEGER:
 		case OPTION_STRING:
 			curlongopts->has_arg = required_argument;
-			if (curopt->short_name)
-				strbuf_append_strf(shortopts, "%c:",
-						   curopt->short_name);
+			if (curopt->short_name) {
+				ALLOC_GROW(shortopts, nr + 2, alloc);
+				shortopts[nr++] = curopt->short_name;
+				shortopts[nr++] = ':';
+			}
 			break;
 		case OPTION_GROUP:
 		case OPTION_END:
@@ -144,14 +149,14 @@ void parse_opts(int argc, char **argv, const struct options *opt,
 
 	while (1) {
 		curopt = opt;
-		int c = getopt_long(argc, argv, shortopts->buf, longopts, NULL);
+		int c = getopt_long(argc, argv, shortopts, longopts, NULL);
 
 		if (c == -1)
 			break;
 
 		if (c == '?') {
 			free(longopts);
-			strbuf_free(shortopts);
+			free(shortopts);
 			parse_usage_and_die(usage, opt);
 		}
 
@@ -166,5 +171,5 @@ void parse_opts(int argc, char **argv, const struct options *opt,
 	}
 
 	free(longopts);
-	strbuf_free(shortopts);
+	free(shortopts);
 }

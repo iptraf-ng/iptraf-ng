@@ -28,7 +28,6 @@ TUI_C += tui/winops.c
 
 LIB_H += iptraf-ng-compat.h
 LIB_H += parse-options.h
-LIB_H += strbuf.h
 LIB_H += packet.h
 LIB_H += tcptable.h
 LIB_H += othptab.h
@@ -91,7 +90,6 @@ LIB_C += iptraf.c
 LIB_C += itrafmon.c
 LIB_C += wrapper.c
 LIB_C += parse-options.c
-LIB_C += strbuf.c
 LIB_C += packet.c
 LIB_C += tcptable.c
 LIB_C += othptab.c
