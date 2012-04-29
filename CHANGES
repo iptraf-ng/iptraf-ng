@@ -1,5 +1,37 @@
 CHANGES file for iptraf-ng
 
+* aaa bbb 00 0000 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.2
+- massive code cleanup
+- fix PPP handling
+- move the splash screen to the main menu
+- fix capturing on tun-like interfaces
+- support GRE-over-IP tunnels
+- fix ethernet descriptions
+- change units: bits/sec (bytes/sec) to kbps (kBps)
+- use bind() to lock the socket on interface (should decrease CPU
+  utilization on systems with very busy interfaces)
+- warnings cleanup
+- fix packet length counting for large packets
+- hostmon(): count IPv6 as IP protocol too
+
+* Thu Feb 02 2012 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.1
+- fix frames in UTF-8 locales
+- fix IPv6 port stats
+- fix IPv6 byte counting
+- fix port data rate
+- fix for interfaces with long name
+
+* Wed Jan 11 2012 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.0
+- build system fixes
+- brand new command line options parser
+- rename iptraf to iptraf-ng (binaries, mans)
+- code cleanup (useless code removal, warnings erradication, ...)
+- new ip checksum based on rfc1071 implementation
+- landesc.[c,h]: full rewrite
+
+* Sun Apr 11 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.3
+- documentation cleanup
+
 * Wed Mar 24 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.0.2
 - remove warnings
 - rif of PKG_CHECK_MODULES
