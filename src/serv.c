@@ -1326,30 +1326,6 @@ void loadaddports(struct porttab **table)
 	close(fd);
 }
 
-static void displayportentry(struct porttab *ptmp, WINDOW *win)
-{
-	wprintw(win, "%u", ptmp->port_min);
-	if (ptmp->port_max != 0)
-		wprintw(win, " to %u", ptmp->port_max);
-}
-
-static void displayports(struct porttab **table, WINDOW *win)
-{
-	struct porttab *ptmp = *table;
-	short i = 0;
-
-	do {
-		wmove(win, i, 2);
-		displayportentry(ptmp, win);
-
-		i++;
-		ptmp = ptmp->next_entry;
-	} while ((i < 18) && (ptmp != NULL));
-
-	update_panels();
-	doupdate();
-}
-
 static void operate_portselect(struct porttab **table, struct porttab **node,
 			       int *aborted)
 {
