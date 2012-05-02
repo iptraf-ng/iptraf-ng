@@ -31,6 +31,35 @@ ifstats.c	- the interface statistics module
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 
+struct iflist {
+	char ifname[IFNAMSIZ];
+	int ifindex;
+	unsigned int encap;
+	unsigned long long iptotal;
+	unsigned long long ip6total;
+	unsigned long badtotal;
+	unsigned long long noniptotal;
+	unsigned long long total;
+	unsigned int spanbr;
+	unsigned long br;
+	float rate;
+	float peakrate;
+	unsigned int index;
+	struct iflist *prev_entry;
+	struct iflist *next_entry;
+};
+
+struct iftab {
+	struct iflist *head;
+	struct iflist *tail;
+	struct iflist *firstvisible;
+	struct iflist *lastvisible;
+	WINDOW *borderwin;
+	PANEL *borderpanel;
+	WINDOW *statwin;
+	PANEL *statpanel;
+};
+
 extern int exitloop;
 extern int daemonized;
 

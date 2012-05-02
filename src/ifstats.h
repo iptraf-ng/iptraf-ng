@@ -7,35 +7,6 @@ ifstats.h - structure definitions for interface counts
 
 ***/
 
-struct iflist {
-	char ifname[IFNAMSIZ];
-	int ifindex;
-	unsigned int encap;
-	unsigned long long iptotal;
-	unsigned long long ip6total;
-	unsigned long badtotal;
-	unsigned long long noniptotal;
-	unsigned long long total;
-	unsigned int spanbr;
-	unsigned long br;
-	float rate;
-	float peakrate;
-	unsigned int index;
-	struct iflist *prev_entry;
-	struct iflist *next_entry;
-};
-
-struct iftab {
-	struct iflist *head;
-	struct iflist *tail;
-	struct iflist *firstvisible;
-	struct iflist *lastvisible;
-	WINDOW *borderwin;
-	PANEL *borderpanel;
-	WINDOW *statwin;
-	PANEL *statpanel;
-};
-
 struct pkt_counter {
 	unsigned long long pc_packets;
 	unsigned long long pc_bytes;
