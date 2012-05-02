@@ -47,18 +47,4 @@ struct proto_counter {
 	struct pkt_counter proto_out;
 };
 
-struct ifcounts {
-	struct proto_counter total;
-	struct pkt_counter bcast;
-	struct pkt_counter bad;
-	struct proto_counter ipv4;
-	struct proto_counter ipv6;
-	struct proto_counter nonip;
-
-	struct proto_counter tcp;
-	struct proto_counter udp;
-	struct proto_counter icmp;
-	struct proto_counter other;
-};
-
 #endif	/* IPTRAF_NG_IFSTATS_H */
