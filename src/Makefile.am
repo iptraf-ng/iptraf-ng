@@ -31,7 +31,6 @@ LIB_H += parse-options.h
 LIB_H += packet.h
 LIB_H += tcptable.h
 LIB_H += othptab.h
-LIB_H += ifstats.h
 LIB_H += deskman.h
 LIB_H += hostmon.h
 LIB_H += fltedit.h
@@ -64,6 +63,7 @@ LIB_H += attrs.h
 LIB_H += fltdefs.h
 LIB_H += logvars.h
 LIB_H += list.h
+LIB_H += counters.h
 
 LIB_C += error.c
 LIB_C += log.c
@@ -99,6 +99,7 @@ LIB_C += deskman.c
 LIB_C += hostmon.c
 LIB_C += fltedit.c
 LIB_C += cidr.c
+LIB_C += counters.c
 
 iptraf_ng_SOURCES = \
     $(TUI_C) $(TUI_H) \

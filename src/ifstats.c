@@ -10,7 +10,6 @@ ifstats.c	- the interface statistics module
 #include "iptraf-ng-compat.h"
 #include "tui/tui.h"
 
-#include "ifstats.h"
 #include "ifaces.h"
 #include "isdntab.h"
 #include "fltdefs.h"

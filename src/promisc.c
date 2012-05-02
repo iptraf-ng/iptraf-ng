@@ -10,7 +10,6 @@ promisc.c	- handles the promiscuous mode flag for the Ethernet/FDDI/
 
 #include "iptraf-ng-compat.h"
 
-#include "ifstats.h"
 #include "ifaces.h"
 #include "error.h"
 #include "promisc.h"
