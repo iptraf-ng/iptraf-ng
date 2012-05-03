@@ -26,6 +26,7 @@ An IP Network Statistics Utility
 #include "ifstats.h"
 #include "itrafmon.h"
 #include "pktsize.h"
+#include "hostmon.h"
 
 #include "parse-options.h"
 

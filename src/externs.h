@@ -8,7 +8,4 @@ others
 
 ***/
 
-void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
-	     struct filterstate *ofilter);
-
 #endif	/* IPTRAF_NG_EXTERNS_H */
