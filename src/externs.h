@@ -8,8 +8,6 @@ others
 
 ***/
 
-void servmon(char *iface, struct porttab *ports, const struct OPTIONS *options,
-	     int facilitytime, struct filterstate *ofilter);
 void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	     struct filterstate *ofilter);
 
