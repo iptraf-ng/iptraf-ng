@@ -26,6 +26,7 @@ ifstats.c	- the interface statistics module
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
+#include "ifstats.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
