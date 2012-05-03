@@ -17,7 +17,6 @@ void packet_size_breakdown(struct OPTIONS *options, char *iface,
 			   int facilitytime, struct filterstate *ofilter);
 void servmon(char *iface, struct porttab *ports, const struct OPTIONS *options,
 	     int facilitytime, struct filterstate *ofilter);
-void ip_host_breakdown(struct OPTIONS *options, char *iface);
 void hostmon(const struct OPTIONS *options, int facilitytime, char *ifptr,
 	     struct filterstate *ofilter);
 
