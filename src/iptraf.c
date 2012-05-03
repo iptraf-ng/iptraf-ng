@@ -22,6 +22,7 @@ An IP Network Statistics Utility
 #include "attrs.h"
 #include "rvnamed.h"
 #include "logvars.h"
+#include "detstats.h"
 
 #include "parse-options.h"
 

@@ -27,6 +27,7 @@ detstats.c	- the interface statistics module
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
+#include "detstats.h"
 
 struct ifcounts {
 	struct proto_counter total;
