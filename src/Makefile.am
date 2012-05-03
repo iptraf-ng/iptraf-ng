@@ -66,6 +66,7 @@ LIB_H += list.h
 LIB_H += counters.h
 LIB_H += detstats.h
 LIB_H += ifstats.h
+LIB_H += itrafmon.h
 
 LIB_C += error.c
 LIB_C += log.c

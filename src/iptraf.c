@@ -24,6 +24,7 @@ An IP Network Statistics Utility
 #include "logvars.h"
 #include "detstats.h"
 #include "ifstats.h"
+#include "itrafmon.h"
 
 #include "parse-options.h"
 
