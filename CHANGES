@@ -1,6 +1,6 @@
 CHANGES file for iptraf-ng
 
-* aaa bbb 00 0000 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.2
+* Fri May 04 2012 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.2
 - massive code cleanup
 - fix PPP handling
 - move the splash screen to the main menu
