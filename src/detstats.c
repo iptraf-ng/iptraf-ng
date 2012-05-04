@@ -10,7 +10,7 @@ detstats.c	- the interface statistics module
 #include "iptraf-ng-compat.h"
 #include "tui/tui.h"
 
-#include "ifstats.h"
+#include "counters.h"
 #include "ifaces.h"
 #include "isdntab.h"
 #include "fltdefs.h"
@@ -27,6 +27,21 @@ detstats.c	- the interface statistics module
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
+#include "detstats.h"
+
+struct ifcounts {
+	struct proto_counter total;
+	struct pkt_counter bcast;
+	struct pkt_counter bad;
+	struct proto_counter ipv4;
+	struct proto_counter ipv6;
+	struct proto_counter nonip;
+
+	struct proto_counter tcp;
+	struct proto_counter udp;
+	struct proto_counter icmp;
+	struct proto_counter other;
+};
 
 extern int exitloop;
 extern int daemonized;
@@ -251,26 +266,6 @@ static void printdetails(struct ifcounts *ifcounts, WINDOW * win)
 
 	mvwprintw(win, 19, 68, "%8lu", ifcounts->bad.pc_packets);
 }
-
-static void update_counter(struct pkt_counter *count, int bytes)
-{
-	if (count) {
-		count->pc_packets++;
-		count->pc_bytes += bytes;
-	}
-}
-
-static void update_proto_counter(struct proto_counter *proto_counter, int outgoing, int bytes)
-{
-	if (proto_counter) {
-		update_counter(&proto_counter->proto_total, bytes);
-		if (outgoing)
-			update_counter(&proto_counter->proto_out, bytes);
-		else
-			update_counter(&proto_counter->proto_in, bytes);
-	}
-}
-
 
 /*
  * The detailed interface statistics function
@@ -559,7 +554,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
 			update_proto_counter(&ifcounts.total, outgoing, framelen);
 			if (pkt.pkt_pkttype == PACKET_BROADCAST) {
-				update_counter(&ifcounts.bcast, framelen);
+				update_pkt_counter(&ifcounts.bcast, framelen);
 			}
 
 			update_proto_counter(&span, outgoing, framelen);
@@ -568,7 +563,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			switch(pkt.pkt_protocol) {
 			case ETH_P_IP:
 				if (pkt_result == CHECKSUM_ERROR) {
-					update_counter(&ifcounts.bad, framelen);
+					update_pkt_counter(&ifcounts.bad, framelen);
 					continue;
 				}
 

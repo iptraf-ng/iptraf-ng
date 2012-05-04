@@ -18,10 +18,14 @@ An IP Network Statistics Utility
 #include "fltedit.h"
 #include "serv.h"
 #include "options.h"
-#include "externs.h"
 #include "attrs.h"
 #include "rvnamed.h"
 #include "logvars.h"
+#include "detstats.h"
+#include "ifstats.h"
+#include "itrafmon.h"
+#include "pktsize.h"
+#include "hostmon.h"
 
 #include "parse-options.h"
 

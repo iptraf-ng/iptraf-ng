@@ -30,6 +30,7 @@ itrafmon.c - the IP traffic monitor module
 #include "instances.h"
 #include "logvars.h"
 #include "bar.h"
+#include "itrafmon.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1

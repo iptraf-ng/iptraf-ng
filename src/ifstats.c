@@ -10,7 +10,6 @@ ifstats.c	- the interface statistics module
 #include "iptraf-ng-compat.h"
 #include "tui/tui.h"
 
-#include "ifstats.h"
 #include "ifaces.h"
 #include "isdntab.h"
 #include "fltdefs.h"
@@ -27,9 +26,39 @@ ifstats.c	- the interface statistics module
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
+#include "ifstats.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
+
+struct iflist {
+	char ifname[IFNAMSIZ];
+	int ifindex;
+	unsigned int encap;
+	unsigned long long iptotal;
+	unsigned long long ip6total;
+	unsigned long badtotal;
+	unsigned long long noniptotal;
+	unsigned long long total;
+	unsigned int spanbr;
+	unsigned long br;
+	float rate;
+	float peakrate;
+	unsigned int index;
+	struct iflist *prev_entry;
+	struct iflist *next_entry;
+};
+
+struct iftab {
+	struct iflist *head;
+	struct iflist *tail;
+	struct iflist *firstvisible;
+	struct iflist *lastvisible;
+	WINDOW *borderwin;
+	PANEL *borderpanel;
+	WINDOW *statwin;
+	PANEL *statpanel;
+};
 
 extern int exitloop;
 extern int daemonized;

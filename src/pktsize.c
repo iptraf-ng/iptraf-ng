@@ -29,6 +29,12 @@ pktsize.c	- the packet size breakdown facility
 extern int exitloop;
 extern int daemonized;
 
+struct ifstat_brackets {
+	unsigned int floor;
+	unsigned int ceil;
+	unsigned long count;
+};
+
 static void rotate_size_log(int s __unused)
 {
 	rotate_flag = 1;

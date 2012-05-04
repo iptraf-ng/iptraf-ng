@@ -40,6 +40,46 @@ serv.c  - TCP/UDP port statistics module
 extern int exitloop;
 extern int daemonized;
 
+struct serv_spans {
+	int spanbr_in;
+	int spanbr_out;
+	int spanbr;
+};
+
+struct portlistent {
+	unsigned int port;
+	unsigned int protocol;
+	char servname[11];
+	unsigned int idx;
+	unsigned long long count;
+	unsigned long long bcount;
+	unsigned long long icount;
+	unsigned long long ibcount;
+	unsigned long long ocount;
+	unsigned long long obcount;
+	time_t starttime;
+	time_t proto_starttime;
+	struct serv_spans spans;
+	struct portlistent *prev_entry;
+	struct portlistent *next_entry;
+};
+
+struct portlist {
+	struct portlistent *head;
+	struct portlistent *tail;
+	struct portlistent *firstvisible;
+	struct portlistent *lastvisible;
+	struct portlistent *barptr;
+	int imaxy;
+	unsigned int baridx;
+	unsigned int count;
+	unsigned long bcount;
+	WINDOW *win;
+	PANEL *panel;
+	WINDOW *borderwin;
+	PANEL *borderpanel;
+};
+
 /*
  * SIGUSR1 logfile rotation signal handler
  */
@@ -1324,30 +1364,6 @@ void loadaddports(struct porttab **table)
 	} while (br > 0);
 
 	close(fd);
-}
-
-static void displayportentry(struct porttab *ptmp, WINDOW *win)
-{
-	wprintw(win, "%u", ptmp->port_min);
-	if (ptmp->port_max != 0)
-		wprintw(win, " to %u", ptmp->port_max);
-}
-
-static void displayports(struct porttab **table, WINDOW *win)
-{
-	struct porttab *ptmp = *table;
-	short i = 0;
-
-	do {
-		wmove(win, i, 2);
-		displayportentry(ptmp, win);
-
-		i++;
-		ptmp = ptmp->next_entry;
-	} while ((i < 18) && (ptmp != NULL));
-
-	update_panels();
-	doupdate();
 }
 
 static void operate_portselect(struct porttab **table, struct porttab **node,
