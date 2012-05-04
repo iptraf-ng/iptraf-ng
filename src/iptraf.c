@@ -29,8 +29,6 @@ An IP Network Statistics Utility
 
 #include "parse-options.h"
 
-#include "../config.h"
-
 #define WITHALL 1
 #define WITHOUTALL 0
 
@@ -151,9 +149,6 @@ static void program_interface(struct OPTIONS *options)
 	}
 
 	loadaddports(&ports);
-
-	attrset(STATUSBARATTR);
-	mvprintw(LINES - 1, 1, PLATFORM);
 
 	tx_initmenu(&menu, 15, 35, (LINES - 16) / 2, (COLS - 35) / 2, BOXATTR,
 		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);

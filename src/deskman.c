@@ -11,7 +11,6 @@ deskman.c - desktop management routines
 
 #include "deskman.h"
 
-#include "../config.h"
 /* Attribute variables */
 
 int STDATTR;
@@ -86,9 +85,9 @@ void about(void)
 	tx_colorwin(win);
 	tx_box(win, ACS_VLINE, ACS_HLINE);
 	wattrset(win, STDATTR);
-	mvwprintw(win, 1, 2, PACKAGE);
+	mvwprintw(win, 1, 2, IPTRAF_NAME);
 	mvwprintw(win, 2, 2, "An IP Network Statistics Utility");
-	mvwprintw(win, 3, 2, "Version %s", VERSION);
+	mvwprintw(win, 3, 2, "Version %s", IPTRAF_VERSION);
 	mvwprintw(win, 5, 2, "Written by Gerard Paul Java");
 	mvwprintw(win, 6, 2, "Copyright (c) Gerard Paul Java 1997-2004");
 	mvwprintw(win, 8, 2, "This program is open-source software released");

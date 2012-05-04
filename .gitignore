@@ -9,8 +9,8 @@
 *.la
 
 # ignore binaries
-src/iptraf-ng
-src/rvnamed-ng
+/iptraf-ng
+/rvnamed-ng
 
 # don't ignore git files
 !.gitignore
@@ -26,30 +26,15 @@ cscope.*
 ncscope.*
 
 # autotools
-*/.deps/
-*/.libs/
-Makefile
-Makefile.in
-m4/
-missing
-configure
-configure.scan
-autom4te.cache/
-config.guess
-config.log
-config.h
-config.h.in
-config.rpath
-config.status
-config.sub
-aclocal.m4
-autoscan.log
-depcomp
-install-sh
-stamp-h1
+/configure
+/autom4te.cache/
+/config.log
+/config.mak.append
+/config.mak.autogen
+/config.status
 
 # misc
 *~
 \#*#
 /iptraf-ng.spec
-version
+VERSION-FILE
