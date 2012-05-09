@@ -152,8 +152,7 @@ void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 		ss = select(fd + 1, &set, 0, 0, &tv);
 	} while ((ss < 0) && (errno == EINTR));
 
-	*ch = ERR;
-
+	pkt->pkt_len = 0;	/* signalize we have no packet prepared */
 	if (FD_ISSET(fd, &set)) {
 		struct sockaddr_ll from;
 		socklen_t fromlen = sizeof(struct sockaddr_ll);
@@ -172,9 +171,10 @@ void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 			pkt->pkt_ifindex = from.sll_ifindex;
 			pkt->pkt_hatype = from.sll_hatype;
 			pkt->pkt_pkttype = from.sll_pkttype;
-		} else
-			pkt->pkt_len = 0;
+		}
 	}
+
+	*ch = ERR;	/* signalize we have no key ready */
 	if (!daemonized && FD_ISSET(0, &set))
 		*ch = wgetch(win);
 }
