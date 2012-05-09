@@ -90,9 +90,10 @@ static int packet_adjust(struct pkt_hdr *pkt)
 	case ARPHRD_SLIP:
 	case ARPHRD_CSLIP:
 	case ARPHRD_SLIP6:
-	case ARPHRD_PPP:
 	case ARPHRD_CSLIP6:
+	case ARPHRD_PPP:
 	case ARPHRD_TUNNEL:
+	case ARPHRD_SIT:
 	case ARPHRD_NONE:
 	case ARPHRD_IPGRE:
 		pkt->pkt_payload = pkt->pkt_buf;
