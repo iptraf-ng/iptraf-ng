@@ -24,8 +24,8 @@ struct othptabent {
 	unsigned long int daddr;
 	struct in6_addr s6addr;
 	struct in6_addr d6addr;
-	char smacaddr[15];
-	char dmacaddr[15];
+	char smacaddr[18];	/* FIXME: use dynamicly allocated space */
+	char dmacaddr[18];
 	unsigned short linkproto;
 	char s_fqdn[100];
 	char d_fqdn[100];
