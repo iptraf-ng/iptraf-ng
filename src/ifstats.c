@@ -146,15 +146,11 @@ static int ifinlist(struct iflist *list, char *ifname)
 
 static void initiflist(struct iflist **list)
 {
-	FILE *fd;
 	char ifname[IFNAMSIZ];
-	struct iflist *itmp = NULL;
-	struct iflist *tail = NULL;
-	unsigned int index = 0;
 
 	*list = NULL;
 
-	fd = open_procnetdev();
+	FILE *fd = open_procnetdev();
 	if (fd == NULL) {
 		tui_error(ANYKEY_MSG, "Unable to obtain interface list");
 		return;
@@ -183,26 +179,32 @@ static void initiflist(struct iflist **list)
 		 * At this point, the interface is now sure to be up and running.
 		 */
 
-		itmp = xmalloc(sizeof(struct iflist));
-		memset(itmp, 0, sizeof(struct iflist));
+		struct iflist *itmp = xmallocz(sizeof(struct iflist));
 		strcpy(itmp->ifname, ifname);
 		itmp->ifindex = ifindex;
-		index++;
-		itmp->index = index;
 
-		if (*list == NULL) {
-			*list = itmp;
-			itmp->prev_entry = NULL;
-		} else {
-			tail->next_entry = itmp;
-			itmp->prev_entry = tail;
+		/* make the linked list sorted by ifindex */
+		struct iflist *cur = *list, *last = NULL;
+		while (cur != NULL && cur->ifindex < ifindex) {
+			last = cur;
+			cur = cur->next_entry;
 		}
-
-		tail = itmp;
-		itmp->next_entry = NULL;
+		itmp->prev_entry = last;
+		itmp->next_entry = cur;
+		if (cur)
+			cur->prev_entry = itmp;
+		if (last)
+			last->next_entry = itmp;
+		else
+			*list = itmp;
 	}
-
 	fclose(fd);
+
+	/* let the index follow the sorted linked list */
+	unsigned int index = 1;
+	struct iflist *cur;
+	for (cur = *list; cur != NULL; cur = cur->next_entry)
+		cur->index = index++;
 }
 
 static struct iflist *positionptr(struct iflist *iflist, const int ifindex)
