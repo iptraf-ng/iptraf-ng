@@ -153,6 +153,7 @@ iptraf-o += src/cidr.o
 iptraf-o += src/counters.o
 
 rvnamed-o += src/rvnamed.o
+rvnamed-o += src/getpath.o
 
 -include config.mak.autogen
 -include config.mak
@@ -268,12 +269,9 @@ iptraf-ng: $(iptraf-o)
 src/deskman.o: EXTRA_CPPFLAGS = -DIPTRAF_VERSION='"$(IPTRAF_VERSION)"' \
 	-DIPTRAF_NAME='"iptraf-ng"'
 
-rvnamed-ng: $(rvnamed-o) src/getpath.o
+rvnamed-ng: $(rvnamed-o)
 	$(QUIET_LINK)$(CC) $(ALL_CFLAGS) -o $@ \
-		$(rvnamed-o) src/getpath.o
-
-$(rvnamed-o): %.o: %.c
-	$(QUIET_CC)$(CC) -o $*.o -c $(ALL_CFLAGS) $(EXTRA_CPPFLAGS) $<
+		$(rvnamed-o)
 
 configure: configure.ac
 	$(QUIET_GEN)$(RM) $@ $<+ && \
@@ -282,8 +280,7 @@ configure: configure.ac
 	autoconf -o $@ $<+ && \
 	$(RM) $<+
 
-
-OBJECTS := $(iptraf-o)
+OBJECTS := $(sort $(iptraf-o) $(rvnamed-o))
 
 dep_files := $(foreach f,$(OBJECTS),$(dir $f).depend/$(notdir $f).d)
 dep_dirs := $(addsuffix .depend,$(sort $(dir $(OBJECTS))))
