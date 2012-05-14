@@ -198,24 +198,24 @@ endif
 ifndef NO_NCURSES
 NCURSES6_CFLAGS := $(shell ncurses6-config --cflags 2>/dev/null)
 ifneq ($(NCURSES6_CFLAGS),)
-BASIC_CFLAGS += $(NCURSES6_CFLAGS)
+NCURSES_CFLAGS += $(NCURSES6_CFLAGS)
 endif
 NCURSES6_LDFLAGS := $(shell ncurses6-config --libs 2>/dev/null)
 ifneq ($(NCURSES6_LDFLAGS),)
-BASIC_LDFLAGS += $(NCURSES6_LDFLAGS)
+NCURSES_LDFLAGS += $(NCURSES6_LDFLAGS)
 endif
 
 NCURSES5_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
 ifneq ($(NCURSES5_LDFLAGS),)
-BASIC_LDFLAGS += $(NCURSES5_CFLAGS)
+NCURSES_LDFLAGS += $(NCURSES5_CFLAGS)
 endif
 
 NCURSES_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
 ifneq ($(NCURSES_LDFLAGS),)
-BASIC_LDFLAGS += $(NCURSES_LDFLAGS)
+NCURSES_LDFLAGS += $(NCURSES_LDFLAGS)
 endif
 
-BASIC_LDFLAGS += -lpanel
+NCURSES_LDFLAGS += -lpanel
 endif
 
 QUIET_SUBDIR0  = +$(MAKE) -C # space to separate -C and subdir
@@ -264,14 +264,14 @@ all:: $(ALL_PROGRAMS)
 
 iptraf-ng: $(iptraf-o)
 	$(QUIET_LINK)$(CC) $(ALL_CFLAGS) -o $@ \
-		$(iptraf-o) $(ALL_LDFLAGS)
+		$(iptraf-o) $(ALL_LDFLAGS) $(NCURSES_LDFLAGS)
 
 src/deskman.o: EXTRA_CPPFLAGS = -DIPTRAF_VERSION='"$(IPTRAF_VERSION)"' \
 	-DIPTRAF_NAME='"iptraf-ng"'
 
 rvnamed-ng: $(rvnamed-o)
 	$(QUIET_LINK)$(CC) $(ALL_CFLAGS) -o $@ \
-		$(rvnamed-o)
+		$(rvnamed-o) $(ALL_LDFLAGS)
 
 configure: configure.ac
 	$(QUIET_GEN)$(RM) $@ $<+ && \
