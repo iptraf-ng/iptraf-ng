@@ -141,8 +141,7 @@ static void add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry
 		      entry->sport, entry->daddr.s_addr,
 		      entry->d6addr.s6_addr32, entry->dport, entry->ifname);
 
-	ptmp = xmalloc(sizeof(struct tcp_hashentry));
-	memset(ptmp, 0, sizeof(struct tcp_hashentry));
+	ptmp = xmallocz(sizeof(struct tcp_hashentry));
 	/*
 	 * Add backpointer from screen node to hash node for deletion later
 	 * (Actually point to its predecessor coz of the header cell).
@@ -518,13 +517,11 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
 	hashptr = table->hash_table[hp];
 
 	if (s6addr == NULL) {
-		s6addr = xmalloc(sizeof(struct in6_addr));
-		memset(s6addr, 0, 16);
+		s6addr = xmallocz(sizeof(struct in6_addr));
 		sfree = 1;
 	}
 	if (d6addr == NULL) {
-		d6addr = xmalloc(sizeof(struct in6_addr));
-		memset(d6addr, 0, 16);
+		d6addr = xmallocz(sizeof(struct in6_addr));
 		dfree = 1;
 	}
 	while (hashptr != NULL) {

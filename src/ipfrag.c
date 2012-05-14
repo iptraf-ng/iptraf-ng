@@ -26,7 +26,7 @@ static struct fragent *addnewdgram(struct iphdr *packet)
 {
 	struct fragent *ptmp;
 
-	ptmp = xmalloc(sizeof(struct fragent));
+	ptmp = xmallocz(sizeof(struct fragent));
 	if (fraglist == NULL) {
 		fraglist = ptmp;
 		ptmp->prev_entry = NULL;
@@ -35,7 +35,6 @@ static struct fragent *addnewdgram(struct iphdr *packet)
 		fragtail->next_entry = ptmp;
 		ptmp->prev_entry = fragtail;
 	}
-	memset(ptmp, 0, sizeof(struct fragent));
 	ptmp->fragdesclist = xmalloc(sizeof(struct fragdescent));
 	ptmp->fragdesclist->min = 0;
 	ptmp->fragdesclist->max = 65535;

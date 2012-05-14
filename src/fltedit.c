@@ -175,14 +175,6 @@ void update_hp_screen(struct filterent *firstvisible, WINDOW * win)
 	scrollok(win, 1);
 }
 
-int new_hp_entry(struct filterent **ftemp)
-{
-	*ftemp = xmalloc(sizeof(struct filterent));
-	memset(*ftemp, 0, sizeof(struct filterent));
-	return 1;
-}
-
-
 void modify_host_parameters(struct filterlist *fl)
 {
 	WINDOW *bwin;
@@ -292,8 +284,7 @@ void modify_host_parameters(struct filterlist *fl)
 		case 'i':
 		case 'I':
 		case KEY_IC:
-			if (!new_hp_entry(&ftemp))
-				break;
+			ftemp = xmallocz(sizeof(struct filterent));
 
 			gethostparams(&(ftemp->hp), "", "", "", "", "", "", "",
 				      "", "I", "N", &gh_aborted);
@@ -335,8 +326,7 @@ void modify_host_parameters(struct filterlist *fl)
 		case 'a':
 		case 'A':
 		case 1:
-			if (!new_hp_entry(&ftemp))
-				break;
+			ftemp = xmallocz(sizeof(struct filterent));
 
 			gethostparams(&(ftemp->hp), "", "", "", "", "", "", "",
 				      "", "I", "N", &gh_aborted);

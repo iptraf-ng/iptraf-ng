@@ -175,8 +175,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 	struct in_addr isaddr, idaddr;
 	char *packet = pkt->pkt_buf;
 
-	new_entry = xmalloc(sizeof(struct othptabent));
-	memset(new_entry, 0, sizeof(struct othptabent));
+	new_entry = xmallocz(sizeof(struct othptabent));
 
 	new_entry->is_ip = is_ip;
 	new_entry->fragment = fragment;
