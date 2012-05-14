@@ -1,7 +1,6 @@
 /* For terms of usage/redistribution/modification see the LICENSE file */
 /* For authors and contributors see the AUTHORS file */
 
-#define _GNU_SOURCE
 #include "iptraf-ng-compat.h"
 
 // Die if we can't allocate size bytes of memory.
@@ -38,18 +37,6 @@ void *xrealloc(void *ptr, size_t size)
 	if (!ret && !size)
 		die("Out of memory, xrealloc failed");
 	return ret;
-}
-
-char *xvasprintf(const char *format, va_list p)
-{
-	int r;
-	char *string_ptr;
-
-	// GNU extension
-	r = vasprintf(&string_ptr, format, p);
-	if (r < 0)
-		die("Out of memory, xvasprintf failed");
-	return string_ptr;
 }
 
 // Die if we can't copy a string to freshly allocated memory.

@@ -95,7 +95,6 @@
 extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
-extern char *xvasprintf(const char *format, va_list p);
 extern void *xmallocz(size_t size);
 extern char *xstrdup(const char *s);
 extern int strtoul_ui(char const *s, int base, unsigned int *result);
