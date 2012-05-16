@@ -6,7 +6,7 @@ all::
 # Define NO_NCURSES if not linking with ncurses.
 
 
-VERSION-FILE:
+VERSION-FILE: FORCE
 	@$(SHELL_PATH) ./GEN-VERSION-FILE
 -include VERSION-FILE
 
