@@ -28,6 +28,7 @@ detstats.c	- the interface statistics module
 #include "promisc.h"
 #include "error.h"
 #include "detstats.h"
+#include "rate.h"
 
 struct ifcounts {
 	struct proto_counter total;
@@ -55,8 +56,9 @@ static void rotate_dstat_log(int s __unused)
 }
 
 static void writedstatlog(char *ifname, int unit,
-		   float peakactivity, float peakpps, float peakactivity_in,
-		   float peakpps_in, float peakactivity_out, float peakpps_out,
+		   unsigned long peakactivity, unsigned long peakpps,
+		   unsigned long peakactivity_in, unsigned long peakpps_in,
+		   unsigned long peakactivity_out, unsigned long peakpps_out,
 		   struct ifcounts *ts, unsigned long nsecs, FILE *fd)
 {
 	char atime[TIME_TARGET_MAX];
@@ -135,47 +137,29 @@ static void writedstatlog(char *ifname, int unit,
 		ts->bcast.pc_bytes);
 
 	if (nsecs > 5) {
+		char bps_string[64];
+		char pps_string[64];
+
 		fprintf(fd, "\nAverage rates:\n");
 
-		if (unit == KBITS) {
-			fprintf(fd, "  Total:\t%.2f kbits/s, %.2f packets/s\n",
-				((float) (ts->total.proto_total.pc_bytes * 8 / 1000) /
-				 (float) nsecs),
-				((float) (ts->total.proto_total.pc_packets) / (float) nsecs));
-			fprintf(fd,
-				"  Incoming:\t%.2f kbits/s, %.2f packets/s\n",
-				(float) (ts->total.proto_in.pc_bytes * 8 / 1000) /
-				(float) (nsecs),
-				(float) (ts->total.proto_in.pc_packets) / (float) (nsecs));
-			fprintf(fd,
-				"  Outgoing:\t%.2f kbits/s, %.2f packets/s\n",
-				(float) (ts->total.proto_out.pc_bytes * 8 / 1000) /
-				(float) (nsecs),
-				(float) (ts->total.proto_out.pc_packets) / (float) (nsecs));
-		} else {
-			fprintf(fd, "%.2f kbytes/s, %.2f packets/s\n",
-				((float) (ts->total.proto_total.pc_bytes / 1024) /
-				 (float) nsecs),
-				((float) (ts->total.proto_total.pc_packets) / (float) nsecs));
-			fprintf(fd,
-				"Incoming:\t%.2f kbytes/s, %.2f packets/s\n",
-				(float) (ts->total.proto_in.pc_bytes / 1024) /
-				(float) (nsecs),
-				(float) (ts->total.proto_in.pc_packets) / (float) (nsecs));
-			fprintf(fd,
-				"Outgoing:\t%.2f kbytes/s, %.2f packets/s\n",
-				(float) (ts->total.proto_out.pc_bytes / 1024) /
-				(float) (nsecs),
-				(float) (ts->total.proto_out.pc_packets) / (float) (nsecs));
-
-		}
-		fprintf(fd,
-			"\nPeak total activity: %.2f %s, %.2f packets/s\n",
-			peakactivity, dispmode(unit), peakpps);
-		fprintf(fd, "Peak incoming rate: %.2f %s, %.2f packets/s\n",
-			peakactivity_in, dispmode(unit), peakpps_in);
-		fprintf(fd, "Peak outgoing rate: %.2f %s, %.2f packets/s\n\n",
-			peakactivity_out, dispmode(unit), peakpps_out);
+		rate_print(ts->total.proto_total.pc_bytes / nsecs, unit, bps_string, sizeof(bps_string));
+		rate_print_pps(ts->total.proto_total.pc_packets / nsecs, pps_string, sizeof(pps_string));
+		fprintf(fd, "  Total:\t%s, %s\n", bps_string, pps_string);
+		rate_print(ts->total.proto_in.pc_bytes / nsecs, unit, bps_string, sizeof(bps_string));
+		rate_print_pps(ts->total.proto_in.pc_packets / nsecs, pps_string, sizeof(pps_string));
+		fprintf(fd, "  Incoming:\t%s, %s\n", bps_string, pps_string);
+		rate_print(ts->total.proto_out.pc_bytes / nsecs, unit, bps_string, sizeof(bps_string));
+		rate_print_pps(ts->total.proto_out.pc_packets / nsecs, pps_string, sizeof(pps_string));
+		fprintf(fd, "  Outgoing:\t%s, %s\n", bps_string, pps_string);
+		rate_print(peakactivity, unit, bps_string, sizeof(bps_string));
+		rate_print_pps(peakpps, pps_string, sizeof(pps_string));
+		fprintf(fd, "\nPeak total activity: %s, %s\n", bps_string, pps_string);
+		rate_print(peakactivity_in, unit, bps_string, sizeof(bps_string));
+		rate_print_pps(peakpps_in, pps_string, sizeof(pps_string));
+		fprintf(fd, "Peak incoming rate: %s, %s\n", bps_string, pps_string);
+		rate_print(peakactivity_out, unit, bps_string, sizeof(bps_string));
+		rate_print_pps(peakpps_out, pps_string, sizeof(pps_string));
+		fprintf(fd, "Peak outgoing rate: %s, %s\n\n", bps_string, pps_string);
 	}
 	fprintf(fd, "IP checksum errors: %llu\n\n", ts->bad.pc_packets);
 	fprintf(fd, "Running time: %lu seconds\n", nsecs);
@@ -293,30 +277,30 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	int ch;
 
 	struct timeval tv;
+	struct timeval start_tv;
 	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
 	time_t starttime;
 	time_t now;
 	time_t statbegin;
 	time_t startlog;
-	time_t rate_interval;
 	unsigned long long unow;
 
 	struct proto_counter span;
 
-	float activity = 0;
-	float activity_in = 0;
-	float activity_out = 0;
-	float peakactivity = 0;
-	float peakactivity_in = 0;
-	float peakactivity_out = 0;
+	struct rate rate;
+	struct rate rate_in;
+	struct rate rate_out;
+	unsigned long peakactivity = 0;
+	unsigned long peakactivity_in = 0;
+	unsigned long peakactivity_out = 0;
 
-	float pps = 0;
-	float peakpps = 0;
-	float pps_in = 0;
-	float pps_out = 0;
-	float peakpps_in = 0;
-	float peakpps_out = 0;
+	struct rate pps_rate;
+	struct rate pps_rate_in;
+	struct rate pps_rate_out;
+	unsigned long peakpps = 0;
+	unsigned long peakpps_in = 0;
+	unsigned long peakpps_out = 0;
 
 	struct promisc_states *promisc_list;
 	int fd;
@@ -394,8 +378,16 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	doupdate();
 
 	memset(&span, 0, sizeof(span));
+	rate_init(&rate, 5);
+	rate_init(&rate_in, 5);
+	rate_init(&rate_out, 5);
+
+	rate_init(&pps_rate, 5);
+	rate_init(&pps_rate_in, 5);
+	rate_init(&pps_rate_out, 5);
 
 	gettimeofday(&tv, NULL);
+	start_tv = tv;
 	starttime = startlog = statbegin = tv.tv_sec;
 
 	leaveok(statwin, TRUE);
@@ -424,51 +416,49 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		now = tv.tv_sec;
 		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
-		rate_interval = now - starttime;
+		if ((now - starttime) >= 1) {
+			char buf[64];
+			unsigned long activity, activity_in, activity_out;
+			unsigned long pps, pps_in, pps_out;
+			int units = options->actmode;
+			unsigned long msecs;
 
-		if (rate_interval >= 5) {
 			wattrset(statwin, BOXATTR);
 			printelapsedtime(statbegin, now, LINES - 3, 1, statwin);
-			if (options->actmode == KBITS) {
-				activity =
-				    (float) (span.proto_total.pc_bytes * 8 / 1000) /
-				    (float) rate_interval;
-				activity_in =
-				    (float) (span.proto_in.pc_bytes * 8 / 1000) /
-				    (float) rate_interval;
-				activity_out =
-				    (float) (span.proto_out.pc_bytes * 8 / 1000) /
-				    (float) rate_interval;
-			} else {
-				activity =
-				    (float) (span.proto_total.pc_bytes / 1024) /
-				    (float) rate_interval;
-				activity_in =
-				    (float) (span.proto_in.pc_bytes / 1024) /
-				    (float) rate_interval;
-				activity_out =
-				    (float) (span.proto_out.pc_bytes / 1024) /
-				    (float) rate_interval;
-			}
 
-			pps = (float) (span.proto_total.pc_packets) / (float) rate_interval;
-			pps_in = (float) (span.proto_in.pc_packets) / (float) rate_interval;
-			pps_out = (float) (span.proto_out.pc_packets) / (float) rate_interval;
+			msecs = timeval_diff_msec(&tv, &start_tv);
+
+			rate_add_rate(&rate, span.proto_total.pc_bytes, msecs);
+			activity = rate_get_average(&rate);
+			rate_add_rate(&rate_in, span.proto_in.pc_bytes, msecs);
+			activity_in = rate_get_average(&rate_in);
+			rate_add_rate(&rate_out, span.proto_out.pc_bytes, msecs);
+			activity_out = rate_get_average(&rate_out);
+
+			rate_add_rate(&pps_rate, span.proto_total.pc_packets, msecs);
+			pps = rate_get_average(&pps_rate);
+			rate_add_rate(&pps_rate_in, span.proto_in.pc_packets, msecs);
+			pps_in = rate_get_average(&pps_rate_in);
+			rate_add_rate(&pps_rate_out, span.proto_out.pc_packets, msecs);
+			pps_out = rate_get_average(&pps_rate_out);
 
 			memset(&span, 0, sizeof(span));
 			starttime = now;
+			start_tv = tv;
 
 			wattrset(statwin, HIGHATTR);
-			mvwprintw(statwin, 14, 19, "%8.1f %s", activity,
-				  dispmode(options->actmode));
-			mvwprintw(statwin, 15, 19, "%8.1f pps", pps);
-			mvwprintw(statwin, 17, 19, "%8.1f %s", activity_in,
-				  dispmode(options->actmode));
-			mvwprintw(statwin, 18, 19, "%8.1f pps", pps_in);
-			mvwprintw(statwin, 20, 19, "%8.1f %s", activity_out,
-				  dispmode(options->actmode));
-			mvwprintw(statwin, 21, 19, "%8.1f pps",
-				  pps_out);
+			rate_print(activity, units, buf, sizeof(buf));
+			mvwprintw(statwin, 14, 19, "%s", buf);
+			rate_print_pps(pps, buf, sizeof(buf));
+			mvwprintw(statwin, 15, 19, "%s", buf);
+			rate_print(activity_in, units, buf, sizeof(buf));
+			mvwprintw(statwin, 17, 19, "%s", buf);
+			rate_print_pps(pps_in, buf, sizeof(buf));
+			mvwprintw(statwin, 18, 19, "%s", buf);
+			rate_print(activity_out, units, buf, sizeof(buf));
+			mvwprintw(statwin, 20, 19, "%s", buf);
+			rate_print_pps(pps_out, buf, sizeof(buf));
+			mvwprintw(statwin, 21, 19, "%s", buf);
 
 			if (activity > peakactivity)
 				peakactivity = activity;
@@ -608,6 +598,14 @@ err_close:
 	close(fd);
 
 err:
+	rate_destroy(&pps_rate_out);
+	rate_destroy(&pps_rate_in);
+	rate_destroy(&pps_rate);
+
+	rate_destroy(&rate_out);
+	rate_destroy(&rate_in);
+	rate_destroy(&rate);
+
 	if ((options->promisc) && (is_last_instance())) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
