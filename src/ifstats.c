@@ -498,12 +498,13 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		if (logfile == NULL)
 			logging = 0;
 	}
-	if (logging)
+	if (logging) {
 		signal(SIGUSR1, rotate_gstat_log);
 
-	rotate_flag = 0;
-	writelog(logging, logfile,
-		 "******** General interface statistics started ********");
+		rotate_flag = 0;
+		writelog(logging, logfile,
+			 "******** General interface statistics started ********");
+	}
 
 	preparescreen(&table);
 
@@ -539,11 +540,14 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 			starttime = now;
 			start_tv = tv;
 		}
-		if (((now - startlog) >= options->logspan) && (logging)) {
-			writegstatlog(&table, options->actmode,
-				      time(NULL) - statbegin,
-				      logfile);
-			startlog = now;
+		if (logging) {
+			check_rotate_flag(&logfile);
+			if ((now - startlog) >= options->logspan) {
+				writegstatlog(&table, options->actmode,
+					      time(NULL) - statbegin,
+					      logfile);
+				startlog = now;
+			}
 		}
 		if (((options->updrate != 0)
 		     && (now - updtime >= options->updrate))
@@ -554,7 +558,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 			updtime = now;
 			updtime_usec = unow;
 		}
-		check_rotate_flag(&logfile, logging);
 
 		if ((facilitytime != 0)
 		    && (((now - statbegin) / 60) >= facilitytime))

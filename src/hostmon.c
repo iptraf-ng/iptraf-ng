@@ -848,12 +848,14 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		if (logfile == NULL)
 			logging = 0;
 	}
-	if (logging)
+	if (logging) {
 		signal(SIGUSR1, rotate_lanlog);
 
-	rotate_flag = 0;
-	writelog(logging, logfile,
-		 "******** LAN traffic monitor started ********");
+		rotate_flag = 0;
+		writelog(logging, logfile,
+			 "******** LAN traffic monitor started ********");
+	}
+
 	leaveok(table.tabwin, TRUE);
 
 	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
@@ -884,10 +886,13 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				       idx);
 			starttime = now;
 		}
-		if (((now - startlog) >= options->logspan) && (logging)) {
-			writeethlog(table.head, options->actmode,
-				    now - statbegin, logfile);
-			startlog = now;
+		if (logging) {
+			check_rotate_flag(&logfile);
+			if ((now - startlog) >= options->logspan) {
+				writeethlog(table.head, options->actmode,
+					    now - statbegin, logfile);
+				startlog = now;
+			}
 		}
 		if (((options->updrate != 0)
 		     && (now - updtime >= options->updrate))
@@ -898,7 +903,6 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 			updtime = now;
 			updtime_usec = unow;
 		}
-		check_rotate_flag(&logfile, logging);
 
 		if ((facilitytime != 0)
 		    && (((now - statbegin) / 60) >= facilitytime))

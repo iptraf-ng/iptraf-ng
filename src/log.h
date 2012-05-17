@@ -16,7 +16,7 @@ void writelog(int logging, FILE * fd, char *msg);
 void genatime(time_t now, char *atime);
 void write_daemon_err(char *msg, va_list vararg);
 void rotate_logfile(FILE ** fd, char *name);
-void check_rotate_flag(FILE ** fd, int logging);
+void check_rotate_flag(FILE ** fd);
 void announce_rotate_prepare(FILE * fd);
 void announce_rotate_complete(FILE * fd);
 

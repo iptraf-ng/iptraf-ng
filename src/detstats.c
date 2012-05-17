@@ -365,12 +365,13 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		if (logfile == NULL)
 			logging = 0;
 	}
-	if (logging)
+	if (logging) {
 		signal(SIGUSR1, rotate_dstat_log);
 
-	rotate_flag = 0;
-	writelog(logging, logfile,
-		 "******** Detailed interface statistics started ********");
+		rotate_flag = 0;
+		writelog(logging, logfile,
+			 "******** Detailed interface statistics started ********");
+	}
 
 	printdetlabels(statwin);
 	printdetails(&ifcounts, statwin);
@@ -478,15 +479,18 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			if (pps_out > peakpps_out)
 				peakpps_out = pps_out;
 		}
-		if ((now - startlog) >= options->logspan && logging) {
-			writedstatlog(iface, options->actmode,
-				      peakactivity, peakpps, peakactivity_in,
-				      peakpps_in, peakactivity_out, peakpps_out,
-				      &ifcounts,
-				      time(NULL) - statbegin,
-				      logfile);
+		if (logging) {
+			check_rotate_flag(&logfile);
+			if ((now - startlog) >= options->logspan) {
+				writedstatlog(iface, options->actmode,
+					      peakactivity, peakpps,
+					      peakactivity_in, peakpps_in,
+					      peakactivity_out, peakpps_out,
+					      &ifcounts, time(NULL) - statbegin,
+					      logfile);
 
-			startlog = now;
+				startlog = now;
+			}
 		}
 
 		if (((options->updrate == 0)
@@ -499,7 +503,6 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			updtime_usec = unow;
 			updtime = now;
 		}
-		check_rotate_flag(&logfile, logging);
 
 		if ((facilitytime != 0)
 		    && (((now - statbegin) / 60) >= facilitytime))

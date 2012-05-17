@@ -234,11 +234,13 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		if (logfile == NULL)
 			logging = 0;
 	}
-	if (logging)
+	if (logging) {
 		signal(SIGUSR1, rotate_size_log);
 
-	writelog(logging, logfile,
-		 "******** Packet size distribution facility started ********");
+		rotate_flag = 0;
+		writelog(logging, logfile,
+			 "******** Packet size distribution facility started ********");
+	}
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
@@ -284,12 +286,14 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 					 borderwin);
 			timeint = now;
 		}
-		if ((now - startlog >= options->logspan) && (logging)) {
-			write_size_log(brackets, now - starttime, ifname, mtu,
-				       logfile);
-			startlog = now;
+		if (logging) {
+			check_rotate_flag(&logfile);
+			if ((now - startlog >= options->logspan)) {
+				write_size_log(brackets, now - starttime,
+					       ifname, mtu, logfile);
+				startlog = now;
+			}
 		}
-		check_rotate_flag(&logfile, logging);
 
 		if ((facilitytime != 0)
 		    && (((now - starttime) / 60) >= facilitytime))

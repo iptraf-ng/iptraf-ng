@@ -709,20 +709,21 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		}
 	}
 
-	if (logging)
+	if (logging) {
 		opentlog(&logfile, current_logfile);
 
-	if (logfile == NULL)
-		logging = 0;
-
-	if (logging)
+		if (logfile == NULL)
+			logging = 0;
+	}
+	if (logging) {
 		signal(SIGUSR1, rotate_ipmon_log);
 
-	setprotoent(1);
+		rotate_flag = 0;
+		writelog(logging, logfile,
+			 "******** IP traffic monitor started ********");
+	}
 
-	rotate_flag = 0;
-	writelog(logging, logfile,
-		 "******** IP traffic monitor started ********");
+	setprotoent(1);
 
 	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if(fd == -1) {
@@ -811,7 +812,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		/*
 		 * Close and rotate log file if signal was received
 		 */
-		if ((rotate_flag == 1) && (logging)) {
+		if (logging && (rotate_flag == 1)) {
 			announce_rotate_prepare(logfile);
 			write_tcp_unclosed(logging, logfile, &table);
 			rotate_logfile(&logfile, target_logname);
@@ -1184,9 +1185,9 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				 * updateentry()
 				 */
 
-				if ((tcpentry->pcount == 1)
-				    && (!(tcpentry->stat & FLAG_RST))
-				    && (logging)) {
+				if (logging
+				    && (tcpentry->pcount == 1)
+				    && (!(tcpentry->stat & FLAG_RST))) {
 					strcpy(msgstring, "first packet");
 					if (transpacket->syn)
 						strcat(msgstring, " (SYN)");
@@ -1284,8 +1285,6 @@ err:
 		srpromisc(0, promisc_list);
 		destroy_promisc_list(&promisc_list);
 	}
-	adjust_instance_count(PROCCOUNTFILE, -1);
-	adjust_instance_count(ITRAFMONCOUNTFILE, -1);
 
 	attrset(STDATTR);
 	mvprintw(0, COLS - 20, "                    ");
@@ -1304,15 +1303,16 @@ err:
 	destroytcptable(&table);
 	destroyothptable(&othptbl);
 	pkt_cleanup();
-	writelog(logging, logfile,
-		 "******** IP traffic monitor stopped ********\n");
-	unmark_facility(IPMONIDFILE, ifptr);
-	if (logfile != NULL)
+
+	if (logging) {
+		signal(SIGUSR1, SIG_DFL);
+		writelog(logging, logfile,
+			 "******** IP traffic monitor stopped ********\n");
 		fclose(logfile);
+		strcpy(current_logfile, "");
+	}
 
-	strcpy(current_logfile, "");
-
-	signal(SIGUSR1, SIG_DFL);
-
-	return;
+	adjust_instance_count(PROCCOUNTFILE, -1);
+	adjust_instance_count(ITRAFMONCOUNTFILE, -1);
+	unmark_facility(IPMONIDFILE, ifptr);
 }

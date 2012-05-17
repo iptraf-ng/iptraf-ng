@@ -143,9 +143,9 @@ void announce_rotate_complete(FILE * fd)
 	writelog(1, fd, "***** Logfile reopened *****");
 }
 
-void check_rotate_flag(FILE ** logfile, int logging)
+void check_rotate_flag(FILE ** logfile)
 {
-	if ((rotate_flag == 1) && (logging)) {
+	if (rotate_flag == 1) {
 		announce_rotate_prepare(*logfile);
 		rotate_logfile(logfile, target_logname);
 		announce_rotate_complete(*logfile);

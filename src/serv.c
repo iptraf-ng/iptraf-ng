@@ -890,12 +890,13 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		if (logfile == NULL)
 			logging = 0;
 	}
-	if (logging)
+	if (logging) {
 		signal(SIGUSR1, rotate_serv_log);
 
-	rotate_flag = 0;
-	writelog(logging, logfile,
-		 "******** TCP/UDP service monitor started ********");
+		rotate_flag = 0;
+		writelog(logging, logfile,
+			 "******** TCP/UDP service monitor started ********");
+	}
 
 	//isdnfd = -1;
 	exitloop = 0;
@@ -929,10 +930,13 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 					 list.borderwin);
 			timeint = now;
 		}
-		if (((now - startlog) >= options->logspan) && (logging)) {
-			writeutslog(list.head, now - starttime,
-				    options->actmode, logfile);
-			startlog = now;
+		if (logging) {
+			check_rotate_flag(&logfile);
+			if ((now - startlog) >= options->logspan) {
+				writeutslog(list.head, now - starttime,
+					    options->actmode, logfile);
+				startlog = now;
+			}
 		}
 
 		if (list.barptr != NULL) {
@@ -952,7 +956,6 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 			updtime = now;
 			updtime_usec = unow;
 		}
-		check_rotate_flag(&logfile, logging);
 
 		if ((facilitytime != 0)
 		    && (((now - starttime) / 60) >= facilitytime))
