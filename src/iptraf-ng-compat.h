@@ -113,4 +113,23 @@ static inline char *skip_whitespace(char *str)
 	return str;
 }
 
+static inline unsigned long timeval_diff_msec(const struct timeval *end,
+					      const struct timeval *start)
+{
+	if (!start || !end)
+		return 0UL;
+
+	signed long secs = end->tv_sec - start->tv_sec;
+	signed long usecs = end->tv_usec - start->tv_usec;
+
+	if(usecs < 0) {
+		usecs = 1000000 - usecs;
+		secs -= 1;
+	}
+	if(secs >= 0)
+		return secs * 1000UL + usecs / 1000UL;
+	else
+		return 0UL;
+}
+
 #endif	/* IPTRAF_NG_COMPAT_H */
