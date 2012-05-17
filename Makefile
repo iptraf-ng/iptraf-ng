@@ -268,6 +268,7 @@ iptraf-ng: $(iptraf-o)
 	$(QUIET_LINK)$(CC) $(ALL_CFLAGS) -o $@ \
 		$(iptraf-o) $(ALL_LDFLAGS) $(NCURSES_LDFLAGS)
 
+src/deskman.o src/iptraf.o: VERSION-FILE
 src/deskman.o src/iptraf.o: EXTRA_CPPFLAGS = \
 	-DIPTRAF_VERSION='"$(IPTRAF_VERSION)"' \
 	-DIPTRAF_NAME='"iptraf-ng"'
