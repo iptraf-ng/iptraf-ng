@@ -286,8 +286,8 @@ static void mark_first_instance(void)
 }
 
 static const char *const iptraf_ng_usage[] = {
-	"iptraf-ng [options]",
-	"iptraf-ng [options] -B [-i <iface> | -d <iface> | -s <iface> | -z <iface> | -l <iface> | -g]",
+	IPTRAF_NAME " [options]",
+	IPTRAF_NAME " [options] -B [-i <iface> | -d <iface> | -s <iface> | -z <iface> | -l <iface> | -g]",
 	NULL
 };
 
@@ -442,7 +442,7 @@ int main(int argc, char **argv)
 				options.logging = 1;
 			break;
 		case -1:	/* error */
-			die("Fork error, iptraf-ng cannot run in background");
+			die("Fork error, %s cannot run in background", IPTRAF_NAME);
 		default:	/* parent */
 			exit(0);
 		}
@@ -523,7 +523,7 @@ int main(int argc, char **argv)
 	 * */
 	draw_desktop();
 	attrset(STATUSBARATTR);
-	mvprintw(0, 1, "iptraf-ng");
+	mvprintw(0, 1, "%s %s", IPTRAF_NAME, IPTRAF_VERSION);
 
 	/* simplify */
 	if (g_opt)
