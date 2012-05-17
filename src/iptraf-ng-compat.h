@@ -70,6 +70,7 @@
 #define __noreturn __attribute__((noreturn))
 #define __unused __attribute__((unused))
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 #define alloc_nr(x) (((x)+16)*3/2)
 

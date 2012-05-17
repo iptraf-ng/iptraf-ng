@@ -108,6 +108,7 @@ iptraf-h += src/fltdefs.h
 iptraf-h += src/logvars.h
 iptraf-h += src/list.h
 iptraf-h += src/counters.h
+iptraf-h += src/rate.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
@@ -151,6 +152,7 @@ iptraf-o += src/hostmon.o
 iptraf-o += src/fltedit.o
 iptraf-o += src/cidr.o
 iptraf-o += src/counters.o
+iptraf-o += src/rate.o
 
 rvnamed-o += src/rvnamed.o
 rvnamed-o += src/getpath.o
