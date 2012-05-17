@@ -766,7 +766,7 @@ void refresh_othwindow(struct othptable *table)
 	entry = table->firstvisible;
 
 	while ((entry != NULL) && (entry != table->lastvisible->next_entry)) {
-		printothpentry(table, entry, target_row, 0, (FILE *) NULL);
+		printothpentry(table, entry, target_row, 0, NULL);
 		target_row++;
 		entry = entry->next_entry;
 	}

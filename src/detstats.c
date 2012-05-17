@@ -483,7 +483,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 				      peakactivity, peakpps, peakactivity_in,
 				      peakpps_in, peakactivity_out, peakpps_out,
 				      &ifcounts,
-				      time((time_t *) NULL) - statbegin,
+				      time(NULL) - statbegin,
 				      logfile);
 
 			startlog = now;
@@ -619,7 +619,7 @@ err:
 		writedstatlog(iface, options->actmode,
 			      peakactivity, peakpps, peakactivity_in,
 			      peakpps_in, peakactivity_out, peakpps_out,
-			      &ifcounts, time((time_t *) NULL) - statbegin,
+			      &ifcounts, time(NULL) - statbegin,
 			      logfile);
 		writelog(logging, logfile,
 			 "******** Detailed interface statistics stopped ********");

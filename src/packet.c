@@ -122,7 +122,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 		/* return a NULL packet to signal an unrecognized link */
 		/* protocol to the caller.  Hopefully, this switch statement */
 		/* will grow. */
-		pkt->pkt_payload = (char *) NULL;
+		pkt->pkt_payload = NULL;
 		retval = -1;
 		break;
 	}

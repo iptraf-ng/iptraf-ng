@@ -514,7 +514,7 @@ void definefilter(int *aborted)
 		clear_flt_tag();
 		return;
 	}
-	genname(time((time_t *) NULL), fntemp);
+	genname(time(NULL), fntemp);
 
 	pfd =
 	    open(get_path(T_WORKDIR, fntemp), O_CREAT | O_WRONLY | O_TRUNC,

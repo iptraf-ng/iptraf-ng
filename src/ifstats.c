@@ -541,7 +541,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		}
 		if (((now - startlog) >= options->logspan) && (logging)) {
 			writegstatlog(&table, options->actmode,
-				      time((time_t *) NULL) - statbegin,
+				      time(NULL) - statbegin,
 				      logfile);
 			startlog = now;
 		}
@@ -650,7 +650,7 @@ err:
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
 		writegstatlog(&table, options->actmode,
-			      time((time_t *) NULL) - statbegin, logfile);
+			      time(NULL) - statbegin, logfile);
 		writelog(logging, logfile,
 			 "******** General interface statistics stopped ********");
 		fclose(logfile);

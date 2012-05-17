@@ -49,7 +49,7 @@ static void write_size_log(struct ifstat_brackets *brackets,
 	char atime[TIME_TARGET_MAX];
 	int i;
 
-	genatime(time((time_t *) NULL), atime);
+	genatime(time(NULL), atime);
 	fprintf(logfile, "*** Packet Size Distribution, generated %s\n\n",
 		atime);
 	fprintf(logfile, "Interface: %s   MTU: %u\n\n", ifname, mtu);

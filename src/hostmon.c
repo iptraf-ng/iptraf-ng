@@ -1069,7 +1069,7 @@ err:
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
 		writeethlog(table.head, options->actmode,
-			    time((time_t *) NULL) - statbegin, logfile);
+			    time(NULL) - statbegin, logfile);
 		writelog(logging, logfile,
 			 "******** LAN traffic monitor stopped ********");
 		fclose(logfile);

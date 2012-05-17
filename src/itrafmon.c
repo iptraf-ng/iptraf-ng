@@ -192,7 +192,7 @@ static void scrolllowerwin(struct othptable *table, int direction)
 				table->htstat = NOHTIND;
 			}
 			printothpentry(table, table->lastvisible,
-				       table->oimaxy - 1, 0, (FILE *) NULL);
+				       table->oimaxy - 1, 0, NULL);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
@@ -205,8 +205,7 @@ static void scrolllowerwin(struct othptable *table, int direction)
 				whline(table->borderwin, ACS_HLINE, 8);
 				table->htstat = NOHTIND;
 			}
-			printothpentry(table, table->firstvisible, 0, 0,
-				       (FILE *) NULL);
+			printothpentry(table, table->firstvisible, 0, 0, NULL);
 		}
 	}
 }

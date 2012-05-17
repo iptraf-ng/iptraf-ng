@@ -116,9 +116,9 @@ void tx_showitem(struct MENU *menu, struct ITEM *itemptr, int selected)
 		wattrset(menu->menuwin, loattr);
 		wprintw(menu->menuwin, "%s", strtok(curoption, "^"));
 		wattrset(menu->menuwin, hiattr);
-		wprintw(menu->menuwin, "%s", strtok((char *) NULL, "^"));
+		wprintw(menu->menuwin, "%s", strtok(NULL, "^"));
 		wattrset(menu->menuwin, loattr);
-		wprintw(menu->menuwin, "%s", strtok((char *) NULL, "^"));
+		wprintw(menu->menuwin, "%s", strtok(NULL, "^"));
 
 		strcpy(padding, "");
 

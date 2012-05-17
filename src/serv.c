@@ -1137,7 +1137,7 @@ err_close:
 err:
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writeutslog(list.head, time((time_t *) NULL) - starttime,
+		writeutslog(list.head, time(NULL) - starttime,
 			    options->actmode, logfile);
 		writelog(logging, logfile,
 			 "******** TCP/UDP service monitor stopped ********");

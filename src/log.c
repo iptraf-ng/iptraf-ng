@@ -104,7 +104,7 @@ void writelog(int logging, FILE * fd, char *msg)
 	char atime[TIME_TARGET_MAX];
 
 	if (logging) {
-		genatime(time((time_t *) NULL), atime);
+		genatime(time(NULL), atime);
 		fprintf(fd, "%s; %s\n", atime, msg);
 	}
 
@@ -116,7 +116,7 @@ void write_daemon_err(char *msg, va_list vararg)
 	char atime[TIME_TARGET_MAX];
 	FILE *fd;
 
-	genatime(time((time_t *) NULL), atime);
+	genatime(time(NULL), atime);
 	fd = fopen(DAEMONLOG, "a");
 	fprintf(fd, "%s iptraf[%u]: ", atime, getpid());
 	vfprintf(fd, msg, vararg);

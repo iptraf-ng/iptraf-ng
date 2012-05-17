@@ -169,7 +169,7 @@ static void writervnlog(FILE * fd, char *msg)
 	time_t now;
 	char atime[TIME_TARGET_MAX] = "";
 
-	now = time((time_t *) NULL);
+	now = time(NULL);
 
 	strcpy(atime, ctime(&now));
 	atime[strlen(atime) - 1] = '\0';
@@ -283,8 +283,7 @@ int main(void)
 		FD_SET(ifd, &sockset);
 
 		do {
-			ss = select(ifd + 1, &sockset, NULL, NULL,
-				    (struct timeval *) NULL);
+			ss = select(ifd + 1, &sockset, NULL, NULL, NULL);
 		} while ((ss < 0) && (errno != ENOMEM));
 
 		if (errno == ENOMEM) {
