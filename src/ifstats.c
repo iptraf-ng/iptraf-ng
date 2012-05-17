@@ -27,6 +27,7 @@ ifstats.c	- the interface statistics module
 #include "promisc.h"
 #include "error.h"
 #include "ifstats.h"
+#include "rate.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -42,8 +43,8 @@ struct iflist {
 	unsigned long long total;
 	unsigned int spanbr;
 	unsigned long br;
-	float rate;
-	float peakrate;
+	struct rate rate;
+	unsigned long peakrate;
 	unsigned int index;
 	struct iflist *prev_entry;
 	struct iflist *next_entry;
@@ -92,20 +93,14 @@ static void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 			ptmp->noniptotal, ptmp->badtotal);
 
 		if (nsecs > 5) {
-			if (unit == KBITS) {
-				fprintf(fd, ", average activity %.2f %s",
-					(float) (ptmp->br * 8 / 1000) /
-					(float) nsecs, dispmode(unit));
-			} else {
-				fprintf(fd, ", average activity %.2f %s",
-					(float) (ptmp->br / 1024) /
-					(float) nsecs, dispmode(unit));
-			}
+			char buf[64];
 
-			fprintf(fd, ", peak activity %.2f %s", ptmp->peakrate,
-				dispmode(unit));
-			fprintf(fd, ", last 5-second activity %.2f %s",
-				ptmp->rate, dispmode(unit));
+			rate_print(ptmp->br / nsecs, unit, buf, sizeof(buf));
+			fprintf(fd, ", average activity %s", buf);
+			rate_print(ptmp->peakrate, unit, buf, sizeof(buf));
+			fprintf(fd, ", peak activity %s", buf);
+			rate_print(rate_get_average(&ptmp->rate), unit, buf, sizeof(buf));
+			fprintf(fd, ", last 5-second average activity %s", buf);
 		}
 		fprintf(fd, "\n");
 
@@ -182,6 +177,7 @@ static void initiflist(struct iflist **list)
 		struct iflist *itmp = xmallocz(sizeof(struct iflist));
 		strcpy(itmp->ifname, ifname);
 		itmp->ifindex = ifindex;
+		rate_init(&itmp->rate, 5);
 
 		/* make the linked list sorted by ifindex */
 		struct iflist *cur = *list, *last = NULL;
@@ -246,6 +242,7 @@ static void destroyiflist(struct iflist *list)
 		ctmp = ptmp->next_entry;
 
 		do {
+			rate_destroy(&ptmp->rate);
 			free(ptmp);
 			ptmp = ctmp;
 			if (ctmp != NULL)
@@ -259,28 +256,23 @@ static void no_ifaces_error(void)
 	write_error("No active interfaces. Check their status or the /proc filesystem");
 }
 
-static void updaterates(struct iftab *table, int unit, time_t starttime,
-		 time_t now, unsigned int idx)
+static void updaterates(struct iftab *table, int unit, unsigned long msecs,
+			unsigned int idx)
 {
 	struct iflist *ptmp = table->firstvisible;
+	unsigned long rate;
+	char buf[64];
 
 	wattrset(table->statwin, HIGHATTR);
 	do {
-		wmove(table->statwin, ptmp->index - idx, 64 * COLS / 80);
-		if (unit == KBITS) {
-			ptmp->rate =
-			    ((float) (ptmp->spanbr * 8 / 1000)) /
-			    ((float) (now - starttime));
-			wprintw(table->statwin, "%8.2f %s", ptmp->rate, dispmode(unit));
-		} else {
-			ptmp->rate =
-			    ((float) (ptmp->spanbr / 1024)) /
-			    ((float) (now - starttime));
-			wprintw(table->statwin, "%8.2f %s", ptmp->rate, dispmode(unit));
-		}
+		rate_add_rate(&ptmp->rate, ptmp->spanbr, msecs);
+		rate = rate_get_average(&ptmp->rate);
+		rate_print(rate, unit, buf, sizeof(buf));
+		wmove(table->statwin, ptmp->index - idx, 63 * COLS / 80);
+		wprintw(table->statwin, "%s", buf);
 
-		if (ptmp->rate > ptmp->peakrate)
-			ptmp->peakrate = ptmp->rate;
+		if (rate > ptmp->peakrate)
+			ptmp->peakrate = rate;
 
 		ptmp->spanbr = 0;
 		ptmp = ptmp->next_entry;
@@ -350,7 +342,7 @@ static void labelstats(WINDOW *win)
 	wprintw(win, " NonIP ");
 	wmove(win, 0, (53 * COLS / 80) + 8 - 7 + 1);
 	wprintw(win, " BadIP ");
-	wmove(win, 0, (64 * COLS / 80) + 14 - 10);
+	wmove(win, 0, (63 * COLS / 80) + 14 - 10);
 	wprintw(win, " Activity ");
 }
 
@@ -458,6 +450,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	time_t starttime = 0;
 	time_t statbegin = 0;
 	time_t now = 0;
+	struct timeval start_tv;
 	unsigned long long unow = 0;
 	time_t startlog = 0;
 	time_t updtime = 0;
@@ -526,6 +519,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	//isdnfd = -1;
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
+	start_tv = tv;
 	starttime = startlog = statbegin = tv.tv_sec;
 
 	PACKET_INIT(pkt);
@@ -535,12 +529,15 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		now = tv.tv_sec;
 		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
-		if ((now - starttime) >= 5) {
-			updaterates(&table, options->actmode, starttime,
-				    now, idx);
+		if ((now - starttime) >= 1) {
+			unsigned long msecs;
+
+			msecs = timeval_diff_msec(&tv, &start_tv);
+			updaterates(&table, options->actmode, msecs, idx);
 			printelapsedtime(statbegin, now, LINES - 3, 1,
 					 table.borderwin);
 			starttime = now;
+			start_tv = tv;
 		}
 		if (((now - startlog) >= options->logspan) && (logging)) {
 			writegstatlog(&table, options->actmode,
@@ -685,6 +682,7 @@ void selectiface(char *ifname, int withall, int *aborted)
 		ptmp = xmalloc(sizeof(struct iflist));
 		strncpy(ptmp->ifname, "All interfaces", sizeof(ptmp->ifname));
 		ptmp->ifindex = 0;
+		rate_init(&ptmp->rate, 5);	/* FIXME: need iflist_entry_init() */
 
 		ptmp->prev_entry = NULL;
 		list->prev_entry = ptmp;
