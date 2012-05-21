@@ -31,16 +31,16 @@ void tx_colorwin(WINDOW * win)
 {
 	int ctr;
 	char *blankpad;
-	blankpad = (char *) malloc(sizeof(char) * (COLS + 1));
+	blankpad = (char *) xmalloc(sizeof(char) * (getmaxx(win) + 1));
 
 	strcpy(blankpad, "");
 
-	for (ctr = 0; ctr <= getmaxx(win); ctr++) {
+	for (ctr = 0; ctr < getmaxx(win); ctr++) {
 		strcat(blankpad, " ");
 	}
 
 	scrollok(win, 0);
-	for (ctr = 0; ctr <= getmaxy(win); ctr++) {
+	for (ctr = 0; ctr < getmaxy(win); ctr++) {
 		wmove(win, ctr, 0);
 		wprintw(win, "%s", blankpad);
 	}
