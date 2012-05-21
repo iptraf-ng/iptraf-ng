@@ -3,7 +3,16 @@ all::
 
 # Define V=1 to have a more verbose compile.
 #
-# Define NO_NCURSES if not linking with ncurses.
+# Define NO_PANEL if you don't want to use -lpanel.
+#
+# Define NEEDS_NCURSES5 if you need linking with ncurses5.
+#
+# Define NEEDS_NCURSESW5 if you need linking with ncursesw5.
+#
+# Define NEEDS_NCURSES6 if you need linking with ncurses6.
+#
+# Define NEEDS_NCURSESW6 if you need linking with ncursesw6.
+
 
 VERSION-FILE: FORCE
 	@$(SHELL_PATH) ./GEN-VERSION-FILE
@@ -196,26 +205,67 @@ $(error please set COMPUTE_HEADER_DEPENDENCIES to yes, no, or auto \
 endif
 endif
 
-ifndef NO_NCURSES
-NCURSES6_CFLAGS := $(shell ncurses6-config --cflags 2>/dev/null)
-ifneq ($(NCURSES6_CFLAGS),)
-NCURSES_CFLAGS += $(NCURSES6_CFLAGS)
+ifndef NCURSES_LDFLAGS
+ifdef NEEDS_NCURSES5
+	NCURSES_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
+	NCURSES_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
+	ifndef NO_PANEL
+		NCURSES_LDFLAGS += -lpanel
+	endif
 endif
-NCURSES6_LDFLAGS := $(shell ncurses6-config --libs 2>/dev/null)
-ifneq ($(NCURSES6_LDFLAGS),)
-NCURSES_LDFLAGS += $(NCURSES6_LDFLAGS)
-endif
-
-NCURSES5_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
-ifneq ($(NCURSES5_CFLAGS),)
-NCURSES_CFLAGS += $(NCURSES5_CFLAGS)
-endif
-NCURSES5_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
-ifneq ($(NCURSES5_LDFLAGS),)
-NCURSES_LDFLAGS += $(NCURSES5_LDFLAGS)
 endif
 
-NCURSES_LDFLAGS += -lpanel
+ifndef NCURSES_LDFLAGS
+ifdef NEEDS_NCURSESW5
+	NCURSES_CFLAGS := $(shell ncursesw5-config --cflags 2>/dev/null)
+	NCURSES_LDFLAGS := $(shell ncursesw5-config --libs 2>/dev/null)
+	ifndef NO_PANEL
+		NCURSES_LDFLAGS += -lpanel
+	endif
+endif
+endif
+
+ifndef NCURSES_LDFLAGS
+ifdef NEEDS_NCURSES6
+	NCURSES_CFLAGS := $(shell ncurses6-config --cflags 2>/dev/null)
+	NCURSES_LDFLAGS := $(shell ncurses6-config --libs 2>/dev/null)
+	ifndef NO_PANEL
+		NCURSES_LDFLAGS += -lpanel
+	endif
+endif
+endif
+
+ifndef NCURSES_LDFLAGS
+ifdef NEEDS_NCURSESW6
+	NCURSES_CFLAGS := $(shell ncursesw6-config --cflags 2>/dev/null)
+	NCURSES_LDFLAGS := $(shell ncursesw6-config --libs 2>/dev/null)
+	ifndef NO_PANEL
+		NCURSES_LDFLAGS += -lpanel
+	endif
+endif
+endif
+
+# try find ncuses by autodetect
+ifndef NCURSES_LDFLAGS
+	ifneq ($(shell ncurses5-config --libs 2>/dev/null),)
+		NCURSES_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
+		NCURSES_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
+	else ifneq ($(shell ncursesw5-config --libs 2>/dev/null),)
+		NCURSES_CFLAGS := $(shell ncursesw5-config --cflags 2>/dev/null)
+		NCURSES_LDFLAGS := $(shell ncursesw5-config --libs 2>/dev/null)
+	else ifneq ($(shell ncurses6-config --libs 2>/dev/null),)
+		NCURSES_CFLAGS := $(shell ncurses6-config --cflags 2>/dev/null)
+		NCURSES_LDFLAGS := $(shell ncurses6-config --libs 2>/dev/null)
+	else ifneq ($(shell ncursesw6-config --libs 2>/dev/null),)
+		NCURSES_CFLAGS := $(shell ncursesw6-config --cflags 2>/dev/null)
+		NCURSES_LDFLAGS := $(shell ncursesw6-config --libs 2>/dev/null)
+	endif
+
+	ifneq ($(NCURSES_LDFLAGS),)
+	ifndef NO_PANEL
+		NCURSES_LDFLAGS += -lpanel
+	endif
+	endif
 endif
 
 QUIET_SUBDIR0  = +$(MAKE) -C # space to separate -C and subdir
