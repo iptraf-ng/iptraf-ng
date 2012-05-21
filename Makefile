@@ -5,7 +5,6 @@ all::
 #
 # Define NO_NCURSES if not linking with ncurses.
 
-
 VERSION-FILE: FORCE
 	@$(SHELL_PATH) ./GEN-VERSION-FILE
 -include VERSION-FILE
@@ -208,13 +207,12 @@ NCURSES_LDFLAGS += $(NCURSES6_LDFLAGS)
 endif
 
 NCURSES5_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
-ifneq ($(NCURSES5_LDFLAGS),)
-NCURSES_LDFLAGS += $(NCURSES5_CFLAGS)
+ifneq ($(NCURSES5_CFLAGS),)
+NCURSES_CFLAGS += $(NCURSES5_CFLAGS)
 endif
-
-NCURSES_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
-ifneq ($(NCURSES_LDFLAGS),)
-NCURSES_LDFLAGS += $(NCURSES_LDFLAGS)
+NCURSES5_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
+ifneq ($(NCURSES5_LDFLAGS),)
+NCURSES_LDFLAGS += $(NCURSES5_LDFLAGS)
 endif
 
 NCURSES_LDFLAGS += -lpanel
@@ -329,7 +327,7 @@ endif
 
 ifndef CHECK_HEADER_DEPENDENCIES
 $(OBJECTS): %.o: %.c $(missing_dep_dirs)
-	$(QUIET_CC)$(CC) -o $*.o -c $(dep_args) $(ALL_CFLAGS) $(EXTRA_CPPFLAGS) $<
+	$(QUIET_CC)$(CC) -o $*.o -c $(dep_args) $(NCURSES_CFLAGS) $(ALL_CFLAGS) $(EXTRA_CPPFLAGS) $<
 endif
 
 ifdef USE_COMPUTED_HEADER_DEPENDENCIES
