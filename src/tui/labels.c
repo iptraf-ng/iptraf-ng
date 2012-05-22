@@ -1,4 +1,5 @@
 /* For terms of usage/redistribution/modification see the LICENSE file */
+/* For authors and contributors see the AUTHORS file */
 
 /*
  * labels.c - some common keyhelp printing routines for the iptraf
