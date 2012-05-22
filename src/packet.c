@@ -132,29 +132,27 @@ static int packet_adjust(struct pkt_hdr *pkt)
 /* IPTraf input function; reads both keystrokes and network packets. */
 int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 {
-	fd_set set;
+	struct pollfd pfds[2];
+	nfds_t nfds = 0;
 	int ss;
 
+	/* Monitor raw socket */
+	pfds[0].fd = fd;
+	pfds[0].events = POLLIN;
+	nfds++;
+
+	/* Monitor stdin only if in interactive, not daemon mode. */
+	if (!daemonized) {
+		pfds[1].fd = 0;
+		pfds[1].events = POLLIN;
+		nfds++;
+	}
 	do {
-		FD_ZERO(&set);
-
-		/* Monitor stdin only if in interactive, not daemon mode. */
-		if (!daemonized)
-			FD_SET(0, &set);
-
-		/* Monitor raw socket */
-		FD_SET(fd, &set);
-
-		struct timeval tv = {
-			.tv_sec = 0,
-			.tv_usec = DEFAULT_UPDATE_DELAY
-		};
-
-		ss = select(fd + 1, &set, 0, 0, &tv);
-	} while ((ss < 0) && (errno == EINTR));
+		ss = poll(pfds, nfds, DEFAULT_UPDATE_DELAY / 1000);
+	} while ((ss == -1) && (errno == EINTR));
 
 	pkt->pkt_len = 0;	/* signalize we have no packet prepared */
-	if ((ss > 0) && FD_ISSET(fd, &set)) {
+	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
 		struct sockaddr_ll from;
 		socklen_t fromlen = sizeof(struct sockaddr_ll);
 		ssize_t len;
@@ -177,7 +175,7 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 	}
 
 	*ch = ERR;	/* signalize we have no key ready */
-	if (!daemonized && (ss > 0) && FD_ISSET(0, &set))
+	if (!daemonized && (ss > 0) && ((pfds[1].revents & POLLIN) != 0))
 		*ch = wgetch(win);
 
 	return ss;

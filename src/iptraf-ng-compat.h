@@ -16,6 +16,7 @@
 #include <panel.h>
 #include <assert.h>
 #include <stddef.h>
+#include <poll.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
