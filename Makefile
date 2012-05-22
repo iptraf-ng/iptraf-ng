@@ -122,7 +122,6 @@ iptraf-o += src/tui/labels.o
 iptraf-o += src/tui/listbox.o
 iptraf-o += src/tui/menurt.o
 iptraf-o += src/tui/msgboxes.o
-iptraf-o += src/tui/txbox.o
 iptraf-o += src/tui/winops.o
 iptraf-o += src/error.o
 iptraf-o += src/log.o
