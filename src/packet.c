@@ -42,7 +42,7 @@ static int in_cksum(u_short * addr, int len)
 		len -= 2;
 	}
 
-	if (len > 1)
+	if (len > 0)
 		sum += *(unsigned char *) addr;
 
 	while (sum >> 16)
