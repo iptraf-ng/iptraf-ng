@@ -965,7 +965,11 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		    && (((now - starttime) / 60) >= facilitytime))
 			exitloop = 1;
 
-		packet_get(fd, &pkt, &ch, list.win);
+		if (packet_get(fd, &pkt, &ch, list.win) == -1) {
+			write_error("Packet receive failed");
+			exitloop = 1;
+			break;
+		}
 
 		if (ch == ERR)
 			goto no_key_ready;

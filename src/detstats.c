@@ -509,7 +509,11 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		packet_get(fd, &pkt, &ch, statwin);
+		if (packet_get(fd, &pkt, &ch, statwin) == -1) {
+			write_error("Packet receive failed");
+			exitloop = 1;
+			break;
+		}
 
 		switch (ch) {
 		case ERR:

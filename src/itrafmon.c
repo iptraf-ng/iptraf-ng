@@ -823,7 +823,11 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			rotate_flag = 0;
 		}
 
-		packet_get(fd, &pkt, &ch, table.tcpscreen);
+		if (packet_get(fd, &pkt, &ch, table.tcpscreen) == -1) {
+			write_error("Packet receive failed");
+			exitloop = 1;
+			break;
+		}
 
 		if (ch == ERR)
 			goto no_key_ready;

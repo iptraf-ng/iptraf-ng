@@ -46,7 +46,7 @@ struct pkt_hdr {
 	};
 
 void open_socket(int *fd);
-void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
+int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   unsigned int *sport, unsigned int *dport,
 		   struct filterstate *filter, int match_opposite,

@@ -567,7 +567,11 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		    && (((now - statbegin) / 60) >= facilitytime))
 			exitloop = 1;
 
-		packet_get(fd, &pkt, &ch, table.statwin);
+		if (packet_get(fd, &pkt, &ch, table.statwin) == -1) {
+			write_error("Packet receive failed");
+			exitloop = 1;
+			break;
+		}
 
 		switch (ch) {
 		case ERR:

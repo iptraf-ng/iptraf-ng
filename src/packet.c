@@ -130,7 +130,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 }
 
 /* IPTraf input function; reads both keystrokes and network packets. */
-void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
+int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 {
 	fd_set set;
 	int ss;
@@ -172,12 +172,15 @@ void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 			pkt->pkt_ifindex = from.sll_ifindex;
 			pkt->pkt_hatype = from.sll_hatype;
 			pkt->pkt_pkttype = from.sll_pkttype;
-		}
+		} else
+			ss = len;
 	}
 
 	*ch = ERR;	/* signalize we have no key ready */
 	if (!daemonized && (ss > 0) && FD_ISSET(0, &set))
 		*ch = wgetch(win);
+
+	return ss;
 }
 
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
