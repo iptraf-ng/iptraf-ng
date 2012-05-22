@@ -56,7 +56,7 @@ void tx_additem(struct MENU *menu, char *item, char *desc)
 	if (menu->itemcount >= 25)
 		return;
 
-	tnode = malloc(sizeof(struct ITEM));
+	tnode = xmalloc(sizeof(struct ITEM));
 
 	if (item != NULL) {
 		strcpy(tnode->option, item);

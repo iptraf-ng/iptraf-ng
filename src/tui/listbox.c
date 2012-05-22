@@ -45,8 +45,7 @@ void tx_add_list_entry(struct scroll_list *list, char *node, char *text)
 {
 	struct textlisttype *ptmp;
 
-	ptmp = malloc(sizeof(struct textlisttype));
-	memset(ptmp, 0, sizeof(struct textlisttype));
+	ptmp = xmallocz(sizeof(struct textlisttype));
 
 	strncpy(ptmp->text, text, MAX_TEXT_LENGTH);
 	ptmp->nodeptr = node;
