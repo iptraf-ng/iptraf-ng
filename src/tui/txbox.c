@@ -11,7 +11,7 @@
  * The tx_box function is a drop-in replacement for box().
  */
 
-#include <curses.h>
+#include "iptraf-ng-compat.h"
 
 void tx_box(WINDOW * win, int vline, int hline)
 {

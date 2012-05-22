@@ -5,8 +5,8 @@
  * user interface library
  */
 
-#include <curses.h>
-#include <panel.h>
+#include "iptraf-ng-compat.h"
+
 #include "winops.h"
 
 void tx_printkeyhelp(char *keytext, char *desc, WINDOW * win, int highattr,

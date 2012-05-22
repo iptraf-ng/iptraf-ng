@@ -6,10 +6,6 @@ winops.c - screen configuration and setup functions
 
 ***/
 
-#include <curses.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "iptraf-ng-compat.h"
 
 void tx_stdwinset(WINDOW * win)

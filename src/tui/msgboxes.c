@@ -4,8 +4,8 @@
  * msgboxes.c - message and error box display functions
  */
 
-#include <curses.h>
-#include <panel.h>
+#include "iptraf-ng-compat.h"
+
 #include "winops.h"
 
 int ERR_BORDER_ATTR;

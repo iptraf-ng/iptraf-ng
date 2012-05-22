@@ -8,7 +8,6 @@ for IPTraf
 
 ***/
 
-#include <curses.h>
 #define tx_coloreol() tx_wcoloreol(stdscr)
 
 void tx_stdwinset(WINDOW * win);

@@ -6,11 +6,8 @@ menurt.c - ncurses-based menu definition module
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include "iptraf-ng-compat.h"
+
 #include "menurt.h"
 #include "winops.h"
 #include "labels.h"

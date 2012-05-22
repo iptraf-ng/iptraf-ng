@@ -6,9 +6,8 @@ input.c - a custom keyboard input module
 
 ***/
 
-#include <curses.h>
-#include <panel.h>
-#include <ctype.h>
+#include "iptraf-ng-compat.h"
+
 #include "input.h"
 
 void tx_initfields(struct FIELDLIST *list, int leny, int lenx, int begy,

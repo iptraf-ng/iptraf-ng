@@ -1,8 +1,6 @@
 #ifndef IPTRAF_NG_TUI_LISTBOX_H
 #define IPTRAF_NG_TUI_LISTBOX_H
 
-#include <curses.h>
-
 #define MAX_TEXT_LENGTH 240
 
 struct textlisttype {

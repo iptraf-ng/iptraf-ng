@@ -7,8 +7,6 @@ input.h - structure declarations and function prototypes for input.c
 
 ***/
 
-#include <string.h>
-#include <stdlib.h>
 #include "winops.h"
 
 #define CTRL_X 24
