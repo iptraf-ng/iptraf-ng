@@ -154,7 +154,7 @@ void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 	} while ((ss < 0) && (errno == EINTR));
 
 	pkt->pkt_len = 0;	/* signalize we have no packet prepared */
-	if (FD_ISSET(fd, &set)) {
+	if ((ss > 0) && FD_ISSET(fd, &set)) {
 		struct sockaddr_ll from;
 		socklen_t fromlen = sizeof(struct sockaddr_ll);
 		ssize_t len;
@@ -176,7 +176,7 @@ void packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 	}
 
 	*ch = ERR;	/* signalize we have no key ready */
-	if (!daemonized && FD_ISSET(0, &set))
+	if (!daemonized && (ss > 0) && FD_ISSET(0, &set))
 		*ch = wgetch(win);
 }
 
