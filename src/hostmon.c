@@ -10,6 +10,9 @@ Discovers LAN hosts and displays packet statistics for them
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/labels.h"
+#include "tui/winops.h"
+
 #include "dirs.h"
 #include "deskman.h"
 #include "fltdefs.h"

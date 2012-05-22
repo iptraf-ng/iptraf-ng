@@ -9,6 +9,8 @@ pktsize.c	- the packet size breakdown facility
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/winops.h"
+
 #include "attrs.h"
 #include "dirs.h"
 #include "fltdefs.h"

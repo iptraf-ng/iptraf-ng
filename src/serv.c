@@ -9,6 +9,11 @@ serv.c  - TCP/UDP port statistics module
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/input.h"
+#include "tui/labels.h"
+#include "tui/listbox.h"
+#include "tui/msgboxes.h"
+
 #include "dirs.h"
 #include "deskman.h"
 #include "isdntab.h"

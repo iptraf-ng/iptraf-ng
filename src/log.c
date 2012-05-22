@@ -14,6 +14,10 @@ log.c - the iptraf logging facility
 #include "dirs.h"
 #include "log.h"
 
+#include "tui/input.h"
+#include "tui/msgboxes.h"
+#include "tui/winops.h"
+
 #define TARGET_LOGNAME_MAX	160
 
 int rotate_flag;

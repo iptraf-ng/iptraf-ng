@@ -10,6 +10,9 @@ An IP Network Statistics Utility
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/menurt.h"
+#include "tui/winops.h"
+
 #include "dirs.h"
 #include "deskman.h"
 #include "fltdefs.h"

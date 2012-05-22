@@ -12,6 +12,8 @@
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/winops.h"
+
 #include "attrs.h"
 
 void set_barptr(void **barptr, void *entry, time_t * starttime, void *spanbr,

@@ -45,15 +45,6 @@
 #include <linux/if.h>
 #include <linux/if_arp.h>
 
-/* move it out! */
-#include "tui/labels.h"
-#include "tui/listbox.h"
-#include "tui/input.h"
-#include "tui/menurt.h"
-#include "tui/winops.h"
-#include "tui/msgboxes.h"
-//#include "txbox.h"
-
 #define debug(...)							\
 	do {								\
                 fprintf(stderr, "%s:%s():%d:",				\

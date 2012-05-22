@@ -9,6 +9,11 @@ fltedit.c	- the filter editing Facility
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/labels.h"
+#include "tui/menurt.h"
+#include "tui/msgboxes.h"
+#include "tui/winops.h"
+
 #include "fltdefs.h"
 #include "fltmgr.h"
 #include "ipfilter.h"

@@ -9,6 +9,8 @@ othptab.c - non-TCP protocol display module
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/winops.h"
+
 #include "arphdr.h"
 #include "options.h"
 #include "tcptable.h"

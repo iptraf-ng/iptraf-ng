@@ -9,6 +9,13 @@ fltmgr.c - filter list management routines
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/input.h"
+#include "tui/labels.h"
+#include "tui/listbox.h"
+#include "tui/menurt.h"
+#include "tui/msgboxes.h"
+#include "tui/winops.h"
+
 #include "attrs.h"
 #include "deskman.h"
 #include "dirs.h"

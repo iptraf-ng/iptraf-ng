@@ -9,6 +9,9 @@ itrafmon.c - the IP traffic monitor module
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/labels.h"
+#include "tui/winops.h"
+
 #include "options.h"
 #include "tcptable.h"
 #include "othptab.h"

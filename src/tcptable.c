@@ -9,6 +9,8 @@ tcptable.c - table manipulation routines for the IP monitor
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/winops.h"
+
 #include "options.h"
 #include "tcptable.h"
 #include "deskman.h"

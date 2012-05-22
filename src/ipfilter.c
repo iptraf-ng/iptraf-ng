@@ -9,6 +9,10 @@ ipfilter.c - user interface and filter function for all IP packets
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/input.h"
+#include "tui/menurt.h"
+#include "tui/msgboxes.h"
+
 #include "addproto.h"
 #include "dirs.h"
 #include "deskman.h"

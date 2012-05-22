@@ -9,6 +9,8 @@ detstats.c	- the interface statistics module
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/winops.h"
+
 #include "counters.h"
 #include "ifaces.h"
 #include "isdntab.h"

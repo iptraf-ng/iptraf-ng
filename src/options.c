@@ -9,6 +9,11 @@ options.c - implements the configuration section of the utility
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/input.h"
+#include "tui/menurt.h"
+#include "tui/msgboxes.h"
+#include "tui/winops.h"
+
 #include "serv.h"
 #include "options.h"
 #include "deskman.h"

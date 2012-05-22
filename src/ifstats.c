@@ -9,6 +9,11 @@ ifstats.c	- the interface statistics module
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/labels.h"
+#include "tui/listbox.h"
+#include "tui/msgboxes.h"
+#include "tui/winops.h"
+
 #include "ifaces.h"
 #include "isdntab.h"
 #include "fltdefs.h"

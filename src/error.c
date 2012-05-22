@@ -9,8 +9,8 @@ error.c - Error-handling subroutines
 
 #include "iptraf-ng-compat.h"
 
-#include "error.h"
 #include "log.h"
+#include "tui/msgboxes.h"
 
 extern int daemonized;
 

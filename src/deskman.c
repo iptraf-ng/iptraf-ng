@@ -9,6 +9,10 @@ deskman.c - desktop management routines
 
 #include "iptraf-ng-compat.h"
 
+#include "tui/labels.h"
+#include "tui/msgboxes.h"
+#include "tui/winops.h"
+
 #include "deskman.h"
 
 /* Attribute variables */
