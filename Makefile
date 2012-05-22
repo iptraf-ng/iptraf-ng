@@ -77,7 +77,6 @@ iptraf-h += src/tui/listbox.h
 iptraf-h += src/tui/menurt.h
 iptraf-h += src/tui/msgboxes.h
 iptraf-h += src/tui/winops.h
-iptraf-h += src/tui/tui.h
 iptraf-h += src/iptraf-ng-compat.h
 iptraf-h += src/parse-options.h
 iptraf-h += src/packet.h

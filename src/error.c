@@ -8,7 +8,6 @@ error.c - Error-handling subroutines
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "error.h"
 #include "log.h"

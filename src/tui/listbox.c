@@ -12,7 +12,6 @@
 #include "labels.h"
 #include "listbox.h"
 #include "msgboxes.h"
-#include "tui.h"
 
 void tx_init_listbox(struct scroll_list *list, int width, int height,
 		     int startx, int starty, int mainattr, int borderattr,

@@ -8,7 +8,6 @@ fltmgr.c - filter list management routines
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "attrs.h"
 #include "deskman.h"

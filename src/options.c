@@ -8,7 +8,6 @@ options.c - implements the configuration section of the utility
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "serv.h"
 #include "options.h"

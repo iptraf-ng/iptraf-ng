@@ -8,7 +8,6 @@ ipfilter.c - user interface and filter function for all IP packets
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "addproto.h"
 #include "dirs.h"

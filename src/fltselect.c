@@ -9,7 +9,6 @@ fltselect.c - a menu-based module that allows selection of
  ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "addproto.h"
 #include "dirs.h"

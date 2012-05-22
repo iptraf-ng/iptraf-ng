@@ -8,7 +8,6 @@ serv.c  - TCP/UDP port statistics module
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "dirs.h"
 #include "deskman.h"

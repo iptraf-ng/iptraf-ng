@@ -8,7 +8,6 @@ fltedit.c	- the filter editing Facility
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "fltdefs.h"
 #include "fltmgr.h"

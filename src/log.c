@@ -8,7 +8,6 @@ log.c - the iptraf logging facility
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "attrs.h"
 #include "deskman.h"

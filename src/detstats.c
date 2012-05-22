@@ -8,7 +8,6 @@ detstats.c	- the interface statistics module
  ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 
 #include "counters.h"
 #include "ifaces.h"

@@ -10,7 +10,6 @@ landesc.c	- LAN host description management module
 ***/
 
 #include "iptraf-ng-compat.h"
-#include "tui/tui.h"
 #include "landesc.h"
 #include "deskman.h"
 #include "attrs.h"
