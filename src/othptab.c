@@ -368,7 +368,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 
 	struct in_addr uninitialized_var(saddr);
 
-	char rarp_mac_addr[15];
+	char rarp_mac_addr[18];
 
 	unsigned int unknown = 0;
 
@@ -416,7 +416,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 			break;
 		case ETH_P_RARP:
 			sprintf(msgstring, "RARP ");
-			memset(rarp_mac_addr, 0, 15);
+			memset(rarp_mac_addr, 0, sizeof(rarp_mac_addr));
 			switch (ntohs(entry->un.rarp.opcode)) {
 			case ARPOP_RREQUEST:
 				strcat(msgstring, "request for ");

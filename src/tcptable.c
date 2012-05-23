@@ -336,8 +336,8 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 	 * Zero out MAC address fields
 	 */
 
-	memset(new_entry->smacaddr, 0, 15);
-	memset(new_entry->oth_connection->smacaddr, 0, 15);
+	memset(new_entry->smacaddr, 0, sizeof(new_entry->smacaddr));
+	memset(new_entry->oth_connection->smacaddr, 0, sizeof(new_entry->oth_connection->smacaddr));
 
 	/*
 	 * Set raw port numbers
@@ -590,7 +590,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 		 struct OPTIONS *opts, FILE * logfile)
 {
 	char msgstring[MSGSTRING_MAX];
-	char newmacaddr[15];
+	char newmacaddr[18];
 
 	if (tableentry->s_fstat != RESOLVED) {
 		tableentry->s_fstat =
@@ -612,7 +612,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	tableentry->spanbr += bcount;
 
 	if (opts->mac) {
-		memset(newmacaddr, 0, 15);
+		memset(newmacaddr, 0, sizeof(newmacaddr));
 
 		if (linkproto == ARPHRD_ETHER) {
 			convmacaddr((char *) (((struct ethhdr *) packet)->

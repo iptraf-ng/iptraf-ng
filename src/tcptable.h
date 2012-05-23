@@ -30,7 +30,7 @@ struct tcptableent {
 	int d_fstat;
 	unsigned int sport;
 	unsigned int dport;
-	char smacaddr[15];
+	char smacaddr[18];
 	char s_sname[11];	/* Service names, maxlen=10 */
 	char d_sname[11];
 	unsigned int protocol;
