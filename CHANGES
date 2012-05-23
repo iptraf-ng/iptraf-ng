@@ -1,5 +1,16 @@
 CHANGES file for iptraf-ng
 
+* Wed May 23 2012 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.3
+- new building system (based only on make, no automake/autoconf)
+- code cleanups
+- SIT tunnels support
+- space for HW addresses fix
+- sort interfaces by ifindex
+- print rates every second using moving average (over last 5 seconds)
+- packet_get() bugfix (don't count packets when there's no packet ready)
+- fix segfault in the tui/* code
+- fix checksumming for odd-sized IPv4 header
+
 * Fri May 04 2012 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.2
 - massive code cleanup
 - fix PPP handling
