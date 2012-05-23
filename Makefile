@@ -25,8 +25,8 @@ ALL_LDFLAGS = $(LDFLAGS)
 STRIP ?= strip
 
 prefix = $(HOME)
-bindir_relative = bin
-bindir = $(prefix)/$(bindir_relative)
+sbindir_relative = sbin
+sbindir = $(prefix)/$(sbindir_relative)
 mandir = $(prefix)/share/man
 sharedir = $(prefix)/share
 localedir = $(sharedir)/locale
