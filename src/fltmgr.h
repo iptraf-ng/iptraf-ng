@@ -18,7 +18,6 @@ struct ffnode {
 	struct ffnode *prev_entry;
 };
 
-#ifndef IGNORE_FILTER_PROTOTYPES
 void makestdfiltermenu(struct MENU *menu);
 void makemainfiltermenu(struct MENU *menu);
 int loadfilterlist(struct ffnode **fltfile);
@@ -33,6 +32,5 @@ unsigned long int nametoaddr(char *ascname, int *err);
 void listfileerr(int code);
 int mark_filter_change(void);
 void clear_flt_tag(void);
-#endif
 
 #endif	/* IPTRAF_NG_FLTMGR_H */
