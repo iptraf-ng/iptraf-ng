@@ -746,7 +746,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1e+06 + tv.tv_usec;
+		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		/* 
 		 * Print timer at bottom of screen
