@@ -139,7 +139,7 @@ void tx_fillfields(struct FIELDLIST *list, int *aborted)
 {
 	struct FIELD *field;
 	int exitkey;
-	int exitloop = 0;
+	int endloop = 0;
 
 	field = list->list;
 
@@ -158,15 +158,15 @@ void tx_fillfields(struct FIELDLIST *list, int *aborted)
 		case 13:
 		case 10:
 			*aborted = 0;
-			exitloop = 1;
+			endloop = 1;
 			break;
 		case 27:
 		case 24:
 			*aborted = 1;
-			exitloop = 1;
+			endloop = 1;
 			break;
 		}
-	} while (!exitloop);
+	} while (!endloop);
 
 	curs_set(0);
 }
