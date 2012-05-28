@@ -789,7 +789,7 @@ static void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
  * The TCP/UDP service monitor
  */
 
-void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
+void servmon(char *ifname, const struct OPTIONS *options,
 	     time_t facilitytime, struct filterstate *ofilter)
 {
 	int logging = options->logging;
@@ -833,6 +833,8 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 
 	int fd;
 
+	struct porttab *ports;
+
 	/*
 	 * Mark this facility
 	 */
@@ -849,6 +851,8 @@ void servmon(char *ifname, struct porttab *ports, const struct OPTIONS *options,
 		unmark_facility(TCPUDPIDFILE, ifname);
 		return;
 	}
+
+	loadaddports(&ports);
 
 	if ((first_active_facility()) && (options->promisc)) {
 		init_promisc_list(&promisc_list);
@@ -1172,6 +1176,7 @@ err:
 	update_panels();
 	doupdate();
 	destroyportlist(&list);
+	destroyporttab(ports);
 	pkt_cleanup();
 	strcpy(current_logfile, "");
 }

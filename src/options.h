@@ -12,9 +12,7 @@ struct OPTIONS {
 
 #define DEFAULT_UPDATE_DELAY 50000	/* usec screen delay if update rate 0 */
 
-#include "serv.h"
-
-void setoptions(struct OPTIONS *options, struct porttab **ports);
+void setoptions(struct OPTIONS *options);
 void loadoptions(struct OPTIONS *options);
 void saveoptions(struct OPTIONS *options);
 

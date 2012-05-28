@@ -132,7 +132,6 @@ static void program_interface(struct OPTIONS *options)
 
 	char ifname[IFNAMSIZ];
 	char *ifptr = NULL;
-	struct porttab *ports;
 
 	/*
 	 * Load saved filter or graphing filter if specified
@@ -146,8 +145,6 @@ static void program_interface(struct OPTIONS *options)
 		loadfilters(&ofilter);
 		indicate("");
 	}
-
-	loadaddports(&ports);
 
 	tx_initmenu(&menu, 15, 35, (LINES - 16) / 2, (COLS - 35) / 2, BOXATTR,
 		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
@@ -214,7 +211,7 @@ static void program_interface(struct OPTIONS *options)
 			case 2:
 				selectiface(ifname, WITHOUTALL, &aborted);
 				if (!aborted)
-					servmon(ifname, ports, options, 0,
+					servmon(ifname, options, 0,
 						&ofilter);
 				break;
 			case 4:
@@ -237,7 +234,7 @@ static void program_interface(struct OPTIONS *options)
 			savefilters(&ofilter);
 			break;
 		case 9:
-			setoptions(options, &ports);
+			setoptions(options);
 			saveoptions(options);
 			break;
 		case 11:
@@ -251,7 +248,6 @@ static void program_interface(struct OPTIONS *options)
 
 	tx_destroymenu(&menu);
 
-	destroyporttab(ports);
 	erase();
 	update_panels();
 	doupdate();
@@ -495,9 +491,7 @@ int main(int argc, char **argv)
 
 	struct filterstate ofilter;
 	struct ffnode *fltfiles;
-	struct porttab *ports;
 
-	loadaddports(&ports);
 	/*
 	 * Load saved filter or graphing filter if specified
 	 */
@@ -534,7 +528,7 @@ int main(int argc, char **argv)
 	else if (d_opt)
 		detstats(d_opt, &options, facilitytime, &ofilter);
 	else if (s_opt)
-		servmon(s_opt, ports, &options, facilitytime, &ofilter);
+		servmon(s_opt, &options, facilitytime, &ofilter);
 	else if (z_opt)
 		packet_size_breakdown(&options, z_opt, facilitytime, &ofilter);
 	else

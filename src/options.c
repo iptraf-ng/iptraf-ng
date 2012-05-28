@@ -246,7 +246,7 @@ static void settimeout(time_t *value, const char *units, int allow_zero,
 	doupdate();
 }
 
-void setoptions(struct OPTIONS *options, struct porttab **ports)
+void setoptions(struct OPTIONS *options)
 {
 	int row = 1;
 	int trow = 1;		/* row for timer submenu */
@@ -258,12 +258,17 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
 	WINDOW *statwin;
 	PANEL *statpanel;
 
+	struct porttab *ports;
+
 	if (!is_first_instance) {
 		tui_error(ANYKEY_MSG,
 			  "Only the first instance of ipraf-ng"
 			  " can configure");
 		return;
 	}
+
+	loadaddports(&ports);
+
 	makeoptionmenu(&menu);
 
 	statwin = newwin(15, 35, (LINES - 19) / 2 - 1, (COLS - 40) / 16 + 40);
@@ -365,10 +370,10 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
 			doupdate();
 			break;
 		case 12:
-			addmoreports(ports);
+			addmoreports(&ports);
 			break;
 		case 13:
-			removeaport(ports);
+			removeaport(&ports);
 			break;
 		case 15:
 			manage_eth_desc(ARPHRD_ETHER);
@@ -381,6 +386,7 @@ void setoptions(struct OPTIONS *options, struct porttab **ports)
 		indicatesetting(row, options, statwin);
 	} while (row != 18);
 
+	destroyporttab(ports);
 	tx_destroymenu(&menu);
 	del_panel(statpanel);
 	delwin(statwin);
