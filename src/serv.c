@@ -1436,11 +1436,11 @@ static void delport(struct porttab **table, struct porttab *ptmp)
 void removeaport(struct porttab **table)
 {
 	int aborted;
-	struct porttab *ptmp;
+	struct porttab *ptmp = NULL;
 
 	selectport(table, &ptmp, &aborted);
 
-	if (!aborted) {
+	if (!aborted && ptmp) {
 		delport(table, ptmp);
 		saveportlist(*table);
 	}
