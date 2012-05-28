@@ -208,7 +208,6 @@ int main(void)
 
 	/* Daemonization Sequence */
 
-#ifndef DEBUG
 	switch (fork()) {
 	case -1:
 		exit(1);
@@ -222,7 +221,6 @@ int main(void)
 	int i = chdir("/");
 
 	(void) i;
-#endif
 
 	signal(SIGCHLD, childreap);
 
@@ -358,7 +356,6 @@ int main(void)
 					       strlen(fromaddr.sun_path));
 					break;
 				case RVN_QUIT:
-#ifndef DEBUG
 					writervnlog(logfile,
 						    "Received quit instruction");
 					writervnlog(logfile, "Closing sockets");
@@ -376,7 +373,6 @@ int main(void)
 						    "******** rvnamed terminated ********");
 					fclose(logfile);
 					exit(0);
-#endif
 				case RVN_REQUEST:
 					readyidx =
 					    name_resolved(&rvnpacket, hostlist,

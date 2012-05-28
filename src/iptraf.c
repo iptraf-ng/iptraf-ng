@@ -337,10 +337,8 @@ int main(int argc, char **argv)
 	int command = 0;
 	int current_log_interval = 0;
 
-#ifndef ALLOWUSERS
 	if (geteuid() != 0)
 		die("This program can be run only by the system administrator");
-#endif
 
 	/*
 	 * Parse command line
@@ -464,10 +462,7 @@ int main(int argc, char **argv)
 	noecho();
 	nonl();
 	cbreak();
-
-#ifndef DEBUG
 	curs_set(0);
-#endif
 
 	/*
 	 * Set logfilename variable to NULL if -L was specified without an

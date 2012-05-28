@@ -84,9 +84,7 @@ void tx_getinput(struct FIELDLIST *list, struct FIELD *field, int *exitkey)
 	do {
 		ch = wgetch(list->fieldwin);
 		switch (ch) {
-#ifndef DISABLEBS
 		case KEY_BACKSPACE:
-#endif
 		case 7:
 		case 8:
 		case KEY_DC:
