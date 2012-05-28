@@ -450,12 +450,6 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 	}
-#ifdef SIMDAEMON
-	daemonized = 1;
-	freopen("/dev/null", "w", stdout);	/* redirect std output */
-	freopen("/dev/null", "r", stdin);
-	freopen("/dev/null", "w", stderr);
-#endif
 
 	sanitize_dir(LOCKDIR);
 	sanitize_dir(WORKDIR);
