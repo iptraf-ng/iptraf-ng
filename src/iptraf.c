@@ -6,8 +6,6 @@ IPTraf
 An IP Network Statistics Utility
 */
 
-#define MAIN_MODULE
-
 #include "iptraf-ng-compat.h"
 
 #include "tui/menurt.h"
@@ -46,8 +44,6 @@ int daemonized = 0;
 int facility_running = 0;
 int is_first_instance;
 char graphing_filter[80];
-
-extern void about(void);
 
 static void press_enter_to_continue(void)
 {

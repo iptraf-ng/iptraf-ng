@@ -41,9 +41,6 @@ serv.c  - TCP/UDP port statistics module
 #define LEFT 0
 #define RIGHT 1
 
-extern int exitloop;
-extern int daemonized;
-
 struct serv_spans {
 	int spanbr_in;
 	int spanbr_out;

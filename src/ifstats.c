@@ -65,9 +65,6 @@ struct iftab {
 	PANEL *statpanel;
 };
 
-extern int exitloop;
-extern int daemonized;
-
 /*
  * USR1 log-rotation signal handlers
  */

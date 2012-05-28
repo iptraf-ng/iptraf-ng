@@ -19,13 +19,12 @@ tcptable.c - table manipulation routines for the IP monitor
 #include "revname.h"
 #include "rvnamed.h"
 #include "servname.h"
+#include "hostmon.h"
 
 #define MSGSTRING_MAX	320
 
 unsigned int bmaxy = 0;
 unsigned int imaxy = 0;
-
-void convmacaddr(char *addr, char *result);
 
 static void setlabels(WINDOW *win, int mode)
 {

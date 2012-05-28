@@ -23,6 +23,7 @@ othptab.c - non-TCP protocol display module
 #include "servname.h"
 #include "addproto.h"
 #include "packet.h"
+#include "hostmon.h"
 
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
@@ -32,8 +33,6 @@ othptab.c - non-TCP protocol display module
 * code
 */
 #define uninitialized_var(x) x = x
-
-void convmacaddr(char *addr, char *result);	/* external; from hostmon.c */
 
 static void writeothplog(int logging, FILE *fd, char *protname,
 			 char *description, char *additional, int is_ip,

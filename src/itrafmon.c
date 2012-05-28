@@ -38,9 +38,6 @@ itrafmon.c - the IP traffic monitor module
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 
-extern int exitloop;
-extern int daemonized;
-
 static void rotate_ipmon_log(int s __unused)
 {
 	rotate_flag = 1;
@@ -491,7 +488,6 @@ static int checkrvnamed(void)
 {
 	pid_t cpid = 0;
 	int cstat;
-	extern int errno;
 
 	indicate("Trying to communicate with reverse lookup server");
 	if (!rvnamedactive()) {

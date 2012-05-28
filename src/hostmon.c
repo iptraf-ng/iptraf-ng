@@ -34,9 +34,6 @@ Discovers LAN hosts and displays packet statistics for them
 #define SCROLLUP 0
 #define SCROLLDOWN 1
 
-extern int exitloop;
-extern int daemonized;
-
 struct ethtabent {
 	int type;
 	union {

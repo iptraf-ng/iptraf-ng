@@ -25,8 +25,6 @@ packet.c - routines to open the raw socket, read socket data and
  * Removed PPP, LINK_ISDN
  */
 
-extern int daemonized;
-
 /*
 int isdnfd;
 struct isdntab isdntable;

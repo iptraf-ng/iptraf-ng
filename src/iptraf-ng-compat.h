@@ -83,6 +83,9 @@
 		}							\
 	} while (0)
 
+extern int is_first_instance;		/* in iptraf.c */
+extern int daemonized;
+extern int exitloop;
 
 extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);

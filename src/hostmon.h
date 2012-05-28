@@ -4,6 +4,7 @@
 #include "options.h"
 #include "fltselect.h"
 
+void convmacaddr(char *addr, char *result);
 void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 	     struct filterstate *ofilter);
 

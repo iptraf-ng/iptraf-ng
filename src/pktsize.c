@@ -28,9 +28,6 @@ pktsize.c	- the packet size breakdown facility
 #include "logvars.h"
 #include "promisc.h"
 
-extern int exitloop;
-extern int daemonized;
-
 struct ifstat_brackets {
 	unsigned int floor;
 	unsigned int ceil;

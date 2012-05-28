@@ -45,9 +45,6 @@ struct ifcounts {
 	struct proto_counter other;
 };
 
-extern int exitloop;
-extern int daemonized;
-
 /* USR1 log-rotation signal handlers */
 static void rotate_dstat_log(int s __unused)
 {
