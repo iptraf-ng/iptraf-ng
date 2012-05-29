@@ -16,7 +16,6 @@ serv.c  - TCP/UDP port statistics module
 
 #include "dirs.h"
 #include "deskman.h"
-#include "isdntab.h"
 #include "fltdefs.h"
 #include "fltselect.h"
 #include "packet.h"
@@ -903,7 +902,6 @@ void servmon(char *ifname, const struct OPTIONS *options,
 			 "******** TCP/UDP service monitor started ********");
 	}
 
-	//isdnfd = -1;
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	starttime = startlog = timeint = tv.tv_sec;

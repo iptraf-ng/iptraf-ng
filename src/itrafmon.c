@@ -17,7 +17,6 @@ itrafmon.c - the IP traffic monitor module
 #include "othptab.h"
 #include "fltdefs.h"
 #include "fltselect.h"
-#include "isdntab.h"
 #include "packet.h"
 #include "ifaces.h"
 #include "promisc.h"
@@ -734,7 +733,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		goto err_close;
 	}
 
-	//isdnfd = -1;
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	starttime = timeint = closedint = tv.tv_sec;

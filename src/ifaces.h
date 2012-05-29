@@ -22,7 +22,6 @@ int dev_clear_promisc(char *ifname);
 int dev_get_ifname(int ifindex, char *ifname);
 int dev_bind_ifindex(const int fd, const int ifindex);
 int dev_bind_ifname(const int fd, const char const *ifname);
-void isdn_iface_check(int *fd, char *ifname);
 char *gen_iface_msg(char *ifptr);
 
 #endif	/* IPTRAF_NG_IFACES_H */

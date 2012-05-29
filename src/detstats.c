@@ -13,7 +13,6 @@ detstats.c	- the interface statistics module
 
 #include "counters.h"
 #include "ifaces.h"
-#include "isdntab.h"
 #include "fltdefs.h"
 #include "fltselect.h"
 #include "packet.h"
@@ -401,7 +400,6 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		goto err_close;
 	}
 
-	//isdnfd = -1;
 	exitloop = 0;
 
 	PACKET_INIT(pkt);

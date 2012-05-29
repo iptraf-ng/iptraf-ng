@@ -15,7 +15,6 @@ pktsize.c	- the packet size breakdown facility
 #include "dirs.h"
 #include "fltdefs.h"
 #include "fltselect.h"
-#include "isdntab.h"
 #include "ifaces.h"
 #include "packet.h"
 #include "deskman.h"

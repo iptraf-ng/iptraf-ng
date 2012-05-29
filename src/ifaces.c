@@ -271,14 +271,6 @@ int dev_bind_ifname(const int fd, const char const *ifname)
 	return dev_bind_ifindex(fd, ifr.ifr_ifindex);
 }
 
-void isdn_iface_check(int *fd, char *ifname)
-{
-	if (*fd == -1) {
-		if (strncmp(ifname, "isdn", 4) == 0)
-			*fd = open("/dev/isdnctrl", O_RDWR);
-	}
-}
-
 char *gen_iface_msg(char *ifptr)
 {
 	static char if_msg[20];

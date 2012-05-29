@@ -22,8 +22,6 @@ packet.h - external declarations for packet.c
 #define PACKET_FILTERED 3
 #define MORE_FRAGMENTS 4
 
-extern int isdnfd;
-
 struct pkt_hdr {
 	size_t		pkt_bufsize;
 	char	       *pkt_payload;

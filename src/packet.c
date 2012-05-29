@@ -16,19 +16,9 @@ packet.c - routines to open the raw socket, read socket data and
 #include "fltdefs.h"
 #include "fltselect.h"
 #include "ipfilter.h"
-#include "isdntab.h"
 #include "ifaces.h"
 #include "packet.h"
 #include "ipfrag.h"
-
-/* Reimplement again
- * Removed PPP, LINK_ISDN
- */
-
-/*
-int isdnfd;
-struct isdntab isdntable;
-*/
 
 /* code taken from http://www.faqs.org/rfcs/rfc1071.html. See section 4.1 "C"  */
 static int in_cksum(u_short * addr, int len)
@@ -303,8 +293,5 @@ again:	if (pkt->pkt_protocol == ETH_P_IP) {
 
 void pkt_cleanup(void)
 {
-	// close(isdnfd);
-	// isdnfd = -1;
 	destroyfraglist();
-	// destroy_isdn_table(&isdntable);
 }

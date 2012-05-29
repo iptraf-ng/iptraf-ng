@@ -17,7 +17,6 @@ Discovers LAN hosts and displays packet statistics for them
 #include "deskman.h"
 #include "fltdefs.h"
 #include "fltselect.h"
-#include "isdntab.h"		/* needed by packet.h */
 #include "packet.h"
 #include "ifaces.h"
 #include "hostmon.h"

@@ -15,7 +15,6 @@ ifstats.c	- the interface statistics module
 #include "tui/winops.h"
 
 #include "ifaces.h"
-#include "isdntab.h"
 #include "fltdefs.h"
 #include "fltselect.h"
 #include "packet.h"
@@ -518,7 +517,6 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		goto err;
 	}
 
-	//isdnfd = -1;
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	start_tv = tv;
