@@ -7,15 +7,14 @@ packet.h - external declarations for packet.c
 
 ***/
 
+#include "fltselect.h"
+
 /*
- * Number of bytes from captured packet to move into an aligned buffer.
+ * Number of bytes from captured packet to move into a buffer.
  * 96 bytes should be enough for the IP header, TCP/UDP/ICMP/whatever header
  * with reasonable numbers of options.
  */
-
-#include "fltselect.h"
-
-#define MAX_PACKET_SIZE 256	/* 256B should be enough to see all headers */
+#define MAX_PACKET_SIZE 96
 
 #define INVALID_PACKET 0
 #define PACKET_OK 1
@@ -26,17 +25,17 @@ packet.h - external declarations for packet.c
 extern int isdnfd;
 
 struct pkt_hdr {
-	char		pkt_buf[MAX_PACKET_SIZE];
 	size_t		pkt_bufsize;
 	char	       *pkt_payload;
 	size_t		pkt_caplen;	/* bytes captured */
 	size_t		pkt_len;	/* bytes on-the-wire */
-	unsigned short	pkt_protocol;	/* Physical layer protocol: ETH_P_* */
 	int		pkt_ifindex;	/* Interface number */
+	unsigned short	pkt_protocol;	/* Physical layer protocol: ETH_P_* */
 	unsigned short	pkt_hatype;	/* Header type: ARPHRD_* */
 	unsigned char	pkt_pkttype;	/* Packet type: PACKET_OUTGOING, PACKET_BROADCAST, ... */
 	unsigned char	pkt_halen;	/* Length of address */
 	unsigned char	pkt_addr[8];	/* Physical layer address */
+	char		pkt_buf[MAX_PACKET_SIZE];
 };
 
 #define PACKET_INIT(packet) \
