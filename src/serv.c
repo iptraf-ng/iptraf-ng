@@ -119,13 +119,13 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs,
 				    (float) (now - ptmp->proto_starttime);
 			} else {
 				inrate =
-				    (float) (ptmp->obcount / 1024) /
+				    (float) (ptmp->ibcount / 1024) /
 				    (float) (now - ptmp->proto_starttime);
 				outrate =
 				    (float) (ptmp->obcount / 1024) /
 				    (float) (now - ptmp->proto_starttime);
 				totalrate =
-				    (float) (ptmp->obcount / 1024) /
+				    (float) (ptmp->bcount / 1024) /
 				    (float) (now - ptmp->proto_starttime);
 			}
 		}
