@@ -33,6 +33,7 @@ serv.c  - TCP/UDP port statistics module
 #include "logvars.h"
 #include "error.h"
 #include "bar.h"
+#include "counters.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -51,15 +52,10 @@ struct portlistent {
 	unsigned int protocol;
 	char servname[11];
 	unsigned int idx;
-	unsigned long long count;
-	unsigned long long bcount;
-	unsigned long long icount;
-	unsigned long long ibcount;
-	unsigned long long ocount;
-	unsigned long long obcount;
+	struct proto_counter serv_count;
+	struct proto_counter span;
 	time_t starttime;
 	time_t proto_starttime;
-	struct serv_spans spans;
 	struct portlistent *prev_entry;
 	struct portlistent *next_entry;
 };
@@ -109,23 +105,23 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs,
 		else {
 			if (units == KBITS) {
 				inrate =
-				    (float) (ptmp->ibcount * 8 / 1000) /
+				    (float) (ptmp->serv_count.proto_in.pc_bytes * 8 / 1000) /
 				    (float) (now - ptmp->proto_starttime);
 				outrate =
-				    (float) (ptmp->obcount * 8 / 1000) /
+				    (float) (ptmp->serv_count.proto_out.pc_bytes * 8 / 1000) /
 				    (float) (now - ptmp->proto_starttime);
 				totalrate =
-				    (float) (ptmp->bcount * 8 / 1000) /
+				    (float) (ptmp->serv_count.proto_total.pc_bytes * 8 / 1000) /
 				    (float) (now - ptmp->proto_starttime);
 			} else {
 				inrate =
-				    (float) (ptmp->ibcount / 1024) /
+				    (float) (ptmp->serv_count.proto_in.pc_bytes / 1024) /
 				    (float) (now - ptmp->proto_starttime);
 				outrate =
-				    (float) (ptmp->obcount / 1024) /
+				    (float) (ptmp->serv_count.proto_out.pc_bytes / 1024) /
 				    (float) (now - ptmp->proto_starttime);
 				totalrate =
-				    (float) (ptmp->bcount / 1024) /
+				    (float) (ptmp->serv_count.proto_total.pc_bytes / 1024) /
 				    (float) (now - ptmp->proto_starttime);
 			}
 		}
@@ -135,20 +131,23 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs,
 		else
 			fprintf(fd, "UDP/%s: ", ptmp->servname);
 
-		fprintf(fd, "%llu packets, %llu bytes total", ptmp->count,
-			ptmp->bcount);
+		fprintf(fd, "%llu packets, %llu bytes total",
+			ptmp->serv_count.proto_total.pc_packets,
+			ptmp->serv_count.proto_total.pc_bytes);
 
 		if (totalrate >= 0.0)
 			fprintf(fd, ", %.2f %s", totalrate, dispmode(units));
 
-		fprintf(fd, "; %llu packets, %llu bytes incoming", ptmp->icount,
-			ptmp->ibcount);
+		fprintf(fd, "; %llu packets, %llu bytes incoming",
+			ptmp->serv_count.proto_in.pc_packets,
+			ptmp->serv_count.proto_in.pc_bytes);
 
 		if (inrate >= 0.0)
 			fprintf(fd, ", %.2f %s", inrate, dispmode(units));
 
-		fprintf(fd, "; %llu packets, %llu bytes outgoing", ptmp->ocount,
-			ptmp->obcount);
+		fprintf(fd, "; %llu packets, %llu bytes outgoing",
+			ptmp->serv_count.proto_out.pc_packets,
+			ptmp->serv_count.proto_out.pc_bytes);
 
 		if (outrate >= 0.0)
 			fprintf(fd, ", %.2f %s", outrate, dispmode(units));
@@ -232,9 +231,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 
 	servlook(servnames, htons(port), protocol, ptemp->servname, 10);
 
-	ptemp->count = ptemp->bcount = 0;
-	ptemp->icount = ptemp->ibcount = 0;
-	ptemp->ocount = ptemp->obcount = 0;
+	memset(&ptemp->serv_count, 0, sizeof(ptemp->serv_count));
 
 	list->count++;
 	ptemp->idx = list->count;
@@ -328,17 +325,17 @@ static void printportent(struct portlist *list, struct portlistent *entry,
 	wprintw(list->win, "/%s          ", entry->servname);
 	wattrset(list->win, highattr);
 	wmove(list->win, target_row, 17 * screen_scale);
-	printlargenum(entry->count, list->win);
+	printlargenum(entry->serv_count.proto_total.pc_packets, list->win);
 	wmove(list->win, target_row, 27 * screen_scale);
-	printlargenum(entry->bcount, list->win);
+	printlargenum(entry->serv_count.proto_total.pc_bytes, list->win);
 	wmove(list->win, target_row, 37 * screen_scale);
-	printlargenum(entry->icount, list->win);
+	printlargenum(entry->serv_count.proto_in.pc_packets, list->win);
 	wmove(list->win, target_row, 47 * screen_scale);
-	printlargenum(entry->ibcount, list->win);
+	printlargenum(entry->serv_count.proto_in.pc_bytes, list->win);
 	wmove(list->win, target_row, 57 * screen_scale);
-	printlargenum(entry->ocount, list->win);
+	printlargenum(entry->serv_count.proto_out.pc_packets, list->win);
 	wmove(list->win, target_row, 67 * screen_scale);
-	printlargenum(entry->obcount, list->win);
+	printlargenum(entry->serv_count.proto_out.pc_bytes, list->win);
 }
 
 static void destroyportlist(struct portlist *list)
@@ -365,6 +362,10 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 {
 	struct portlistent *sport_listent = NULL;
 	struct portlistent *dport_listent = NULL;
+	enum {
+		PORT_INCOMING = 0,
+		PORT_OUTGOING
+	};
 
 	if (goodport(sport, ports)) {
 		sport_listent = inportlist(list, protocol, sport);
@@ -376,13 +377,8 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 		if (sport_listent == NULL)
 			return;
 
-		sport_listent->count++;
-		sport_listent->bcount += br;
-		sport_listent->spans.spanbr += br;
-
-		sport_listent->obcount += br;
-		sport_listent->spans.spanbr_out += br;
-		sport_listent->ocount++;
+		update_proto_counter(&sport_listent->serv_count, PORT_OUTGOING, br);
+		update_proto_counter(&sport_listent->span, PORT_OUTGOING, br);
 	}
 
 	if (goodport(dport, ports)) {
@@ -395,20 +391,13 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 		if (dport_listent == NULL)
 			return;
 
-		dport_listent->count++;
-		dport_listent->bcount += br;
-		dport_listent->spans.spanbr += br;
-
-		dport_listent->ibcount += br;
-		dport_listent->spans.spanbr_in += br;
-		dport_listent->icount++;
+		update_proto_counter(&dport_listent->serv_count, PORT_INCOMING, br);
+		update_proto_counter(&dport_listent->span, PORT_INCOMING, br);
 	}
-	if (sport_listent != NULL || dport_listent != NULL) {
-		if (sport_listent != NULL)
-			printportent(list, sport_listent, idx);
-		if (dport_listent != NULL && dport_listent != sport_listent)
-			printportent(list, dport_listent, idx);
-	}
+	if (sport_listent != NULL)
+		printportent(list, sport_listent, idx);
+	if (dport_listent != NULL && dport_listent != sport_listent)
+		printportent(list, dport_listent, idx);
 }
 
 /*
@@ -468,22 +457,22 @@ static unsigned long long qp_getkey(struct portlistent *entry, int ch)
 		result = entry->port;
 		break;
 	case 'B':
-		result = entry->bcount;
+		result = entry->serv_count.proto_total.pc_bytes;
 		break;
 	case 'O':
-		result = entry->ibcount;
+		result = entry->serv_count.proto_in.pc_bytes;
 		break;
 	case 'M':
-		result = entry->obcount;
+		result = entry->serv_count.proto_out.pc_bytes;
 		break;
 	case 'P':
-		result = entry->count;
+		result = entry->serv_count.proto_total.pc_packets;
 		break;
 	case 'T':
-		result = entry->icount;
+		result = entry->serv_count.proto_in.pc_packets;
 		break;
 	case 'F':
-		result = entry->ocount;
+		result = entry->serv_count.proto_out.pc_packets;
 		break;
 	}
 
@@ -746,26 +735,24 @@ static void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
 
 	if (actmode == KBITS) {
 		inrate =
-		    (float) (list->barptr->spans.spanbr_in * 8 / 1000) /
+		    (float) (list->barptr->span.proto_in.pc_bytes * 8 / 1000) /
 		    (float) (now - list->barptr->starttime);
 		outrate =
-		    (float) (list->barptr->spans.spanbr_out * 8 / 1000) /
+		    (float) (list->barptr->span.proto_out.pc_bytes * 8 / 1000) /
 		    (float) (now - list->barptr->starttime);
 		totalrate =
-		    (float) (list->barptr->spans.spanbr * 8 / 1000) /
+		    (float) (list->barptr->span.proto_total.pc_bytes * 8 / 1000) /
 		    (float) (now - list->barptr->starttime);
 	} else {
 		inrate =
-		    (float) (list->barptr->spans.spanbr_in / 1024) /
+		    (float) (list->barptr->span.proto_in.pc_bytes / 1024) /
 		    (float) (now - list->barptr->starttime);
 		outrate =
-		    (float) (list->barptr->spans.spanbr_out / 1024) /
+		    (float) (list->barptr->span.proto_out.pc_bytes / 1024) /
 		    (float) (now - list->barptr->starttime);
 		totalrate =
-		    (float) (list->barptr->spans.spanbr / 1024) / (float) (now -
-									   list->
-									   barptr->
-									   starttime);
+		    (float) (list->barptr->span.proto_total.pc_bytes / 1024) /
+		    (float) (now - list->barptr->starttime);
 	}
 
 	wattrset(win, IPSTATLABELATTR);
@@ -777,7 +764,7 @@ static void update_serv_rates(struct portlist *list, WINDOW * win, int actmode,
 	mvwprintw(win, 0, 46, "%10.2f", outrate);
 	mvwprintw(win, 0, 61, "%10.2f", totalrate);
 
-	memset(&(list->barptr->spans), 0, sizeof(struct serv_spans));
+	memset(&list->barptr->span, 0, sizeof(list->barptr->span));
 	list->barptr->starttime = time(NULL);
 	*cleared = 0;
 }
@@ -982,8 +969,8 @@ void servmon(char *ifname, const struct OPTIONS *options,
 				set_barptr((void *) &(list.barptr),
 					   list.barptr->prev_entry,
 					   &(list.barptr->prev_entry->starttime),
-					   &(list.barptr->prev_entry->spans),
-					   sizeof(struct serv_spans),
+					   &list.barptr->prev_entry->span,
+					   sizeof(list.barptr->prev_entry->span),
 					   statwin, &statcleared, statx);
 				printportent(&list, serv_tmp, idx);
 
@@ -1003,8 +990,8 @@ void servmon(char *ifname, const struct OPTIONS *options,
 				set_barptr((void *) &(list.barptr),
 					   list.barptr->next_entry,
 					   &(list.barptr->next_entry->starttime),
-					   &(list.barptr->next_entry->spans),
-					   sizeof(struct serv_spans),
+					   &list.barptr->next_entry->span,
+					   sizeof(list.barptr->next_entry->span),
 					   statwin, &statcleared, statx);
 				printportent(&list,serv_tmp, idx);
 
@@ -1025,8 +1012,8 @@ void servmon(char *ifname, const struct OPTIONS *options,
 				set_barptr((void *) &(list.barptr),
 					   list.lastvisible,
 					   &(list.lastvisible->starttime),
-					   &(list.lastvisible->spans),
-					   sizeof(struct serv_spans),
+					   &list.lastvisible->span,
+					   sizeof(list.lastvisible->span),
 					   statwin, &statcleared, statx);
 				list.baridx = list.lastvisible->idx - idx + 1;
 
@@ -1042,8 +1029,8 @@ void servmon(char *ifname, const struct OPTIONS *options,
 				set_barptr((void *) &(list.barptr),
 					   list.firstvisible,
 					   &(list.firstvisible->starttime),
-					   &(list.firstvisible->spans),
-					   sizeof(struct serv_spans),
+					   &list.firstvisible->span,
+					   sizeof(list.firstvisible->span),
 					   statwin, &statcleared, statx);
 				list.baridx = 1;
 
@@ -1079,8 +1066,8 @@ void servmon(char *ifname, const struct OPTIONS *options,
 					   list.firstvisible,
 					   &(list.firstvisible->
 					     starttime),
-					   &(list.firstvisible->spans),
-					   sizeof(struct serv_spans),
+					   &list.firstvisible->span,
+					   sizeof(list.firstvisible->span),
 					   statwin, &statcleared,
 					   statx);
 				list.baridx = 1;
@@ -1133,8 +1120,8 @@ void servmon(char *ifname, const struct OPTIONS *options,
 		if ((list.barptr == NULL) && (list.head != NULL)) {
 			set_barptr((void *) &(list.barptr), list.head,
 				   &(list.head->starttime),
-				   &(list.head->spans),
-				   sizeof(struct serv_spans), statwin,
+				   &list.head->span,
+				   sizeof(list.head->span), statwin,
 				   &statcleared, statx);
 			list.baridx = 1;
 		}
