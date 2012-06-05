@@ -41,12 +41,10 @@ struct ethtabent {
 			unsigned long long inbcount;
 			unsigned long long inippcount;
 			unsigned long inspanbr;
-			unsigned int inpktact;
 			unsigned long long outpcount;
 			unsigned long long outbcount;
 			unsigned long long outippcount;
 			unsigned long outspanbr;
-			unsigned int outpktact;
 			float inrate;
 			float outrate;
 			short past5;
@@ -281,8 +279,8 @@ static struct ethtabent *addethentry(struct ethtab *table,
 		return NULL;
 
 	ptemp->type = 1;
-	ptemp->un.figs.inpcount = ptemp->un.figs.inpktact = 0;
-	ptemp->un.figs.outpcount = ptemp->un.figs.outpktact = 0;
+	ptemp->un.figs.inpcount = 0;
+	ptemp->un.figs.outpcount = 0;
 	ptemp->un.figs.inspanbr = ptemp->un.figs.outspanbr = 0;
 	ptemp->un.figs.inippcount = ptemp->un.figs.outippcount = 0;
 	ptemp->un.figs.inbcount = ptemp->un.figs.outbcount = 0;
