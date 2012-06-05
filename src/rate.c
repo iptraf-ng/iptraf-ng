@@ -95,6 +95,20 @@ int rate_print(unsigned long rate, int dispmode, char *buf, unsigned n)
 	return chars;
 }
 
+int rate_print_no_units(unsigned long rate, int dispmode, char *buf, unsigned n)
+{
+	int chars;
+
+	if (dispmode == KBITS) {
+		chars = snprintf(buf, n, "%8.1f", (double)rate * 8 / 1000);
+	} else {
+		chars = snprintf(buf, n, "%8.1f", (double)rate / 1024);
+	}
+	buf[n - 1] = '\0';
+
+	return chars;
+}
+
 int rate_print_pps(unsigned long rate, char *buf, unsigned n)
 {
 	int chars;

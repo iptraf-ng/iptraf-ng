@@ -29,6 +29,7 @@ Discovers LAN hosts and displays packet statistics for them
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
+#include "rate.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -45,9 +46,8 @@ struct ethtabent {
 			unsigned long long outbcount;
 			unsigned long long outippcount;
 			unsigned long outspanbr;
-			float inrate;
-			float outrate;
-			short past5;
+			struct rate inrate;
+			struct rate outrate;
 		} figs;
 
 		struct {
@@ -73,6 +73,7 @@ struct ethtab {
 	struct ethtabent *lastvisible;
 	unsigned long count;
 	unsigned long entcount;
+	int units;
 	WINDOW *borderwin;
 	PANEL *borderpanel;
 	WINDOW *tabwin;
@@ -125,26 +126,24 @@ static void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 				ptmp->un.figs.outippcount);
 
 			fprintf(fd, "\tAverage rates: ");
-			if (unit == KBITS)
-				fprintf(fd,
-					"%.2f kbits/s incoming, %.2f kbits/s outgoing\n",
-					(float) (ptmp->un.figs.inbcount * 8 /
-						 1000) / (float) nsecs,
-					(float) (ptmp->un.figs.outbcount * 8 /
-						 1000) / (float) nsecs);
-			else
-				fprintf(fd,
-					"%.2f kbytes/s incoming, %.2f kbytes/s outgoing\n",
-					(float) (ptmp->un.figs.inbcount /
-						 1024) / (float) nsecs,
-					(float) (ptmp->un.figs.outbcount /
-						 1024) / (float) nsecs);
+			char buf_in[32];
+			char buf_out[32];
+			rate_print(ptmp->un.figs.inbcount / nsecs, unit,
+				   buf_in, sizeof(buf_in));
+			rate_print(ptmp->un.figs.outbcount / nsecs, unit,
+				   buf_out, sizeof(buf_out));
+			fprintf(fd, "%s incoming, %s outgoing\n",
+				buf_in, buf_out);
 
-			if (nsecs > 5)
+			if (nsecs > 5) {
+				rate_print(rate_get_average(&ptmp->un.figs.inrate),
+					   unit, buf_in, sizeof(buf_in));
+				rate_print(rate_get_average(&ptmp->un.figs.outrate),
+					   unit, buf_out, sizeof(buf_out));
 				fprintf(fd,
-					"\tLast 5-second rates: %.2f %s incoming, %.2f %s outgoing\n",
-					ptmp->un.figs.inrate, dispmode(unit),
-					ptmp->un.figs.outrate, dispmode(unit));
+					"\tLast 5-second rates: %s incoming, %s outgoing\n",
+					buf_in, buf_out);
+			}
 		}
 
 		ptmp = ptmp->next_entry;
@@ -159,6 +158,7 @@ static void initethtab(struct ethtab *table, int unit)
 	table->head = table->tail = NULL;
 	table->firstvisible = table->lastvisible = NULL;
 	table->count = table->entcount = 0;
+	table->units = unit;
 
 	table->borderwin = newwin(LINES - 2, COLS, 1, 0);
 	table->borderpanel = new_panel(table->borderwin);
@@ -284,8 +284,8 @@ static struct ethtabent *addethentry(struct ethtab *table,
 	ptemp->un.figs.inspanbr = ptemp->un.figs.outspanbr = 0;
 	ptemp->un.figs.inippcount = ptemp->un.figs.outippcount = 0;
 	ptemp->un.figs.inbcount = ptemp->un.figs.outbcount = 0;
-	ptemp->un.figs.inrate = ptemp->un.figs.outrate = 0;
-	ptemp->un.figs.past5 = 0;
+	rate_init(&ptemp->un.figs.inrate, 5);
+	rate_init(&ptemp->un.figs.outrate, 5);
 
 	table->entcount++;
 
@@ -393,6 +393,10 @@ static void destroyethtab(struct ethtab *table)
 		cnext = table->head->next_entry;
 
 	while (ptemp != NULL) {
+		if (ptemp->type == 1) {
+			rate_destroy(&ptemp->un.figs.outrate);
+			rate_destroy(&ptemp->un.figs.inrate);
+		}
 		free(ptemp);
 		ptemp = cnext;
 
@@ -412,16 +416,21 @@ static void hostmonhelp(void)
 static void printrates(struct ethtab *table, unsigned int target_row,
 		       struct ethtabent *ptmp)
 {
-	if (ptmp->un.figs.past5) {
-		wmove(table->tabwin, target_row, 32 * COLS / 80);
-		wprintw(table->tabwin, "%8.1f", ptmp->un.figs.inrate);
-		wmove(table->tabwin, target_row, 69 * COLS / 80);
-		wprintw(table->tabwin, "%8.1f", ptmp->un.figs.outrate);
-	}
+	char buf[32];
+
+	rate_print_no_units(rate_get_average(&ptmp->un.figs.inrate),
+		   table->units, buf, sizeof(buf));
+	wmove(table->tabwin, target_row, 32 * COLS / 80);
+	wprintw(table->tabwin, "%s", buf);
+
+	rate_print_no_units(rate_get_average(&ptmp->un.figs.outrate),
+		   table->units, buf, sizeof(buf));
+	wmove(table->tabwin, target_row, 69 * COLS / 80);
+	wprintw(table->tabwin, "%s", buf);
 }
 
-static void updateethrates(struct ethtab *table, int unit, time_t starttime,
-			   time_t now, unsigned int idx)
+static void updateethrates(struct ethtab *table, unsigned long msecs,
+			   unsigned int idx)
 {
 	struct ethtabent *ptmp = table->head;
 	unsigned int target_row = 0;
@@ -431,32 +440,18 @@ static void updateethrates(struct ethtab *table, int unit, time_t starttime,
 
 	while (ptmp != NULL) {
 		if (ptmp->type == 1) {
-			ptmp->un.figs.past5 = 1;
-			if (unit == KBITS) {
-				ptmp->un.figs.inrate = ((float)
-							(ptmp->un.figs.
-							 inspanbr * 8 / 1000)) /
-				    ((float) (now - starttime));
-				ptmp->un.figs.outrate = ((float)
-							 (ptmp->un.figs.
-							  outspanbr * 8 /
-							  1000)) /
-				    ((float) (now - starttime));
-			} else {
-				ptmp->un.figs.inrate =
-				    ((float) (ptmp->un.figs.inspanbr / 1024)) /
-				    ((float) (now - starttime));
-				ptmp->un.figs.outrate =
-				    ((float) (ptmp->un.figs.outspanbr / 1024)) /
-				    ((float) (now - starttime));
-			}
+			rate_add_rate(&ptmp->un.figs.inrate, ptmp->un.figs.inspanbr, msecs);
+			ptmp->un.figs.inspanbr = 0;
+
+			rate_add_rate(&ptmp->un.figs.outrate, ptmp->un.figs.outspanbr, msecs);
+			ptmp->un.figs.outspanbr = 0;
+
 			if ((ptmp->index >= idx)
 			    && (ptmp->index <= idx + LINES - 5)) {
 				wattrset(table->tabwin, HIGHATTR);
 				target_row = ptmp->index - idx;
 				printrates(table, target_row, ptmp);
 			}
-			ptmp->un.figs.inspanbr = ptmp->un.figs.outspanbr = 0;
 		}
 		ptmp = ptmp->next_entry;
 	}
@@ -769,7 +764,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 	char *ifname = ifptr;
 
 	struct timeval tv;
-	time_t starttime;
+	struct timeval tv_rate;
 	time_t now = 0;
 	unsigned long long unow = 0;
 	time_t statbegin = 0;
@@ -867,7 +862,8 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
-	starttime = statbegin = startlog = tv.tv_sec;
+	tv_rate = tv;
+	statbegin = startlog = tv.tv_sec;
 
 	PACKET_INIT(pkt);
 
@@ -876,12 +872,12 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		now = tv.tv_sec;
 		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
-		if ((now - starttime) >= 5) {
+		unsigned long msecs = timeval_diff_msec(&tv, &tv_rate);
+		if (msecs >= 1000) {
 			printelapsedtime(statbegin, now, LINES - 3, 15,
 					 table.borderwin);
-			updateethrates(&table, options->actmode, starttime, now,
-				       idx);
-			starttime = now;
+			updateethrates(&table, msecs, idx);
+			tv_rate = tv;
 		}
 		if (logging) {
 			check_rotate_flag(&logfile);
