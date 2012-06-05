@@ -1,4 +1,4 @@
-# The default target of this Makefile is...
+# The default target of this Makefile is this
 all::
 
 # Define V=1 to have a more verbose compile.
