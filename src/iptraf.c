@@ -334,7 +334,6 @@ static void sanitize_dir(const char *dir)
 int main(int argc, char **argv)
 {
 	struct OPTIONS options;
-	int command = 0;
 	int current_log_interval = 0;
 
 	if (geteuid() != 0)
@@ -349,16 +348,16 @@ int main(int argc, char **argv)
 	if (help_opt)
 		parse_usage_and_die(iptraf_ng_usage, iptraf_ng_options);
 
-	int status = 0;
+	int command = 0;
 
-	status |= (i_opt) ? (1 << 0) : 0;
-	status |= (d_opt) ? (1 << 1) : 0;
-	status |= (s_opt) ? (1 << 2) : 0;
-	status |= (z_opt) ? (1 << 3) : 0;
-	status |= (l_opt) ? (1 << 4) : 0;
-	status |= (g_opt) ? (1 << 5) : 0;
+	command |= (i_opt) ? (1 << 0) : 0;
+	command |= (d_opt) ? (1 << 1) : 0;
+	command |= (s_opt) ? (1 << 2) : 0;
+	command |= (z_opt) ? (1 << 3) : 0;
+	command |= (l_opt) ? (1 << 4) : 0;
+	command |= (g_opt) ? (1 << 5) : 0;
 
-	if (__builtin_popcount(status) > 1)
+	if (__builtin_popcount(command) > 1)
 		die("only one of -i|-d|-s|-z|-l|-g options must be used");
 
 	strcpy(current_logfile, "");
@@ -371,7 +370,7 @@ int main(int argc, char **argv)
 	}
 
 	if (B_opt) {
-		if (!status)
+		if (!command)
 			die("one of -i|-d|-s|-z|-l|-g option is missing\n");
 		daemonized = 1;
 		setenv("TERM", "linux", 1);
@@ -420,7 +419,7 @@ int main(int argc, char **argv)
 	 * a daemonization request
 	 */
 
-	if ((daemonized) && (command != 0)) {
+	if (daemonized && command) {
 		switch (fork()) {
 		case 0:	/* child */
 			setsid();
