@@ -31,7 +31,6 @@ itrafmon.c - the IP traffic monitor module
 #include "ipfrag.h"
 #include "instances.h"
 #include "logvars.h"
-#include "bar.h"
 #include "itrafmon.h"
 
 #define SCROLLUP 0
@@ -524,27 +523,24 @@ static int checkrvnamed(void)
 	return 1;
 }
 
-static void update_flowrate(WINDOW * win, struct tcptableent *entry, time_t now,
-		     int *cleared, int mode)
+static void update_flowrate(struct tcptable *table, unsigned long msecs)
 {
-	float rate = 0;
+	struct tcptableent *entry;
+	for (entry = table->head; entry != NULL; entry = entry->next_entry) {
+		rate_add_rate(&entry->rate, entry->spanbr, msecs);
+		entry->spanbr = 0;
+	}
+}
 
+static void print_flowrate(struct tcptableent *entry, WINDOW *win, int mode)
+{
 	wattrset(win, IPSTATLABELATTR);
 	mvwprintw(win, 0, COLS * 47 / 80, "TCP flow rate: ");
 	wattrset(win, IPSTATATTR);
-	if (mode == KBITS) {
-		rate =
-		    (float) (entry->spanbr * 8 / 1000) / (float) (now -
-								  entry->
-								  starttime);
-	} else {
-		rate =
-		    (float) (entry->spanbr / 1024) / (float) (now -
-							      entry->starttime);
-	}
-	mvwprintw(win, 0, COLS * 53 / 80 + 13, "%8.2f %s", rate, dispmode(mode));
-	entry->spanbr = 0;
-	*cleared = 0;
+
+	char buf[32];
+	rate_print(rate_get_average(&entry->rate), mode, buf, sizeof(buf));
+	mvwprintw(win, 0, COLS * 52 / 80 + 13, "%s", buf);
 }
 
 /*
@@ -567,6 +563,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 	unsigned long screen_idx = 1;
 
 	struct timeval tv;
+	struct timeval tv_rate;
 	time_t starttime = 0;
 	time_t now = 0;
 	time_t timeint = 0;
@@ -620,7 +617,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 	int instance_id;
 	int revlook = options->revlook;
-	int statcleared = 0;
 	int wasempty = 1;
 
 	const int statx = COLS * 47 / 80;
@@ -735,6 +731,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
+	tv_rate = tv;
 	starttime = timeint = closedint = tv.tv_sec;
 
 	PACKET_INIT(pkt);
@@ -786,16 +783,18 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		 * If highlight bar is on some entry, update the flow rate
 		 * indicator after five seconds.
 		 */
-		if (table.barptr != NULL) {
-			if ((now - table.barptr->starttime) >= 5) {
-				update_flowrate(statwin, table.barptr, now,
-						&statcleared, options->actmode);
-				table.barptr->starttime = now;
+		unsigned long rate_msecs = timeval_diff_msec(&tv, &tv_rate);
+		if (rate_msecs > 1000) {
+			update_flowrate(&table, rate_msecs);
+			if (table.barptr != NULL) {
+				print_flowrate(table.barptr, statwin,
+					       options->actmode);
+			} else {
+				wattrset(statwin, IPSTATATTR);
+				mvwprintw(statwin, 0, statx,
+					  "No TCP entries              ");
 			}
-		} else {
-			wattrset(statwin, IPSTATATTR);
-			mvwprintw(statwin, 0, statx,
-				  "No TCP entries              ");
+			tv_rate = tv;
 		}
 
 		/*
@@ -838,12 +837,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					break;
 
 				tmptcp = table.barptr;
-				set_barptr((void *) &(table.barptr),
-					   table.barptr->prev_entry,
-					   &(table.barptr->prev_entry->starttime),
-					   &(table.barptr->prev_entry->spanbr),
-					   sizeof(unsigned long),
-					   statwin, &statcleared, statx);
+				table.barptr = table.barptr->prev_entry;
 
 				printentry(&table, tmptcp, screen_idx, mode);
 
@@ -866,12 +860,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					break;
 
 				tmptcp = table.barptr;
-				set_barptr((void*) &(table.barptr),
-					   table.barptr->next_entry,
-					   &(table.barptr->next_entry->starttime),
-					   &(table.barptr->next_entry->spanbr),
-					   sizeof(unsigned long),
-					   statwin, &statcleared, statx);
+				table.barptr = table.barptr->next_entry;
 				printentry(&table, tmptcp, screen_idx,mode);
 
 				if (table.baridx == table.imaxy)
@@ -913,14 +902,9 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					break;
 
 				pageupperwin(&table, SCROLLDOWN, &screen_idx);
-				set_barptr((void *) &(table.barptr),
-					   table.lastvisible,
-					   &(table.lastvisible->starttime),
-					   &(table.lastvisible->spanbr),
-					   sizeof(unsigned long),
-					   statwin,&statcleared, statx);
-				table.baridx =
-					table.lastvisible->index - screen_idx + 1;
+				table.barptr = table.lastvisible;
+				table.baridx = table.lastvisible->index
+						- screen_idx + 1;
 				refreshtcpwin(&table, screen_idx, mode);
 				break;
 			case KEY_NPAGE:
@@ -935,12 +919,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					break;
 
 				pageupperwin(&table, SCROLLUP, &screen_idx);
-				set_barptr((void *) &(table.barptr),
-					   table.firstvisible,
-					   &(table.firstvisible->starttime),
-					   &(table.firstvisible->spanbr),
-					   sizeof(unsigned long),
-					   statwin, &statcleared, statx);
+				table.barptr = table.firstvisible;
 				table.baridx = 1;
 				refreshtcpwin(&table, screen_idx, mode);
 				break;
@@ -1001,12 +980,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				   logfile, options);
 
 			if (table.barptr != NULL) {
-				set_barptr((void *) &(table.barptr),
-					   table.firstvisible,
-					   &(table.firstvisible->starttime),
-					   &(table.firstvisible->spanbr),
-					   sizeof(unsigned long),
-					   statwin, &statcleared, statx);
+				table.barptr = table.firstvisible;
 				table.baridx = 1;
 			}
 			refreshtcpwin(&table, screen_idx, mode);
@@ -1130,23 +1104,9 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 						   mode);
 
 					if (wasempty) {
-						set_barptr((void *) &(table.barptr),
-							   table.firstvisible,
-							   &(table.firstvisible->starttime),
-							   &(table.firstvisible->spanbr),
-							   sizeof(unsigned long),
-							   statwin, &statcleared, statx);
+						table.barptr = table.firstvisible;
 						table.baridx = 1;
 					}
-
-					if ((table.barptr == tcpentry)
-					    || (table.barptr == tcpentry->oth_connection))
-						set_barptr((void *) &(table.barptr),
-							   table.barptr,
-							   &(table.barptr->starttime),
-							   &(table.barptr->spanbr),
-							   sizeof(unsigned long), statwin,
-							   &statcleared, statx);
 				}
 			}
 			/*

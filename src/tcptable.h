@@ -7,6 +7,8 @@
 
 ***/
 
+#include "rate.h"
+
 #define max(a, b) (( a > b) ? a : b)
 
 #define FLAG_SYN	1
@@ -49,6 +51,7 @@ struct tcptableent {
 	int inclosed;
 	int half_bracket;
 	unsigned long spanbr;
+	struct rate rate;
 	time_t lastupdate;
 	time_t starttime;
 	time_t conn_starttime;

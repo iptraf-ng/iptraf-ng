@@ -255,6 +255,9 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 		new_entry->reused = new_entry->oth_connection->reused = 0;
 		table->count++;
 
+		rate_alloc(&new_entry->rate, 5);
+		rate_alloc(&new_entry->oth_connection->rate, 5);
+
 		print_tcp_num_entries(table);
 	} else {
 		/*
@@ -385,6 +388,9 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 	new_entry->spanbr = new_entry->oth_connection->spanbr = 0;
 	new_entry->conn_starttime = new_entry->oth_connection->conn_starttime =
 	    time(NULL);
+
+	rate_init(&new_entry->rate);
+	rate_init(&new_entry->oth_connection->rate);
 
 	/*
 	 * Mark flow rate start time and byte counter for flow computation
@@ -1007,6 +1013,7 @@ void destroytcptable(struct tcptable *table)
 		c_next_entry = table->head->next_entry;
 
 		while (ctemp != NULL) {
+			rate_destroy(&ctemp->rate);
 			free(ctemp);
 			ctemp = c_next_entry;
 
@@ -1057,6 +1064,7 @@ static void destroy_tcp_entry(struct tcptable *table, struct tcptableent *ptmp)
 	else
 		table->tail = ptmp->prev_entry;
 
+	rate_destroy(&ptmp->rate);
 	free(ptmp);
 
 	if (table->head == NULL) {
