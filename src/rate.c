@@ -4,15 +4,25 @@
 #include "iptraf-ng-compat.h"
 #include "rate.h"
 
+void rate_init(struct rate *rate)
+{
+	if (!rate)
+		return;
+
+	rate->index = 0;
+	rate->sma = 0;
+	memset(rate->rates, 0, rate->n * sizeof(rate->rates[0]));
+}
+
 void rate_alloc(struct rate *rate, unsigned int n)
 {
 	if (!rate)
 		return;
 
 	rate->n = n;
-	rate->index = 0;
-	rate->sma = 0;
-	rate->rates = xmallocz(n * sizeof(*rate->rates));
+	rate->rates = xmalloc(n * sizeof(rate->rates[0]));
+
+	rate_init(rate);
 }
 
 void rate_destroy(struct rate *rate)
