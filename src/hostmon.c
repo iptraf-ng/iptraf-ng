@@ -284,8 +284,8 @@ static struct ethtabent *addethentry(struct ethtab *table,
 	ptemp->un.figs.inspanbr = ptemp->un.figs.outspanbr = 0;
 	ptemp->un.figs.inippcount = ptemp->un.figs.outippcount = 0;
 	ptemp->un.figs.inbcount = ptemp->un.figs.outbcount = 0;
-	rate_init(&ptemp->un.figs.inrate, 5);
-	rate_init(&ptemp->un.figs.outrate, 5);
+	rate_alloc(&ptemp->un.figs.inrate, 5);
+	rate_alloc(&ptemp->un.figs.outrate, 5);
 
 	table->entcount++;
 

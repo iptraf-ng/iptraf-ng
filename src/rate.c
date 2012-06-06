@@ -4,7 +4,7 @@
 #include "iptraf-ng-compat.h"
 #include "rate.h"
 
-void rate_init(struct rate *rate, unsigned int n)
+void rate_alloc(struct rate *rate, unsigned int n)
 {
 	if (!rate)
 		return;

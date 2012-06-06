@@ -376,13 +376,13 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	doupdate();
 
 	memset(&span, 0, sizeof(span));
-	rate_init(&rate, 5);
-	rate_init(&rate_in, 5);
-	rate_init(&rate_out, 5);
+	rate_alloc(&rate, 5);
+	rate_alloc(&rate_in, 5);
+	rate_alloc(&rate_out, 5);
 
-	rate_init(&pps_rate, 5);
-	rate_init(&pps_rate_in, 5);
-	rate_init(&pps_rate_out, 5);
+	rate_alloc(&pps_rate, 5);
+	rate_alloc(&pps_rate_in, 5);
+	rate_alloc(&pps_rate_out, 5);
 
 	gettimeofday(&tv, NULL);
 	start_tv = tv;

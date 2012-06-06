@@ -211,9 +211,9 @@ static struct portlistent *addtoportlist(struct portlist *list,
 
 	ptemp->protocol = protocol;
 	ptemp->port = port;	/* This is used in checks later. */
-	rate_init(&ptemp->rate, 5);
-	rate_init(&ptemp->rate_in, 5);
-	rate_init(&ptemp->rate_out, 5);
+	rate_alloc(&ptemp->rate, 5);
+	rate_alloc(&ptemp->rate_in, 5);
+	rate_alloc(&ptemp->rate_out, 5);
 
 	/*
 	 * Obtain appropriate service name

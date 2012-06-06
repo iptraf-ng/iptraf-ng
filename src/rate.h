@@ -23,7 +23,7 @@ struct rate {
 	unsigned long		sma;	/* simple moving average */
 };
 
-void rate_init(struct rate *rate, unsigned int n);
+void rate_alloc(struct rate *rate, unsigned int n);
 void rate_destroy(struct rate *rate);
 void rate_add_rate(struct rate *rate, unsigned long bytes,
 		   unsigned long msecs);

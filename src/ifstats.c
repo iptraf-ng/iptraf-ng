@@ -177,7 +177,7 @@ static void initiflist(struct iflist **list)
 		struct iflist *itmp = xmallocz(sizeof(struct iflist));
 		strcpy(itmp->ifname, ifname);
 		itmp->ifindex = ifindex;
-		rate_init(&itmp->rate, 5);
+		rate_alloc(&itmp->rate, 5);
 
 		/* make the linked list sorted by ifindex */
 		struct iflist *cur = *list, *last = NULL;
@@ -688,7 +688,7 @@ void selectiface(char *ifname, int withall, int *aborted)
 		ptmp = xmalloc(sizeof(struct iflist));
 		strncpy(ptmp->ifname, "All interfaces", sizeof(ptmp->ifname));
 		ptmp->ifindex = 0;
-		rate_init(&ptmp->rate, 5);	/* FIXME: need iflist_entry_init() */
+		rate_alloc(&ptmp->rate, 5);	/* FIXME: need iflist_entry_init() */
 
 		ptmp->prev_entry = NULL;
 		list->prev_entry = ptmp;
