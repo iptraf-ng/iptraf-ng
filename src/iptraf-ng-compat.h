@@ -58,7 +58,8 @@
 	(((mode) == KBITS) ? "kbps": "kBps")
 
 #define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
+#define __unused   __attribute__((unused))
+#define __format   __attribute__((format(printf, 1, 2)))
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -94,9 +95,9 @@ extern char *xstrdup(const char *s);
 extern int strtoul_ui(char const *s, int base, unsigned int *result);
 extern int strtol_i(char const *s, int base, int *result);
 
-extern void die(const char *err, ...);
-extern void die_errno(const char *err) __noreturn;
-extern void error(const char *err, ...);
+extern void die(const char *err, ...) __format __noreturn;
+extern void die_errno(const char *fmt, ...) __format __noreturn;
+extern void error(const char *err, ...) __format;
 
 static inline char *skip_whitespace(char *str)
 {

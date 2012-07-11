@@ -114,6 +114,7 @@ iptraf-h += src/logvars.h
 iptraf-h += src/list.h
 iptraf-h += src/counters.h
 iptraf-h += src/rate.h
+iptraf-h += built-in.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
@@ -155,6 +156,7 @@ iptraf-o += src/fltedit.o
 iptraf-o += src/cidr.o
 iptraf-o += src/counters.o
 iptraf-o += src/rate.o
+iptraf-o += src/capture-pkt.o
 
 rvnamed-o += src/rvnamed.o
 rvnamed-o += src/getpath.o
@@ -311,7 +313,7 @@ iptraf-ng: $(iptraf-o)
 		$(iptraf-o) $(ALL_LDFLAGS) $(NCURSES_LDFLAGS)
 
 src/deskman.o src/iptraf.o: VERSION-FILE
-src/deskman.o src/iptraf.o: EXTRA_CPPFLAGS = \
+src/deskman.o src/iptraf.o src/capture-pkt.o: EXTRA_CPPFLAGS = \
 	-DIPTRAF_VERSION='"$(IPTRAF_VERSION)"' \
 	-DIPTRAF_NAME='"iptraf-ng"'
 

@@ -247,7 +247,7 @@ int dev_get_ifname(int ifindex, char *ifname)
 	return ir;
 }
 
-int dev_bind_ifindex(const int fd, const int ifindex)
+int dev_bind_ifindex(int fd, const int ifindex)
 {
 	struct sockaddr_ll fromaddr;
 	socklen_t addrlen = sizeof(fromaddr);
@@ -258,15 +258,15 @@ int dev_bind_ifindex(const int fd, const int ifindex)
 	return bind(fd, (struct sockaddr *) &fromaddr, addrlen);
 }
 
-int dev_bind_ifname(const int fd, const char const *ifname)
+int dev_bind_ifname(int fd, const char const *ifname)
 {
 	int ir;
 	struct ifreq ifr;
 
 	strcpy(ifr.ifr_name, ifname);
 	ir = ioctl(fd, SIOCGIFINDEX, &ifr);
-	if(ir != 0)
-		return(ir);
+	if (ir)
+		return ir;
 
 	return dev_bind_ifindex(fd, ifr.ifr_ifindex);
 }

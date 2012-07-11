@@ -135,9 +135,11 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 			ss = len;
 	}
 
-	*ch = ERR;	/* signalize we have no key ready */
-	if (!daemonized && (ss > 0) && ((pfds[1].revents & POLLIN) != 0))
-		*ch = wgetch(win);
+	if (ch) {
+		*ch = ERR;	/* signalize we have no key ready */
+		if (!daemonized && (ss > 0) && ((pfds[1].revents & POLLIN) != 0))
+			*ch = wgetch(win);
+	}
 
 	return ss;
 }

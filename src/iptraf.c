@@ -7,6 +7,7 @@ An IP Network Statistics Utility
 */
 
 #include "iptraf-ng-compat.h"
+#include "built-in.h"
 
 #include "tui/menurt.h"
 #include "tui/winops.h"
@@ -34,6 +35,15 @@ An IP Network Statistics Utility
 #define WITHOUTALL 0
 
 const char *ALLSPEC = "all";
+
+#define CMD(name, h) { .cmd = #name, .fn = cmd_##name, .help = h }
+#define CMD_END() { NULL, NULL, NULL }
+
+struct cmd_struct {
+    const char *cmd;
+    int (*fn)(int, char **);
+    const char *help;
+};
 
 /*
  * Important globals used throughout the
@@ -331,6 +341,18 @@ static void sanitize_dir(const char *dir)
 	}
 }
 
+static void handle_internal_command(int argc, char **argv,
+                                    const struct cmd_struct *commands)
+{
+	const char *cmd = argv[0];
+
+	for (const struct cmd_struct *p = commands; p->cmd; ++p)
+	{
+		if (!strcmp(p->cmd, cmd))
+			exit(p->fn(argc, argv));
+	}
+}
+
 int main(int argc, char **argv)
 {
 	struct OPTIONS options;
@@ -338,6 +360,23 @@ int main(int argc, char **argv)
 
 	if (geteuid() != 0)
 		die("This program can be run only by the system administrator");
+
+	const struct cmd_struct commands[] = {
+		CMD(capture, "capture packet"),
+		CMD_END(),
+	};
+
+	/* stupid, but for now needed machinery with argc, args
+	 *
+	 */
+	char **internal_argv = argv;
+	argc--;
+	internal_argv++;
+
+	if (argc > 0)
+		handle_internal_command(argc, internal_argv, commands);
+
+	argc++;
 
 	/*
 	 * Parse command line
@@ -525,8 +564,8 @@ int main(int argc, char **argv)
 		servmon(s_opt, &options, facilitytime, &ofilter);
 	else if (z_opt)
 		packet_size_breakdown(&options, z_opt, facilitytime, &ofilter);
-	else
-		program_interface(&options);
+
+	program_interface(&options);
 
 	endwin();
 
