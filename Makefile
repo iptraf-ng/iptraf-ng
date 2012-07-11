@@ -445,5 +445,9 @@ clean:
 	$(RM) config.log config.mak.autogen config.mak.append config.status config.cache
 	$(RM) VERSION-FILE
 
+.PHONY: gtags
+gtags:
+	$(QUIET_GEN) gtags
+
 .PHONY: clean distclean all install FORCE
 
