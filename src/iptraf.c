@@ -286,7 +286,7 @@ static const char *const iptraf_ng_usage[] = {
 	NULL
 };
 
-static int help_opt, f_opt, g_opt, facilitytime, B_opt, I_opt;
+static int help_opt, f_opt, g_opt, facilitytime, B_opt;
 static char *i_opt, *d_opt, *s_opt, *z_opt, *l_opt, *L_opt;
 
 static struct options iptraf_ng_options[] = {

@@ -72,7 +72,7 @@ struct portlist {
 	struct portlistent *firstvisible;
 	struct portlistent *lastvisible;
 	struct portlistent *barptr;
-	int imaxy;
+	unsigned imaxy;
 	unsigned int baridx;
 	unsigned int count;
 	unsigned long bcount;
@@ -228,7 +228,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 
 	gettimeofday(&ptemp->proto_starttime, NULL);
 
-	if (list->count <= LINES - 5)
+	if (list->count <= (unsigned) LINES - 5)
 		list->lastvisible = ptemp;
 
 	wmove(list->borderwin, LINES - 4, 1);
@@ -1254,7 +1254,7 @@ static int dup_portentry(struct porttab *table, unsigned int min,
 
 void addmoreports(struct porttab **table)
 {
-	unsigned int port_min, port_max;
+	unsigned int port_min = 0, port_max = 0;
 	int aborted;
 	struct porttab *ptmp;
 

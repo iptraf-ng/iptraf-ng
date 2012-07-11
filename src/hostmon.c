@@ -221,7 +221,7 @@ static struct ethtabent *addethnode(struct ethtab *table)
 	table->count++;
 	ptemp->index = table->count;
 
-	if (table->count <= LINES - 4)
+	if (table->count <= (unsigned) LINES - 4)
 		table->lastvisible = ptemp;
 
 	return ptemp;
