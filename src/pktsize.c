@@ -319,17 +319,17 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 				exitloop = 1;
 			}
 		}
-		if (pkt.pkt_len > 0) {
-			pkt_result =
-			    packet_process(&pkt, NULL, NULL, NULL,
-					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG, 0);
 
-			if (pkt_result != PACKET_OK)
-				continue;
+		if (pkt.pkt_len <= 0)
+			continue;
 
-			update_size_distrib(pkt.pkt_len, brackets, interval, win);
-		}
+		pkt_result = packet_process(&pkt, NULL, NULL, NULL,
+					    ofilter, MATCH_OPPOSITE_USECONFIG, 0);
+
+		if (pkt_result != PACKET_OK)
+			continue;
+
+		update_size_distrib(pkt.pkt_len, brackets, interval, win);
 	} while (!exitloop);
 
 err_close:
