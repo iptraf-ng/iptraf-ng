@@ -950,97 +950,99 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 				keymode = 0;
 			}
 		}
-		if (pkt.pkt_len > 0) {
-			char ifnamebuf[IFNAMSIZ];
 
-			pkt_result =
-			    packet_process(&pkt, NULL, NULL, NULL,
-					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG,
-					  0);
+		if (pkt.pkt_len <= 0)
+			continue;
 
-			if (pkt_result != PACKET_OK)
-				continue;
+		char ifnamebuf[IFNAMSIZ];
 
-			if (!ifptr) {
-				/* we're capturing on "All interfaces", */
-				/* so get the name of the interface */
-				/* of this packet */
-				int r = dev_get_ifname(pkt.pkt_ifindex, ifnamebuf);
-				if (r != 0) {
-					write_error("Unable to get interface name");
-					break;	/* can't get interface name, get out! */
-				}
-				ifname = ifnamebuf;
+		pkt_result =
+			packet_process(&pkt, NULL, NULL, NULL,
+				       ofilter,
+				       MATCH_OPPOSITE_USECONFIG,
+				       0);
+
+		if (pkt_result != PACKET_OK)
+			continue;
+
+		if (!ifptr) {
+			/* we're capturing on "All interfaces", */
+			/* so get the name of the interface */
+			/* of this packet */
+			int r = dev_get_ifname(pkt.pkt_ifindex, ifnamebuf);
+			if (r != 0) {
+				write_error("Unable to get interface name");
+				break;	/* can't get interface name, get out! */
 			}
+			ifname = ifnamebuf;
+		}
 
-			/* get HW addresses */
-			switch (pkt.pkt_hatype) {
-			case ARPHRD_ETHER: {
-				struct ethhdr *hdr_eth =
-					(struct ethhdr *)pkt.pkt_buf;
-				memcpy(scratch_saddr, hdr_eth->h_source,
-				       ETH_ALEN);
-				memcpy(scratch_daddr, hdr_eth->h_dest,
-				       ETH_ALEN);
-				list = elist;
-				break; }
-			case ARPHRD_FDDI: {
-				struct fddihdr *hdr_fddi =
-					(struct fddihdr *)pkt.pkt_buf;
-				memcpy(scratch_saddr, hdr_fddi->saddr,
-				       FDDI_K_ALEN);
-				memcpy(scratch_daddr, hdr_fddi->daddr,
-				       FDDI_K_ALEN);
-				list = flist;
-				break; }
-			default:
-				/* unknown link protocol */
-				continue;
-			}
+		/* get HW addresses */
+		switch (pkt.pkt_hatype) {
+		case ARPHRD_ETHER: {
+			struct ethhdr *hdr_eth =
+				(struct ethhdr *)pkt.pkt_buf;
+			memcpy(scratch_saddr, hdr_eth->h_source,
+			       ETH_ALEN);
+			memcpy(scratch_daddr, hdr_eth->h_dest,
+			       ETH_ALEN);
+			list = elist;
+			break; }
+		case ARPHRD_FDDI: {
+			struct fddihdr *hdr_fddi =
+				(struct fddihdr *)pkt.pkt_buf;
+			memcpy(scratch_saddr, hdr_fddi->saddr,
+			       FDDI_K_ALEN);
+			memcpy(scratch_daddr, hdr_fddi->daddr,
+			       FDDI_K_ALEN);
+			list = flist;
+			break; }
+		default:
+			/* unknown link protocol */
+			continue;
+		}
 
-			switch(pkt.pkt_protocol) {
-			case ETH_P_IP:
-			case ETH_P_IPV6:
-				is_ip = 1;
-				break;
-			default:
-				is_ip = 0;
-				break;
-			}
+		switch(pkt.pkt_protocol) {
+		case ETH_P_IP:
+		case ETH_P_IPV6:
+			is_ip = 1;
+			break;
+		default:
+			is_ip = 0;
+			break;
+		}
 
-			/* Check source address entry */
-			entry = in_ethtable(&table, pkt.pkt_hatype,
-					scratch_saddr);
+		/* Check source address entry */
+		entry = in_ethtable(&table, pkt.pkt_hatype,
+				    scratch_saddr);
 
-			if (!entry)
-				entry = addethentry(&table, pkt.pkt_hatype,
-						ifname, scratch_saddr, list);
+		if (!entry)
+			entry = addethentry(&table, pkt.pkt_hatype,
+					    ifname, scratch_saddr, list);
 
-			if (entry != NULL) {
-				updateethent(entry, pkt.pkt_len, is_ip, 1);
-				if (!entry->prev_entry->un.desc.printed)
-					printethent(&table, entry->prev_entry,
-						    idx);
+		if (entry != NULL) {
+			updateethent(entry, pkt.pkt_len, is_ip, 1);
+			if (!entry->prev_entry->un.desc.printed)
+				printethent(&table, entry->prev_entry,
+					    idx);
 
-				printethent(&table, entry, idx);
-			}
+			printethent(&table, entry, idx);
+		}
 
-			/* Check destination address entry */
-			entry = in_ethtable(&table, pkt.pkt_hatype,
-					scratch_daddr);
-			if (!entry)
-				entry = addethentry(&table, pkt.pkt_hatype,
-						ifname, scratch_daddr, list);
+		/* Check destination address entry */
+		entry = in_ethtable(&table, pkt.pkt_hatype,
+				    scratch_daddr);
+		if (!entry)
+			entry = addethentry(&table, pkt.pkt_hatype,
+					    ifname, scratch_daddr, list);
 
-			if (entry != NULL) {
-				updateethent(entry, pkt.pkt_len, is_ip, 0);
-				if (!entry->prev_entry->un.desc.printed)
-					printethent(&table, entry->prev_entry,
-						    idx);
+		if (entry != NULL) {
+			updateethent(entry, pkt.pkt_len, is_ip, 0);
+			if (!entry->prev_entry->un.desc.printed)
+				printethent(&table, entry->prev_entry,
+					    idx);
 
-				printethent(&table, entry, idx);
-			}
+			printethent(&table, entry, idx);
 		}
 	} while (!exitloop);
 
