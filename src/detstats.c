@@ -529,71 +529,72 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			exitloop = 1;
 			break;
 		}
-		if (pkt.pkt_len > 0) {
-			int outgoing;
-			short ipproto;
+		if (pkt.pkt_len <= 0)
+			continue;
 
-			framelen = pkt.pkt_len;
-			pkt_result =
-			    packet_process(&pkt, NULL, NULL, NULL,
-					  ofilter,
-					  MATCH_OPPOSITE_USECONFIG,
-					  options->v6inv4asv6);
+		int outgoing;
+		short ipproto;
 
-			if (pkt_result != PACKET_OK
-			    && pkt_result != MORE_FRAGMENTS)
-				continue;
+		framelen = pkt.pkt_len;
+		pkt_result =
+			packet_process(&pkt, NULL, NULL, NULL,
+				       ofilter,
+				       MATCH_OPPOSITE_USECONFIG,
+				       options->v6inv4asv6);
 
-			outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
-			update_proto_counter(&ifcounts.total, outgoing, framelen);
-			if (pkt.pkt_pkttype == PACKET_BROADCAST) {
-				update_pkt_counter(&ifcounts.bcast, framelen);
-			}
+		if (pkt_result != PACKET_OK
+		    && pkt_result != MORE_FRAGMENTS)
+			continue;
 
-			update_proto_counter(&span, outgoing, framelen);
+		outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
+		update_proto_counter(&ifcounts.total, outgoing, framelen);
+		if (pkt.pkt_pkttype == PACKET_BROADCAST) {
+			update_pkt_counter(&ifcounts.bcast, framelen);
+		}
 
-			/* account network layer protocol */
-			switch(pkt.pkt_protocol) {
-			case ETH_P_IP:
-				if (pkt_result == CHECKSUM_ERROR) {
-					update_pkt_counter(&ifcounts.bad, framelen);
-					continue;
-				}
+		update_proto_counter(&span, outgoing, framelen);
 
-				ipacket = (struct iphdr *) pkt.pkt_payload;
-				iplen = ntohs(ipacket->tot_len);
-				ipproto = ipacket->protocol;
-
-				update_proto_counter(&ifcounts.ipv4, outgoing, iplen);
-				break;
-			case ETH_P_IPV6:
-				ip6packet = (struct ip6_hdr *) pkt.pkt_payload;
-				iplen = ntohs(ip6packet->ip6_plen) + 40;
-				ipproto = ip6packet->ip6_nxt;
-
-				update_proto_counter(&ifcounts.ipv6, outgoing, iplen);
-				break;
-			default:
-				update_proto_counter(&ifcounts.nonip, outgoing, iplen);
+		/* account network layer protocol */
+		switch(pkt.pkt_protocol) {
+		case ETH_P_IP:
+			if (pkt_result == CHECKSUM_ERROR) {
+				update_pkt_counter(&ifcounts.bad, framelen);
 				continue;
 			}
 
-			/* account transport layer protocol */
-			switch (ipproto) {
-			case IPPROTO_TCP:
-				update_proto_counter(&ifcounts.tcp, outgoing, iplen);
-				break;
-			case IPPROTO_UDP:
-				update_proto_counter(&ifcounts.udp, outgoing, iplen);
-				break;
-			case IPPROTO_ICMP:
-			case IPPROTO_ICMPV6:
-				update_proto_counter(&ifcounts.icmp, outgoing, iplen);
-				break;
-			default:
-				update_proto_counter(&ifcounts.other, outgoing, iplen);
-				break;
-			}
+			ipacket = (struct iphdr *) pkt.pkt_payload;
+			iplen = ntohs(ipacket->tot_len);
+			ipproto = ipacket->protocol;
+
+			update_proto_counter(&ifcounts.ipv4, outgoing, iplen);
+			break;
+		case ETH_P_IPV6:
+			ip6packet = (struct ip6_hdr *) pkt.pkt_payload;
+			iplen = ntohs(ip6packet->ip6_plen) + 40;
+			ipproto = ip6packet->ip6_nxt;
+
+			update_proto_counter(&ifcounts.ipv6, outgoing, iplen);
+			break;
+		default:
+			update_proto_counter(&ifcounts.nonip, outgoing, iplen);
+			continue;
+		}
+
+		/* account transport layer protocol */
+		switch (ipproto) {
+		case IPPROTO_TCP:
+			update_proto_counter(&ifcounts.tcp, outgoing, iplen);
+			break;
+		case IPPROTO_UDP:
+			update_proto_counter(&ifcounts.udp, outgoing, iplen);
+			break;
+		case IPPROTO_ICMP:
+		case IPPROTO_ICMPV6:
+			update_proto_counter(&ifcounts.icmp, outgoing, iplen);
+			break;
+		default:
+			update_proto_counter(&ifcounts.other, outgoing, iplen);
+			break;
 		}
 	}
 
