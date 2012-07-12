@@ -114,7 +114,7 @@ iptraf-h += src/logvars.h
 iptraf-h += src/list.h
 iptraf-h += src/counters.h
 iptraf-h += src/rate.h
-iptraf-h += built-in.h
+iptraf-h += src/built-in.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
