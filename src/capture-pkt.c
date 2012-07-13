@@ -57,7 +57,7 @@ int cmd_capture(int argc, char **argv)
 			continue;
 
 		printf(".");
-		fflush(NULL);
+		fflush(stdout);
 
 		if (fp)
 			fwrite(&p, sizeof(p), 1, fp);
