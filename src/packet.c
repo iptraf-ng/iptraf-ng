@@ -103,7 +103,7 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 	nfds++;
 
 	/* Monitor stdin only if in interactive, not daemon mode. */
-	if (!daemonized) {
+	if (ch && !daemonized) {
 		pfds[1].fd = 0;
 		pfds[1].events = POLLIN;
 		nfds++;
