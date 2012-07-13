@@ -259,9 +259,6 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	WINDOW *statwin;
 	PANEL *statpanel;
 
-	struct iphdr *ipacket = NULL;
-	struct ip6_hdr *ip6packet = NULL;
-
 	int framelen = 0;
 	int pkt_result = 0;
 
@@ -562,16 +559,14 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 				continue;
 			}
 
-			ipacket = (struct iphdr *) pkt.pkt_payload;
-			iplen = ntohs(ipacket->tot_len);
-			ipproto = ipacket->protocol;
+			iplen = ntohs(pkt.iphdr->tot_len);
+			ipproto = pkt.iphdr->protocol;
 
 			update_proto_counter(&ifcounts.ipv4, outgoing, iplen);
 			break;
 		case ETH_P_IPV6:
-			ip6packet = (struct ip6_hdr *) pkt.pkt_payload;
-			iplen = ntohs(ip6packet->ip6_plen) + 40;
-			ipproto = ip6packet->ip6_nxt;
+			iplen = ntohs(pkt.ip6_hdr->ip6_plen) + 40;
+			ipproto = pkt.ip6_hdr->ip6_nxt;
 
 			update_proto_counter(&ifcounts.ipv6, outgoing, iplen);
 			break;

@@ -552,8 +552,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 {
 	int logging = options->logging;
 
-	struct iphdr *ippacket;
-	struct ip6_hdr *ip6packet;
 	unsigned int protocol;
 	unsigned int frag_off;
 	struct tcphdr *transpacket;	/* IP-encapsulated packet */
@@ -1019,17 +1017,13 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
-			ippacket = (struct iphdr *) pkt.pkt_payload;
-			iphlen = ippacket->ihl * 4;
-			ip6packet = NULL;
-			protocol = ippacket->protocol;
-			frag_off = ippacket->frag_off;
+			iphlen = pkt.iphdr->ihl * 4;
+			protocol = pkt.iphdr->protocol;
+			frag_off = pkt.iphdr->frag_off;
 			break;
 		case ETH_P_IPV6:
-			ip6packet = (struct ip6_hdr *) pkt.pkt_payload;
 			iphlen = 40;
-			ippacket = NULL;
-			protocol = ip6packet->ip6_nxt;
+			protocol = pkt.ip6_hdr->ip6_nxt;
 			frag_off = 0;
 			break;
 		default:
@@ -1045,11 +1039,11 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		transpacket = (struct tcphdr *) (pkt.pkt_payload + iphlen);
 
 		if (protocol == IPPROTO_TCP) {
-			if (ippacket != NULL) {
+			if (pkt.iphdr) {
 				tcpentry =
 					in_table(&table,
-						 ippacket->saddr,
-						 ippacket->daddr,
+						 pkt.iphdr->saddr,
+						 pkt.iphdr->daddr,
 						 NULL, NULL,
 						 ntohs(sport),
 						 ntohs(dport),
@@ -1058,14 +1052,12 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			} else {
 				tcpentry =
 					in_table(&table, 0, 0,
-					     (uint8_t *) (&ip6packet->
-							  ip6_src.
-							  s6_addr),
-					     (uint8_t *) (&ip6packet->
-							  ip6_dst.
-							  s6_addr),
-					     ntohs(sport), ntohs(dport),
-					     ifname, logging, logfile, options);
+						 (uint8_t *) &pkt.ip6_hdr->
+						 ip6_src.s6_addr,
+						 (uint8_t *) &pkt.ip6_hdr->
+						 ip6_dst.s6_addr,
+						 ntohs(sport), ntohs(dport),
+						 ifname, logging, logfile, options);
 			}
 
 			/*
@@ -1082,21 +1074,21 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				 * is not yet closed, or if it is a SYN packet.
 				 */
 				wasempty = (table.head == NULL);
-				if (ippacket != NULL)
+				if (pkt.iphdr)
 					tcpentry =
 						addentry(&table,
-							 (unsigned long) ippacket->saddr,
-							 (unsigned long) ippacket->daddr,
+							 (unsigned long) pkt.iphdr->saddr,
+							 (unsigned long) pkt.iphdr->daddr,
 							 NULL, NULL, sport, dport,
-							 ippacket->protocol,
+							 pkt.iphdr->protocol,
 							 ifname, &revlook, rvnfd,
 							 options->servnames);
 				else
 					tcpentry =
 						addentry(&table, 0, 0,
-							 (uint8_t *) (&ip6packet->ip6_src.s6_addr),
-							 (uint8_t *) (&ip6packet->ip6_dst.s6_addr),
-							 sport, dport, ip6packet->ip6_nxt,
+							 (uint8_t *) &pkt.ip6_hdr->ip6_src.s6_addr,
+							 (uint8_t *) &pkt.ip6_hdr->ip6_dst.s6_addr,
+							 sport, dport, pkt.ip6_hdr->ip6_nxt,
 							 ifname, &revlook, rvnfd,
 							 options->servnames);
 				if (tcpentry != NULL) {
@@ -1128,10 +1120,10 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					p_dstat = tcpentry->d_fstat;
 				}
 
-				if (ippacket != NULL)
+				if (pkt.iphdr)
 					updateentry(&table, tcpentry, transpacket,
 						    pkt.pkt_buf, pkt.pkt_hatype,
-						    pkt.pkt_len, br, ippacket->frag_off,
+						    pkt.pkt_len, br, pkt.iphdr->frag_off,
 						    logging, &revlook, rvnfd, options,
 						    logfile);
 				else
@@ -1190,10 +1182,10 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					printentry(&table, tcpentry->oth_connection,
 						   screen_idx, mode);
 			}
-		} else if (ippacket != NULL) {
-			fragment =  ((ntohs(ippacket->frag_off) & 0x1fff) != 0);
+		} else if (pkt.iphdr) {
+			fragment =  ((ntohs(pkt.iphdr->frag_off) & 0x1fff) != 0);
 
-			if (ippacket->protocol == IPPROTO_ICMP) {
+			if (pkt.iphdr->protocol == IPPROTO_ICMP) {
 
 				/*
 				 * Cancel the corresponding TCP entry if an ICMP
@@ -1205,23 +1197,23 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					process_dest_unreach(&table, (char *) transpacket,
 							     ifname);
 			}
-			add_othp_entry(&othptbl, &pkt, ippacket->saddr,
-				       ippacket->daddr, NULL, NULL, IS_IP,
-				       ippacket->protocol,
+			add_othp_entry(&othptbl, &pkt, pkt.iphdr->saddr,
+				       pkt.iphdr->daddr, NULL, NULL, IS_IP,
+				       pkt.iphdr->protocol,
 				       (char *) transpacket,
 				       ifname, &revlook, rvnfd,
 				       logging, logfile,
 				       options->servnames, fragment);
 
 		} else {
-			if (ip6packet->ip6_nxt == IPPROTO_ICMPV6
+			if (pkt.ip6_hdr->ip6_nxt == IPPROTO_ICMPV6
 			    && (((struct icmp6_hdr *) transpacket)->icmp6_type == ICMP6_DST_UNREACH))
 				process_dest_unreach(&table, (char *) transpacket,
 						     ifname);
 
 			add_othp_entry(&othptbl, &pkt, 0, 0,
-				       &ip6packet->ip6_src, &ip6packet->ip6_dst,
-				       IS_IP, ip6packet->ip6_nxt,
+				       &pkt.ip6_hdr->ip6_src, &pkt.ip6_hdr->ip6_dst,
+				       IS_IP, pkt.ip6_hdr->ip6_nxt,
 				       (char *) transpacket, ifname,
 				       &revlook, rvnfd,
 				       logging, logfile, options->servnames,

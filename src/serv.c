@@ -1048,9 +1048,6 @@ void servmon(char *ifname, const struct OPTIONS *options,
 		if (pkt.pkt_len <= 0)
 			continue;
 
-		unsigned short ipproto;
-		unsigned short iplen;
-
 		pkt_result =
 			packet_process(&pkt, &tot_br, &sport, &dport,
 				      ofilter,
@@ -1060,14 +1057,16 @@ void servmon(char *ifname, const struct OPTIONS *options,
 		if (pkt_result != PACKET_OK)
 			continue;
 
+		unsigned short ipproto;
+		unsigned short iplen;
 		switch (pkt.pkt_protocol) {
 		case ETH_P_IP:
-			ipproto = ((struct iphdr *) pkt.pkt_payload)->protocol;
-			iplen =	ntohs(((struct iphdr *) pkt.pkt_payload)->tot_len);
+			ipproto = pkt.iphdr->protocol;
+			iplen =	ntohs(pkt.iphdr->tot_len);
 			break;
 		case ETH_P_IPV6:
-			ipproto = ((struct ip6_hdr *) pkt.pkt_payload)->ip6_nxt;	/* FIXME: extension headers ??? */
-			iplen = ntohs(((struct ip6_hdr *) pkt.pkt_payload)->ip6_plen) + 40;
+			ipproto = pkt.ip6_hdr->ip6_nxt;	/* FIXME: extension headers ??? */
+			iplen = ntohs(pkt.ip6_hdr->ip6_plen) + 40;
 			break;
 		default:
 			/* unknown link protocol */

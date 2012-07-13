@@ -20,6 +20,23 @@ packet.c - routines to open the raw socket, read socket data and
 #include "packet.h"
 #include "ipfrag.h"
 
+#define pkt_cast_hdrp_l2off_t(hdr, pkt, off)			\
+	do {							\
+		pkt->hdr = (struct hdr *) (pkt->pkt_buf + off);	\
+	} while (0)
+
+#define pkt_cast_hdrp_l2(hdr, pkt)				\
+	pkt_cast_hdrp_l2off_t(hdr, pkt, 0)
+
+
+#define pkt_cast_hdrp_l3off_t(hdr, pkt, off)				\
+	do {								\
+		pkt->hdr = (struct hdr *) (pkt->pkt_payload + off);	\
+	} while (0)
+
+#define pkt_cast_hdrp_l3(hdr, pkt)					\
+		pkt_cast_hdrp_l3off_t(hdr, pkt, 0)
+
 /* code taken from http://www.faqs.org/rfcs/rfc1071.html. See section 4.1 "C"  */
 static int in_cksum(u_short * addr, int len)
 {
@@ -46,7 +63,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 	switch (pkt->pkt_hatype) {
 	case ARPHRD_ETHER:
 	case ARPHRD_LOOPBACK:
-		pkt_cast_hdrp(ethhdr, pkt, 0);
+		pkt_cast_hdrp_l2(ethhdr, pkt);
 		pkt->pkt_payload = pkt->pkt_buf;
 		pkt->pkt_payload += ETH_HLEN;
 		pkt->pkt_len -= ETH_HLEN;
@@ -76,7 +93,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 		pkt->pkt_len -= 4;
 		break;
 	case ARPHRD_FDDI:
-		pkt_cast_hdrp(fddihdr, pkt, 0);
+		pkt_cast_hdrp_l2(fddihdr, pkt);
 		pkt->pkt_payload = pkt->pkt_buf;
 		pkt->pkt_payload += sizeof(struct fddihdr);
 		pkt->pkt_len -= sizeof(struct fddihdr);
@@ -90,6 +107,26 @@ static int packet_adjust(struct pkt_hdr *pkt)
 		break;
 	}
 	return retval;
+}
+
+/* initialize all layer3 protocol pointers (we need to initialize all
+ * of them, because of case we change pkt->pkt_protocol) */
+static void packet_set_l3_hdrp(struct pkt_hdr *pkt)
+{
+	switch (pkt->pkt_protocol) {
+	case ETH_P_IP:
+		pkt_cast_hdrp_l3(iphdr, pkt);
+		pkt->ip6_hdr = NULL;
+		break;
+	case ETH_P_IPV6:
+		pkt->iphdr = NULL;
+		pkt_cast_hdrp_l3(ip6_hdr, pkt);
+		break;
+	default:
+		pkt->iphdr = NULL;
+		pkt->ip6_hdr = NULL;
+		break;
+	}
 }
 
 /* IPTraf input function; reads both keystrokes and network packets. */
@@ -114,7 +151,7 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 		ss = poll(pfds, nfds, DEFAULT_UPDATE_DELAY / 1000);
 	} while ((ss == -1) && (errno == EINTR));
 
-	pkt->pkt_len = 0;	/* signalize we have no packet prepared */
+	PACKET_INIT_STRUCT(pkt);
 	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
 		struct sockaddr_ll from;
 		socklen_t fromlen = sizeof(struct sockaddr_ll);
@@ -155,8 +192,10 @@ int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 	if (packet_adjust(pkt) != 0)
 		return INVALID_PACKET;
 
-again:	if (pkt->pkt_protocol == ETH_P_IP) {
-		struct iphdr *ip;
+again:
+	packet_set_l3_hdrp(pkt);
+	if (pkt->pkt_protocol == ETH_P_IP) {
+		struct iphdr *ip = pkt->iphdr;
 		int hdr_check;
 		register int ip_checksum;
 		register int iphlen;
@@ -166,7 +205,6 @@ again:	if (pkt->pkt_protocol == ETH_P_IP) {
 		 * At this point, we're now processing IP packets.  Start by getting
 		 * IP header and length.
 		 */
-		ip = (struct iphdr *) (pkt->pkt_payload);
 		iphlen = ip->ihl * 4;
 
 		/*
@@ -260,7 +298,7 @@ again:	if (pkt->pkt_protocol == ETH_P_IP) {
 	} else if (pkt->pkt_protocol == ETH_P_IPV6) {
 		struct tcphdr *tcp;
 		struct udphdr *udp;
-		struct ip6_hdr *ip6 = (struct ip6_hdr *) pkt->pkt_payload;
+		struct ip6_hdr *ip6 = pkt->ip6_hdr;
 		char *ip_payload = (char *) ip6 + 40;
 
 		//TODO: Filter packets

@@ -35,22 +35,25 @@ struct pkt_hdr {
 	unsigned char	pkt_addr[8];	/* Physical layer address */
 	struct ethhdr  *ethhdr;
 	struct fddihdr *fddihdr;
+	struct iphdr   *iphdr;
+	struct ip6_hdr *ip6_hdr;
 	char		pkt_buf[MAX_PACKET_SIZE];
 };
 
-#define pkt_cast_hdrp(hdr, pkt, off)				\
-	do {							\
-		pkt->hdr = (struct hdr *) pkt->pkt_buf + off;	\
-	} while (0)
-
+static inline void PACKET_INIT_STRUCT(struct pkt_hdr *p)
+{
+	p->pkt_bufsize = MAX_PACKET_SIZE;
+	p->pkt_payload = NULL;
+	p->ethhdr      = NULL;
+	p->fddihdr     = NULL;
+	p->iphdr       = NULL;
+	p->ip6_hdr     = NULL;
+	p->pkt_len     = 0;             /* signalize we have no packet prepared */
+}
 
 #define PACKET_INIT(packet)					\
-	struct pkt_hdr packet = {				\
-		.pkt_bufsize = MAX_PACKET_SIZE,			\
-		.pkt_payload = NULL,				\
-		.ethhdr      = NULL,				\
-		.fddihdr     = NULL,				\
-	};
+	struct pkt_hdr packet;					\
+	PACKET_INIT_STRUCT(&packet)
 
 void open_socket(int *fd);
 int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
