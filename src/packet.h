@@ -34,6 +34,7 @@ struct pkt_hdr {
 	unsigned char	pkt_halen;	/* Length of address */
 	unsigned char	pkt_addr[8];	/* Physical layer address */
 	struct ethhdr  *ethhdr;
+	struct fddihdr *fddihdr;
 	char		pkt_buf[MAX_PACKET_SIZE];
 };
 
@@ -48,6 +49,7 @@ struct pkt_hdr {
 		.pkt_bufsize = MAX_PACKET_SIZE,			\
 		.pkt_payload = NULL,				\
 		.ethhdr      = NULL,				\
+		.fddihdr     = NULL,				\
 	};
 
 void open_socket(int *fd);

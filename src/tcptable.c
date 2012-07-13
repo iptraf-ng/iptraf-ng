@@ -619,6 +619,8 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	if (opts->mac) {
 		memset(newmacaddr, 0, sizeof(newmacaddr));
 
+
+		/* change updateentry to take struct pkt to remove this */
 		if (linkproto == ARPHRD_ETHER) {
 			convmacaddr((char *) (((struct ethhdr *) packet)->
 					      h_source), newmacaddr);

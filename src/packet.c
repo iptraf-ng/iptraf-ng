@@ -76,6 +76,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 		pkt->pkt_len -= 4;
 		break;
 	case ARPHRD_FDDI:
+		pkt_cast_hdrp(fddihdr, pkt);
 		pkt->pkt_payload = pkt->pkt_buf;
 		pkt->pkt_payload += sizeof(struct fddihdr);
 		pkt->pkt_len -= sizeof(struct fddihdr);

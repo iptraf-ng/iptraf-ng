@@ -985,12 +985,8 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 			list = elist;
 			break; }
 		case ARPHRD_FDDI: {
-			struct fddihdr *hdr_fddi =
-				(struct fddihdr *)pkt.pkt_buf;
-			memcpy(scratch_saddr, hdr_fddi->saddr,
-			       FDDI_K_ALEN);
-			memcpy(scratch_daddr, hdr_fddi->daddr,
-			       FDDI_K_ALEN);
+			memcpy(scratch_saddr, pkt.fddihdr->saddr, FDDI_K_ALEN);
+			memcpy(scratch_daddr, pkt.fddihdr->daddr, FDDI_K_ALEN);
 			list = flist;
 			break; }
 		default:
