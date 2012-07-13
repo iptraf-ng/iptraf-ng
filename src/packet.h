@@ -38,9 +38,9 @@ struct pkt_hdr {
 	char		pkt_buf[MAX_PACKET_SIZE];
 };
 
-#define pkt_cast_hdrp(hdr, pkt)				\
-	do {						\
-		pkt->hdr = (struct hdr *) pkt->pkt_buf;	\
+#define pkt_cast_hdrp(hdr, pkt, off)				\
+	do {							\
+		pkt->hdr = (struct hdr *) pkt->pkt_buf + off;	\
 	} while (0)
 
 

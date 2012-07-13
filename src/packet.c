@@ -46,7 +46,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 	switch (pkt->pkt_hatype) {
 	case ARPHRD_ETHER:
 	case ARPHRD_LOOPBACK:
-		pkt_cast_hdrp(ethhdr, pkt);
+		pkt_cast_hdrp(ethhdr, pkt, 0);
 		pkt->pkt_payload = pkt->pkt_buf;
 		pkt->pkt_payload += ETH_HLEN;
 		pkt->pkt_len -= ETH_HLEN;
@@ -76,7 +76,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 		pkt->pkt_len -= 4;
 		break;
 	case ARPHRD_FDDI:
-		pkt_cast_hdrp(fddihdr, pkt);
+		pkt_cast_hdrp(fddihdr, pkt, 0);
 		pkt->pkt_payload = pkt->pkt_buf;
 		pkt->pkt_payload += sizeof(struct fddihdr);
 		pkt->pkt_len -= sizeof(struct fddihdr);
