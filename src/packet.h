@@ -33,13 +33,21 @@ struct pkt_hdr {
 	unsigned char	pkt_pkttype;	/* Packet type: PACKET_OUTGOING, PACKET_BROADCAST, ... */
 	unsigned char	pkt_halen;	/* Length of address */
 	unsigned char	pkt_addr[8];	/* Physical layer address */
+	struct ethhdr  *ethhdr;
 	char		pkt_buf[MAX_PACKET_SIZE];
 };
 
-#define PACKET_INIT(packet) \
-	struct pkt_hdr packet = { \
-		.pkt_bufsize = MAX_PACKET_SIZE, \
-		.pkt_payload = NULL \
+#define pkt_cast_hdrp(hdr, pkt)				\
+	do {						\
+		pkt->hdr = (struct hdr *) pkt->pkt_buf;	\
+	} while (0)
+
+
+#define PACKET_INIT(packet)					\
+	struct pkt_hdr packet = {				\
+		.pkt_bufsize = MAX_PACKET_SIZE,			\
+		.pkt_payload = NULL,				\
+		.ethhdr      = NULL,				\
 	};
 
 void open_socket(int *fd);

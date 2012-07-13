@@ -980,12 +980,8 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		/* get HW addresses */
 		switch (pkt.pkt_hatype) {
 		case ARPHRD_ETHER: {
-			struct ethhdr *hdr_eth =
-				(struct ethhdr *)pkt.pkt_buf;
-			memcpy(scratch_saddr, hdr_eth->h_source,
-			       ETH_ALEN);
-			memcpy(scratch_daddr, hdr_eth->h_dest,
-			       ETH_ALEN);
+			memcpy(scratch_saddr, pkt.ethhdr->h_source, ETH_ALEN);
+			memcpy(scratch_daddr, pkt.ethhdr->h_dest, ETH_ALEN);
 			list = elist;
 			break; }
 		case ARPHRD_FDDI: {

@@ -183,10 +183,8 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 
 	if ((table->mac) || (!is_ip)) {
 		if (pkt->pkt_hatype == ARPHRD_ETHER) {
-			convmacaddr((char *) (((struct ethhdr *) packet)->
-					      h_source), new_entry->smacaddr);
-			convmacaddr((char *) (((struct ethhdr *) packet)->
-					      h_dest), new_entry->dmacaddr);
+			convmacaddr((char *) pkt->ethhdr->h_source, new_entry->smacaddr);
+			convmacaddr((char *) pkt->ethhdr->h_dest, new_entry->dmacaddr);
 		} else if (pkt->pkt_hatype == ARPHRD_FDDI) {
 			convmacaddr((char *) (((struct fddihdr *) packet)->
 					      saddr), new_entry->smacaddr);
