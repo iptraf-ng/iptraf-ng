@@ -55,6 +55,9 @@ static inline void PACKET_INIT_STRUCT(struct pkt_hdr *p)
 	struct pkt_hdr packet;					\
 	PACKET_INIT_STRUCT(&packet)
 
+#define pkt_ipv4_len(pkt)			\
+	(pkt)->iphdr->ihl * 4
+
 void open_socket(int *fd);
 int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,

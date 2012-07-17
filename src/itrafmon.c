@@ -1017,7 +1017,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
-			iphlen = pkt.iphdr->ihl * 4;
+			iphlen = pkt_ipv4_len(&pkt);
 			protocol = pkt.iphdr->protocol;
 			frag_off = pkt.iphdr->frag_off;
 			break;

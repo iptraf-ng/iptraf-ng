@@ -198,14 +198,7 @@ again:
 		struct iphdr *ip = pkt->iphdr;
 		int hdr_check;
 		register int ip_checksum;
-		register int iphlen;
 		unsigned int f_sport = 0, f_dport = 0;
-
-		/*
-		 * At this point, we're now processing IP packets.  Start by getting
-		 * IP header and length.
-		 */
-		iphlen = ip->ihl * 4;
 
 		/*
 		 * Compute and verify IP header checksum.
@@ -213,7 +206,7 @@ again:
 
 		ip_checksum = ip->check;
 		ip->check = 0;
-		hdr_check = in_cksum((u_short *) ip, iphlen);
+		hdr_check = in_cksum((u_short *) pkt->iphdr, pkt_ipv4_len(pkt));
 
 		if ((hdr_check != ip_checksum))
 			return CHECKSUM_ERROR;
@@ -247,7 +240,7 @@ again:
 			} else {
 				struct tcphdr *tcp;
 				struct udphdr *udp;
-				char *ip_payload = (char *) ip + iphlen;
+				char *ip_payload = (char *) ip + pkt_ipv4_len(pkt);
 
 				switch (ip->protocol) {
 				case IPPROTO_TCP:
@@ -290,8 +283,8 @@ again:
 			return PACKET_FILTERED;
 		if (v6inv4asv6 && (ip->protocol == IPPROTO_IPV6)) {
 			pkt->pkt_protocol = ETH_P_IPV6;
-			pkt->pkt_payload += iphlen;
-			pkt->pkt_len -= iphlen;
+			pkt->pkt_payload += pkt_ipv4_len(pkt);
+			pkt->pkt_len -= pkt_ipv4_len(pkt);
 			goto again;
 		}
 		return PACKET_OK;
