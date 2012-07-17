@@ -529,7 +529,6 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			continue;
 
 		int outgoing;
-		short ipproto;
 
 		pkt_result =
 			packet_process(&pkt, NULL, NULL, NULL,
@@ -558,13 +557,11 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			}
 
 			iplen = ntohs(pkt.iphdr->tot_len);
-			ipproto = pkt.iphdr->protocol;
 
 			update_proto_counter(&ifcounts.ipv4, outgoing, iplen);
 			break;
 		case ETH_P_IPV6:
 			iplen = ntohs(pkt.ip6_hdr->ip6_plen) + 40;
-			ipproto = pkt.ip6_hdr->ip6_nxt;
 
 			update_proto_counter(&ifcounts.ipv6, outgoing, iplen);
 			break;
@@ -573,8 +570,10 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			continue;
 		}
 
+		__u8 ip_protocol = pkt_ip_protocol(&pkt);
+
 		/* account transport layer protocol */
-		switch (ipproto) {
+		switch (ip_protocol) {
 		case IPPROTO_TCP:
 			update_proto_counter(&ifcounts.tcp, outgoing, iplen);
 			break;

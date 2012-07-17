@@ -1057,25 +1057,24 @@ void servmon(char *ifname, const struct OPTIONS *options,
 		if (pkt_result != PACKET_OK)
 			continue;
 
-		unsigned short ipproto;
 		unsigned short iplen;
 		switch (pkt.pkt_protocol) {
 		case ETH_P_IP:
-			ipproto = pkt.iphdr->protocol;
 			iplen =	ntohs(pkt.iphdr->tot_len);
 			break;
 		case ETH_P_IPV6:
-			ipproto = pkt.ip6_hdr->ip6_nxt;	/* FIXME: extension headers ??? */
 			iplen = ntohs(pkt.ip6_hdr->ip6_plen) + 40;
 			break;
 		default:
 			/* unknown link protocol */
 			continue;
 		}
-		switch (ipproto) {
+		__u8 ip_protocol = pkt_ip_protocol(&pkt);
+
+		switch (ip_protocol) {
 		case IPPROTO_TCP:
 		case IPPROTO_UDP:
-			updateportent(&list, ipproto, ntohs(sport),
+			updateportent(&list, ip_protocol, ntohs(sport),
 				      ntohs(dport), iplen, idx, ports,
 				      options->servnames);
 			break;

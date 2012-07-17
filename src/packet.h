@@ -55,8 +55,19 @@ static inline void PACKET_INIT_STRUCT(struct pkt_hdr *p)
 	struct pkt_hdr packet;					\
 	PACKET_INIT_STRUCT(&packet)
 
-#define pkt_ipv4_len(pkt)			\
+#define pkt_ipv4_len(pkt)				\
 	(pkt)->iphdr->ihl * 4
+
+static inline __u8 pkt_ip_protocol(const struct pkt_hdr *p)
+{
+	switch (p->pkt_protocol) {
+	case ETH_P_IP:
+		return p->iphdr->protocol;
+	case ETH_P_IPV6:
+		return p->ip6_hdr->ip6_nxt; /* FIXME: extension headers ??? */
+	};
+	return 0;
+}
 
 void open_socket(int *fd);
 int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);

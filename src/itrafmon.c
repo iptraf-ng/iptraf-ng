@@ -552,7 +552,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 {
 	int logging = options->logging;
 
-	unsigned int protocol;
 	unsigned int frag_off;
 	struct tcphdr *transpacket;	/* IP-encapsulated packet */
 	unsigned int sport = 0, dport = 0;	/* TCP/UDP port values */
@@ -1018,12 +1017,10 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
 			iphlen = pkt_ipv4_len(&pkt);
-			protocol = pkt.iphdr->protocol;
 			frag_off = pkt.iphdr->frag_off;
 			break;
 		case ETH_P_IPV6:
 			iphlen = 40;
-			protocol = pkt.ip6_hdr->ip6_nxt;
 			frag_off = 0;
 			break;
 		default:
@@ -1038,7 +1035,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 		transpacket = (struct tcphdr *) (pkt.pkt_payload + iphlen);
 
-		if (protocol == IPPROTO_TCP) {
+		__u8 ip_protocol = pkt_ip_protocol(&pkt);
+		if (ip_protocol == IPPROTO_TCP) {
 			if (pkt.iphdr) {
 				tcpentry =
 					in_table(&table,
