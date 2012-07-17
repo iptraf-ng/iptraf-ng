@@ -259,7 +259,6 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 	WINDOW *statwin;
 	PANEL *statpanel;
 
-	int framelen = 0;
 	int pkt_result = 0;
 
 	FILE *logfile = NULL;
@@ -532,7 +531,6 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		int outgoing;
 		short ipproto;
 
-		framelen = pkt.pkt_len;
 		pkt_result =
 			packet_process(&pkt, NULL, NULL, NULL,
 				       ofilter,
@@ -544,18 +542,18 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			continue;
 
 		outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
-		update_proto_counter(&ifcounts.total, outgoing, framelen);
+		update_proto_counter(&ifcounts.total, outgoing, pkt.pkt_len);
 		if (pkt.pkt_pkttype == PACKET_BROADCAST) {
-			update_pkt_counter(&ifcounts.bcast, framelen);
+			update_pkt_counter(&ifcounts.bcast, pkt.pkt_len);
 		}
 
-		update_proto_counter(&span, outgoing, framelen);
+		update_proto_counter(&span, outgoing, pkt.pkt_len);
 
 		/* account network layer protocol */
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
 			if (pkt_result == CHECKSUM_ERROR) {
-				update_pkt_counter(&ifcounts.bad, framelen);
+				update_pkt_counter(&ifcounts.bad, pkt.pkt_len);
 				continue;
 			}
 
