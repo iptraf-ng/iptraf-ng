@@ -206,7 +206,7 @@ again:
 
 		ip_checksum = ip->check;
 		ip->check = 0;
-		hdr_check = in_cksum((u_short *) pkt->iphdr, pkt_ipv4_len(pkt));
+		hdr_check = in_cksum((u_short *) pkt->iphdr, pkt_iph_len(pkt));
 
 		if ((hdr_check != ip_checksum))
 			return CHECKSUM_ERROR;
@@ -240,7 +240,7 @@ again:
 			} else {
 				struct tcphdr *tcp;
 				struct udphdr *udp;
-				char *ip_payload = (char *) ip + pkt_ipv4_len(pkt);
+				char *ip_payload = (char *) ip + pkt_iph_len(pkt);
 
 				switch (ip->protocol) {
 				case IPPROTO_TCP:
@@ -283,8 +283,8 @@ again:
 			return PACKET_FILTERED;
 		if (v6inv4asv6 && (ip->protocol == IPPROTO_IPV6)) {
 			pkt->pkt_protocol = ETH_P_IPV6;
-			pkt->pkt_payload += pkt_ipv4_len(pkt);
-			pkt->pkt_len -= pkt_ipv4_len(pkt);
+			pkt->pkt_payload += pkt_iph_len(pkt);
+			pkt->pkt_len -= pkt_iph_len(pkt);
 			goto again;
 		}
 		return PACKET_OK;
@@ -292,7 +292,7 @@ again:
 		struct tcphdr *tcp;
 		struct udphdr *udp;
 		struct ip6_hdr *ip6 = pkt->ip6_hdr;
-		char *ip_payload = (char *) ip6 + 40;
+		char *ip_payload = (char *) ip6 + pkt_iph_len(pkt);
 
 		//TODO: Filter packets
 		switch (ip6->ip6_nxt) {	/* FIXME: extension headers ??? */

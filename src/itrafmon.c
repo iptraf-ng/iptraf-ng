@@ -585,9 +585,6 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 	unsigned int br;	/* bytes read.  Differs from readlen */
 
-	/* only when packets fragmented */
-	unsigned int iphlen;
-
 	struct tcptable table;
 	struct tcptableent *tcpentry;
 	struct tcptableent *tmptcp;
@@ -1016,11 +1013,9 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
-			iphlen = pkt_ipv4_len(&pkt);
 			frag_off = pkt.iphdr->frag_off;
 			break;
 		case ETH_P_IPV6:
-			iphlen = 40;
 			frag_off = 0;
 			break;
 		default:
@@ -1033,6 +1028,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			continue;
 		}
 
+		/* only when packets fragmented */
+		__u8 iphlen = pkt_iph_len(&pkt);
 		transpacket = (struct tcphdr *) (pkt.pkt_payload + iphlen);
 
 		__u8 ip_protocol = pkt_ip_protocol(&pkt);

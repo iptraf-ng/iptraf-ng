@@ -55,8 +55,19 @@ static inline void PACKET_INIT_STRUCT(struct pkt_hdr *p)
 	struct pkt_hdr packet;					\
 	PACKET_INIT_STRUCT(&packet)
 
-#define pkt_ipv4_len(pkt)				\
-	(pkt)->iphdr->ihl * 4
+#define pkt_iph_len(pkt) __extension__ ({				\
+		__u8 len__ = 0;						\
+		switch ((pkt)->pkt_protocol) {				\
+		case ETH_P_IP:						\
+			len__ = (pkt)->iphdr->ihl * 4;			\
+			break;						\
+		case ETH_P_IPV6:					\
+			len__ = 40;					\
+			break;						\
+		};							\
+		len__;							\
+	})
+
 
 static inline __u8 pkt_ip_protocol(const struct pkt_hdr *p)
 {
