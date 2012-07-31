@@ -1075,7 +1075,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 							 (unsigned long) pkt.iphdr->saddr,
 							 (unsigned long) pkt.iphdr->daddr,
 							 NULL, NULL, sport, dport,
-							 pkt.iphdr->protocol,
+							 pkt_ip_protocol(&pkt),
 							 ifname, &revlook, rvnfd,
 							 options->servnames);
 				else
@@ -1180,7 +1180,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		} else if (pkt.iphdr) {
 			fragment =  ((ntohs(pkt.iphdr->frag_off) & 0x1fff) != 0);
 
-			if (pkt.iphdr->protocol == IPPROTO_ICMP) {
+			if (pkt_ip_protocol(&pkt) == IPPROTO_ICMP) {
 
 				/*
 				 * Cancel the corresponding TCP entry if an ICMP
@@ -1194,7 +1194,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			}
 			add_othp_entry(&othptbl, &pkt, pkt.iphdr->saddr,
 				       pkt.iphdr->daddr, NULL, NULL, IS_IP,
-				       pkt.iphdr->protocol,
+				       pkt_ip_protocol(&pkt),
 				       (char *) transpacket,
 				       ifname, &revlook, rvnfd,
 				       logging, logfile,
