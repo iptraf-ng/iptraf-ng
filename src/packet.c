@@ -295,7 +295,7 @@ again:
 		char *ip_payload = (char *) ip6 + pkt_iph_len(pkt);
 
 		//TODO: Filter packets
-		switch (ip6->ip6_nxt) {	/* FIXME: extension headers ??? */
+		switch (pkt_ip_protocol(pkt)) {
 		case IPPROTO_TCP:
 			tcp = (struct tcphdr *) ip_payload;
 			if (sport)

@@ -1083,7 +1083,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 						addentry(&table, 0, 0,
 							 (uint8_t *) &pkt.ip6_hdr->ip6_src.s6_addr,
 							 (uint8_t *) &pkt.ip6_hdr->ip6_dst.s6_addr,
-							 sport, dport, pkt.ip6_hdr->ip6_nxt,
+							 sport, dport, pkt_ip_protocol(&pkt),
 							 ifname, &revlook, rvnfd,
 							 options->servnames);
 				if (tcpentry != NULL) {
@@ -1201,14 +1201,14 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				       options->servnames, fragment);
 
 		} else {
-			if (pkt.ip6_hdr->ip6_nxt == IPPROTO_ICMPV6
+			if (pkt_ip_protocol(&pkt) == IPPROTO_ICMPV6
 			    && (((struct icmp6_hdr *) transpacket)->icmp6_type == ICMP6_DST_UNREACH))
 				process_dest_unreach(&table, (char *) transpacket,
 						     ifname);
 
 			add_othp_entry(&othptbl, &pkt, 0, 0,
 				       &pkt.ip6_hdr->ip6_src, &pkt.ip6_hdr->ip6_dst,
-				       IS_IP, pkt.ip6_hdr->ip6_nxt,
+				       IS_IP, pkt_ip_protocol(&pkt),
 				       (char *) transpacket, ifname,
 				       &revlook, rvnfd,
 				       logging, logfile, options->servnames,
