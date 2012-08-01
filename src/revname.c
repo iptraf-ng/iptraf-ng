@@ -188,7 +188,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 
 			if (br < 0) {
 				if (saddr->s_addr != 0)
-					strcpy(target, inet_ntoa(*saddr));
+					inet_ntop(AF_INET, saddr, target, 44);
 				else
 					inet_ntop(AF_INET6, s6addr, target, 44);
 				printipcerr();
@@ -209,7 +209,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 
 			if (he == NULL) {
 				if (saddr->s_addr != 0)
-					strcpy(target, inet_ntoa(*saddr));
+					inet_ntop(AF_INET, saddr, target, 44);
 				else
 					inet_ntop(AF_INET6, s6addr, target, 44);
 			} else {
@@ -220,7 +220,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 		}
 	} else {
 		if (saddr->s_addr != 0 || s6addr == NULL)
-			strcpy(target, inet_ntoa(*saddr));
+			inet_ntop(AF_INET, saddr, target, 44);
 		else
 			inet_ntop(AF_INET6, s6addr, target, 44);
 
