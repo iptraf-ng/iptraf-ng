@@ -122,21 +122,18 @@ static void process_rvn_packet(struct rvn *rvnpacket)
 static int name_resolved(struct rvn *rvnpacket, struct hosts *hostlist,
 			 unsigned int lastfree)
 {
-	unsigned int i = 0;
-
-	while (i != lastfree) {
-		if (rvnpacket->saddr.s_addr != 0) {
-			if ((rvnpacket->saddr.s_addr == hostlist[i].addr)
-			    && (hostlist[i].ready == RESOLVED))
-				return i;
-		} else {
-			if (!memcmp
-			    (rvnpacket->s6addr.s6_addr, hostlist[i].addr6,
-			     sizeof(hostlist[i].addr6)))
-				return i;
+	for (unsigned int i = 0; i != lastfree; i++)
+		if (hostlist[i].ready == RESOLVED) {
+			if (rvnpacket->saddr.s_addr != 0) {
+				if (rvnpacket->saddr.s_addr == hostlist[i].addr)
+					return i;
+			} else {
+				if (!memcmp(rvnpacket->s6addr.s6_addr,
+					    hostlist[i].addr6,
+					    sizeof(hostlist[i].addr6)))
+					return i;
+			}
 		}
-		i++;
-	}
 
 	return -1;
 }
