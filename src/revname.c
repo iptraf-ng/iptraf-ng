@@ -14,6 +14,7 @@ interim IP addresses in the meantime.
 
 #include "deskman.h"
 #include "getpath.h"
+#include "revname.h"
 #include "rvnamed.h"
 
 char revname_socket[80];
