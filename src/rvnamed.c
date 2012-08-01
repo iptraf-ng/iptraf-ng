@@ -102,8 +102,8 @@ static void process_rvn_packet(struct rvn *rvnpacket)
 			inet_ntop(AF_INET6, &(rvnpacket->s6addr),
 				  rvnpacket->fqdn, sizeof(rvnpacket->fqdn));
 	} else {
-		memset(rvnpacket->fqdn, 0, 45);
-		strncpy(rvnpacket->fqdn, he->h_name, 44);
+		memset(rvnpacket->fqdn, 0, sizeof(rvnpacket->fqdn));
+		strncpy(rvnpacket->fqdn, he->h_name, sizeof(rvnpacket->fqdn)-1);
 	}
 
 	ccsa.sun_family = AF_UNIX;
@@ -376,10 +376,10 @@ int main(void)
 							  lastfree);
 					if (readyidx >= 0) {
 						rvnpacket.type = RVN_REPLY;
-						memset(rvnpacket.fqdn, 0, 45);
+						memset(rvnpacket.fqdn, 0, sizeof(rvnpacket.fqdn));
 						strncpy(rvnpacket.fqdn,
 							hostlist[readyidx].fqdn,
-							44);
+							sizeof(rvnpacket.fqdn)-1);
 						rvnpacket.ready = RESOLVED;
 
 						br = sendto(ifd, &rvnpacket,
@@ -507,7 +507,7 @@ int main(void)
 							}
 						}
 						rvnpacket.type = RVN_REPLY;
-						memset(rvnpacket.fqdn, 0, 45);
+						memset(rvnpacket.fqdn, 0, sizeof(rvnpacket.fqdn));
 						if (rvnpacket.saddr.s_addr != 0)
 							strcpy(rvnpacket.fqdn,
 							       inet_ntoa
