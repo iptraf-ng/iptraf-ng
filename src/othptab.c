@@ -204,8 +204,10 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 		else
 			memset(&new_entry->s6addr, 0, 16);
 
-		revname(rev_lookup, &isaddr, s6addr, new_entry->s_fqdn, rvnfd);
-		revname(rev_lookup, &idaddr, d6addr, new_entry->d_fqdn, rvnfd);
+		revname(rev_lookup, &isaddr, s6addr, new_entry->s_fqdn,
+			sizeof(new_entry->s_fqdn), rvnfd);
+		revname(rev_lookup, &idaddr, d6addr, new_entry->d_fqdn,
+			sizeof(new_entry->d_fqdn), rvnfd);
 
 		if (!fragment) {
 			if (protocol == IPPROTO_ICMP) {

@@ -134,7 +134,7 @@ void close_rvn_socket(int fd)
 }
 
 int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
-	    char *target, int rvnfd)
+	    char *target, size_t target_size, int rvnfd)
 {
 	struct hostent *he;
 	struct rvn rpkt;
@@ -145,7 +145,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 	struct timeval tv;
 	int sstat = 0;
 
-	memset(target, 0, 45);
+	memset(target, 0, target_size);
 	if (*lookup) {
 		if (rvnfd > 0) {
 			su.sun_family = AF_UNIX;
@@ -189,14 +189,14 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 
 			if (br < 0) {
 				if (saddr->s_addr != 0)
-					inet_ntop(AF_INET, saddr, target, 44);
+					inet_ntop(AF_INET, saddr, target, target_size - 1);
 				else
-					inet_ntop(AF_INET6, s6addr, target, 44);
+					inet_ntop(AF_INET6, s6addr, target, target_size - 1);
 				printipcerr();
 				*lookup = 0;
 				return RESOLVED;
 			}
-			strncpy(target, rpkt.fqdn, 44);
+			strncpy(target, rpkt.fqdn, target_size - 1);
 			return (rpkt.ready);
 		} else {
 			if (saddr->s_addr != 0)
@@ -210,20 +210,20 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 
 			if (he == NULL) {
 				if (saddr->s_addr != 0)
-					inet_ntop(AF_INET, saddr, target, 44);
+					inet_ntop(AF_INET, saddr, target, target_size - 1);
 				else
-					inet_ntop(AF_INET6, s6addr, target, 44);
+					inet_ntop(AF_INET6, s6addr, target, target_size - 1);
 			} else {
-				strncpy(target, he->h_name, 44);
+				strncpy(target, he->h_name, target_size - 1);
 			}
 
 			return RESOLVED;
 		}
 	} else {
 		if (saddr->s_addr != 0 || s6addr == NULL)
-			inet_ntop(AF_INET, saddr, target, 44);
+			inet_ntop(AF_INET, saddr, target, target_size - 1);
 		else
-			inet_ntop(AF_INET6, s6addr, target, 44);
+			inet_ntop(AF_INET6, s6addr, target, target_size - 1);
 
 		return RESOLVED;
 	}

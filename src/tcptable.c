@@ -352,11 +352,11 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 
 	new_entry->s_fstat =
 	    revname(rev_lookup, &(new_entry->saddr), &new_entry->s6addr,
-		    new_entry->s_fqdn, rvnfd);
+		    new_entry->s_fqdn, sizeof(new_entry->s_fqdn), rvnfd);
 
 	new_entry->d_fstat =
 	    revname(rev_lookup, &(new_entry->daddr), &new_entry->d6addr,
-		    new_entry->d_fqdn, rvnfd);
+		    new_entry->d_fqdn, sizeof(new_entry->d_fqdn), rvnfd);
 
 	/*
 	 * Set port service names (where applicable)
@@ -600,14 +600,16 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	if (tableentry->s_fstat != RESOLVED) {
 		tableentry->s_fstat =
 		    revname(revlook, &(tableentry->saddr),
-			    &(tableentry->s6addr), tableentry->s_fqdn, rvnfd);
+			    &(tableentry->s6addr), tableentry->s_fqdn,
+			    sizeof(tableentry->s_fqdn), rvnfd);
 		strcpy(tableentry->oth_connection->d_fqdn, tableentry->s_fqdn);
 		tableentry->oth_connection->d_fstat = tableentry->s_fstat;
 	}
 	if (tableentry->d_fstat != RESOLVED) {
 		tableentry->d_fstat =
 		    revname(revlook, &(tableentry->daddr),
-			    &(tableentry->d6addr), tableentry->d_fqdn, rvnfd);
+			    &(tableentry->d6addr), tableentry->d_fqdn,
+			    sizeof(tableentry->d_fqdn), rvnfd);
 		strcpy(tableentry->oth_connection->s_fqdn, tableentry->d_fqdn);
 		tableentry->oth_connection->s_fstat = tableentry->d_fstat;
 	}

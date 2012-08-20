@@ -13,6 +13,6 @@ void open_rvn_socket(int *fd);
 void close_rvn_socket(int fd);
 
 int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
-	    char *target, int rvnfd);
+	    char *target, size_t target_size, int rvnfd);
 
 #endif	/* IPTRAF_NG_REVNAME_H */
