@@ -235,9 +235,10 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				new_entry->un.ospf.area =
 				    ntohl(((struct ospfhdr *) packet2)->
 					  ospf_areaid.s_addr);
-				strcpy(new_entry->un.ospf.routerid,
-				       inet_ntoa(((struct ospfhdr *)
-						  packet2)->ospf_routerid));
+				inet_ntop(AF_INET,
+					  &((struct ospfhdr *)packet2)->ospf_routerid,
+					  new_entry->un.ospf.routerid,
+					  sizeof(new_entry->un.ospf.routerid));
 			}
 		}
 	} else {
@@ -400,7 +401,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 				break;
 			}
 
-			sprintf(scratchpad, inet_ntoa(saddr));
+			inet_ntop(AF_INET, &saddr, scratchpad, sizeof(scratchpad));
 			strcat(msgstring, scratchpad);
 			wattrset(table->othpwin, ARPATTR);
 			break;

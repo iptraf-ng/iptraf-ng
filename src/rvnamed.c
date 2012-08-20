@@ -97,7 +97,8 @@ static void process_rvn_packet(struct rvn *rvnpacket)
 
 	if (he == NULL) {
 		if (rvnpacket->saddr.s_addr != 0)
-			strcpy(rvnpacket->fqdn, inet_ntoa(rvnpacket->saddr));
+			inet_ntop(AF_INET, &rvnpacket->saddr,
+				  rvnpacket->fqdn, sizeof(rvnpacket->fqdn));
 		else
 			inet_ntop(AF_INET6, &(rvnpacket->s6addr),
 				  rvnpacket->fqdn, sizeof(rvnpacket->fqdn));
@@ -506,19 +507,15 @@ int main(void)
 						rvnpacket.type = RVN_REPLY;
 						memset(rvnpacket.fqdn, 0, sizeof(rvnpacket.fqdn));
 						if (rvnpacket.saddr.s_addr != 0)
-							strcpy(rvnpacket.fqdn,
-							       inet_ntoa
-							       (rvnpacket.
-								saddr));
+							inet_ntop(AF_INET,
+								  &rvnpacket.saddr,
+								  rvnpacket.fqdn,
+								  sizeof(rvnpacket.fqdn));
 						else
 							inet_ntop(AF_INET6,
-								  &rvnpacket.
-								  s6addr,
-								  rvnpacket.
-								  fqdn,
-								  sizeof
-								  (rvnpacket.
-								   fqdn));
+								  &rvnpacket.s6addr,
+								  rvnpacket.fqdn,
+								  sizeof(rvnpacket.fqdn));
 						rvnpacket.ready = RESOLVING;
 
 						br = sendto(ifd, &rvnpacket,
