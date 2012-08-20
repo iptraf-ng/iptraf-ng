@@ -1042,16 +1042,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		if (ip_protocol == IPPROTO_TCP) {
 			sockaddr_set_port(&saddr, ntohs(sport));
 			sockaddr_set_port(&daddr, ntohs(dport));
-			if (pkt.iphdr) {
-				tcpentry =
-					in_table(&table, &saddr, &daddr,
-						 ifname, logging,
-						 logfile, options);
-			} else {
-				tcpentry =
-					in_table(&table, &saddr, &daddr,
-						 ifname, logging, logfile, options);
-			}
+			tcpentry = in_table(&table, &saddr, &daddr, ifname,
+					    logging, logfile, options);
 
 			/*
 			 * Add a new entry if it doesn't exist, and,
@@ -1067,18 +1059,10 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				 * is not yet closed, or if it is a SYN packet.
 				 */
 				wasempty = (table.head == NULL);
-				if (pkt.iphdr)
-					tcpentry =
-						addentry(&table, &saddr, &daddr,
-							 pkt_ip_protocol(&pkt),
-							 ifname, &revlook, rvnfd,
-							 options->servnames);
-				else
-					tcpentry =
-						addentry(&table, &saddr, &daddr,
-							 pkt_ip_protocol(&pkt),
-							 ifname, &revlook, rvnfd,
-							 options->servnames);
+				tcpentry = addentry(&table, &saddr, &daddr,
+						    pkt_ip_protocol(&pkt),
+						    ifname, &revlook, rvnfd,
+						    options->servnames);
 				if (tcpentry != NULL) {
 					printentry(&table, tcpentry->oth_connection, screen_idx,
 						   mode);
