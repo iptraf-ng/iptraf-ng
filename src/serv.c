@@ -219,7 +219,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 	 * Obtain appropriate service name
 	 */
 
-	servlook(servnames, htons(port), protocol, ptemp->servname, 10);
+	servlook(servnames, port, protocol, ptemp->servname, 10);
 
 	memset(&ptemp->serv_count, 0, sizeof(ptemp->serv_count));
 

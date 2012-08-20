@@ -1040,17 +1040,16 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 
 		__u8 ip_protocol = pkt_ip_protocol(&pkt);
 		if (ip_protocol == IPPROTO_TCP) {
+			sockaddr_set_port(&saddr, ntohs(sport));
+			sockaddr_set_port(&daddr, ntohs(dport));
 			if (pkt.iphdr) {
 				tcpentry =
 					in_table(&table, &saddr, &daddr,
-						 ntohs(sport),
-						 ntohs(dport),
 						 ifname, logging,
 						 logfile, options);
 			} else {
 				tcpentry =
 					in_table(&table, &saddr, &daddr,
-						 ntohs(sport), ntohs(dport),
 						 ifname, logging, logfile, options);
 			}
 
@@ -1071,14 +1070,12 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				if (pkt.iphdr)
 					tcpentry =
 						addentry(&table, &saddr, &daddr,
-							 sport, dport,
 							 pkt_ip_protocol(&pkt),
 							 ifname, &revlook, rvnfd,
 							 options->servnames);
 				else
 					tcpentry =
 						addentry(&table, &saddr, &daddr,
-							 sport, dport,
 							 pkt_ip_protocol(&pkt),
 							 ifname, &revlook, rvnfd,
 							 options->servnames);

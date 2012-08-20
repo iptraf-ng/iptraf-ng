@@ -144,20 +144,22 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 		tcp = (struct tcphdr *) (packet + 48);
 		struct sockaddr_storage saddr, daddr;
 		sockaddr_make_ipv6(&saddr, &ip6->ip6_src);
+		sockaddr_set_port(&saddr, ntohs(tcp->source));
 		sockaddr_make_ipv6(&daddr, &ip6->ip6_dst);
+		sockaddr_set_port(&daddr, ntohs(tcp->dest));
 		tcpentry =
-		    in_table(table, &saddr, &daddr, ntohs(tcp->source),
-			     ntohs(tcp->dest), ifname, 0, NULL, NULL);
+		    in_table(table, &saddr, &daddr, ifname, 0, NULL, NULL);
 	} else {
 		if (ip->protocol != IPPROTO_TCP)
 			return;
 		tcp = (struct tcphdr *) (packet + 8 + (ip->ihl * 4));
 		struct sockaddr_storage saddr, daddr;
 		sockaddr_make_ipv4(&saddr, ip->saddr);
+		sockaddr_set_port(&saddr, ntohs(tcp->source));
 		sockaddr_make_ipv4(&daddr, ip->daddr);
+		sockaddr_set_port(&daddr, ntohs(tcp->dest));
 		tcpentry =
-		    in_table(table, &saddr, &daddr, ntohs(tcp->source),
-			     ntohs(tcp->dest), ifname, 0, NULL, NULL);
+		    in_table(table, &saddr, &daddr, ifname, 0, NULL, NULL);
 	}
 
 	if (tcpentry != NULL) {
@@ -216,11 +218,11 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				    ((struct icmp6_hdr *) packet2)->icmp6_code;
 			} else if (protocol == IPPROTO_UDP) {
 				servlook(servnames,
-					 ((struct udphdr *) packet2)->source,
+					 ntohs(((struct udphdr *) packet2)->source),
 					 IPPROTO_UDP, new_entry->un.udp.s_sname,
 					 10);
 				servlook(servnames,
-					 ((struct udphdr *) packet2)->dest,
+					 ntohs(((struct udphdr *) packet2)->dest),
 					 IPPROTO_UDP, new_entry->un.udp.d_sname,
 					 10);
 			} else if (protocol == IPPROTO_OSPFIGP) {

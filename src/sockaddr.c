@@ -33,6 +33,38 @@ void sockaddr_make_ipv6(struct sockaddr_storage *sockaddr,
 	sockaddr_in6->sin6_scope_id = 0;
 }
 
+in_port_t sockaddr_get_port(struct sockaddr_storage *sockaddr)
+{
+	if (!sockaddr)
+		die("%s(): sockaddr == NULL", __FUNCTION__);
+
+	switch (sockaddr->ss_family) {
+	case AF_INET:
+		return ((struct sockaddr_in *)sockaddr)->sin_port;
+	case AF_INET6:
+		return ((struct sockaddr_in6 *)sockaddr)->sin6_port;
+	default:
+		die("%s(): Unknown address family", __FUNCTION__);
+	}
+}
+
+void sockaddr_set_port(struct sockaddr_storage *sockaddr, in_port_t port)
+{
+	if (!sockaddr)
+		die("%s(): sockaddr == NULL", __FUNCTION__);
+
+	switch (sockaddr->ss_family) {
+	case AF_INET:
+		((struct sockaddr_in *)sockaddr)->sin_port = port;
+		break;
+	case AF_INET6:
+		((struct sockaddr_in6 *)sockaddr)->sin6_port = port;
+		break;
+	default:
+		die("%s(): Unknown address family", __FUNCTION__);
+	}
+}
+
 int sockaddr_is_equal(struct sockaddr_storage *addr1,
 		      struct sockaddr_storage *addr2)
 {

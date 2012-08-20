@@ -10,7 +10,7 @@ servname.c	- lookup module for TCP and UDP service names based on
 
 #include "iptraf-ng-compat.h"
 
-void servlook(int servnames, unsigned int port, unsigned int protocol,
+void servlook(int servnames, in_port_t port, unsigned int protocol,
 	      char *target, int maxlen)
 {
 	static struct servent *sve;
@@ -19,16 +19,16 @@ void servlook(int servnames, unsigned int port, unsigned int protocol,
 
 	if (servnames) {
 		if (protocol == IPPROTO_TCP)
-			sve = getservbyport(port, "tcp");
+			sve = getservbyport(htons(port), "tcp");
 		else
-			sve = getservbyport(port, "udp");
+			sve = getservbyport(htons(port), "udp");
 
 		if (sve != NULL) {
 			strncpy(target, sve->s_name, maxlen);
 		} else {
-			sprintf(target, "%u", ntohs(port));
+			sprintf(target, "%u", port);
 		}
 	} else {
-		sprintf(target, "%u", ntohs(port));
+		sprintf(target, "%u", port);
 	}
 }

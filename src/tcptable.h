@@ -28,8 +28,6 @@ struct tcptableent {
 	char d_fqdn[45];
 	int s_fstat;
 	int d_fstat;
-	unsigned int sport;
-	unsigned int dport;
 	char smacaddr[18];
 	char s_sname[11];	/* Service names, maxlen=10 */
 	char d_sname[11];
@@ -99,14 +97,12 @@ void init_tcp_table(struct tcptable *table);
 struct tcptableent *addentry(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
-			     unsigned int sport, unsigned int dport,
 			     int protocol, char *ifname,
 			     int *rev_lookup, int rvnamedon, int servnames);
 
 struct tcptableent *in_table(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
-			     unsigned int sport, unsigned int dport,
 			     char *ifname, int logging,
 			     FILE * logfile, struct OPTIONS *opts);
 
