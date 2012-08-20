@@ -20,10 +20,8 @@ othptab.h - header file for the non-TCP routines
 #define VSCRL_OFFSET	60	/* Characters to vertically scroll */
 
 struct othptabent {
-	unsigned long int saddr;
-	unsigned long int daddr;
-	struct in6_addr s6addr;
-	struct in6_addr d6addr;
+	struct sockaddr_storage saddr;
+	struct sockaddr_storage daddr;
 	char smacaddr[18];	/* FIXME: use dynamicly allocated space */
 	char dmacaddr[18];
 	unsigned short linkproto;
@@ -124,9 +122,9 @@ void init_othp_table(struct othptable *table, int mac);
 void process_dest_unreach(struct tcptable *table, char *packet, char *ifname);
 
 struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
-				  unsigned long saddr,
-				  unsigned long daddr, struct in6_addr *s6addr,
-				  struct in6_addr *d6addr, int is_ip,
+				  struct sockaddr_storage *saddr,
+				  struct sockaddr_storage *daddr,
+				  int is_ip,
 				  int protocol,
 				  char *packet2,
 				  char *ifname, int *rev_lookup, int rvnamedon,

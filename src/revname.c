@@ -16,6 +16,7 @@ interim IP addresses in the meantime.
 #include "getpath.h"
 #include "revname.h"
 #include "rvnamed.h"
+#include "sockaddr.h"
 
 char revname_socket[80];
 
@@ -133,10 +134,9 @@ void close_rvn_socket(int fd)
 	}
 }
 
-int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
+int revname(int *lookup, struct sockaddr_storage *addr,
 	    char *target, size_t target_size, int rvnfd)
 {
-	struct hostent *he;
 	struct rvn rpkt;
 	int br;
 	struct sockaddr_un su;
@@ -152,13 +152,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 			strcpy(su.sun_path, IPTSOCKNAME);
 
 			rpkt.type = RVN_REQUEST;
-			rpkt.saddr.s_addr = saddr->s_addr;
-
-			if (s6addr != NULL)
-				memcpy(rpkt.s6addr.s6_addr, s6addr->s6_addr,
-				       16);
-			else
-				memset(rpkt.s6addr.s6_addr, 0, 4);
+			sockaddr_copy(&rpkt.addr, addr);
 
 			sendto(rvnfd, &rpkt, sizeof(struct rvn), 0,
 			       (struct sockaddr *) &su,
@@ -188,10 +182,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 			} while ((br < 0) && (errno == EINTR));
 
 			if (br < 0) {
-				if (saddr->s_addr != 0)
-					inet_ntop(AF_INET, saddr, target, target_size - 1);
-				else
-					inet_ntop(AF_INET6, s6addr, target, target_size - 1);
+				sockaddr_ntop(addr, target, target_size);
 				printipcerr();
 				*lookup = 0;
 				return RESOLVED;
@@ -199,20 +190,9 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 			strncpy(target, rpkt.fqdn, target_size - 1);
 			return (rpkt.ready);
 		} else {
-			if (saddr->s_addr != 0)
-				he = gethostbyaddr((char *) saddr,
-						   sizeof(struct in_addr),
-						   AF_INET);
-			else
-				he = gethostbyaddr((char *) s6addr,
-						   sizeof(struct in6_addr),
-						   AF_INET6);
-
+			struct hostent *he = sockaddr_gethostbyaddr(addr);
 			if (he == NULL) {
-				if (saddr->s_addr != 0)
-					inet_ntop(AF_INET, saddr, target, target_size - 1);
-				else
-					inet_ntop(AF_INET6, s6addr, target, target_size - 1);
+				sockaddr_ntop(addr, target, target_size);
 			} else {
 				strncpy(target, he->h_name, target_size - 1);
 			}
@@ -220,11 +200,7 @@ int revname(int *lookup, struct in_addr *saddr, struct in6_addr *s6addr,
 			return RESOLVED;
 		}
 	} else {
-		if (saddr->s_addr != 0 || s6addr == NULL)
-			inet_ntop(AF_INET, saddr, target, target_size - 1);
-		else
-			inet_ntop(AF_INET6, s6addr, target, target_size - 1);
-
+		sockaddr_ntop(addr, target, target_size);
 		return RESOLVED;
 	}
 	return NOTRESOLVED;

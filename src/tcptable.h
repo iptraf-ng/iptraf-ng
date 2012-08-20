@@ -22,10 +22,8 @@
 #define ENTRIES_IN_HASH_TABLE	1543
 
 struct tcptableent {
-	struct in_addr saddr;
-	struct in_addr daddr;
-	struct in6_addr s6addr;
-	struct in6_addr d6addr;
+	struct sockaddr_storage saddr;
+	struct sockaddr_storage daddr;
 	char s_fqdn[45];	/* fully-qualified domain names */
 	char d_fqdn[45];
 	int s_fstat;
@@ -98,16 +96,18 @@ struct tcptable {
 
 void init_tcp_table(struct tcptable *table);
 
-struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
-			     unsigned long int daddr, uint8_t * s6addr,
-			     uint8_t * d6addr, unsigned int sport,
-			     unsigned int dport, int protocol, char *ifname,
+struct tcptableent *addentry(struct tcptable *table,
+			     struct sockaddr_storage *saddr,
+			     struct sockaddr_storage *daddr,
+			     unsigned int sport, unsigned int dport,
+			     int protocol, char *ifname,
 			     int *rev_lookup, int rvnamedon, int servnames);
 
-struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
-			     unsigned long daddr, uint8_t * s6addr,
-			     uint8_t * d6addr, unsigned int sport,
-			     unsigned int dport, char *ifname, int logging,
+struct tcptableent *in_table(struct tcptable *table,
+			     struct sockaddr_storage *saddr,
+			     struct sockaddr_storage *daddr,
+			     unsigned int sport, unsigned int dport,
+			     char *ifname, int logging,
 			     FILE * logfile, struct OPTIONS *opts);
 
 void updateentry(struct tcptable *table, struct tcptableent *tableentry,

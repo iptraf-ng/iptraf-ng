@@ -20,6 +20,7 @@ tcptable.c - table manipulation routines for the IP monitor
 #include "rvnamed.h"
 #include "servname.h"
 #include "hostmon.h"
+#include "sockaddr.h"
 
 #define MSGSTRING_MAX	320
 
@@ -50,26 +51,47 @@ static void setlabels(WINDOW *win, int mode)
  * The hash function for the TCP hash table
  */
 
-static unsigned int tcp_hash(unsigned long saddr, uint32_t *s6addr,
-			     unsigned int sport, unsigned long daddr,
-			     uint32_t *d6addr, unsigned int dport,
+static unsigned int tcp_hash(struct sockaddr_storage *saddr, unsigned int sport,
+			     struct sockaddr_storage *daddr, unsigned int dport,
 			     char *ifname)
 {
 	size_t i;
-	int ifsum = 0;
+	unsigned int ifsum = 0;
 
 	for (i = 0; i <= strlen(ifname) - 1; i++)
 		ifsum += ifname[i];
 
-	if (s6addr != 0 && d6addr != 0) {
-		for (i = 0; i < 4; i++) {
-			saddr ^= s6addr[i];
-			daddr ^= d6addr[i];
-		}
+	switch (saddr->ss_family) {
+	case AF_INET:
+		ifsum += 4 * ((struct sockaddr_in *)saddr)->sin_addr.s_addr;
+		ifsum += 3 * sport;
+		break;
+	case AF_INET6: {
+		unsigned int ip6sum = 0;
+		for (i = 0; i < 4; i++)
+			ip6sum ^= ((struct sockaddr_in6 *)saddr)->sin6_addr.s6_addr32[i];
+		ifsum += 4 * ip6sum;
+		ifsum += 3 * sport;
+		break; }
+	default:
+		die("%s(): saddr: unknown address family", __FUNCTION__);
 	}
-
-	return ((ifsum + (4 * saddr) + (3 * sport) + (2 * daddr) +
-		 dport) % ENTRIES_IN_HASH_TABLE);
+	switch (daddr->ss_family) {
+	case AF_INET:
+		ifsum += 2 * ((struct sockaddr_in *)daddr)->sin_addr.s_addr;
+		ifsum += dport;
+		break;
+	case AF_INET6: {
+		unsigned int ip6sum = 0;
+		for (i = 0; i < 4; i++)
+			ip6sum ^= ((struct sockaddr_in6 *)daddr)->sin6_addr.s6_addr32[i];
+		ifsum += 2 * ip6sum;
+		ifsum += dport;
+		break; }
+	default:
+		die("%s(): daddr: unknown address family", __FUNCTION__);
+	}
+	return (ifsum % ENTRIES_IN_HASH_TABLE);
 }
 
 static void print_tcp_num_entries(struct tcptable *table)
@@ -138,10 +160,8 @@ static void add_tcp_hash_entry(struct tcptable *table, struct tcptableent *entry
 	unsigned int hp;	/* hash position in table */
 	struct tcp_hashentry *ptmp;
 
-	hp = tcp_hash(entry->saddr.s_addr, entry->s6addr.s6_addr32,
-		      entry->sport, entry->daddr.s_addr,
-		      entry->d6addr.s6_addr32, entry->dport, entry->ifname);
-
+	hp = tcp_hash(&entry->saddr, entry->sport,
+		      &entry->daddr, entry->dport, entry->ifname);
 	ptmp = xmallocz(sizeof(struct tcp_hashentry));
 	/*
 	 * Add backpointer from screen node to hash node for deletion later
@@ -205,10 +225,11 @@ static void del_tcp_hash_node(struct tcptable *table, struct tcptableent *entry)
  * Add a new entry to the TCP screen table
  */
 
-struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
-			     unsigned long int daddr, uint8_t * s6addr,
-			     uint8_t * d6addr, unsigned int sport,
-			     unsigned int dport, int protocol, char *ifname,
+struct tcptableent *addentry(struct tcptable *table,
+			     struct sockaddr_storage *saddr,
+			     struct sockaddr_storage *daddr,
+			     unsigned int sport, unsigned int dport,
+			     int protocol, char *ifname,
 			     int *rev_lookup, int rvnfd, int servnames)
 {
 	struct tcptableent *new_entry;
@@ -296,24 +317,10 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 	 * Fill in address fields with raw IP addresses
 	 */
 
-	new_entry->saddr.s_addr = new_entry->oth_connection->daddr.s_addr =
-	    saddr;
-	if (s6addr == NULL) {
-		memset(&new_entry->s6addr, 0, 16);
-		memset(&new_entry->oth_connection->d6addr, 0, 16);
-	} else {
-		memcpy(&new_entry->s6addr, s6addr, 16);
-		memcpy(&new_entry->oth_connection->d6addr, s6addr, 16);
-	}
-	new_entry->daddr.s_addr = new_entry->oth_connection->saddr.s_addr =
-	    daddr;
-	if (d6addr == NULL) {
-		memset(&new_entry->d6addr, 0, 16);
-		memset(&new_entry->oth_connection->s6addr, 0, 16);
-	} else {
-		memcpy(&new_entry->d6addr, d6addr, 16);
-		memcpy(&new_entry->oth_connection->s6addr, d6addr, 16);
-	}
+	sockaddr_copy(&new_entry->saddr, saddr);
+	sockaddr_copy(&new_entry->oth_connection->daddr, saddr);
+	sockaddr_copy(&new_entry->daddr, daddr);
+	sockaddr_copy(&new_entry->oth_connection->saddr, daddr);
 	new_entry->protocol = protocol;
 
 	/*
@@ -351,11 +358,11 @@ struct tcptableent *addentry(struct tcptable *table, unsigned long int saddr,
 	new_entry->stat = new_entry->oth_connection->stat = 0;
 
 	new_entry->s_fstat =
-	    revname(rev_lookup, &(new_entry->saddr), &new_entry->s6addr,
+	    revname(rev_lookup, &new_entry->saddr,
 		    new_entry->s_fqdn, sizeof(new_entry->s_fqdn), rvnfd);
 
 	new_entry->d_fstat =
-	    revname(rev_lookup, &(new_entry->daddr), &new_entry->d6addr,
+	    revname(rev_lookup, &new_entry->daddr,
 		    new_entry->d_fqdn, sizeof(new_entry->d_fqdn), rvnfd);
 
 	/*
@@ -492,20 +499,18 @@ void write_timeout_log(int logging, FILE * logfile, struct tcptableent *tcpnode,
 	}
 }
 
-struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
-			     unsigned long daddr, uint8_t * s6addr,
-			     uint8_t * d6addr, unsigned int sport,
-			     unsigned int dport, char *ifname, int logging,
-			     FILE * logfile, struct OPTIONS *opts)
+struct tcptableent *in_table(struct tcptable *table,
+			     struct sockaddr_storage *saddr,
+			     struct sockaddr_storage *daddr,
+			     unsigned int sport, unsigned int dport,
+			     char *ifname, int logging,
+			     FILE *logfile, struct OPTIONS *opts)
 {
 	struct tcp_hashentry *hashptr;
 	unsigned int hp;
 
 	time_t now;
 	time_t timeout;
-
-	int sfree = 0;
-	int dfree = 0;
 
 	if (opts != NULL)
 		timeout = opts->timeout;
@@ -519,23 +524,12 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
 	 * Determine hash table index for this set of addresses and ports
 	 */
 
-	hp = tcp_hash(saddr, (uint32_t *) s6addr, sport, daddr,
-		      (uint32_t *) d6addr, dport, ifname);
+	hp = tcp_hash(saddr, sport, daddr, dport, ifname);
 	hashptr = table->hash_table[hp];
 
-	if (s6addr == NULL) {
-		s6addr = xmallocz(sizeof(struct in6_addr));
-		sfree = 1;
-	}
-	if (d6addr == NULL) {
-		d6addr = xmallocz(sizeof(struct in6_addr));
-		dfree = 1;
-	}
 	while (hashptr != NULL) {
-		if ((hashptr->tcpnode->saddr.s_addr == saddr)
-		    && (!memcmp(&hashptr->tcpnode->s6addr.s6_addr, s6addr, 16))
-		    && (hashptr->tcpnode->daddr.s_addr == daddr)
-		    && (!memcmp(&hashptr->tcpnode->d6addr.s6_addr, d6addr, 16))
+		if (sockaddr_is_equal(&hashptr->tcpnode->saddr, saddr)
+		    && sockaddr_is_equal(&hashptr->tcpnode->daddr, daddr)
 		    && (hashptr->tcpnode->sport == sport)
 		    && (hashptr->tcpnode->dport == dport)
 		    && (strcmp(hashptr->tcpnode->ifname, ifname) == 0))
@@ -561,11 +555,6 @@ struct tcptableent *in_table(struct tcptable *table, unsigned long saddr,
 		}
 		hashptr = hashptr->next_entry;
 	}
-
-	if (sfree)
-		free(s6addr);
-	if (dfree)
-		free(d6addr);
 
 	if (hashptr != NULL) {	/* needed to avoid SIGSEGV */
 		if ((((hashptr->tcpnode->finsent == 2)
@@ -599,16 +588,14 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 
 	if (tableentry->s_fstat != RESOLVED) {
 		tableentry->s_fstat =
-		    revname(revlook, &(tableentry->saddr),
-			    &(tableentry->s6addr), tableentry->s_fqdn,
+		    revname(revlook, &tableentry->saddr, tableentry->s_fqdn,
 			    sizeof(tableentry->s_fqdn), rvnfd);
 		strcpy(tableentry->oth_connection->d_fqdn, tableentry->s_fqdn);
 		tableentry->oth_connection->d_fstat = tableentry->s_fstat;
 	}
 	if (tableentry->d_fstat != RESOLVED) {
 		tableentry->d_fstat =
-		    revname(revlook, &(tableentry->daddr),
-			    &(tableentry->d6addr), tableentry->d_fqdn,
+		    revname(revlook, &tableentry->daddr, tableentry->d_fqdn,
 			    sizeof(tableentry->d_fqdn), rvnfd);
 		strcpy(tableentry->oth_connection->s_fqdn, tableentry->d_fqdn);
 		tableentry->oth_connection->s_fstat = tableentry->d_fstat;

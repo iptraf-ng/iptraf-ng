@@ -24,6 +24,7 @@ othptab.c - non-TCP protocol display module
 #include "addproto.h"
 #include "packet.h"
 #include "hostmon.h"
+#include "sockaddr.h"
 
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
@@ -141,18 +142,22 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 		if (ip6->ip6_nxt != IPPROTO_TCP)
 			return;
 		tcp = (struct tcphdr *) (packet + 48);
+		struct sockaddr_storage saddr, daddr;
+		sockaddr_make_ipv6(&saddr, &ip6->ip6_src);
+		sockaddr_make_ipv6(&daddr, &ip6->ip6_dst);
 		tcpentry =
-		    in_table(table, 0, 0, ip6->ip6_src.s6_addr,
-			     ip6->ip6_dst.s6_addr, ntohs(tcp->source),
+		    in_table(table, &saddr, &daddr, ntohs(tcp->source),
 			     ntohs(tcp->dest), ifname, 0, NULL, NULL);
 	} else {
 		if (ip->protocol != IPPROTO_TCP)
 			return;
 		tcp = (struct tcphdr *) (packet + 8 + (ip->ihl * 4));
+		struct sockaddr_storage saddr, daddr;
+		sockaddr_make_ipv4(&saddr, ip->saddr);
+		sockaddr_make_ipv4(&daddr, ip->daddr);
 		tcpentry =
-		    in_table(table, ip->saddr, ip->daddr, NULL, NULL,
-			     ntohs(tcp->source), ntohs(tcp->dest), ifname, 0,
-			     NULL, NULL);
+		    in_table(table, &saddr, &daddr, ntohs(tcp->source),
+			     ntohs(tcp->dest), ifname, 0, NULL, NULL);
 	}
 
 	if (tcpentry != NULL) {
@@ -162,9 +167,9 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 }
 
 struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
-				  unsigned long saddr,
-				  unsigned long daddr, struct in6_addr *s6addr,
-				  struct in6_addr *d6addr, int is_ip,
+				  struct sockaddr_storage *saddr,
+				  struct sockaddr_storage *daddr,
+				  int is_ip,
 				  int protocol,
 				  char *packet2,
 				  char *ifname, int *rev_lookup, int rvnfd,
@@ -173,7 +178,6 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 {
 	struct othptabent *new_entry;
 	struct othptabent *temp;
-	struct in_addr isaddr, idaddr;
 
 	new_entry = xmallocz(sizeof(struct othptabent));
 
@@ -191,22 +195,12 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 	}
 
 	if (is_ip) {
-		new_entry->saddr = isaddr.s_addr = saddr;
-		new_entry->daddr = idaddr.s_addr = daddr;
+		sockaddr_copy(&new_entry->saddr, saddr);
+		sockaddr_copy(&new_entry->daddr, daddr);
 
-		if (s6addr != NULL)
-			memcpy(&new_entry->s6addr, s6addr, 16);
-		else
-			memset(&new_entry->s6addr, 0, 16);
-
-		if (d6addr != NULL)
-			memcpy(&new_entry->d6addr, d6addr, 16);
-		else
-			memset(&new_entry->s6addr, 0, 16);
-
-		revname(rev_lookup, &isaddr, s6addr, new_entry->s_fqdn,
+		revname(rev_lookup, saddr, new_entry->s_fqdn,
 			sizeof(new_entry->s_fqdn), rvnfd);
-		revname(rev_lookup, &idaddr, d6addr, new_entry->d_fqdn,
+		revname(rev_lookup, daddr, new_entry->d_fqdn,
 			sizeof(new_entry->d_fqdn), rvnfd);
 
 		if (!fragment) {

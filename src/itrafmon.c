@@ -32,6 +32,7 @@ itrafmon.c - the IP traffic monitor module
 #include "instances.h"
 #include "logvars.h"
 #include "itrafmon.h"
+#include "sockaddr.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -1011,16 +1012,21 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 			ifname = ifnamebuf;
 		}
 
+		struct sockaddr_storage saddr, daddr;
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
 			frag_off = pkt.iphdr->frag_off;
+			sockaddr_make_ipv4(&saddr, pkt.iphdr->saddr);
+			sockaddr_make_ipv4(&daddr, pkt.iphdr->daddr);
 			break;
 		case ETH_P_IPV6:
 			frag_off = 0;
+			sockaddr_make_ipv6(&saddr, &pkt.ip6_hdr->ip6_src);
+			sockaddr_make_ipv6(&daddr, &pkt.ip6_hdr->ip6_dst);
 			break;
 		default:
-			add_othp_entry(&othptbl, &pkt, 0, 0, NULL,
-				       NULL, NOT_IP,
+			add_othp_entry(&othptbl, &pkt, NULL, NULL,
+				       NOT_IP,
 				       pkt.pkt_protocol,
 				       pkt.pkt_payload, ifname, 0,
 				       0, logging, logfile,
@@ -1036,21 +1042,14 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 		if (ip_protocol == IPPROTO_TCP) {
 			if (pkt.iphdr) {
 				tcpentry =
-					in_table(&table,
-						 pkt.iphdr->saddr,
-						 pkt.iphdr->daddr,
-						 NULL, NULL,
+					in_table(&table, &saddr, &daddr,
 						 ntohs(sport),
 						 ntohs(dport),
 						 ifname, logging,
 						 logfile, options);
 			} else {
 				tcpentry =
-					in_table(&table, 0, 0,
-						 (uint8_t *) &pkt.ip6_hdr->
-						 ip6_src.s6_addr,
-						 (uint8_t *) &pkt.ip6_hdr->
-						 ip6_dst.s6_addr,
+					in_table(&table, &saddr, &daddr,
 						 ntohs(sport), ntohs(dport),
 						 ifname, logging, logfile, options);
 			}
@@ -1071,19 +1070,16 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				wasempty = (table.head == NULL);
 				if (pkt.iphdr)
 					tcpentry =
-						addentry(&table,
-							 (unsigned long) pkt.iphdr->saddr,
-							 (unsigned long) pkt.iphdr->daddr,
-							 NULL, NULL, sport, dport,
+						addentry(&table, &saddr, &daddr,
+							 sport, dport,
 							 pkt_ip_protocol(&pkt),
 							 ifname, &revlook, rvnfd,
 							 options->servnames);
 				else
 					tcpentry =
-						addentry(&table, 0, 0,
-							 (uint8_t *) &pkt.ip6_hdr->ip6_src.s6_addr,
-							 (uint8_t *) &pkt.ip6_hdr->ip6_dst.s6_addr,
-							 sport, dport, pkt_ip_protocol(&pkt),
+						addentry(&table, &saddr, &daddr,
+							 sport, dport,
+							 pkt_ip_protocol(&pkt),
 							 ifname, &revlook, rvnfd,
 							 options->servnames);
 				if (tcpentry != NULL) {
@@ -1192,9 +1188,8 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 					process_dest_unreach(&table, (char *) transpacket,
 							     ifname);
 			}
-			add_othp_entry(&othptbl, &pkt, pkt.iphdr->saddr,
-				       pkt.iphdr->daddr, NULL, NULL, IS_IP,
-				       pkt_ip_protocol(&pkt),
+			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
+				       IS_IP, pkt_ip_protocol(&pkt),
 				       (char *) transpacket,
 				       ifname, &revlook, rvnfd,
 				       logging, logfile,
@@ -1206,8 +1201,7 @@ void ipmon(struct OPTIONS *options, struct filterstate *ofilter,
 				process_dest_unreach(&table, (char *) transpacket,
 						     ifname);
 
-			add_othp_entry(&othptbl, &pkt, 0, 0,
-				       &pkt.ip6_hdr->ip6_src, &pkt.ip6_hdr->ip6_dst,
+			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
 				       (char *) transpacket, ifname,
 				       &revlook, rvnfd,
