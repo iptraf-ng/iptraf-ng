@@ -115,6 +115,7 @@ iptraf-h += src/list.h
 iptraf-h += src/counters.h
 iptraf-h += src/rate.h
 iptraf-h += src/built-in.h
+iptraf-h += src/sockaddr.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
@@ -157,9 +158,12 @@ iptraf-o += src/cidr.o
 iptraf-o += src/counters.o
 iptraf-o += src/rate.o
 iptraf-o += src/capture-pkt.o
+iptraf-o += src/sockaddr.o
 
 rvnamed-o += src/rvnamed.o
 rvnamed-o += src/getpath.o
+rvnamed-o += src/sockaddr.o
+rvnamed-o += src/usage.o
 
 -include config.mak.autogen
 -include config.mak
