@@ -67,13 +67,6 @@ static int packet_adjust(struct pkt_hdr *pkt)
 		pkt->pkt_payload = pkt->pkt_buf;
 		pkt->pkt_payload += ETH_HLEN;
 		pkt->pkt_len -= ETH_HLEN;
-		if (pkt->pkt_protocol == ETH_P_8021Q) {
-			/* strip 0x8100 802.1Q VLAN Extended Header  */
-			pkt->pkt_payload += 4;
-			pkt->pkt_len -= 4;
-			/* update network protocol */
-			pkt->pkt_protocol = ntohs(*((unsigned short *) pkt->pkt_payload));
-		}
 		break;
 	case ARPHRD_SLIP:
 	case ARPHRD_CSLIP:
@@ -194,7 +187,8 @@ int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 
 again:
 	packet_set_l3_hdrp(pkt);
-	if (pkt->pkt_protocol == ETH_P_IP) {
+	switch (pkt->pkt_protocol) {
+	case ETH_P_IP: {
 		struct iphdr *ip = pkt->iphdr;
 		int hdr_check;
 		register int ip_checksum;
@@ -287,8 +281,8 @@ again:
 			pkt->pkt_len -= pkt_iph_len(pkt);
 			goto again;
 		}
-		return PACKET_OK;
-	} else if (pkt->pkt_protocol == ETH_P_IPV6) {
+		break; }
+	case ETH_P_IPV6: {
 		struct tcphdr *tcp;
 		struct udphdr *udp;
 		struct ip6_hdr *ip6 = pkt->ip6_hdr;
@@ -317,7 +311,15 @@ again:
 				*dport = 0;
 			break;
 		}
-	} else {
+		break; }
+	case ETH_P_8021Q:
+		/* strip 0x8100 802.1Q VLAN Extended Header  */
+		pkt->pkt_payload += 4;
+		pkt->pkt_len -= 4;
+		/* update network protocol */
+		pkt->pkt_protocol = ntohs(*((unsigned short *) pkt->pkt_payload));
+		goto again;
+	default:
 		/* not IPv4 and not IPv6: apply non-IP packet filter */
 		if (!nonipfilter(filter, pkt->pkt_protocol)) {
 			return PACKET_FILTERED;
