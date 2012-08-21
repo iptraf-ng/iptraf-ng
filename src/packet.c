@@ -313,7 +313,11 @@ again:
 		}
 		break; }
 	case ETH_P_8021Q:
-		/* strip 0x8100 802.1Q VLAN Extended Header  */
+	case ETH_P_QINQ1:	/* ETH_P_QINQx are not officially */
+	case ETH_P_QINQ2:	/* registered IDs */
+	case ETH_P_QINQ3:
+	case ETH_P_8021AD:
+		/* strip 802.1Q/QinQ/802.1ad VLAN header */
 		pkt->pkt_payload += 4;
 		pkt->pkt_len -= 4;
 		/* update network protocol */
