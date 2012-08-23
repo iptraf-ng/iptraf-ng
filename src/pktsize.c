@@ -138,8 +138,8 @@ static void update_size_distrib(unsigned int length,
 	wprintw(win, "%8lu", brackets[i].count);
 }
 
-void packet_size_breakdown(struct OPTIONS *options, char *ifname,
-			   time_t facilitytime, struct filterstate *ofilter)
+void packet_size_breakdown(char *ifname, time_t facilitytime,
+			   struct filterstate *ofilter)
 {
 	WINDOW *win;
 	PANEL *panel;
@@ -162,7 +162,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	time_t updtime = 0;
 	unsigned long long updtime_usec = 0;
 
-	int logging = options->logging;
+	int logging = options.logging;
 	FILE *logfile = NULL;
 
 	struct promisc_states *promisc_list;
@@ -244,7 +244,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 	gettimeofday(&tv, NULL);
 	now = starttime = startlog = timeint = tv.tv_sec;
 
-	if ((first_active_facility()) && (options->promisc)) {
+	if (first_active_facility() && options.promisc) {
 		init_promisc_list(&promisc_list);
 		save_promisc_list(promisc_list);
 		srpromisc(1, promisc_list);
@@ -270,9 +270,9 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		now = tv.tv_sec;
 		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
-		if (((options->updrate != 0)
-		     && (now - updtime >= options->updrate))
-		    || ((options->updrate == 0)
+		if (((options.updrate != 0)
+		     && (now - updtime >= options.updrate))
+		    || ((options.updrate == 0)
 			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
 			update_panels();
 			doupdate();
@@ -286,7 +286,7 @@ void packet_size_breakdown(struct OPTIONS *options, char *ifname,
 		}
 		if (logging) {
 			check_rotate_flag(&logfile);
-			if ((now - startlog >= options->logspan)) {
+			if ((now - startlog) >= options.logspan) {
 				write_size_log(brackets, now - starttime,
 					       ifname, mtu, logfile);
 				startlog = now;
@@ -343,7 +343,7 @@ err:
 		fclose(logfile);
 	}
 
-	if ((options->promisc) && (is_last_instance())) {
+	if (options.promisc && is_last_instance()) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
 		destroy_promisc_list(&promisc_list);

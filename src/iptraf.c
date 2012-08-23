@@ -126,7 +126,7 @@ static void init_break_menu(struct MENU *break_menu)
  * Get the ball rolling: The program interface routine.
  */
 
-static void program_interface(struct OPTIONS *options)
+static void program_interface(void)
 {
 	struct MENU menu;
 	struct MENU break_menu;
@@ -194,16 +194,16 @@ static void program_interface(struct OPTIONS *options)
 				else
 					ifptr = NULL;
 
-				ipmon(options, &ofilter, 0, ifptr);
+				ipmon(&ofilter, 0, ifptr);
 			}
 			break;
 		case 2:
-			ifstats(options, &ofilter, 0);
+			ifstats(&ofilter, 0);
 			break;
 		case 3:
 			selectiface(ifname, WITHOUTALL, &aborted);
 			if (!aborted)
-				detstats(ifname, options, 0, &ofilter);
+				detstats(ifname, 0, &ofilter);
 			break;
 		case 4:
 			break_row = 1;
@@ -215,13 +215,13 @@ static void program_interface(struct OPTIONS *options)
 			case 1:
 				selectiface(ifname, WITHOUTALL, &aborted);
 				if (!aborted)
-					packet_size_breakdown(options, ifname,
+					packet_size_breakdown(ifname,
 							      0, &ofilter);
 				break;
 			case 2:
 				selectiface(ifname, WITHOUTALL, &aborted);
 				if (!aborted)
-					servmon(ifname, options, 0,
+					servmon(ifname, 0,
 						&ofilter);
 				break;
 			case 4:
@@ -236,7 +236,7 @@ static void program_interface(struct OPTIONS *options)
 					ifptr = ifname;
 				else
 					ifptr = NULL;
-				hostmon(options, 0, ifptr, &ofilter);
+				hostmon(0, ifptr, &ofilter);
 			}
 			break;
 		case 7:
@@ -244,8 +244,8 @@ static void program_interface(struct OPTIONS *options)
 			savefilters(&ofilter);
 			break;
 		case 9:
-			setoptions(options);
-			saveoptions(options);
+			setoptions();
+			saveoptions();
 			break;
 		case 11:
 			about();
@@ -355,7 +355,6 @@ static void handle_internal_command(int argc, char **argv,
 
 int main(int argc, char **argv)
 {
-	struct OPTIONS options;
 	int current_log_interval = 0;
 
 	if (geteuid() != 0)
@@ -451,7 +450,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 #endif
-	loadoptions(&options);
+	loadoptions();
 
 	/*
 	 * If a facility is directly invoked from the command line, check for
@@ -547,25 +546,25 @@ int main(int argc, char **argv)
 
 	/* simplify */
 	if (g_opt)
-		ifstats(&options, &ofilter, facilitytime);
+		ifstats(&ofilter, facilitytime);
 	else if (i_opt)
 		if (strcmp(i_opt, "all") == 0)
-			ipmon(&options, &ofilter, facilitytime, NULL);
+			ipmon(&ofilter, facilitytime, NULL);
 		else
-			ipmon(&options, &ofilter, facilitytime, i_opt);
+			ipmon(&ofilter, facilitytime, i_opt);
 	else if (l_opt)
 		if (strcmp(l_opt, "all") == 0)
-			hostmon(&options, facilitytime, NULL, &ofilter);
+			hostmon(facilitytime, NULL, &ofilter);
 		else
-			hostmon(&options, facilitytime, l_opt, &ofilter);
+			hostmon(facilitytime, l_opt, &ofilter);
 	else if (d_opt)
-		detstats(d_opt, &options, facilitytime, &ofilter);
+		detstats(d_opt, facilitytime, &ofilter);
 	else if (s_opt)
-		servmon(s_opt, &options, facilitytime, &ofilter);
+		servmon(s_opt, facilitytime, &ofilter);
 	else if (z_opt)
-		packet_size_breakdown(&options, z_opt, facilitytime, &ofilter);
+		packet_size_breakdown(z_opt, facilitytime, &ofilter);
 
-	program_interface(&options);
+	program_interface();
 
 	endwin();
 

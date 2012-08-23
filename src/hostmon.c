@@ -91,8 +91,7 @@ static void rotate_lanlog(int s __unused)
 	signal(SIGUSR1, rotate_lanlog);
 }
 
-static void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
-			FILE * fd)
+static void writeethlog(struct ethtabent *list, unsigned long nsecs, FILE *fd)
 {
 	char atime[TIME_TARGET_MAX];
 	struct ethtabent *ptmp = list;
@@ -128,18 +127,16 @@ static void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 			fprintf(fd, "\tAverage rates: ");
 			char buf_in[32];
 			char buf_out[32];
-			rate_print(ptmp->un.figs.inbcount / nsecs, unit,
-				   buf_in, sizeof(buf_in));
-			rate_print(ptmp->un.figs.outbcount / nsecs, unit,
-				   buf_out, sizeof(buf_out));
+			rate_print(ptmp->un.figs.inbcount / nsecs, buf_in, sizeof(buf_in));
+			rate_print(ptmp->un.figs.outbcount / nsecs, buf_out, sizeof(buf_out));
 			fprintf(fd, "%s incoming, %s outgoing\n",
 				buf_in, buf_out);
 
 			if (nsecs > 5) {
 				rate_print(rate_get_average(&ptmp->un.figs.inrate),
-					   unit, buf_in, sizeof(buf_in));
+					   buf_in, sizeof(buf_in));
 				rate_print(rate_get_average(&ptmp->un.figs.outrate),
-					   unit, buf_out, sizeof(buf_out));
+					   buf_out, sizeof(buf_out));
 				fprintf(fd,
 					"\tLast 5-second rates: %s incoming, %s outgoing\n",
 					buf_in, buf_out);
@@ -153,12 +150,11 @@ static void writeethlog(struct ethtabent *list, int unit, unsigned long nsecs,
 	fflush(fd);
 }
 
-static void initethtab(struct ethtab *table, int unit)
+static void initethtab(struct ethtab *table)
 {
 	table->head = table->tail = NULL;
 	table->firstvisible = table->lastvisible = NULL;
 	table->count = table->entcount = 0;
-	table->units = unit;
 
 	table->borderwin = newwin(LINES - 2, COLS, 1, 0);
 	table->borderpanel = new_panel(table->borderwin);
@@ -189,7 +185,7 @@ static void initethtab(struct ethtab *table, int unit)
 	wmove(table->borderwin, LINES - 3, 40);
 
 	wprintw(table->borderwin, " InRate and OutRate are in %s ",
-		dispmode(unit));
+		dispmode(options.actmode));
 
 	wattrset(table->tabwin, STDATTR);
 	tx_colorwin(table->tabwin);
@@ -419,12 +415,12 @@ static void printrates(struct ethtab *table, unsigned int target_row,
 	char buf[32];
 
 	rate_print_no_units(rate_get_average(&ptmp->un.figs.inrate),
-		   table->units, buf, sizeof(buf));
+		   buf, sizeof(buf));
 	wmove(table->tabwin, target_row, 32 * COLS / 80);
 	wprintw(table->tabwin, "%s", buf);
 
 	rate_print_no_units(rate_get_average(&ptmp->un.figs.outrate),
-		   table->units, buf, sizeof(buf));
+		   buf, sizeof(buf));
 	wmove(table->tabwin, target_row, 69 * COLS / 80);
 	wprintw(table->tabwin, "%s", buf);
 }
@@ -748,10 +744,9 @@ static void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
  * The LAN station monitor
  */
 
-void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
-	     struct filterstate *ofilter)
+void hostmon(time_t facilitytime, char *ifptr, struct filterstate *ofilter)
 {
-	int logging = options->logging;
+	int logging = options.logging;
 	struct ethtab table;
 	struct ethtabent *entry;
 
@@ -804,7 +799,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		}
 	}
 
-	if ((first_active_facility()) && (options->promisc)) {
+	if (first_active_facility() && options.promisc) {
 		init_promisc_list(&promisc_list);
 		save_promisc_list(promisc_list);
 		srpromisc(1, promisc_list);
@@ -816,7 +811,7 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 
 	hostmonhelp();
 
-	initethtab(&table, options->actmode);
+	initethtab(&table);
 
 	/* Ethernet description list */
 	struct eth_desc *elist = load_eth_desc(ARPHRD_ETHER);
@@ -881,15 +876,15 @@ void hostmon(const struct OPTIONS *options, time_t facilitytime, char *ifptr,
 		}
 		if (logging) {
 			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options->logspan) {
-				writeethlog(table.head, options->actmode,
-					    now - statbegin, logfile);
+			if ((now - startlog) >= options.logspan) {
+				writeethlog(table.head, now - statbegin,
+					    logfile);
 				startlog = now;
 			}
 		}
-		if (((options->updrate != 0)
-		     && (now - updtime >= options->updrate))
-		    || ((options->updrate == 0)
+		if (((options.updrate != 0)
+		     && (now - updtime >= options.updrate))
+		    || ((options.updrate == 0)
 			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
 			update_panels();
 			doupdate();
@@ -1042,7 +1037,7 @@ err_close:
 	close(fd);
 
 err:
-	if ((options->promisc) && (is_last_instance())) {
+	if (options.promisc && is_last_instance()) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
 		destroy_promisc_list(&promisc_list);
@@ -1053,8 +1048,7 @@ err:
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writeethlog(table.head, options->actmode,
-			    time(NULL) - statbegin, logfile);
+		writeethlog(table.head, time(NULL) - statbegin, logfile);
 		writelog(logging, logfile,
 			 "******** LAN traffic monitor stopped ********");
 		fclose(logfile);

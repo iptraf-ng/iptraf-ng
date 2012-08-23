@@ -227,7 +227,7 @@ struct tcptableent *addentry(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
 			     int protocol, char *ifname,
-			     int *rev_lookup, int rvnfd, int servnames)
+			     int *rev_lookup, int rvnfd)
 {
 	struct tcptableent *new_entry;
 	struct closedlist *ctemp;
@@ -356,8 +356,8 @@ struct tcptableent *addentry(struct tcptable *table,
 		    new_entry->d_fqdn, sizeof(new_entry->d_fqdn), rvnfd);
 
 	/* set port service names (where applicable) */
-	servlook(servnames, sockaddr_get_port(saddr), IPPROTO_TCP, new_entry->s_sname, 10);
-	servlook(servnames, sockaddr_get_port(daddr), IPPROTO_TCP, new_entry->d_sname, 10);
+	servlook(sockaddr_get_port(saddr), IPPROTO_TCP, new_entry->s_sname, 10);
+	servlook(sockaddr_get_port(daddr), IPPROTO_TCP, new_entry->d_sname, 10);
 
 	strcpy(new_entry->oth_connection->s_sname, new_entry->d_sname);
 	strcpy(new_entry->oth_connection->d_sname, new_entry->s_sname);
@@ -435,8 +435,7 @@ void addtoclosedlist(struct tcptable *table, struct tcptableent *entry)
 
 }
 
-static char *tcplog_flowrate_msg(struct tcptableent *entry,
-				 struct OPTIONS *opts)
+static char *tcplog_flowrate_msg(struct tcptableent *entry)
 {
 	char rateunit[10];
 	float rate = 0;
@@ -445,7 +444,7 @@ static char *tcplog_flowrate_msg(struct tcptableent *entry,
 
 	interval = time(NULL) - entry->conn_starttime;
 
-	if (opts->actmode == KBITS) {
+	if (options.actmode == KBITS) {
 		strcpy(rateunit, "kbits/s");
 
 		if (interval > 0)
@@ -468,8 +467,7 @@ static char *tcplog_flowrate_msg(struct tcptableent *entry,
 	return message;
 }
 
-void write_timeout_log(int logging, FILE * logfile, struct tcptableent *tcpnode,
-		       struct OPTIONS *opts)
+void write_timeout_log(int logging, FILE *logfile, struct tcptableent *tcpnode)
 {
 	char msgstring[MSGSTRING_MAX];
 
@@ -478,10 +476,10 @@ void write_timeout_log(int logging, FILE * logfile, struct tcptableent *tcpnode,
 			 "TCP; Connection %s:%s to %s:%s timed out, %lu packets, %lu bytes, %s; opposite direction %lu packets, %lu bytes, %s",
 			 tcpnode->s_fqdn, tcpnode->s_sname, tcpnode->d_fqdn,
 			 tcpnode->d_sname, tcpnode->pcount, tcpnode->bcount,
-			 tcplog_flowrate_msg(tcpnode, opts),
+			 tcplog_flowrate_msg(tcpnode),
 			 tcpnode->oth_connection->pcount,
 			 tcpnode->oth_connection->bcount,
-			 tcplog_flowrate_msg(tcpnode->oth_connection, opts));
+			 tcplog_flowrate_msg(tcpnode->oth_connection));
 		writelog(logging, logfile, msgstring);
 	}
 }
@@ -490,18 +488,12 @@ struct tcptableent *in_table(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
 			     char *ifname, int logging,
-			     FILE *logfile, struct OPTIONS *opts)
+			     FILE *logfile, time_t timeout)
 {
 	struct tcp_hashentry *hashptr;
 	unsigned int hp;
 
 	time_t now;
-	time_t timeout;
-
-	if (opts != NULL)
-		timeout = opts->timeout;
-	else
-		timeout = 0;
 
 	if (table->head == NULL) {
 		return 0;
@@ -535,7 +527,7 @@ struct tcptableent *in_table(struct tcptable *table,
 
 			if (logging)
 				write_timeout_log(logging, logfile,
-						  hashptr->tcpnode, opts);
+						  hashptr->tcpnode);
 		}
 		hashptr = hashptr->next_entry;
 	}
@@ -565,7 +557,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 		 struct tcphdr *transpacket, char *packet, int linkproto,
 		 unsigned long packetlength, unsigned int bcount,
 		 unsigned int fragofs, int logging, int *revlook, int rvnfd,
-		 struct OPTIONS *opts, FILE * logfile)
+		 FILE *logfile)
 {
 	char msgstring[MSGSTRING_MAX];
 	char newmacaddr[18];
@@ -589,7 +581,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	tableentry->psize = packetlength;
 	tableentry->spanbr += bcount;
 
-	if (opts->mac) {
+	if (options.mac) {
 		memset(newmacaddr, 0, sizeof(newmacaddr));
 
 
@@ -665,7 +657,7 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 
 			if (logging) {
 				writetcplog(logging, logfile, tableentry,
-					    tableentry->psize, opts->mac,
+					    tableentry->psize,
 					    "FIN acknowleged");
 			}
 		}
@@ -714,10 +706,10 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 			sprintf(msgstring,
 				"FIN sent; %lu packets, %lu bytes, %s",
 				tableentry->pcount, tableentry->bcount,
-				tcplog_flowrate_msg(tableentry, opts));
+				tcplog_flowrate_msg(tableentry));
 
 			writetcplog(logging, logfile, tableentry,
-				    tableentry->psize, opts->mac, msgstring);
+				    tableentry->psize, msgstring);
 		}
 	}
 	if (transpacket->rst) {
@@ -729,13 +721,12 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 			snprintf(msgstring, MSGSTRING_MAX,
 				 "Connection reset; %lu packets, %lu bytes, %s; opposite direction %lu packets, %lu bytes; %s",
 				 tableentry->pcount, tableentry->bcount,
-				 tcplog_flowrate_msg(tableentry, opts),
+				 tcplog_flowrate_msg(tableentry),
 				 tableentry->oth_connection->pcount,
 				 tableentry->oth_connection->bcount,
-				 tcplog_flowrate_msg(tableentry->oth_connection,
-						     opts));
+				 tcplog_flowrate_msg(tableentry->oth_connection));
 			writetcplog(logging, logfile, tableentry,
-				    tableentry->psize, opts->mac, msgstring);
+				    tableentry->psize, msgstring);
 		}
 	}
 	if (transpacket->psh)
@@ -1054,7 +1045,7 @@ static void destroy_tcp_entry(struct tcptable *table, struct tcptableent *ptmp)
  */
 
 void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
-			int logging, FILE * logfile, struct OPTIONS *opts)
+			int logging, FILE *logfile)
 {
 	struct tcptableent *ptmp = table->head;
 	struct tcptableent *ctmp = NULL;
@@ -1066,15 +1057,15 @@ void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
 		now = time(NULL);
 		lastupdated = (now - ptmp->lastupdate) / 60;
 
-		if ((ptmp->inclosed) || (lastupdated > opts->timeout)) {
+		if ((ptmp->inclosed) || (lastupdated > options.timeout)) {
 			ctmp = ptmp;
 			/*
 			 * Mark and flush timed out TCP entries.
 			 */
-			if (lastupdated > opts->timeout) {
+			if (lastupdated > options.timeout) {
 				if ((!(ptmp->timedout)) && (!(ptmp->inclosed))) {
 					write_timeout_log(logging, logfile,
-							  ptmp, opts);
+							  ptmp);
 					ptmp->timedout =
 					    ptmp->oth_connection->timedout = 1;
 				}
@@ -1176,12 +1167,12 @@ void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
 }
 
 void writetcplog(int logging, FILE *fd, struct tcptableent *entry,
-		 unsigned int pktlen, int mac, char *message)
+		 unsigned int pktlen, char *message)
 {
 	char msgbuf[MSGSTRING_MAX];
 
 	if (logging) {
-		if (mac) {
+		if (options.mac) {
 			snprintf(msgbuf, MSGSTRING_MAX,
 				 "TCP; %s; %u bytes; from %s:%s to %s:%s (source MAC addr %s); %s",
 				 entry->ifname, pktlen, entry->s_fqdn,

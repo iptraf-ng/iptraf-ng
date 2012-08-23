@@ -75,8 +75,7 @@ static void rotate_gstat_log(int s __unused)
 	signal(SIGUSR1, rotate_gstat_log);
 }
 
-static void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
-			  FILE *fd)
+static void writegstatlog(struct iftab *table, unsigned long nsecs, FILE *fd)
 {
 	struct iflist *ptmp = table->head;
 	char atime[TIME_TARGET_MAX];
@@ -95,11 +94,11 @@ static void writegstatlog(struct iftab *table, int unit, unsigned long nsecs,
 		if (nsecs > 5) {
 			char buf[64];
 
-			rate_print(ptmp->br / nsecs, unit, buf, sizeof(buf));
+			rate_print(ptmp->br / nsecs, buf, sizeof(buf));
 			fprintf(fd, ", average activity %s", buf);
-			rate_print(ptmp->peakrate, unit, buf, sizeof(buf));
+			rate_print(ptmp->peakrate, buf, sizeof(buf));
 			fprintf(fd, ", peak activity %s", buf);
-			rate_print(rate_get_average(&ptmp->rate), unit, buf, sizeof(buf));
+			rate_print(rate_get_average(&ptmp->rate), buf, sizeof(buf));
 			fprintf(fd, ", last 5-second average activity %s", buf);
 		}
 		fprintf(fd, "\n");
@@ -256,7 +255,7 @@ static void no_ifaces_error(void)
 	write_error("No active interfaces. Check their status or the /proc filesystem");
 }
 
-static void updaterates(struct iftab *table, int unit, unsigned long msecs,
+static void updaterates(struct iftab *table, unsigned long msecs,
 			unsigned int idx)
 {
 	struct iflist *ptmp = table->firstvisible;
@@ -267,7 +266,7 @@ static void updaterates(struct iftab *table, int unit, unsigned long msecs,
 	do {
 		rate_add_rate(&ptmp->rate, ptmp->spanbr, msecs);
 		rate = rate_get_average(&ptmp->rate);
-		rate_print(rate, unit, buf, sizeof(buf));
+		rate_print(rate, buf, sizeof(buf));
 		wmove(table->statwin, ptmp->index - idx, 63 * COLS / 80);
 		wprintw(table->statwin, "%s", buf);
 
@@ -428,10 +427,9 @@ static void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
  * The general interface statistics function
  */
 
-void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
-	     time_t facilitytime)
+void ifstats(struct filterstate *ofilter, time_t facilitytime)
 {
-	int logging = options->logging;
+	int logging = options.logging;
 	struct iftab table;
 
 	int pkt_result = 0;
@@ -474,7 +472,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 
 	initiftab(&table);
 
-	if ((first_active_facility()) && (options->promisc)) {
+	if (first_active_facility() && options.promisc) {
 		init_promisc_list(&promisc_list);
 		save_promisc_list(promisc_list);
 		srpromisc(1, promisc_list);
@@ -533,7 +531,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 			unsigned long msecs;
 
 			msecs = timeval_diff_msec(&tv, &start_tv);
-			updaterates(&table, options->actmode, msecs, idx);
+			updaterates(&table, msecs, idx);
 			printelapsedtime(statbegin, now, LINES - 3, 1,
 					 table.borderwin);
 			starttime = now;
@@ -541,16 +539,16 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		}
 		if (logging) {
 			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options->logspan) {
-				writegstatlog(&table, options->actmode,
+			if ((now - startlog) >= options.logspan) {
+				writegstatlog(&table,
 					      time(NULL) - statbegin,
 					      logfile);
 				startlog = now;
 			}
 		}
-		if (((options->updrate != 0)
-		     && (now - updtime >= options->updrate))
-		    || ((options->updrate == 0)
+		if (((options.updrate != 0)
+		     && (now - updtime >= options.updrate))
+		    || ((options.updrate == 0)
 			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
 			update_panels();
 			doupdate();
@@ -606,7 +604,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 		pkt_result = packet_process(&pkt, NULL, NULL, NULL,
 					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
-					   options->v6inv4asv6);
+					   options.v6inv4asv6);
 
 		if (pkt_result != PACKET_OK
 		    && pkt_result != MORE_FRAGMENTS)
@@ -638,7 +636,7 @@ void ifstats(const struct OPTIONS *options, struct filterstate *ofilter,
 	close(fd);
 
 err:
-	if ((options->promisc) && (is_last_instance())) {
+	if (options.promisc && is_last_instance()) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
 		destroy_promisc_list(&promisc_list);
@@ -655,8 +653,7 @@ err:
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writegstatlog(&table, options->actmode,
-			      time(NULL) - statbegin, logfile);
+		writegstatlog(&table, time(NULL) - statbegin, logfile);
 		writelog(logging, logfile,
 			 "******** General interface statistics stopped ********");
 		fclose(logfile);

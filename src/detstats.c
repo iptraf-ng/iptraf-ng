@@ -52,7 +52,7 @@ static void rotate_dstat_log(int s __unused)
 	signal(SIGUSR1, rotate_dstat_log);
 }
 
-static void writedstatlog(char *ifname, int unit,
+static void writedstatlog(char *ifname,
 		   unsigned long peakactivity, unsigned long peakpps,
 		   unsigned long peakactivity_in, unsigned long peakpps_in,
 		   unsigned long peakactivity_out, unsigned long peakpps_out,
@@ -139,22 +139,22 @@ static void writedstatlog(char *ifname, int unit,
 
 		fprintf(fd, "\nAverage rates:\n");
 
-		rate_print(ts->total.proto_total.pc_bytes / nsecs, unit, bps_string, sizeof(bps_string));
+		rate_print(ts->total.proto_total.pc_bytes / nsecs, bps_string, sizeof(bps_string));
 		rate_print_pps(ts->total.proto_total.pc_packets / nsecs, pps_string, sizeof(pps_string));
 		fprintf(fd, "  Total:\t%s, %s\n", bps_string, pps_string);
-		rate_print(ts->total.proto_in.pc_bytes / nsecs, unit, bps_string, sizeof(bps_string));
+		rate_print(ts->total.proto_in.pc_bytes / nsecs, bps_string, sizeof(bps_string));
 		rate_print_pps(ts->total.proto_in.pc_packets / nsecs, pps_string, sizeof(pps_string));
 		fprintf(fd, "  Incoming:\t%s, %s\n", bps_string, pps_string);
-		rate_print(ts->total.proto_out.pc_bytes / nsecs, unit, bps_string, sizeof(bps_string));
+		rate_print(ts->total.proto_out.pc_bytes / nsecs, bps_string, sizeof(bps_string));
 		rate_print_pps(ts->total.proto_out.pc_packets / nsecs, pps_string, sizeof(pps_string));
 		fprintf(fd, "  Outgoing:\t%s, %s\n", bps_string, pps_string);
-		rate_print(peakactivity, unit, bps_string, sizeof(bps_string));
+		rate_print(peakactivity, bps_string, sizeof(bps_string));
 		rate_print_pps(peakpps, pps_string, sizeof(pps_string));
 		fprintf(fd, "\nPeak total activity: %s, %s\n", bps_string, pps_string);
-		rate_print(peakactivity_in, unit, bps_string, sizeof(bps_string));
+		rate_print(peakactivity_in, bps_string, sizeof(bps_string));
 		rate_print_pps(peakpps_in, pps_string, sizeof(pps_string));
 		fprintf(fd, "Peak incoming rate: %s, %s\n", bps_string, pps_string);
-		rate_print(peakactivity_out, unit, bps_string, sizeof(bps_string));
+		rate_print(peakactivity_out, bps_string, sizeof(bps_string));
 		rate_print_pps(peakpps_out, pps_string, sizeof(pps_string));
 		fprintf(fd, "Peak outgoing rate: %s, %s\n\n", bps_string, pps_string);
 	}
@@ -251,10 +251,9 @@ static void printdetails(struct ifcounts *ifcounts, WINDOW * win)
 /*
  * The detailed interface statistics function
  */
-void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
-	      struct filterstate *ofilter)
+void detstats(char *iface, time_t facilitytime, struct filterstate *ofilter)
 {
-	int logging = options->logging;
+	int logging = options.logging;
 
 	WINDOW *statwin;
 	PANEL *statpanel;
@@ -316,7 +315,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		return;
 	}
 
-	if ((first_active_facility()) && (options->promisc)) {
+	if (first_active_facility() && options.promisc) {
 		init_promisc_list(&promisc_list);
 		save_promisc_list(promisc_list);
 		srpromisc(1, promisc_list);
@@ -413,7 +412,6 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			char buf[64];
 			unsigned long activity, activity_in, activity_out;
 			unsigned long pps, pps_in, pps_out;
-			int units = options->actmode;
 			unsigned long msecs;
 
 			wattrset(statwin, BOXATTR);
@@ -440,15 +438,15 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			start_tv = tv;
 
 			wattrset(statwin, HIGHATTR);
-			rate_print(activity, units, buf, sizeof(buf));
+			rate_print(activity, buf, sizeof(buf));
 			mvwprintw(statwin, 14, 19, "%s", buf);
 			rate_print_pps(pps, buf, sizeof(buf));
 			mvwprintw(statwin, 15, 19, "%s", buf);
-			rate_print(activity_in, units, buf, sizeof(buf));
+			rate_print(activity_in, buf, sizeof(buf));
 			mvwprintw(statwin, 17, 19, "%s", buf);
 			rate_print_pps(pps_in, buf, sizeof(buf));
 			mvwprintw(statwin, 18, 19, "%s", buf);
-			rate_print(activity_out, units, buf, sizeof(buf));
+			rate_print(activity_out, buf, sizeof(buf));
 			mvwprintw(statwin, 20, 19, "%s", buf);
 			rate_print_pps(pps_out, buf, sizeof(buf));
 			mvwprintw(statwin, 21, 19, "%s", buf);
@@ -473,8 +471,8 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 		}
 		if (logging) {
 			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options->logspan) {
-				writedstatlog(iface, options->actmode,
+			if ((now - startlog) >= options.logspan) {
+				writedstatlog(iface,
 					      peakactivity, peakpps,
 					      peakactivity_in, peakpps_in,
 					      peakactivity_out, peakpps_out,
@@ -485,10 +483,10 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			}
 		}
 
-		if (((options->updrate == 0)
+		if (((options.updrate == 0)
 		     && (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))
-		    || ((options->updrate != 0)
-			&& (now - updtime >= options->updrate))) {
+		    || ((options.updrate != 0)
+			&& (now - updtime >= options.updrate))) {
 			printdetails(&ifcounts, statwin);
 			update_panels();
 			doupdate();
@@ -534,7 +532,7 @@ void detstats(char *iface, const struct OPTIONS *options, time_t facilitytime,
 			packet_process(&pkt, NULL, NULL, NULL,
 				       ofilter,
 				       MATCH_OPPOSITE_USECONFIG,
-				       options->v6inv4asv6);
+				       options.v6inv4asv6);
 
 		if (pkt_result != PACKET_OK
 		    && pkt_result != MORE_FRAGMENTS)
@@ -602,7 +600,7 @@ err:
 	rate_destroy(&rate_in);
 	rate_destroy(&rate);
 
-	if ((options->promisc) && (is_last_instance())) {
+	if (options.promisc && is_last_instance()) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
 		destroy_promisc_list(&promisc_list);
@@ -612,7 +610,7 @@ err:
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writedstatlog(iface, options->actmode,
+		writedstatlog(iface,
 			      peakactivity, peakpps, peakactivity_in,
 			      peakpps_in, peakactivity_out, peakpps_out,
 			      &ifcounts, time(NULL) - statbegin,

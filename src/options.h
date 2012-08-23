@@ -12,8 +12,10 @@ struct OPTIONS {
 
 #define DEFAULT_UPDATE_DELAY 50000	/* usec screen delay if update rate 0 */
 
-void setoptions(struct OPTIONS *options);
-void loadoptions(struct OPTIONS *options);
-void saveoptions(struct OPTIONS *options);
+extern struct OPTIONS options;
+
+void setoptions(void);
+void loadoptions(void);
+void saveoptions(void);
 
 #endif	/* IPTRAF_NG_OPTIONS_H */

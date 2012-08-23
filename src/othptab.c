@@ -86,7 +86,7 @@ static void writeothplog(int logging, FILE *fd, char *protname,
 	}
 }
 
-void init_othp_table(struct othptable *table, int mac)
+void init_othp_table(struct othptable *table)
 {
 	unsigned int winht;
 	unsigned int wintop;
@@ -117,8 +117,6 @@ void init_othp_table(struct othptable *table, int mac)
 	tx_stdwinset(table->othpwin);
 	getmaxyx(table->borderwin, table->obmaxy, obmaxx);
 	table->oimaxy = table->obmaxy - 2;
-
-	table->mac = mac;
 }
 
 void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
@@ -131,10 +129,8 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 	ip = (struct iphdr *) (packet + 8);
 
 	/*
-	 * Timeout checking
-	 * won't be performed either, so we just pass NULL as the pointer
-	 * to the configuration structure.  in_table() will recognize this
-	 * and set its internal timeout variable to 0.
+	 * Timeout checking won't be performed either, so we just pass 0
+	 * as timeout variable.
 	 */
 
 	if (ip->version == 6) {
@@ -148,7 +144,7 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 		sockaddr_make_ipv6(&daddr, &ip6->ip6_dst);
 		sockaddr_set_port(&daddr, ntohs(tcp->dest));
 		tcpentry =
-		    in_table(table, &saddr, &daddr, ifname, 0, NULL, NULL);
+		    in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
 	} else {
 		if (ip->protocol != IPPROTO_TCP)
 			return;
@@ -159,7 +155,7 @@ void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
 		sockaddr_make_ipv4(&daddr, ip->daddr);
 		sockaddr_set_port(&daddr, ntohs(tcp->dest));
 		tcpentry =
-		    in_table(table, &saddr, &daddr, ifname, 0, NULL, NULL);
+		    in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
 	}
 
 	if (tcpentry != NULL) {
@@ -175,8 +171,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				  int protocol,
 				  char *packet2,
 				  char *ifname, int *rev_lookup, int rvnfd,
-				  int logging, FILE * logfile,
-				  int servnames, int fragment)
+				  int logging, FILE *logfile, int fragment)
 {
 	struct othptabent *new_entry;
 	struct othptabent *temp;
@@ -186,7 +181,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 	new_entry->is_ip = is_ip;
 	new_entry->fragment = fragment;
 
-	if ((table->mac) || (!is_ip)) {
+	if (options.mac || !is_ip) {
 		if (pkt->pkt_hatype == ARPHRD_ETHER) {
 			convmacaddr((char *) pkt->ethhdr->h_source, new_entry->smacaddr);
 			convmacaddr((char *) pkt->ethhdr->h_dest, new_entry->dmacaddr);
@@ -217,12 +212,10 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				new_entry->un.icmp6.code =
 				    ((struct icmp6_hdr *) packet2)->icmp6_code;
 			} else if (protocol == IPPROTO_UDP) {
-				servlook(servnames,
-					 ntohs(((struct udphdr *) packet2)->source),
+				servlook(ntohs(((struct udphdr *) packet2)->source),
 					 IPPROTO_UDP, new_entry->un.udp.s_sname,
 					 10);
-				servlook(servnames,
-					 ntohs(((struct udphdr *) packet2)->dest),
+				servlook(ntohs(((struct udphdr *) packet2)->dest),
 					 IPPROTO_UDP, new_entry->un.udp.d_sname,
 					 10);
 			} else if (protocol == IPPROTO_OSPFIGP) {
@@ -723,7 +716,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 
 	strcat(msgstring, scratchpad);
 
-	if (((entry->smacaddr)[0] != '\0') && (table->mac)) {
+	if (((entry->smacaddr)[0] != '\0') && options.mac) {
 		snprintf(scratchpad, MSGSTRING_MAX, " (src HWaddr %s)",
 			 entry->smacaddr);
 		strcat(msgstring, scratchpad);
@@ -741,7 +734,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 
 	if (logging)
 		writeothplog(logging, logfile, protname, description,
-			     additional, 1, table->mac, entry);
+			     additional, 1, options.mac, entry);
 }
 
 void refresh_othwindow(struct othptable *table)

@@ -82,7 +82,6 @@ struct othptable {
 	int htstat;
 	unsigned int obmaxy;	/* number of lines in the border window */
 	unsigned int oimaxy;	/* number of lines inside the border */
-	int mac;
 	WINDOW *othpwin;
 	PANEL *othppanel;
 	WINDOW *borderwin;
@@ -117,7 +116,7 @@ struct ospfhdr {
 	u_short ospf_authtype;
 };
 
-void init_othp_table(struct othptable *table, int mac);
+void init_othp_table(struct othptable *table);
 
 void process_dest_unreach(struct tcptable *table, char *packet, char *ifname);
 
@@ -128,8 +127,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				  int protocol,
 				  char *packet2,
 				  char *ifname, int *rev_lookup, int rvnamedon,
-				  int logging, FILE * logfile,
-				  int servnames, int fragment);
+				  int logging, FILE *logfile, int fragment);
 
 void printothpentry(struct othptable *table, struct othptabent *entry,
 		    unsigned int screen_idx, int logging, FILE * logfile);

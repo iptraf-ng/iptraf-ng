@@ -98,19 +98,19 @@ struct tcptableent *addentry(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
 			     int protocol, char *ifname,
-			     int *rev_lookup, int rvnamedon, int servnames);
+			     int *rev_lookup, int rvnamedon);
 
 struct tcptableent *in_table(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
 			     char *ifname, int logging,
-			     FILE * logfile, struct OPTIONS *opts);
+			     FILE *logfile, time_t timeout);
 
 void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 		 struct tcphdr *transpacket, char *packet, int linkproto,
 		 unsigned long packetlength, unsigned int bcount,
 		 unsigned int fragofs, int logging, int *revlook, int rvnfd,
-		 struct OPTIONS *opts, FILE * logfile);
+		 FILE *logfile);
 
 void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
@@ -125,13 +125,12 @@ void refreshtcpwin(struct tcptable *table, unsigned int idx, int mode);
 void destroytcptable(struct tcptable *table);
 
 void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
-			int logging, FILE * logfile, struct OPTIONS *opts);
+			int logging, FILE *logfile);
 
-void write_timeout_log(int logging, FILE * logfile, struct tcptableent *tcpnode,
-		       struct OPTIONS *opts);
+void write_timeout_log(int logging, FILE *logfile, struct tcptableent *tcpnode);
 
 void writetcplog(int logging, FILE *fd, struct tcptableent *entry,
-		 unsigned int pktlen, int mac, char *message);
+		 unsigned int pktlen, char *message);
 
 void write_tcp_unclosed(int logging, FILE *fd, struct tcptable *table);
 

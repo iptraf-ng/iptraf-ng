@@ -93,8 +93,7 @@ static void rotate_serv_log(int s __unused)
 	signal(SIGUSR1, rotate_serv_log);
 }
 
-static void writeutslog(struct portlistent *list, unsigned long nsecs,
-			int units, FILE *fd)
+static void writeutslog(struct portlistent *list, unsigned long nsecs, FILE *fd)
 {
 	char atime[TIME_TARGET_MAX];
 	struct portlistent *ptmp = list;
@@ -119,7 +118,7 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs,
 			ptmp->serv_count.proto_total.pc_packets,
 			ptmp->serv_count.proto_total.pc_bytes);
 
-		rate_print(ptmp->serv_count.proto_total.pc_bytes / secs, units,
+		rate_print(ptmp->serv_count.proto_total.pc_bytes / secs,
 			   bps_string, sizeof(bps_string));
 		fprintf(fd, ", %s", bps_string);
 
@@ -127,7 +126,7 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs,
 			ptmp->serv_count.proto_in.pc_packets,
 			ptmp->serv_count.proto_in.pc_bytes);
 
-		rate_print(ptmp->serv_count.proto_in.pc_bytes / secs, units,
+		rate_print(ptmp->serv_count.proto_in.pc_bytes / secs,
 			   bps_string, sizeof(bps_string));
 		fprintf(fd, ", %s", bps_string);
 
@@ -135,7 +134,7 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs,
 			ptmp->serv_count.proto_out.pc_packets,
 			ptmp->serv_count.proto_out.pc_bytes);
 
-		rate_print(ptmp->serv_count.proto_out.pc_bytes / secs, units,
+		rate_print(ptmp->serv_count.proto_out.pc_bytes / secs,
 			   bps_string, sizeof(bps_string));
 		fprintf(fd, ", %s", bps_string);
 
@@ -191,7 +190,7 @@ static void initportlist(struct portlist *list)
 
 static struct portlistent *addtoportlist(struct portlist *list,
 					 unsigned int protocol,
-					 unsigned int port, int servnames)
+					 unsigned int port)
 {
 	struct portlistent *ptemp;
 
@@ -219,7 +218,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 	 * Obtain appropriate service name
 	 */
 
-	servlook(servnames, port, protocol, ptemp->servname, 10);
+	servlook(port, protocol, ptemp->servname, 10);
 
 	memset(&ptemp->serv_count, 0, sizeof(ptemp->serv_count));
 
@@ -350,8 +349,7 @@ static void destroyportlist(struct portlist *list)
 
 static void updateportent(struct portlist *list, unsigned int protocol,
 			  unsigned int sport, unsigned int dport, int br,
-			  unsigned int idx, struct porttab *ports,
-			  int servnames)
+			  unsigned int idx, struct porttab *ports)
 {
 	struct portlistent *sport_listent = NULL;
 	struct portlistent *dport_listent = NULL;
@@ -365,7 +363,7 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 
 		if (!sport_listent)
 			sport_listent =
-				addtoportlist(list, protocol, sport, servnames);
+				addtoportlist(list, protocol, sport);
 
 		if (sport_listent == NULL)
 			return;
@@ -379,7 +377,7 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 
 		if (!dport_listent)
 			dport_listent =
-				addtoportlist(list, protocol, dport, servnames);
+				addtoportlist(list, protocol, dport);
 
 		if (dport_listent == NULL)
 			return;
@@ -720,7 +718,7 @@ static void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
 	doupdate();
 }
 
-static void print_serv_rates(struct portlistent *ple, WINDOW *win, int actmode)
+static void print_serv_rates(struct portlistent *ple, WINDOW *win)
 {
 	char buf[64];
 
@@ -731,11 +729,11 @@ static void print_serv_rates(struct portlistent *ple, WINDOW *win, int actmode)
 	mvwprintw(win, 0, 76, "out");
 
 	wattrset(win, IPSTATATTR);
-	rate_print(rate_get_average(&ple->rate), actmode, buf, sizeof(buf));
+	rate_print(rate_get_average(&ple->rate), buf, sizeof(buf));
 	mvwprintw(win, 0, 21, "%s", buf);
-	rate_print(rate_get_average(&ple->rate_in), actmode, buf, sizeof(buf));
+	rate_print(rate_get_average(&ple->rate_in), buf, sizeof(buf));
 	mvwprintw(win, 0, 42, "%s", buf);
-	rate_print(rate_get_average(&ple->rate_out), actmode, buf, sizeof(buf));
+	rate_print(rate_get_average(&ple->rate_out), buf, sizeof(buf));
 	mvwprintw(win, 0, 61, "%s", buf);
 }
 
@@ -755,10 +753,9 @@ static void update_serv_rates(struct portlist *list, unsigned long msecs)
  * The TCP/UDP service monitor
  */
 
-void servmon(char *ifname, const struct OPTIONS *options,
-	     time_t facilitytime, struct filterstate *ofilter)
+void servmon(char *ifname, time_t facilitytime, struct filterstate *ofilter)
 {
-	int logging = options->logging;
+	int logging = options.logging;
 	int pkt_result;
 
 	int keymode = 0;
@@ -818,7 +815,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 
 	loadaddports(&ports);
 
-	if ((first_active_facility()) && (options->promisc)) {
+	if (first_active_facility() && options.promisc) {
 		init_promisc_list(&promisc_list);
 		save_promisc_list(promisc_list);
 		srpromisc(1, promisc_list);
@@ -840,7 +837,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 	sortkeyhelp();
 	stdexitkeyhelp();
 
-	if (options->servnames)
+	if (options.servnames)
 		setservent(1);
 
 	if (logging) {
@@ -901,9 +898,9 @@ void servmon(char *ifname, const struct OPTIONS *options,
 		}
 		if (logging) {
 			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options->logspan) {
+			if ((now - startlog) >= options.logspan) {
 				writeutslog(list.head, now - starttime,
-					    options->actmode, logfile);
+					    logfile);
 				startlog = now;
 			}
 		}
@@ -915,15 +912,14 @@ void servmon(char *ifname, const struct OPTIONS *options,
 
 			/* ... and print the current one */
 			if (list.barptr != NULL)
-				print_serv_rates(list.barptr, statwin,
-						 options->actmode);
+				print_serv_rates(list.barptr, statwin);
 
 			tv_rate = tv;
 		}
 
-		if (((options->updrate != 0)
-		     && (now - updtime >= options->updrate))
-		    || ((options->updrate == 0)
+		if (((options.updrate != 0)
+		     && (now - updtime >= options.updrate))
+		    || ((options.updrate == 0)
 			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
 			update_panels();
 			doupdate();
@@ -962,7 +958,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 
 				printportent(&list, list.barptr, idx);
 
-				print_serv_rates(list.barptr, statwin, options->actmode);
+				print_serv_rates(list.barptr, statwin);
 				break;
 			case KEY_DOWN:
 				if (!list.barptr
@@ -980,7 +976,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 
 				printportent(&list, list.barptr, idx);
 
-				print_serv_rates(list.barptr, statwin, options->actmode);
+				print_serv_rates(list.barptr, statwin);
 				break;
 			case KEY_PPAGE:
 			case '-':
@@ -994,7 +990,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 
 				refresh_serv_screen(&list, idx);
 
-				print_serv_rates(list.barptr, statwin, options->actmode);
+				print_serv_rates(list.barptr, statwin);
 				break;
 			case KEY_NPAGE:
 			case ' ':
@@ -1008,7 +1004,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 
 				refresh_serv_screen(&list, idx);
 
-				print_serv_rates(list.barptr, statwin, options->actmode);
+				print_serv_rates(list.barptr, statwin);
 				break;
 			case 12:
 			case 'l':
@@ -1037,7 +1033,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 			if (list.barptr != NULL) {
 				list.barptr = list.firstvisible;
 				list.baridx = 1;
-				print_serv_rates(list.barptr, statwin, options->actmode);
+				print_serv_rates(list.barptr, statwin);
 			}
 			refresh_serv_screen(&list, idx);
 			update_panels();
@@ -1052,7 +1048,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 			packet_process(&pkt, &tot_br, &sport, &dport,
 				      ofilter,
 				      MATCH_OPPOSITE_USECONFIG,
-				      options->v6inv4asv6);
+				      options.v6inv4asv6);
 
 		if (pkt_result != PACKET_OK)
 			continue;
@@ -1075,8 +1071,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 		case IPPROTO_TCP:
 		case IPPROTO_UDP:
 			updateportent(&list, ip_protocol, ntohs(sport),
-				      ntohs(dport), iplen, idx, ports,
-				      options->servnames);
+				      ntohs(dport), iplen, idx, ports);
 			break;
 		default:
 			/* unknown L4 protocol */
@@ -1085,7 +1080,7 @@ void servmon(char *ifname, const struct OPTIONS *options,
 		if ((list.barptr == NULL) && (list.head != NULL)) {
 			list.barptr = list.head;
 			list.baridx = 1;
-			print_serv_rates(list.barptr, statwin, options->actmode);
+			print_serv_rates(list.barptr, statwin);
 		}
 	}
 
@@ -1094,16 +1089,15 @@ err_close:
 err:
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writeutslog(list.head, time(NULL) - starttime,
-			    options->actmode, logfile);
+		writeutslog(list.head, time(NULL) - starttime, logfile);
 		writelog(logging, logfile,
 			 "******** TCP/UDP service monitor stopped ********");
 		fclose(logfile);
 	}
-	if (options->servnames)
+	if (options.servnames)
 		endservent();
 
-	if ((options->promisc) && (is_last_instance())) {
+	if (options.promisc && is_last_instance()) {
 		load_promisc_list(&promisc_list);
 		srpromisc(0, promisc_list);
 		destroy_promisc_list(&promisc_list);
