@@ -248,10 +248,6 @@ static void program_interface(void)
 	} while (!endloop);
 
 	tx_destroymenu(&menu);
-
-	erase();
-	update_panels();
-	doupdate();
 }
 
 static int first_instance(void)
@@ -538,6 +534,9 @@ int main(int argc, char **argv)
 	else
 		program_interface();
 
+	erase();
+	update_panels();
+	doupdate();
 	endwin();
 
 	if (is_first_instance)
