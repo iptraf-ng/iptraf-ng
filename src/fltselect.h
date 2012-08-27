@@ -22,6 +22,6 @@ extern struct filterstate ofilter;
 void config_filters(void);
 void loadfilters(void);
 void savefilters(void);
-int nonipfilter(struct filterstate *filter, unsigned int protocol);
+int nonipfilter(unsigned int protocol);
 
 #endif	/* IPTRAF_NG_FLTSELECT_H */

@@ -17,7 +17,6 @@ serv.c  - TCP/UDP port statistics module
 #include "dirs.h"
 #include "deskman.h"
 #include "fltdefs.h"
-#include "fltselect.h"
 #include "packet.h"
 #include "ipfrag.h"
 #include "ifaces.h"
@@ -753,7 +752,7 @@ static void update_serv_rates(struct portlist *list, unsigned long msecs)
  * The TCP/UDP service monitor
  */
 
-void servmon(char *ifname, time_t facilitytime, struct filterstate *ofilter)
+void servmon(char *ifname, time_t facilitytime)
 {
 	int logging = options.logging;
 	int pkt_result;
@@ -1046,7 +1045,6 @@ void servmon(char *ifname, time_t facilitytime, struct filterstate *ofilter)
 
 		pkt_result =
 			packet_process(&pkt, &tot_br, &sport, &dport,
-				      ofilter,
 				      MATCH_OPPOSITE_USECONFIG,
 				      options.v6inv4asv6);
 

@@ -14,7 +14,6 @@ detstats.c	- the interface statistics module
 #include "counters.h"
 #include "ifaces.h"
 #include "fltdefs.h"
-#include "fltselect.h"
 #include "packet.h"
 #include "options.h"
 #include "log.h"
@@ -251,7 +250,7 @@ static void printdetails(struct ifcounts *ifcounts, WINDOW * win)
 /*
  * The detailed interface statistics function
  */
-void detstats(char *iface, time_t facilitytime, struct filterstate *ofilter)
+void detstats(char *iface, time_t facilitytime)
 {
 	int logging = options.logging;
 
@@ -530,7 +529,6 @@ void detstats(char *iface, time_t facilitytime, struct filterstate *ofilter)
 
 		pkt_result =
 			packet_process(&pkt, NULL, NULL, NULL,
-				       ofilter,
 				       MATCH_OPPOSITE_USECONFIG,
 				       options.v6inv4asv6);
 

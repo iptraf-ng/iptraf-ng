@@ -48,8 +48,7 @@ void setfilters(unsigned int row)
 
 	switch (row) {
 	case 1:
-		ipfilterselect(&ofilter.fl, ofilter.filename,
-			       &ofilter.filtercode, &aborted);
+		ipfilterselect(&aborted);
 		break;
 	case 2:
 		ofilter.arp = ~ofilter.arp;
@@ -100,19 +99,19 @@ void toggleprotodisplay(WINDOW *win, unsigned int row)
 /*
  * Filter for non-IP packets
  */
-int nonipfilter(struct filterstate *filter, unsigned int protocol)
+int nonipfilter(unsigned int protocol)
 {
 	int result = 0;
 
 	switch (protocol) {
 	case ETH_P_ARP:
-		result = filter->arp;
+		result = ofilter.arp;
 		break;
 	case ETH_P_RARP:
-		result = filter->rarp;
+		result = ofilter.rarp;
 		break;
 	default:
-		result = filter->nonip;
+		result = ofilter.nonip;
 		break;
 	}
 

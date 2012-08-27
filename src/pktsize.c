@@ -14,7 +14,6 @@ pktsize.c	- the packet size breakdown facility
 #include "attrs.h"
 #include "dirs.h"
 #include "fltdefs.h"
-#include "fltselect.h"
 #include "ifaces.h"
 #include "packet.h"
 #include "deskman.h"
@@ -138,8 +137,7 @@ static void update_size_distrib(unsigned int length,
 	wprintw(win, "%8lu", brackets[i].count);
 }
 
-void packet_size_breakdown(char *ifname, time_t facilitytime,
-			   struct filterstate *ofilter)
+void packet_size_breakdown(char *ifname, time_t facilitytime)
 {
 	WINDOW *win;
 	PANEL *panel;
@@ -324,7 +322,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime,
 			continue;
 
 		pkt_result = packet_process(&pkt, NULL, NULL, NULL,
-					    ofilter, MATCH_OPPOSITE_USECONFIG, 0);
+					    MATCH_OPPOSITE_USECONFIG, 0);
 
 		if (pkt_result != PACKET_OK)
 			continue;

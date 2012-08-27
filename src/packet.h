@@ -7,8 +7,6 @@ packet.h - external declarations for packet.c
 
 ***/
 
-#include "fltselect.h"
-
 /*
  * Number of bytes from captured packet to move into a buffer.
  * 96 bytes should be enough for the IP header, TCP/UDP/ICMP/whatever header
@@ -82,7 +80,7 @@ void open_socket(int *fd);
 int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   unsigned int *sport, unsigned int *dport,
-		   struct filterstate *filter, int match_opposite,
+		   int match_opposite,
 		   int v6inv4asv6);
 void pkt_cleanup(void);
 

@@ -183,16 +183,16 @@ static void program_interface(void)
 				else
 					ifptr = NULL;
 
-				ipmon(&ofilter, 0, ifptr);
+				ipmon(0, ifptr);
 			}
 			break;
 		case 2:
-			ifstats(&ofilter, 0);
+			ifstats(0);
 			break;
 		case 3:
 			selectiface(ifname, WITHOUTALL, &aborted);
 			if (!aborted)
-				detstats(ifname, 0, &ofilter);
+				detstats(ifname, 0);
 			break;
 		case 4:
 			break_row = 1;
@@ -204,14 +204,12 @@ static void program_interface(void)
 			case 1:
 				selectiface(ifname, WITHOUTALL, &aborted);
 				if (!aborted)
-					packet_size_breakdown(ifname,
-							      0, &ofilter);
+					packet_size_breakdown(ifname, 0);
 				break;
 			case 2:
 				selectiface(ifname, WITHOUTALL, &aborted);
 				if (!aborted)
-					servmon(ifname, 0,
-						&ofilter);
+					servmon(ifname, 0);
 				break;
 			case 4:
 				break;
@@ -225,7 +223,7 @@ static void program_interface(void)
 					ifptr = ifname;
 				else
 					ifptr = NULL;
-				hostmon(0, ifptr, &ofilter);
+				hostmon(0, ifptr);
 			}
 			break;
 		case 7:
@@ -510,23 +508,23 @@ int main(int argc, char **argv)
 
 	/* simplify */
 	if (g_opt)
-		ifstats(&ofilter, facilitytime);
+		ifstats(facilitytime);
 	else if (i_opt)
 		if (strcmp(i_opt, "all") == 0)
-			ipmon(&ofilter, facilitytime, NULL);
+			ipmon(facilitytime, NULL);
 		else
-			ipmon(&ofilter, facilitytime, i_opt);
+			ipmon(facilitytime, i_opt);
 	else if (l_opt)
 		if (strcmp(l_opt, "all") == 0)
-			hostmon(facilitytime, NULL, &ofilter);
+			hostmon(facilitytime, NULL);
 		else
-			hostmon(facilitytime, l_opt, &ofilter);
+			hostmon(facilitytime, l_opt);
 	else if (d_opt)
-		detstats(d_opt, facilitytime, &ofilter);
+		detstats(d_opt, facilitytime);
 	else if (s_opt)
-		servmon(s_opt, facilitytime, &ofilter);
+		servmon(s_opt, facilitytime);
 	else if (z_opt)
-		packet_size_breakdown(z_opt, facilitytime, &ofilter);
+		packet_size_breakdown(z_opt, facilitytime);
 	else
 		program_interface();
 

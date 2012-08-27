@@ -19,6 +19,7 @@ ipfilter.c - user interface and filter function for all IP packets
 #include "attrs.h"
 #include "fltdefs.h"
 #include "fltmgr.h"
+#include "fltselect.h"
 #include "ipfilter.h"
 #include "fltedit.h"
 #include "getpath.h"
@@ -313,8 +314,7 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 	doupdate();
 }
 
-void ipfilterselect(struct filterlist *fl, char *filename, int *fltcode,
-		    int *aborted)
+void ipfilterselect(int *aborted)
 {
 	struct MENU menu;
 	int row = 1;
@@ -331,19 +331,19 @@ void ipfilterselect(struct filterlist *fl, char *filename, int *fltcode,
 		case 2:
 			selectfilter(&fflist, aborted);
 			if (!(*aborted)) {
-				memset(filename, 0, FLT_FILENAME_MAX);
-				strncpy(filename,
+				memset(ofilter.filename, 0, FLT_FILENAME_MAX);
+				strncpy(ofilter.filename,
 					get_path(T_WORKDIR, fflist.filename),
 					FLT_FILENAME_MAX - 1);
-				if (!loadfilter(filename, fl, FLT_RESOLVE))
-					*fltcode = 1;
+				if (!loadfilter(ofilter.filename, &ofilter.fl, FLT_RESOLVE))
+					ofilter.filtercode = 1;
 				else
-					*fltcode = 0;
+					ofilter.filtercode = 0;
 			}
 			break;
 		case 3:
-			destroyfilter(fl);
-			*fltcode = 0;
+			destroyfilter(&ofilter.fl);
+			ofilter.filtercode = 0;
 			tx_infobox("IP filter deactivated", ANYKEY_MSG);
 			break;
 		case 4:
@@ -364,10 +364,9 @@ void ipfilterselect(struct filterlist *fl, char *filename, int *fltcode,
  * Display/logging filter for other (non-TCP, non-UDP) IP protocols.
  */
 int ipfilter(unsigned long saddr, unsigned long daddr, unsigned int sport,
-	     unsigned int dport, unsigned int protocol, int match_opp_mode,
-	     struct filterlist *fl)
+	     unsigned int dport, unsigned int protocol, int match_opp_mode)
 {
-	struct filterent *fe = fl->head;
+	struct filterent *fe = ofilter.fl.head;
 	int result = 0;
 	int fltexpr1;
 	int fltexpr2;

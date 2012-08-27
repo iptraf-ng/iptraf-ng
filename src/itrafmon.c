@@ -16,7 +16,6 @@ itrafmon.c - the IP traffic monitor module
 #include "tcptable.h"
 #include "othptab.h"
 #include "fltdefs.h"
-#include "fltselect.h"
 #include "packet.h"
 #include "ifaces.h"
 #include "promisc.h"
@@ -545,7 +544,7 @@ static void print_flowrate(struct tcptableent *entry, WINDOW *win)
  * The IP Traffic Monitor
  */
 
-void ipmon(struct filterstate *ofilter, time_t facilitytime, char *ifptr)
+void ipmon(time_t facilitytime, char *ifptr)
 {
 	int logging = options.logging;
 
@@ -989,7 +988,7 @@ void ipmon(struct filterstate *ofilter, time_t facilitytime, char *ifptr)
 
 		pkt_result =
 		    packet_process(&pkt, &br, &sport, &dport,
-				  ofilter, MATCH_OPPOSITE_ALWAYS,
+				  MATCH_OPPOSITE_ALWAYS,
 				  options.v6inv4asv6);
 
 		if (pkt_result != PACKET_OK)

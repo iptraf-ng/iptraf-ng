@@ -178,7 +178,7 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   unsigned int *sport, unsigned int *dport,
-		   struct filterstate *filter, int match_opposite,
+		   int match_opposite,
 		   int v6inv4asv6)
 {
 	/* move packet pointer (pkt->pkt_payload) past data link header */
@@ -269,11 +269,11 @@ again:
 			f_sport = ntohs(sport_tmp);
 			f_dport = ntohs(dport_tmp);
 		}
-		if ((filter->filtercode != 0)
+		if ((ofilter.filtercode != 0)
 		    &&
 		    (!ipfilter
 		     (ip->saddr, ip->daddr, f_sport, f_dport, ip->protocol,
-		      match_opposite, &(filter->fl))))
+		      match_opposite)))
 			return PACKET_FILTERED;
 		if (v6inv4asv6 && (ip->protocol == IPPROTO_IPV6)) {
 			pkt->pkt_protocol = ETH_P_IPV6;
@@ -325,7 +325,7 @@ again:
 		goto again;
 	default:
 		/* not IPv4 and not IPv6: apply non-IP packet filter */
-		if (!nonipfilter(filter, pkt->pkt_protocol)) {
+		if (!nonipfilter(pkt->pkt_protocol)) {
 			return PACKET_FILTERED;
 		}
 	}

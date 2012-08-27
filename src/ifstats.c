@@ -16,7 +16,6 @@ ifstats.c	- the interface statistics module
 
 #include "ifaces.h"
 #include "fltdefs.h"
-#include "fltselect.h"
 #include "packet.h"
 #include "options.h"
 #include "log.h"
@@ -427,7 +426,7 @@ static void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
  * The general interface statistics function
  */
 
-void ifstats(struct filterstate *ofilter, time_t facilitytime)
+void ifstats(time_t facilitytime)
 {
 	int logging = options.logging;
 	struct iftab table;
@@ -602,7 +601,6 @@ void ifstats(struct filterstate *ofilter, time_t facilitytime)
 			continue;
 
 		pkt_result = packet_process(&pkt, NULL, NULL, NULL,
-					   ofilter,
 					   MATCH_OPPOSITE_USECONFIG,
 					   options.v6inv4asv6);
 

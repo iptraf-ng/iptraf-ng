@@ -16,7 +16,6 @@ Discovers LAN hosts and displays packet statistics for them
 #include "dirs.h"
 #include "deskman.h"
 #include "fltdefs.h"
-#include "fltselect.h"
 #include "packet.h"
 #include "ifaces.h"
 #include "hostmon.h"
@@ -744,7 +743,7 @@ static void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
  * The LAN station monitor
  */
 
-void hostmon(time_t facilitytime, char *ifptr, struct filterstate *ofilter)
+void hostmon(time_t facilitytime, char *ifptr)
 {
 	int logging = options.logging;
 	struct ethtab table;
@@ -953,7 +952,6 @@ void hostmon(time_t facilitytime, char *ifptr, struct filterstate *ofilter)
 
 		pkt_result =
 			packet_process(&pkt, NULL, NULL, NULL,
-				       ofilter,
 				       MATCH_OPPOSITE_USECONFIG,
 				       0);
 

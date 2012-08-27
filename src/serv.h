@@ -18,9 +18,6 @@ void addmoreports(struct porttab **table);
 void loadaddports(struct porttab **table);
 void destroyporttab(struct porttab *table);
 void removeaport(struct porttab **table);
-
-#include "fltselect.h"
-
-void servmon(char *iface, time_t facilitytime, struct filterstate *ofilter);
+void servmon(char *iface, time_t facilitytime);
 
 #endif	/* IPTRAF_NG_SERV_H */
