@@ -136,15 +136,13 @@ static void program_interface(void)
 	int aborted;
 	int break_aborted;
 
-	struct filterstate ofilter;
-
 	char ifname[IFNAMSIZ];
 	char *ifptr = NULL;
 
 	/*
 	 * Load saved filter
 	 */
-	loadfilters(&ofilter);
+	loadfilters();
 	indicate("");
 
 	tx_initmenu(&menu, 15, 35, (LINES - 16) / 2, (COLS - 35) / 2, BOXATTR,
@@ -231,8 +229,8 @@ static void program_interface(void)
 			}
 			break;
 		case 7:
-			config_filters(&ofilter);
-			savefilters(&ofilter);
+			config_filters();
+			savefilters();
 			break;
 		case 9:
 			setoptions();
@@ -497,12 +495,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	struct filterstate ofilter;
-
 	/*
 	 * Load saved filter
 	 */
-	loadfilters(&ofilter);
+	loadfilters();
 	indicate("");
 
 	/* bad, bad, bad name draw_desktop()

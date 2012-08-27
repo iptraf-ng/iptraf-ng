@@ -25,6 +25,8 @@ fltselect.c - a menu-based module that allows selection of
 #include "attrs.h"
 #include "instances.h"
 
+struct filterstate ofilter;
+
 void makemainfiltermenu(struct MENU *menu)
 {
 	tx_initmenu(menu, 8, 18, (LINES - 8) / 2, (COLS - 31) / 2, BOXATTR,
@@ -40,54 +42,53 @@ void makemainfiltermenu(struct MENU *menu)
 		   "Returns to the filter management menu");
 }
 
-void setfilters(struct filterstate *filter, unsigned int row)
+void setfilters(unsigned int row)
 {
 	int aborted;
 
 	switch (row) {
 	case 1:
-		ipfilterselect(&(filter->fl), filter->filename,
-			       &(filter->filtercode), &aborted);
+		ipfilterselect(&ofilter.fl, ofilter.filename,
+			       &ofilter.filtercode, &aborted);
 		break;
 	case 2:
-		filter->arp = ~(filter->arp);
+		ofilter.arp = ~ofilter.arp;
 		break;
 	case 3:
-		filter->rarp = ~(filter->rarp);
+		ofilter.rarp = ~ofilter.rarp;
 		break;
 	case 4:
-		filter->nonip = ~(filter->nonip);
+		ofilter.nonip = ~ofilter.nonip;
 		break;
 	}
 }
 
-void toggleprotodisplay(WINDOW * win, struct filterstate *filter,
-			unsigned int row)
+void toggleprotodisplay(WINDOW *win, unsigned int row)
 {
 	wmove(win, row, 2);
 	switch (row) {
 	case 1:
-		if (filter->filtercode == 0)
+		if (ofilter.filtercode == 0)
 			wprintw(win, "No IP filter active");
 		else
 			wprintw(win, "IP filter active   ");
 		break;
 	case 2:
-		if (filter->arp)
+		if (ofilter.arp)
 			wprintw(win, "ARP visible    ");
 		else
 			wprintw(win, "ARP not visible");
 
 		break;
 	case 3:
-		if (filter->rarp)
+		if (ofilter.rarp)
 			wprintw(win, "RARP visible    ");
 		else
 			wprintw(win, "RARP not visible");
 
 		break;
 	case 4:
-		if (filter->nonip)
+		if (ofilter.nonip)
 			wprintw(win, "Non-IP visible    ");
 		else
 			wprintw(win, "Non-IP not visible");
@@ -118,7 +119,7 @@ int nonipfilter(struct filterstate *filter, unsigned int protocol)
 	return result;
 }
 
-void config_filters(struct filterstate *filter)
+void config_filters(void)
 {
 	struct MENU menu;
 	WINDOW *statwin;
@@ -137,7 +138,7 @@ void config_filters(struct filterstate *filter)
 	wattrset(statwin, STDATTR);
 
 	for (row = 1; row <= 4; row++)
-		toggleprotodisplay(statwin, filter, row);
+		toggleprotodisplay(statwin, row);
 
 	makemainfiltermenu(&menu);
 
@@ -145,8 +146,8 @@ void config_filters(struct filterstate *filter)
 	do {
 		tx_showmenu(&menu);
 		tx_operatemenu(&menu, &row, &aborted);
-		setfilters(filter, row);
-		toggleprotodisplay(statwin, filter, row);
+		setfilters(row);
+		toggleprotodisplay(statwin, row);
 	} while (row != 6);
 
 	tx_destroymenu(&menu);
@@ -156,13 +157,13 @@ void config_filters(struct filterstate *filter)
 	doupdate();
 }
 
-void setodefaults(struct filterstate *filter)
+void setodefaults(void)
 {
-	memset(filter, 0, sizeof(struct filterstate));
-	filter->filtercode = 0;
+	memset(&ofilter, 0, sizeof(struct filterstate));
+	ofilter.filtercode = 0;
 }
 
-void loadfilters(struct filterstate *filter)
+void loadfilters(void)
 {
 	int pfd;
 	int br;
@@ -170,12 +171,12 @@ void loadfilters(struct filterstate *filter)
 	pfd = open(FLTSTATEFILE, O_RDONLY);	/* open filter state file */
 
 	if (pfd < 0) {
-		setodefaults(filter);
+		setodefaults();
 		return;
 	}
-	br = read(pfd, filter, sizeof(struct filterstate));
+	br = read(pfd, &ofilter, sizeof(struct filterstate));
 	if (br < 0)
-		setodefaults(filter);
+		setodefaults();
 
 	close(pfd);
 
@@ -183,11 +184,11 @@ void loadfilters(struct filterstate *filter)
 	 * Reload IP filter if one was previously applied
 	 */
 
-	if (filter->filtercode != 0)
-		loadfilter(filter->filename, &(filter->fl), FLT_RESOLVE);
+	if (ofilter.filtercode != 0)
+		loadfilter(ofilter.filename, &ofilter.fl, FLT_RESOLVE);
 }
 
-void savefilters(struct filterstate *filter)
+void savefilters(void)
 {
 	int pfd;
 	int bw;
@@ -203,7 +204,7 @@ void savefilters(struct filterstate *filter)
 
 	pfd =
 	    open(FLTSTATEFILE, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
-	bw = write(pfd, filter, sizeof(struct filterstate));
+	bw = write(pfd, &ofilter, sizeof(struct filterstate));
 	if (bw < 1)
 		tui_error(ANYKEY_MSG,
 			  "Unable to write filter state information");
