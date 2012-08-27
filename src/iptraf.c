@@ -535,8 +535,8 @@ int main(int argc, char **argv)
 		servmon(s_opt, facilitytime, &ofilter);
 	else if (z_opt)
 		packet_size_breakdown(z_opt, facilitytime, &ofilter);
-
-	program_interface();
+	else
+		program_interface();
 
 	endwin();
 
