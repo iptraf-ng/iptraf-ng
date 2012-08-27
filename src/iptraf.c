@@ -53,7 +53,6 @@ int exitloop = 0;
 int daemonized = 0;
 int facility_running = 0;
 int is_first_instance;
-char graphing_filter[80];
 
 static void press_enter_to_continue(void)
 {
@@ -138,23 +137,15 @@ static void program_interface(void)
 	int break_aborted;
 
 	struct filterstate ofilter;
-	struct ffnode *fltfiles;
 
 	char ifname[IFNAMSIZ];
 	char *ifptr = NULL;
 
 	/*
-	 * Load saved filter or graphing filter if specified
+	 * Load saved filter
 	 */
-	if (graphing_logfile[0] != '\0') {
-		loadfilterlist(&fltfiles);
-		memset(&ofilter, 0, sizeof(struct filterstate));
-		loadfilter(pickfilterbyname(fltfiles, graphing_filter),
-			   &(ofilter.fl), FLT_RESOLVE);
-	} else {
-		loadfilters(&ofilter);
-		indicate("");
-	}
+	loadfilters(&ofilter);
+	indicate("");
 
 	tx_initmenu(&menu, 15, 35, (LINES - 16) / 2, (COLS - 35) / 2, BOXATTR,
 		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
@@ -399,8 +390,6 @@ int main(int argc, char **argv)
 		die("only one of -i|-d|-s|-z|-l|-g options must be used");
 
 	strcpy(current_logfile, "");
-	strcpy(graphing_logfile, "");
-	strcpy(graphing_filter, "");
 
 	if (f_opt) {
 		removetags();
@@ -444,12 +433,6 @@ int main(int argc, char **argv)
 		die("Your TERM variable is not set.\n"
 		    "Please set it to an appropriate value");
 
-#if 0				/* undocumented feature, will take care of it later */
-	if (graphing_logfile[0] != '\0' && graphing_filter[0] == '\0') {
-		fprintf(stderr, "Specify an IP filter name with -F\n");
-		exit(1);
-	}
-#endif
 	loadoptions();
 
 	/*
@@ -466,10 +449,7 @@ int main(int argc, char **argv)
 			freopen("/dev/null", "w", stderr);	/* redirect std error */
 			signal(SIGUSR2, term_usr2_handler);
 
-			if (graphing_logfile[0] != '\0')
-				options.logging = 0;	/* if raw logging is specified */
-			else	/* then standard logging is disabled */
-				options.logging = 1;
+			options.logging = 1;
 			break;
 		case -1:	/* error */
 			die("Fork error, %s cannot run in background", IPTRAF_NAME);
@@ -522,20 +502,12 @@ int main(int argc, char **argv)
 	}
 
 	struct filterstate ofilter;
-	struct ffnode *fltfiles;
 
 	/*
-	 * Load saved filter or graphing filter if specified
+	 * Load saved filter
 	 */
-	if (graphing_logfile[0] != '\0') {
-		loadfilterlist(&fltfiles);
-		memset(&ofilter, 0, sizeof(struct filterstate));
-		loadfilter(pickfilterbyname(fltfiles, graphing_filter),
-			   &(ofilter.fl), FLT_RESOLVE);
-	} else {
-		loadfilters(&ofilter);
-		indicate("");
-	}
+	loadfilters(&ofilter);
+	indicate("");
 
 	/* bad, bad, bad name draw_desktop()
 	 * hide all into tui_top_panel(char *msg)
