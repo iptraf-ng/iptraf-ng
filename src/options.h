@@ -10,8 +10,6 @@ struct OPTIONS {
 	time_t closedint;
 };
 
-#define DEFAULT_UPDATE_DELAY 50000	/* usec screen delay if update rate 0 */
-
 extern struct OPTIONS options;
 
 void setoptions(void);

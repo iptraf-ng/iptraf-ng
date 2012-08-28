@@ -560,9 +560,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	time_t starttime = 0;
 	time_t now = 0;
 	time_t timeint = 0;
-	time_t updtime = 0;
-	unsigned long long updtime_usec = 0;
-	unsigned long long unow = 0;
+	struct timeval updtime;
 	time_t closedint = 0;
 
 	WINDOW *statwin;
@@ -722,6 +720,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	tv_rate = tv;
+	updtime = tv;
 	starttime = timeint = closedint = tv.tv_sec;
 
 	PACKET_INIT(pkt);
@@ -731,7 +730,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		/* 
 		 * Print timer at bottom of screen
@@ -759,14 +757,11 @@ void ipmon(time_t facilitytime, char *ifptr)
 		 * Update screen at configured intervals.
 		 */
 
-		if (((options.updrate != 0)
-		     && (now - updtime >= options.updrate))
-		    || ((options.updrate == 0)
-			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
+		if (screen_update_needed(&tv, &updtime)) {
 			update_panels();
 			doupdate();
-			updtime = now;
-			updtime_usec = unow;
+
+			updtime = tv;
 		}
 
 		/*

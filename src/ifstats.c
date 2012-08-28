@@ -448,10 +448,8 @@ void ifstats(time_t facilitytime)
 	time_t statbegin = 0;
 	time_t now = 0;
 	struct timeval start_tv;
-	unsigned long long unow = 0;
 	time_t startlog = 0;
-	time_t updtime = 0;
-	unsigned long long updtime_usec = 0;
+	struct timeval updtime;
 
 	struct promisc_states *promisc_list;
 
@@ -517,6 +515,7 @@ void ifstats(time_t facilitytime)
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	start_tv = tv;
+	updtime = tv;
 	starttime = startlog = statbegin = tv.tv_sec;
 
 	PACKET_INIT(pkt);
@@ -524,7 +523,6 @@ void ifstats(time_t facilitytime)
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		if ((now - starttime) >= 1) {
 			unsigned long msecs;
@@ -545,14 +543,11 @@ void ifstats(time_t facilitytime)
 				startlog = now;
 			}
 		}
-		if (((options.updrate != 0)
-		     && (now - updtime >= options.updrate))
-		    || ((options.updrate == 0)
-			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
+		if (screen_update_needed(&tv, &updtime)) {
 			update_panels();
 			doupdate();
-			updtime = now;
-			updtime_usec = unow;
+
+			updtime = tv;
 		}
 
 		if ((facilitytime != 0)

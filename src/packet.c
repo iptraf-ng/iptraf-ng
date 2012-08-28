@@ -141,7 +141,7 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 		nfds++;
 	}
 	do {
-		ss = poll(pfds, nfds, DEFAULT_UPDATE_DELAY / 1000);
+		ss = poll(pfds, nfds, DEFAULT_UPDATE_DELAY);
 	} while ((ss == -1) && (errno == EINTR));
 
 	PACKET_INIT_STRUCT(pkt);

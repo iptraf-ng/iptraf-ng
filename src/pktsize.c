@@ -156,9 +156,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	struct timeval tv;
 	time_t starttime, startlog, timeint;
 	time_t now;
-	unsigned long long unow;
-	time_t updtime = 0;
-	unsigned long long updtime_usec = 0;
+	struct timeval updtime;
 
 	int logging = options.logging;
 	FILE *logfile = NULL;
@@ -240,6 +238,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
+	updtime = tv;
 	now = starttime = startlog = timeint = tv.tv_sec;
 
 	if (first_active_facility() && options.promisc) {
@@ -266,16 +265,12 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	do {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
-		if (((options.updrate != 0)
-		     && (now - updtime >= options.updrate))
-		    || ((options.updrate == 0)
-			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
+		if (screen_update_needed(&tv, &updtime)) {
 			update_panels();
 			doupdate();
-			updtime = now;
-			updtime_usec = unow;
+
+			updtime = tv;
 		}
 		if (now - timeint >= 5) {
 			printelapsedtime(starttime, now, LINES - 3, 1,

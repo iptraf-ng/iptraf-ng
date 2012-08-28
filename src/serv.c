@@ -768,9 +768,7 @@ void servmon(char *ifname, time_t facilitytime)
 	struct timeval tv_rate;
 	time_t starttime, startlog, timeint;
 	time_t now;
-	unsigned long long unow;
-	time_t updtime = 0;
-	unsigned long long updtime_usec = 0;
+	struct timeval updtime;
 
 	unsigned int tot_br;
 
@@ -866,6 +864,7 @@ void servmon(char *ifname, time_t facilitytime)
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	tv_rate = tv;
+	updtime = tv;
 	starttime = startlog = timeint = tv.tv_sec;
 
 	wattrset(statwin, IPSTATATTR);
@@ -888,7 +887,6 @@ void servmon(char *ifname, time_t facilitytime)
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		if (now - timeint >= 5) {
 			printelapsedtime(starttime, now, LINES - 4, 20,
@@ -916,14 +914,11 @@ void servmon(char *ifname, time_t facilitytime)
 			tv_rate = tv;
 		}
 
-		if (((options.updrate != 0)
-		     && (now - updtime >= options.updrate))
-		    || ((options.updrate == 0)
-			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
+		if (screen_update_needed(&tv, &updtime)) {
 			update_panels();
 			doupdate();
-			updtime = now;
-			updtime_usec = unow;
+
+			updtime = tv;
 		}
 
 		if ((facilitytime != 0)

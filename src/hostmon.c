@@ -760,11 +760,9 @@ void hostmon(time_t facilitytime, char *ifptr)
 	struct timeval tv;
 	struct timeval tv_rate;
 	time_t now = 0;
-	unsigned long long unow = 0;
 	time_t statbegin = 0;
 	time_t startlog = 0;
-	time_t updtime = 0;
-	unsigned long long updtime_usec = 0;
+	struct timeval updtime;
 
 	struct eth_desc *list = NULL;
 
@@ -857,6 +855,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	tv_rate = tv;
+	updtime = tv;
 	statbegin = startlog = tv.tv_sec;
 
 	PACKET_INIT(pkt);
@@ -864,7 +863,6 @@ void hostmon(time_t facilitytime, char *ifptr)
 	do {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		unsigned long msecs = timeval_diff_msec(&tv, &tv_rate);
 		if (msecs >= 1000) {
@@ -881,14 +879,11 @@ void hostmon(time_t facilitytime, char *ifptr)
 				startlog = now;
 			}
 		}
-		if (((options.updrate != 0)
-		     && (now - updtime >= options.updrate))
-		    || ((options.updrate == 0)
-			&& (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))) {
+		if (screen_update_needed(&tv, &updtime)) {
 			update_panels();
 			doupdate();
-			updtime = now;
-			updtime_usec = unow;
+
+			updtime = tv;
 		}
 
 		if ((facilitytime != 0)

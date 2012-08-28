@@ -269,13 +269,11 @@ void detstats(char *iface, time_t facilitytime)
 
 	struct timeval tv;
 	struct timeval start_tv;
-	time_t updtime = 0;
-	unsigned long long updtime_usec = 0;
+	struct timeval updtime;
 	time_t starttime;
 	time_t now;
 	time_t statbegin;
 	time_t startlog;
-	unsigned long long unow;
 
 	struct proto_counter span;
 
@@ -380,6 +378,7 @@ void detstats(char *iface, time_t facilitytime)
 
 	gettimeofday(&tv, NULL);
 	start_tv = tv;
+	updtime = tv;
 	starttime = startlog = statbegin = tv.tv_sec;
 
 	leaveok(statwin, TRUE);
@@ -405,7 +404,6 @@ void detstats(char *iface, time_t facilitytime)
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-		unow = tv.tv_sec * 1000000ULL + tv.tv_usec;
 
 		if ((now - starttime) >= 1) {
 			char buf[64];
@@ -482,15 +480,12 @@ void detstats(char *iface, time_t facilitytime)
 			}
 		}
 
-		if (((options.updrate == 0)
-		     && (unow - updtime_usec >= DEFAULT_UPDATE_DELAY))
-		    || ((options.updrate != 0)
-			&& (now - updtime >= options.updrate))) {
+		if (screen_update_needed(&tv, &updtime)) {
 			printdetails(&ifcounts, statwin);
 			update_panels();
 			doupdate();
-			updtime_usec = unow;
-			updtime = now;
+
+			updtime = tv;
 		}
 
 		if ((facilitytime != 0)

@@ -61,6 +61,9 @@
 #define __unused	__attribute__((unused))
 #define __printf(x, y)	__attribute__((format(printf, (x), (y))))
 
+/* screen delay (in msecs) if update rate == 0 */
+#define DEFAULT_UPDATE_DELAY 50
+
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 #define alloc_nr(x) (((x)+16)*3/2)
