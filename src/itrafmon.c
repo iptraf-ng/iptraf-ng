@@ -1028,8 +1028,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 		__u8 ip_protocol = pkt_ip_protocol(&pkt);
 		if (ip_protocol == IPPROTO_TCP) {
-			sockaddr_set_port(&saddr, ntohs(sport));
-			sockaddr_set_port(&daddr, ntohs(dport));
+			sockaddr_set_port(&saddr, sport);
+			sockaddr_set_port(&daddr, dport);
 			tcpentry = in_table(&table, &saddr, &daddr, ifname,
 					    logging, logfile, options.timeout);
 

@@ -1063,8 +1063,8 @@ void servmon(char *ifname, time_t facilitytime)
 		switch (ip_protocol) {
 		case IPPROTO_TCP:
 		case IPPROTO_UDP:
-			updateportent(&list, ip_protocol, ntohs(sport),
-				      ntohs(dport), iplen, idx, ports);
+			updateportent(&list, ip_protocol, sport,
+				      dport, iplen, idx, ports);
 			break;
 		default:
 			/* unknown L4 protocol */

@@ -239,13 +239,13 @@ again:
 				switch (ip->protocol) {
 				case IPPROTO_TCP:
 					tcp = (struct tcphdr *) ip_payload;
-					sport_tmp = tcp->source;
-					dport_tmp = tcp->dest;
+					sport_tmp = ntohs(tcp->source);
+					dport_tmp = ntohs(tcp->dest);
 					break;
 				case IPPROTO_UDP:
 					udp = (struct udphdr *) ip_payload;
-					sport_tmp = udp->source;
-					dport_tmp = udp->dest;
+					sport_tmp = ntohs(udp->source);
+					dport_tmp = ntohs(udp->dest);
 					break;
 				default:
 					sport_tmp = 0;
@@ -263,12 +263,10 @@ again:
 			if (dport != NULL)
 				*dport = dport_tmp;
 
-			/*
-			 * Process IP filter
-			 */
-			f_sport = ntohs(sport_tmp);
-			f_dport = ntohs(dport_tmp);
+			f_sport = sport_tmp;
+			f_dport = dport_tmp;
 		}
+		/* Process IP filter */
 		if ((ofilter.filtercode != 0)
 		    &&
 		    (!ipfilter
@@ -293,16 +291,16 @@ again:
 		case IPPROTO_TCP:
 			tcp = (struct tcphdr *) ip_payload;
 			if (sport)
-				*sport = tcp->source;
+				*sport = ntohs(tcp->source);
 			if (dport)
-				*dport = tcp->dest;
+				*dport = ntohs(tcp->dest);
 			break;
 		case IPPROTO_UDP:
 			udp = (struct udphdr *) ip_payload;
 			if (sport)
-				*sport = udp->source;
+				*sport = ntohs(udp->source);
 			if (dport)
-				*dport = udp->dest;
+				*dport = ntohs(udp->dest);
 			break;
 		default:
 			if (sport)
