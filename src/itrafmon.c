@@ -550,7 +550,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	unsigned int frag_off;
 	struct tcphdr *transpacket;	/* IP-encapsulated packet */
-	unsigned int sport = 0, dport = 0;	/* TCP/UDP port values */
+	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
 	char sp_buf[10];
 
 	unsigned long screen_idx = 1;

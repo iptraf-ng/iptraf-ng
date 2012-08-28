@@ -8,8 +8,8 @@ serv.h  - TCP/UDP port statistics header file
 ***/
 
 struct porttab {
-	unsigned int port_min;
-	unsigned int port_max;
+	in_port_t port_min;
+	in_port_t port_max;
 	struct porttab *prev_entry;
 	struct porttab *next_entry;
 };

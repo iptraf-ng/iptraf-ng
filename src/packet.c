@@ -177,9 +177,8 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 }
 
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
-		   unsigned int *sport, unsigned int *dport,
-		   int match_opposite,
-		   int v6inv4asv6)
+		   in_port_t *sport, in_port_t *dport,
+		   int match_opposite, int v6inv4asv6)
 {
 	/* move packet pointer (pkt->pkt_payload) past data link header */
 	if (packet_adjust(pkt) != 0)
@@ -192,7 +191,7 @@ again:
 		struct iphdr *ip = pkt->iphdr;
 		int hdr_check;
 		register int ip_checksum;
-		unsigned int f_sport = 0, f_dport = 0;
+		in_port_t f_sport = 0, f_dport = 0;
 
 		/*
 		 * Compute and verify IP header checksum.
@@ -207,7 +206,7 @@ again:
 
 		if ((ip->protocol == IPPROTO_TCP || ip->protocol == IPPROTO_UDP)
 		    && (sport != NULL && dport != NULL)) {
-			unsigned int sport_tmp, dport_tmp;
+			in_port_t sport_tmp, dport_tmp;
 
 			/*
 			 * Process TCP/UDP fragments

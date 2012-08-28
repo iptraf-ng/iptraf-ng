@@ -153,8 +153,8 @@ void destroyfraglist(void)
  * monitor or 0 for an error condition.
  */
 
-unsigned int processfragment(struct iphdr *packet, unsigned int *sport,
-			     unsigned int *dport, int *firstin)
+unsigned int processfragment(struct iphdr *packet, in_port_t *sport,
+			     in_port_t *dport, int *firstin)
 {
 	struct fragent *ftmp;
 	struct fragdescent *dtmp;

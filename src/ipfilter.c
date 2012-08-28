@@ -26,6 +26,15 @@ ipfilter.c - user interface and filter function for all IP packets
 #include "parseproto.h"
 #include "cidr.h"
 
+static in_port_t parse_port(char *buf)
+{
+	unsigned int value;
+
+	if ((strtoul_ui(buf, 10, &value) == 0) && (value <= 65535))
+		return value;
+	else
+		return 0;
+}
 void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		   char *init_sport1, char *init_sport2, char *init_daddr,
 		   char *init_dmask, char *init_dport1, char *init_dport2,
@@ -185,12 +194,10 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		 * Process Source Port fields
 		 */
 		fieldptr = fieldptr->nextfield;
-		if (strtoul_ui(fieldptr->buf, 10, &data->sport1) == -1)
-			data->sport1 = 0;
+		data->sport1 = parse_port(fieldptr->buf);
 
 		fieldptr = fieldptr->nextfield;
-		if (strtoul_ui(fieldptr->buf, 10, &data->sport2) == -1)
-			data->sport2 = 0;
+		data->sport2 = parse_port(fieldptr->buf);
 
 		/*
 		 * Process Destination Address field
@@ -226,12 +233,10 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		 * Process Dedination Port fields
 		 */
 		fieldptr = fieldptr->nextfield;
-		if (strtoul_ui(fieldptr->buf, 10, &data->dport1) == -1)
-			data->dport1 = 0;
+		data->dport1 = parse_port(fieldptr->buf);
 
 		fieldptr = fieldptr->nextfield;
-		if (strtoul_ui(fieldptr->buf, 10, &data->dport2) == -1)
-			data->dport2 = 0;
+		data->dport2 = parse_port(fieldptr->buf);
 
 		/*
 		 * Process IP protocol filter fields
@@ -363,8 +368,8 @@ void ipfilterselect(int *aborted)
 /*
  * Display/logging filter for other (non-TCP, non-UDP) IP protocols.
  */
-int ipfilter(unsigned long saddr, unsigned long daddr, unsigned int sport,
-	     unsigned int dport, unsigned int protocol, int match_opp_mode)
+int ipfilter(unsigned long saddr, unsigned long daddr, in_port_t sport,
+	     in_port_t dport, unsigned int protocol, int match_opp_mode)
 {
 	struct filterent *fe = ofilter.fl.head;
 	int result = 0;

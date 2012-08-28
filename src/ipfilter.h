@@ -6,7 +6,7 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 		   char *init_dmask, char *init_dport1, char *init_dport2,
 		   char *initinex, char *initmatchop, int *aborted);
 void ipfilterselect(int *faborted);
-int ipfilter(unsigned long saddr, unsigned long daddr, unsigned int sport,
-	     unsigned int dport, unsigned int protocol, int match_opp_mode);
+int ipfilter(unsigned long saddr, unsigned long daddr, in_port_t sport,
+	     in_port_t dport, unsigned int protocol, int match_opp_mode);
 
 #endif	/* IPTRAF_NG_IPFILTER_H */

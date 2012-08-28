@@ -47,7 +47,7 @@ struct serv_spans {
 };
 
 struct portlistent {
-	unsigned int port;
+	in_port_t port;
 	unsigned int protocol;
 	char servname[11];
 	unsigned int idx;
@@ -189,7 +189,7 @@ static void initportlist(struct portlist *list)
 
 static struct portlistent *addtoportlist(struct portlist *list,
 					 unsigned int protocol,
-					 unsigned int port)
+					 in_port_t port)
 {
 	struct portlistent *ptemp;
 
@@ -235,7 +235,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 	return ptemp;
 }
 
-static int portinlist(struct porttab *table, unsigned int port)
+static int portinlist(struct porttab *table, in_port_t port)
 {
 	struct porttab *ptmp = table;
 
@@ -250,13 +250,13 @@ static int portinlist(struct porttab *table, unsigned int port)
 	return 0;
 }
 
-static int goodport(unsigned int port, struct porttab *table)
+static int goodport(in_port_t port, struct porttab *table)
 {
 	return ((port < 1024) || (portinlist(table, port)));
 }
 
 static struct portlistent *inportlist(struct portlist *list,
-				      unsigned int protocol, unsigned int port)
+				      unsigned int protocol, in_port_t port)
 {
 	struct portlistent *ptmp = list->head;
 
@@ -347,7 +347,7 @@ static void destroyportlist(struct portlist *list)
 }
 
 static void updateportent(struct portlist *list, unsigned int protocol,
-			  unsigned int sport, unsigned int dport, int br,
+			  in_port_t sport, in_port_t dport, int br,
 			  unsigned int idx, struct porttab *ports)
 {
 	struct portlistent *sport_listent = NULL;
@@ -761,8 +761,8 @@ void servmon(char *ifname, time_t facilitytime)
 
 	unsigned int idx = 1;
 
-	unsigned int sport = 0;
-	unsigned int dport = 0;
+	in_port_t sport = 0;
+	in_port_t dport = 0;
 
 	struct timeval tv;
 	struct timeval tv_rate;
@@ -1113,7 +1113,7 @@ err:
 	strcpy(current_logfile, "");
 }
 
-static void portdlg(unsigned int *port_min, unsigned int *port_max,
+static void portdlg(in_port_t *port_min, in_port_t *port_max,
 		    int *aborted)
 {
 	WINDOW *bw;
@@ -1239,7 +1239,7 @@ static int dup_portentry(struct porttab *table, unsigned int min,
 
 void addmoreports(struct porttab **table)
 {
-	unsigned int port_min = 0, port_max = 0;
+	in_port_t port_min = 0, port_max = 0;
 	int aborted;
 	struct porttab *ptmp;
 
