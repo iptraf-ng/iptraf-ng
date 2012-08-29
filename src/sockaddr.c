@@ -128,7 +128,7 @@ void sockaddr_ntop(struct sockaddr_storage *addr, char *buf, size_t buflen)
 	if (ret == NULL) {
 		switch (errno) {
 		case ENOSPC:
-			die("%s(): buffer too small (must be at least %u bytes)", __FUNCTION__, minlen);
+			die("%s(): buffer too small (must be at least %zu bytes)", __FUNCTION__, minlen);
 		case EAFNOSUPPORT:
 			die("%s(): Unknown address family", __FUNCTION__);
 		}
