@@ -291,7 +291,6 @@ void detstats(char *iface, time_t facilitytime)
 	unsigned long peakpps_in = 0;
 	unsigned long peakpps_out = 0;
 
-	struct promisc_states *promisc_list;
 	int fd;
 
 	/*
@@ -312,11 +311,10 @@ void detstats(char *iface, time_t facilitytime)
 		return;
 	}
 
-	if (first_active_facility() && options.promisc) {
-		init_promisc_list(&promisc_list);
-		save_promisc_list(promisc_list);
-		srpromisc(1, promisc_list);
-		destroy_promisc_list(&promisc_list);
+	LIST_HEAD(promisc);
+	if (options.promisc && first_active_facility()) {
+		promisc_init(&promisc, iface);
+		promisc_set_list(&promisc);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
@@ -594,9 +592,8 @@ err:
 	rate_destroy(&rate);
 
 	if (options.promisc && is_last_instance()) {
-		load_promisc_list(&promisc_list);
-		srpromisc(0, promisc_list);
-		destroy_promisc_list(&promisc_list);
+		promisc_restore_list(&promisc);
+		promisc_destroy(&promisc);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, -1);
