@@ -435,36 +435,17 @@ void addtoclosedlist(struct tcptable *table, struct tcptableent *entry)
 
 }
 
-static char *tcplog_flowrate_msg(struct tcptableent *entry)
+static char *tcplog_flowrate_msg(struct tcptableent *entry, char *buf,
+				 size_t bufsize)
 {
-	char rateunit[10];
-	float rate = 0;
-	static char message[60];
-	time_t interval;
+	time_t interval = time(NULL) - entry->conn_starttime;
 
-	interval = time(NULL) - entry->conn_starttime;
+	char rbuf[64];
+	rate_print(entry->bcount / interval, rbuf, sizeof(rbuf));
 
-	if (options.actmode == KBITS) {
-		strcpy(rateunit, "kbits/s");
-
-		if (interval > 0)
-			rate =
-			    (float) (entry->bcount * 8 / 1000) /
-			    (float) interval;
-		else
-			rate = (float) (entry->bcount * 8 / 1000);
-	} else {
-		strcpy(rateunit, "kbytes/s");
-
-		if (interval > 0)
-			rate =
-			    (float) (entry->bcount / 1024) / (float) interval;
-		else
-			rate = (float) (entry->bcount / 1024);
-	}
-
-	snprintf(message, 60, "avg flow rate %.2f %s", rate, rateunit);
-	return message;
+	snprintf(buf, bufsize - 1, "avg flow rate %s", rbuf);
+	buf[bufsize - 1] = '\0';
+	return buf;
 }
 
 void write_timeout_log(int logging, FILE *logfile, struct tcptableent *tcpnode)
@@ -472,14 +453,16 @@ void write_timeout_log(int logging, FILE *logfile, struct tcptableent *tcpnode)
 	char msgstring[MSGSTRING_MAX];
 
 	if (logging) {
+		char flowrate1[64];
+		char flowrate2[64];
 		snprintf(msgstring, MSGSTRING_MAX,
 			 "TCP; Connection %s:%s to %s:%s timed out, %lu packets, %lu bytes, %s; opposite direction %lu packets, %lu bytes, %s",
 			 tcpnode->s_fqdn, tcpnode->s_sname, tcpnode->d_fqdn,
 			 tcpnode->d_sname, tcpnode->pcount, tcpnode->bcount,
-			 tcplog_flowrate_msg(tcpnode),
+			 tcplog_flowrate_msg(tcpnode, flowrate1, sizeof(flowrate1)),
 			 tcpnode->oth_connection->pcount,
 			 tcpnode->oth_connection->bcount,
-			 tcplog_flowrate_msg(tcpnode->oth_connection));
+			 tcplog_flowrate_msg(tcpnode->oth_connection, flowrate2, sizeof(flowrate2)));
 		writelog(logging, logfile, msgstring);
 	}
 }
@@ -703,10 +686,11 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 			tableentry->finack = ntohl(transpacket->ack_seq);
 		}
 		if (logging) {
+			char flowrate[64];
 			sprintf(msgstring,
 				"FIN sent; %lu packets, %lu bytes, %s",
 				tableentry->pcount, tableentry->bcount,
-				tcplog_flowrate_msg(tableentry));
+				tcplog_flowrate_msg(tableentry, flowrate, sizeof(flowrate)));
 
 			writetcplog(logging, logfile, tableentry,
 				    tableentry->psize, msgstring);
@@ -718,13 +702,15 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 			addtoclosedlist(table, tableentry);
 
 		if (logging) {
+			char flowrate1[64];
+			char flowrate2[64];
 			snprintf(msgstring, MSGSTRING_MAX,
 				 "Connection reset; %lu packets, %lu bytes, %s; opposite direction %lu packets, %lu bytes; %s",
 				 tableentry->pcount, tableentry->bcount,
-				 tcplog_flowrate_msg(tableentry),
+				 tcplog_flowrate_msg(tableentry, flowrate1, sizeof(flowrate1)),
 				 tableentry->oth_connection->pcount,
 				 tableentry->oth_connection->bcount,
-				 tcplog_flowrate_msg(tableentry->oth_connection));
+				 tcplog_flowrate_msg(tableentry->oth_connection, flowrate2, sizeof(flowrate2)));
 			writetcplog(logging, logfile, tableentry,
 				    tableentry->psize, msgstring);
 		}
