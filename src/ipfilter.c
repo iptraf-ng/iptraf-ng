@@ -365,37 +365,30 @@ void ipfilterselect(int *aborted)
 	doupdate();
 }
 
-/*
- * Display/logging filter for other (non-TCP, non-UDP) IP protocols.
- */
+static int port_in_range(in_port_t port, in_port_t port1, in_port_t port2)
+{
+	if (port2 == 0)
+		return port == port1 || port1 == 0;
+	else
+		return port >= port1 && port <= port2;
+}
+
+/* Display/logging filter for other (non-TCP, non-UDP) IP protocols. */
 int ipfilter(unsigned long saddr, unsigned long daddr, in_port_t sport,
 	     in_port_t dport, unsigned int protocol, int match_opp_mode)
 {
-	struct filterent *fe = ofilter.fl.head;
+	struct filterent *fe;
 	int result = 0;
 	int fltexpr1;
 	int fltexpr2;
 
-
-	while (fe != NULL) {
+	for (fe = ofilter.fl.head; fe != NULL; fe = fe->next_entry) {
 		if (protocol == IPPROTO_TCP || protocol == IPPROTO_UDP) {
 			fltexpr1 =
 			    ((saddr & fe->smask) == (fe->saddr & fe->smask)
 			     && (daddr & fe->dmask) == (fe->daddr & fe->dmask))
-			    &&
-			    (((fe->hp.sport2 == 0
-			       && (fe->hp.sport1 == sport
-				   || fe->hp.sport1 == 0))
-			      || (fe->hp.sport2 != 0
-				  && (sport >= fe->hp.sport1
-				      && sport <= fe->hp.sport2)))
-			     &&
-			     ((fe->hp.dport2 == 0
-			       && (fe->hp.dport1 == dport
-				   || fe->hp.dport1 == 0))
-			      || (fe->hp.dport2 != 0
-				  && (dport >= fe->hp.dport1
-				      && dport <= fe->hp.dport2))));
+				&& port_in_range(sport, fe->hp.sport1, fe->hp.sport2)
+				&& port_in_range(dport, fe->hp.dport1, fe->hp.dport2);
 
 			if ((protocol == IPPROTO_TCP
 			     && match_opp_mode == MATCH_OPPOSITE_ALWAYS)
@@ -405,20 +398,8 @@ int ipfilter(unsigned long saddr, unsigned long daddr, in_port_t sport,
 				     (fe->daddr & fe->dmask)
 				     && (daddr & fe->smask) ==
 				     (fe->saddr & fe->smask))
-				    &&
-				    (((fe->hp.dport2 == 0
-				       && (sport == fe->hp.dport1
-					   || fe->hp.dport1 == 0))
-				      || (fe->hp.dport2 != 0
-					  && (sport >= fe->hp.dport1
-					      && sport <= fe->hp.dport2)))
-				     &&
-				     ((fe->hp.sport2 == 0
-				       && (dport == fe->hp.sport1
-					   || fe->hp.sport1 == 0))
-				      || (fe->hp.dport2 != 0
-					  && (dport >= fe->hp.sport1
-					      && dport <= fe->hp.sport2))));
+					&& port_in_range(sport, fe->hp.dport1, fe->hp.dport2)
+					&& port_in_range(dport, fe->hp.sport1, fe->hp.sport2);
 			else
 				fltexpr2 = 0;
 		} else {
@@ -448,7 +429,6 @@ int ipfilter(unsigned long saddr, unsigned long daddr, in_port_t sport,
 				return 1;
 			}
 		}
-		fe = fe->next_entry;
 	}
 
 	return 0;
