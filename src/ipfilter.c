@@ -365,6 +365,12 @@ void ipfilterselect(int *aborted)
 	doupdate();
 }
 
+static int addr_in_net(unsigned long addr, unsigned long net,
+		       unsigned long mask)
+{
+	return (addr & mask) == (net & mask);
+}
+
 static int port_in_range(in_port_t port, in_port_t port1, in_port_t port2)
 {
 	if (port2 == 0)
@@ -384,35 +390,27 @@ int ipfilter(unsigned long saddr, unsigned long daddr, in_port_t sport,
 
 	for (fe = ofilter.fl.head; fe != NULL; fe = fe->next_entry) {
 		if (protocol == IPPROTO_TCP || protocol == IPPROTO_UDP) {
-			fltexpr1 =
-			    ((saddr & fe->smask) == (fe->saddr & fe->smask)
-			     && (daddr & fe->dmask) == (fe->daddr & fe->dmask))
+			fltexpr1 = addr_in_net(saddr, fe->saddr, fe->smask)
+				&& addr_in_net(daddr, fe->daddr, fe->dmask)
 				&& port_in_range(sport, fe->hp.sport1, fe->hp.sport2)
 				&& port_in_range(dport, fe->hp.dport1, fe->hp.dport2);
 
 			if ((protocol == IPPROTO_TCP
 			     && match_opp_mode == MATCH_OPPOSITE_ALWAYS)
 			    || (fe->hp.match_opposite == 'Y'))
-				fltexpr2 =
-				    ((saddr & fe->dmask) ==
-				     (fe->daddr & fe->dmask)
-				     && (daddr & fe->smask) ==
-				     (fe->saddr & fe->smask))
+				fltexpr2 = addr_in_net(saddr, fe->daddr, fe->dmask)
+					&& addr_in_net(daddr, fe->saddr, fe->smask)
 					&& port_in_range(sport, fe->hp.dport1, fe->hp.dport2)
 					&& port_in_range(dport, fe->hp.sport1, fe->hp.sport2);
 			else
 				fltexpr2 = 0;
 		} else {
-			fltexpr1 =
-			    ((saddr & fe->smask) == (fe->saddr & fe->smask))
-			    && ((daddr & fe->dmask) == (fe->daddr & fe->dmask));
+			fltexpr1 = addr_in_net(saddr, fe->saddr, fe->smask)
+				&& addr_in_net(daddr, fe->daddr, fe->dmask);
 
 			if (fe->hp.match_opposite == 'Y') {
-				fltexpr2 =
-				    ((daddr & fe->smask) ==
-				     (fe->saddr & fe->smask))
-				    && ((saddr & fe->dmask) ==
-					(fe->daddr & fe->dmask));
+				fltexpr2 = addr_in_net(saddr, fe->daddr, fe->dmask)
+					&& addr_in_net(daddr, fe->saddr, fe->smask);
 			} else
 				fltexpr2 = 0;
 		}
