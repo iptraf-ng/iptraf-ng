@@ -24,7 +24,6 @@ Discovers LAN hosts and displays packet statistics for them
 #include "timer.h"
 #include "landesc.h"
 #include "options.h"
-#include "instances.h"
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
@@ -774,34 +773,18 @@ void hostmon(time_t facilitytime, char *ifptr)
 	PANEL *sortpanel;
 	int keymode = 0;
 
-	int instance_id;
-
 	int fd;
 
-	if (!facility_active(LANMONIDFILE, ifptr))
-		mark_facility(LANMONIDFILE, "LAN monitor", ifptr);
-	else {
-		write_error("LAN station monitor already running on %s",
-			 gen_iface_msg(ifptr));
+	if (ifptr && !dev_up(ifptr)) {
+		err_iface_down();
 		return;
 	}
 
-	if (ifptr != NULL) {
-		if (!dev_up(ifptr)) {
-			err_iface_down();
-			unmark_facility(LANMONIDFILE, ifptr);
-			return;
-		}
-	}
-
 	LIST_HEAD(promisc);
-	if (options.promisc && first_active_facility()) {
+	if (options.promisc) {
 		promisc_init(&promisc, ifptr);
 		promisc_set_list(&promisc);
 	}
-
-	adjust_instance_count(PROCCOUNTFILE, 1);
-	instance_id = adjust_instance_count(LANMONCOUNTFILE, 1);
 
 	hostmonhelp();
 
@@ -816,7 +799,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
 			strncpy(current_logfile,
-				gen_instance_logname(LANLOG, instance_id), 80);
+				gen_instance_logname(LANLOG, getpid()), 80);
 
 			if (!daemonized)
 				input_logfile(current_logfile, &logging);
@@ -1027,13 +1010,10 @@ err_close:
 	close(fd);
 
 err:
-	if (options.promisc && is_last_instance()) {
+	if (options.promisc) {
 		promisc_restore_list(&promisc);
 		promisc_destroy(&promisc);
 	}
-
-	adjust_instance_count(PROCCOUNTFILE, -1);
-	adjust_instance_count(LANMONCOUNTFILE, -1);
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
@@ -1055,6 +1035,5 @@ err:
 	free_eth_desc(elist);
 	free_eth_desc(flist);
 
-	unmark_facility(LANMONIDFILE, ifptr);
 	strcpy(current_logfile, "");
 }

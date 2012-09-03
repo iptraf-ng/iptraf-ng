@@ -89,7 +89,6 @@
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
-extern int is_first_instance;		/* in iptraf.c */
 extern int daemonized;
 extern int exitloop;
 

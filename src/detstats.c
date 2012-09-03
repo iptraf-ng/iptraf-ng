@@ -22,7 +22,6 @@ detstats.c	- the interface statistics module
 #include "attrs.h"
 #include "serv.h"
 #include "timer.h"
-#include "instances.h"
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
@@ -293,31 +292,16 @@ void detstats(char *iface, time_t facilitytime)
 
 	int fd;
 
-	/*
-	 * Mark this facility
-	 */
-
-	if (!facility_active(DSTATIDFILE, iface))
-		mark_facility(DSTATIDFILE, "detailed interface statistics",
-			      iface);
-	else {
-		write_error("Detailed interface stats already monitoring %s", iface);
-		return;
-	}
-
 	if (!dev_up(iface)) {
 		err_iface_down();
-		unmark_facility(DSTATIDFILE, iface);
 		return;
 	}
 
 	LIST_HEAD(promisc);
-	if (options.promisc && first_active_facility()) {
+	if (options.promisc) {
 		promisc_init(&promisc, iface);
 		promisc_set_list(&promisc);
 	}
-
-	adjust_instance_count(PROCCOUNTFILE, 1);
 
 	move(LINES - 1, 1);
 	stdexitkeyhelp();
@@ -591,12 +575,10 @@ err:
 	rate_destroy(&rate_in);
 	rate_destroy(&rate);
 
-	if (options.promisc && is_last_instance()) {
+	if (options.promisc) {
 		promisc_restore_list(&promisc);
 		promisc_destroy(&promisc);
 	}
-
-	adjust_instance_count(PROCCOUNTFILE, -1);
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
@@ -612,7 +594,6 @@ err:
 
 	del_panel(statpanel);
 	delwin(statwin);
-	unmark_facility(DSTATIDFILE, iface);
 	strcpy(current_logfile, "");
 	pkt_cleanup();
 	update_panels();

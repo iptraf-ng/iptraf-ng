@@ -21,7 +21,6 @@ options.c - implements the configuration section of the utility
 #include "landesc.h"
 #include "promisc.h"
 #include "dirs.h"
-#include "instances.h"
 
 #define ALLOW_ZERO 1
 #define DONT_ALLOW_ZERO 0
@@ -261,13 +260,6 @@ void setoptions(void)
 	PANEL *statpanel;
 
 	struct porttab *ports;
-
-	if (!is_first_instance) {
-		tui_error(ANYKEY_MSG,
-			  "Only the first instance of ipraf-ng"
-			  " can configure");
-		return;
-	}
 
 	loadaddports(&ports);
 

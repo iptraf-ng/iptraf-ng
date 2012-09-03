@@ -21,7 +21,6 @@ pktsize.c	- the packet size breakdown facility
 #include "pktsize.h"
 #include "options.h"
 #include "timer.h"
-#include "instances.h"
 #include "log.h"
 #include "logvars.h"
 #include "promisc.h"
@@ -163,13 +162,6 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	int fd;
 
-	if (!facility_active(PKTSIZEIDFILE, ifname))
-		mark_facility(PKTSIZEIDFILE, "Packet size breakdown", ifname);
-	else {
-		write_error("Packet sizes already being monitored on %s", ifname);
-		return;
-	}
-
 	if (!dev_up(ifname)) {
 		err_iface_down();
 		goto err_unmark;
@@ -240,12 +232,10 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	now = starttime = startlog = timeint = tv.tv_sec;
 
 	LIST_HEAD(promisc);
-	if (first_active_facility() && options.promisc) {
+	if (options.promisc) {
 		promisc_init(&promisc, ifname);
 		promisc_set_list(&promisc);
 	}
-
-	adjust_instance_count(PROCCOUNTFILE, 1);
 
 	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if(fd == -1) {
@@ -333,18 +323,15 @@ err:
 		fclose(logfile);
 	}
 
-	if (options.promisc && is_last_instance()) {
+	if (options.promisc) {
 		promisc_restore_list(&promisc);
 		promisc_destroy(&promisc);
 	}
-
-	adjust_instance_count(PROCCOUNTFILE, -1);
 
 	del_panel(panel);
 	delwin(win);
 	del_panel(borderpanel);
 	delwin(borderwin);
 err_unmark:
-	unmark_facility(PKTSIZEIDFILE, ifname);
 	strcpy(current_logfile, "");
 }

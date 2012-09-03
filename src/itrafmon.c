@@ -28,7 +28,6 @@ itrafmon.c - the IP traffic monitor module
 #include "dirs.h"
 #include "timer.h"
 #include "ipfrag.h"
-#include "instances.h"
 #include "logvars.h"
 #include "itrafmon.h"
 #include "sockaddr.h"
@@ -601,7 +600,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	int rvnfd = 0;
 
-	int instance_id;
 	int revlook = options.revlook;
 	int wasempty = 1;
 
@@ -611,33 +609,16 @@ void ipmon(time_t facilitytime, char *ifptr)
 	 * Mark this instance of the traffic monitor
 	 */
 
-	if (!facility_active(IPMONIDFILE, ifptr))
-		mark_facility(IPMONIDFILE, "IP traffic monitor", ifptr);
-	else {
-		write_error("IP Traffic Monitor already listening on %s", gen_iface_msg(ifptr));
+	if (ifptr && !dev_up(ifptr)) {
+		err_iface_down();
 		return;
 	}
 
-	if (ifptr != NULL) {
-		if (!dev_up(ifptr)) {
-			err_iface_down();
-			unmark_facility(IPMONIDFILE, ifptr);
-			return;
-		}
-	}
-
 	LIST_HEAD(promisc);
-	if (options.promisc && first_active_facility()) {
+	if (options.promisc) {
 		promisc_init(&promisc, ifptr);
 		promisc_set_list(&promisc);
 	}
-
-	/*
-	 * Adjust instance counters
-	 */
-
-	adjust_instance_count(PROCCOUNTFILE, 1);
-	instance_id = adjust_instance_count(ITRAFMONCOUNTFILE, 1);
 
 	init_tcp_table(&table);
 	init_othp_table(&othptbl);
@@ -679,7 +660,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
 			strncpy(current_logfile,
-				gen_instance_logname(IPMONLOG, instance_id),
+				gen_instance_logname(IPMONLOG, getpid()),
 				80);
 
 			if (!daemonized)
@@ -1174,8 +1155,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 err_close:
 	close(fd);
 err:
-	if (get_instance_count(ITRAFMONCOUNTFILE) <= 1)
-		killrvnamed();
+	killrvnamed();
 
 	if (options.servnames)
 		endservent();
@@ -1183,7 +1163,7 @@ err:
 	endprotoent();
 	close_rvn_socket(rvnfd);
 
-	if (options.promisc && is_last_instance()) {
+	if (options.promisc) {
 		promisc_restore_list(&promisc);
 		promisc_destroy(&promisc);
 	}
@@ -1213,8 +1193,4 @@ err:
 		fclose(logfile);
 		strcpy(current_logfile, "");
 	}
-
-	adjust_instance_count(PROCCOUNTFILE, -1);
-	adjust_instance_count(ITRAFMONCOUNTFILE, -1);
-	unmark_facility(IPMONIDFILE, ifptr);
 }
