@@ -599,8 +599,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	int keymode = 0;
 	char msgstring[80];
 
-	struct promisc_states *promisc_list;
-
 	int rvnfd = 0;
 
 	int instance_id;
@@ -628,12 +626,10 @@ void ipmon(time_t facilitytime, char *ifptr)
 		}
 	}
 
-	if (options.promisc) {
-		if (first_active_facility()) {
-			init_promisc_list(&promisc_list);
-			save_promisc_list(promisc_list);
-			srpromisc(1, promisc_list);
-		}
+	LIST_HEAD(promisc);
+	if (options.promisc && first_active_facility()) {
+		promisc_init(&promisc, ifptr);
+		promisc_set_list(&promisc);
 	}
 
 	/*
@@ -1188,9 +1184,8 @@ err:
 	close_rvn_socket(rvnfd);
 
 	if (options.promisc && is_last_instance()) {
-		load_promisc_list(&promisc_list);
-		srpromisc(0, promisc_list);
-		destroy_promisc_list(&promisc_list);
+		promisc_restore_list(&promisc);
+		promisc_destroy(&promisc);
 	}
 
 	attrset(STDATTR);

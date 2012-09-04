@@ -775,8 +775,6 @@ void servmon(char *ifname, time_t facilitytime)
 
 	FILE *logfile = NULL;
 
-	struct promisc_states *promisc_list;
-
 	WINDOW *sortwin;
 	PANEL *sortpanel;
 
@@ -808,11 +806,10 @@ void servmon(char *ifname, time_t facilitytime)
 
 	loadaddports(&ports);
 
+	LIST_HEAD(promisc);
 	if (first_active_facility() && options.promisc) {
-		init_promisc_list(&promisc_list);
-		save_promisc_list(promisc_list);
-		srpromisc(1, promisc_list);
-		destroy_promisc_list(&promisc_list);
+		promisc_init(&promisc, ifname);
+		promisc_set_list(&promisc);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
@@ -1089,9 +1086,8 @@ err:
 		endservent();
 
 	if (options.promisc && is_last_instance()) {
-		load_promisc_list(&promisc_list);
-		srpromisc(0, promisc_list);
-		destroy_promisc_list(&promisc_list);
+		promisc_restore_list(&promisc);
+		promisc_destroy(&promisc);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, -1);

@@ -211,16 +211,6 @@ err:	/* need to preserve errno across call to close() */
 	return ir;
 }
 
-int dev_set_promisc(char *ifname)
-{
-	return dev_set_flags(ifname, IFF_PROMISC);
-}
-
-int dev_clear_promisc(char *ifname)
-{
-	return dev_clear_flags(ifname, IFF_PROMISC);
-}
-
 int dev_get_ifname(int ifindex, char *ifname)
 {
 	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -281,4 +271,20 @@ char *gen_iface_msg(char *ifptr)
 		strncpy(if_msg, ifptr, 20);
 
 	return if_msg;
+}
+
+
+int dev_promisc_flag(const char *dev_name)
+{
+	int flags = dev_get_flags(dev_name);
+	if (flags < 0) {
+		write_error("Unable to obtain interface parameters for %s",
+			    dev_name);
+		return -1;
+	}
+
+	if (flags & IFF_PROMISC)
+		return -1;
+
+	return flags;
 }
