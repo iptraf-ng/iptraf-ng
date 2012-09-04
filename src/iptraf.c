@@ -34,6 +34,10 @@ An IP Network Statistics Utility
 #define WITHALL 1
 #define WITHOUTALL 0
 
+#ifndef IPTRAF_PIDFILE
+#define IPTRAF_PIDFILE "/var/run/iptraf-ng.pid"
+#endif
+
 const char *ALLSPEC = "all";
 
 #define CMD(name, h) { .cmd = #name, .fn = cmd_##name, .help = h }
@@ -283,6 +287,30 @@ static struct options iptraf_ng_options[] = {
 	OPT_END()
 };
 
+static int create_pidfile(void)
+{
+	int fd = open(IPTRAF_PIDFILE, O_WRONLY|O_CREAT, 0644);
+	if (fd < 0) {
+		perror("can not open "IPTRAF_PIDFILE);
+		return -1;
+	}
+
+	if (lockf(fd, F_TLOCK, 0) < 0) {
+		error("The PID file is locked "IPTRAF_PIDFILE". "
+		      "Maybe other iptraf-ng instance is running?can not acquire ");
+		return -1;
+	}
+
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
+
+	char buf[sizeof(long) * 3 + 2];
+	int len = sprintf(buf, "%lu\n", (long) getpid());
+	write(fd, buf, len);
+	ftruncate(fd, len);
+	/* we leak opened+locked fd intentionally */
+	return 0;
+}
+
 static void sanitize_dir(const char *dir)
 {
 	/* Check whether LOCKDIR exists (/var/run is on a tmpfs in Ubuntu) */
@@ -397,6 +425,12 @@ int main(int argc, char **argv)
 
 	loadoptions();
 
+
+	if (create_pidfile() < 0)
+		goto cleanup;
+
+	int pidfile_created = 1;
+
 	/*
 	 * If a facility is directly invoked from the command line, check for
 	 * a daemonization request
@@ -414,9 +448,10 @@ int main(int argc, char **argv)
 			options.logging = 1;
 			break;
 		case -1:	/* error */
-			die("Fork error, %s cannot run in background", IPTRAF_NAME);
+			error("Fork error, %s cannot run in background", IPTRAF_NAME);
+			goto cleanup;
 		default:	/* parent */
-			exit(0);
+			goto cleanup;
 		}
 	}
 
@@ -501,5 +536,9 @@ int main(int argc, char **argv)
 	doupdate();
 	endwin();
 
-	return (0);
+cleanup:
+	if (pidfile_created)
+		unlink(IPTRAF_PIDFILE);
+
+	return 0;
 }
