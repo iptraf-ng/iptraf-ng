@@ -86,7 +86,6 @@
 		}							\
 	} while (0)
 
-extern int is_first_instance;		/* in iptraf.c */
 extern int daemonized;
 extern int exitloop;
 
