@@ -115,7 +115,7 @@ static int initialize_brackets(struct ifstat_brackets *brackets,
 
 static void update_size_distrib(unsigned int length,
 				struct ifstat_brackets *brackets,
-				unsigned int interval, WINDOW *win)
+				unsigned int interval)
 {
 	unsigned int i;
 
@@ -127,13 +127,18 @@ static void update_size_distrib(unsigned int length,
 		i = 19;		/* divisible by 20 */
 
 	brackets[i].count++;
+}
 
-	if (i < 10)
-		wmove(win, i + 5, 23);
-	else
-		wmove(win, (i - 10) + 5, 57);
+static void print_size_distrib(struct ifstat_brackets *brackets, WINDOW *win)
+{
+	for (unsigned int i = 0; i <= 19; i++) {
+		if (i < 10)
+			wmove(win, i + 5, 23);
+		else
+			wmove(win, (i - 10) + 5, 57);
 
-	wprintw(win, "%8lu", brackets[i].count);
+		wprintw(win, "%8lu", brackets[i].count);
+	}
 }
 
 void packet_size_breakdown(char *ifname, time_t facilitytime)
@@ -254,6 +259,8 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		now = tv.tv_sec;
 
 		if (screen_update_needed(&tv, &updtime)) {
+			print_size_distrib(brackets, win);
+
 			update_panels();
 			doupdate();
 
@@ -309,7 +316,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		if (pkt_result != PACKET_OK)
 			continue;
 
-		update_size_distrib(pkt.pkt_len, brackets, interval, win);
+		update_size_distrib(pkt.pkt_len, brackets, interval);
 	} while (!exitloop);
 
 err_close:
