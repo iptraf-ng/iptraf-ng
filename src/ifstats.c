@@ -301,14 +301,12 @@ static void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 	wprintw(win, "%7lu", ptmp->badtotal);
 }
 
-static void preparescreen(struct iftab *table)
+static void print_if_entries(struct iftab *table)
 {
 	struct iflist *ptmp = table->head;
 	unsigned int i = 1;
 
 	unsigned int winht = LINES - 4;
-
-	table->firstvisible = table->head;
 
 	do {
 		printifentry(ptmp, table->statwin, 1);
@@ -487,7 +485,8 @@ void ifstats(time_t facilitytime)
 			 "******** General interface statistics started ********");
 	}
 
-	preparescreen(&table);
+	table.firstvisible = table.head;
+	print_if_entries(&table);
 
 	update_panels();
 	doupdate();
@@ -530,6 +529,7 @@ void ifstats(time_t facilitytime)
 			}
 		}
 		if (screen_update_needed(&tv, &updtime)) {
+			print_if_entries(&table);
 			update_panels();
 			doupdate();
 
@@ -610,7 +610,6 @@ void ifstats(time_t facilitytime)
 		} else {
 			(ptmp->noniptotal)++;
 		}
-		printifentry(ptmp, table.statwin, idx);
 	}
 	close(fd);
 
