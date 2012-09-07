@@ -347,7 +347,7 @@ static void destroyportlist(struct portlist *list)
 
 static void updateportent(struct portlist *list, unsigned int protocol,
 			  in_port_t sport, in_port_t dport, int br,
-			  unsigned int idx, struct porttab *ports)
+			  struct porttab *ports)
 {
 	struct portlistent *sport_listent = NULL;
 	struct portlistent *dport_listent = NULL;
@@ -383,10 +383,6 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 		update_proto_counter(&dport_listent->serv_count, PORT_INCOMING, br);
 		update_proto_counter(&dport_listent->span, PORT_INCOMING, br);
 	}
-	if (sport_listent != NULL)
-		printportent(list, sport_listent, idx);
-	if (dport_listent != NULL && dport_listent != sport_listent)
-		printportent(list, dport_listent, idx);
 }
 
 /*
@@ -897,6 +893,8 @@ void servmon(char *ifname, time_t facilitytime)
 		}
 
 		if (screen_update_needed(&tv, &updtime)) {
+			refresh_serv_screen(&list, idx);
+
 			update_panels();
 			doupdate();
 
@@ -1046,7 +1044,7 @@ void servmon(char *ifname, time_t facilitytime)
 		case IPPROTO_TCP:
 		case IPPROTO_UDP:
 			updateportent(&list, ip_protocol, sport,
-				      dport, iplen, idx, ports);
+				      dport, iplen, ports);
 			break;
 		default:
 			/* unknown L4 protocol */
