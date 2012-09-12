@@ -166,6 +166,8 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	int logging = options.logging;
 	FILE *logfile = NULL;
 
+	struct promisc_states *promisc_list;
+
 	int fd;
 
 	if (!facility_active(PKTSIZEIDFILE, ifname))
@@ -244,10 +246,11 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	updtime = tv;
 	now = starttime = startlog = timeint = tv.tv_sec;
 
-	LIST_HEAD(promisc);
 	if (first_active_facility() && options.promisc) {
-		promisc_init(&promisc, ifname);
-		promisc_set_list(&promisc);
+		init_promisc_list(&promisc_list);
+		save_promisc_list(promisc_list);
+		srpromisc(1, promisc_list);
+		destroy_promisc_list(&promisc_list);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
@@ -341,8 +344,9 @@ err:
 	}
 
 	if (options.promisc && is_last_instance()) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
+		load_promisc_list(&promisc_list);
+		srpromisc(0, promisc_list);
+		destroy_promisc_list(&promisc_list);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, -1);

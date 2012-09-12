@@ -17,98 +17,178 @@ promisc.c	- handles the promiscuous mode flag for the Ethernet/FDDI/
 
 #define PROMISC_MSG_MAX 80
 
-static void add_dev(struct list_head *promisc, const char *dev_name, int flags)
+void init_promisc_list(struct promisc_states **list)
 {
-	struct promisc_list *p = xmallocz(sizeof(*p));
-	strcpy(p->ifname, dev_name);
-	INIT_LIST_HEAD(&p->list);
+	FILE *fd;
+	char buf[IFNAMSIZ];
+	struct promisc_states *ptmp;
+	struct promisc_states *tail = NULL;
 
-	p->flags = flags;
-	list_add_tail(&p->list, promisc);
-}
+	*list = NULL;
+	fd = open_procnetdev();
 
-static int dev_promisc_flag(const char *dev_name)
-{
-	int flags = dev_get_flags(dev_name);
-	if (flags < 0) {
-		write_error("Unable to obtain interface parameters for %s",
-			    dev_name);
-		return -1;
+	while (get_next_iface(fd, buf, sizeof(buf))) {
+		if (strcmp(buf, "") != 0) {
+			ptmp = xmalloc(sizeof(struct promisc_states));
+			strcpy(ptmp->params.ifname, buf);
+
+			if (*list == NULL) {
+				*list = ptmp;
+			} else
+				tail->next_entry = ptmp;
+
+			tail = ptmp;
+			ptmp->next_entry = NULL;
+
+			/*
+			 * Retrieve and save interface flags
+			 */
+
+			if ((strncmp(buf, "eth", 3) == 0)
+			    || (strncmp(buf, "ra", 2) == 0)
+			    || (strncmp(buf, "fddi", 4) == 0)
+			    || (strncmp(buf, "tr", 2) == 0)
+			    || (strncmp(buf, "ath", 3) == 0)
+			    || (strncmp(buf, "bnep", 4) == 0)
+			    || (strncmp(buf, "ni", 2) == 0)
+			    || (strncmp(buf, "tap", 3) == 0)
+			    || (strncmp(buf, "dummy", 5) == 0)
+			    || (strncmp(buf, "br", 2) == 0)
+			    || (strncmp(buf, "vmnet", 5) == 0)
+			    || (strncmp(ptmp->params.ifname, "wvlan", 4) == 0)
+			    || (strncmp(ptmp->params.ifname, "lec", 3) == 0)) {
+				int flags = dev_get_flags(buf);
+
+				if (flags < 0) {
+					write_error("Unable to obtain interface parameters for %s",
+						buf);
+					ptmp->params.state_valid = 0;
+				} else {
+					ptmp->params.saved_state = flags;
+					ptmp->params.state_valid = 1;
+				}
+			}
+		}
 	}
-
-	if (flags & IFF_PROMISC)
-		return -1;
-
-	return flags;
 }
 
-void promisc_init(struct list_head *promisc, const char *device_name)
+/*
+ * Save interfaces and their states to a temporary file.  Used only by the
+ * first IPTraf instance.  Needed in case there are subsequent, simultaneous 
+ * instances of IPTraf, which may still need promiscuous mode even after
+ * the first instance exits.  These subsequent instances will need to restore
+ * the promiscuous state from this file.
+ */
+
+void save_promisc_list(struct promisc_states *list)
 {
-	if (device_name) {
-		int flags = dev_promisc_flag(device_name);
-		if (flags < 0)
-			return;
+	int fd;
+	struct promisc_states *ptmp = list;
 
-		add_dev(promisc, device_name, flags);
+	fd = open(PROMISCLISTFILE, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
 
+	if (fd < 0) {
+		write_error("Unable to save interface flags");
 		return;
 	}
 
-	FILE *fp = open_procnetdev();
-	if (!fp)
-		die_errno("%s: open_procnetdev", __func__);
-
-	char dev_name[IFNAMSIZ];
-	while (get_next_iface(fp, dev_name, sizeof(dev_name))) {
-		if (!strcmp(dev_name, ""))
-			continue;
-
-		int flags = dev_promisc_flag(dev_name);
-		if (flags < 0)
-			continue;
-
-		add_dev(promisc, dev_name, flags);
+	while (ptmp != NULL) {
+		write(fd, &(ptmp->params), sizeof(struct promisc_params));
+		ptmp = ptmp->next_entry;
 	}
 
-	fclose(fp);
+	close(fd);
 }
 
-static void promisc_set(const char *dev_name)
+/*
+ * Load promiscuous states into list
+ */
+
+void load_promisc_list(struct promisc_states **list)
 {
-	int r = dev_set_promisc(dev_name);
-	if (r < 0)
-		write_error("Failed to set promiscuous mode on %s", dev_name);
+	int fd;
+	struct promisc_states *ptmp = NULL;
+	struct promisc_states *tail = NULL;
+	int br;
+
+	fd = open(PROMISCLISTFILE, O_RDONLY);
+
+	if (fd < 0) {
+		write_error("Unable to retrieve saved interface flags");
+		*list = NULL;
+		return;
+	}
+
+	do {
+		ptmp = xmalloc(sizeof(struct promisc_states));
+		br = read(fd, &(ptmp->params), sizeof(struct promisc_params));
+
+		if (br > 0) {
+			if (tail != NULL)
+				tail->next_entry = ptmp;
+			else
+				*list = ptmp;
+
+			ptmp->next_entry = NULL;
+			tail = ptmp;
+		} else
+			free(ptmp);
+	} while (br > 0);
+
+	close(fd);
 }
 
-void promisc_set_list(struct list_head *promisc)
-{
-	struct promisc_list *entry = NULL;
-	list_for_each_entry(entry, promisc, list)
-		promisc_set(entry->ifname);
-}
+/*
+ * Set/restore interface promiscuous mode.
+ */
 
-static void promisc_restore(const char *dev_name)
+void srpromisc(int mode, struct promisc_states *list)
 {
-	int r = dev_clear_promisc(dev_name);
-	if (r < 0)
-		write_error("Failed to clear promiscuous mode on %s", dev_name);
-}
+	struct promisc_states *ptmp;
 
-void promisc_restore_list(struct list_head *promisc)
-{
-	struct promisc_list *entry = NULL;
-	list_for_each_entry(entry, promisc, list) {
-		if (unlikely(entry->flags & IFF_PROMISC))
-			continue;
-		promisc_restore(entry->ifname);
+	ptmp = list;
+
+	while (ptmp != NULL) {
+		if (((strncmp(ptmp->params.ifname, "eth", 3) == 0)
+		     || (strncmp(ptmp->params.ifname, "fddi", 4) == 0)
+		     || (strncmp(ptmp->params.ifname, "tr", 2) == 0)
+		     || (strncmp(ptmp->params.ifname, "ra", 2) == 0)
+		     || (strncmp(ptmp->params.ifname, "ath", 3) == 0)
+		     || (strncmp(ptmp->params.ifname, "wvlan", 4) == 0)
+		     || (strncmp(ptmp->params.ifname, "lec", 3) == 0))
+		    && (ptmp->params.state_valid)) {
+			if (mode) {
+				/* set promiscuous */
+				int r = dev_set_promisc(ptmp->params.ifname);
+				if(r < 0)
+					write_error("Failed to set promiscuous mode on %s", ptmp->params.ifname);
+			} else {
+				/* restore saved state */
+				if (ptmp->params.saved_state & IFF_PROMISC)
+					/* was promisc, so leave it as is */
+					continue;
+				/* wasn't promisc, clear it */
+				int r = dev_clear_promisc(ptmp->params.ifname);
+				if(r < 0)
+					write_error("Failed to clear promiscuous mode on %s", ptmp->params.ifname);
+			}
+		}
+		ptmp = ptmp->next_entry;
 	}
 }
 
-void promisc_destroy(struct list_head *promisc)
+void destroy_promisc_list(struct promisc_states **list)
 {
-	struct promisc_list *entry, *tmp;
-	list_for_each_entry_safe(entry, tmp, promisc, list) {
-		list_del(&entry->list);
-		free(entry);
+	struct promisc_states *ptmp = *list;
+	struct promisc_states *ctmp;
+
+	if (ptmp != NULL)
+		ctmp = ptmp->next_entry;
+
+	while (ptmp != NULL) {
+		free(ptmp);
+		ptmp = ctmp;
+		if (ctmp != NULL)
+			ctmp = ctmp->next_entry;
 	}
 }

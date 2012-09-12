@@ -449,6 +449,8 @@ void ifstats(time_t facilitytime)
 	time_t startlog = 0;
 	struct timeval updtime;
 
+	struct promisc_states *promisc_list;
+
 	if (!facility_active(GSTATIDFILE, ""))
 		mark_facility(GSTATIDFILE, "general interface statistics", "");
 	else {
@@ -465,10 +467,11 @@ void ifstats(time_t facilitytime)
 
 	initiftab(&table);
 
-	LIST_HEAD(promisc);
-	if (options.promisc && first_active_facility()) {
-		promisc_init(&promisc, NULL);
-		promisc_set_list(&promisc);
+	if (first_active_facility() && options.promisc) {
+		init_promisc_list(&promisc_list);
+		save_promisc_list(promisc_list);
+		srpromisc(1, promisc_list);
+		destroy_promisc_list(&promisc_list);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
@@ -626,8 +629,9 @@ void ifstats(time_t facilitytime)
 
 err:
 	if (options.promisc && is_last_instance()) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
+		load_promisc_list(&promisc_list);
+		srpromisc(0, promisc_list);
+		destroy_promisc_list(&promisc_list);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, -1);

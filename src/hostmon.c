@@ -778,6 +778,8 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	int fd;
 
+	struct promisc_states *promisc_list;
+
 	if (!facility_active(LANMONIDFILE, ifptr))
 		mark_facility(LANMONIDFILE, "LAN monitor", ifptr);
 	else {
@@ -794,10 +796,11 @@ void hostmon(time_t facilitytime, char *ifptr)
 		}
 	}
 
-	LIST_HEAD(promisc);
-	if (options.promisc && first_active_facility()) {
-		promisc_init(&promisc, ifptr);
-		promisc_set_list(&promisc);
+	if (first_active_facility() && options.promisc) {
+		init_promisc_list(&promisc_list);
+		save_promisc_list(promisc_list);
+		srpromisc(1, promisc_list);
+		destroy_promisc_list(&promisc_list);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, 1);
@@ -1028,8 +1031,9 @@ err_close:
 
 err:
 	if (options.promisc && is_last_instance()) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
+		load_promisc_list(&promisc_list);
+		srpromisc(0, promisc_list);
+		destroy_promisc_list(&promisc_list);
 	}
 
 	adjust_instance_count(PROCCOUNTFILE, -1);
