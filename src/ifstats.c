@@ -24,6 +24,7 @@ ifstats.c	- the interface statistics module
 #include "attrs.h"
 #include "serv.h"
 #include "timer.h"
+#include "instances.h"
 #include "logvars.h"
 #include "promisc.h"
 #include "error.h"
@@ -448,19 +449,29 @@ void ifstats(time_t facilitytime)
 	time_t startlog = 0;
 	struct timeval updtime;
 
+	if (!facility_active(GSTATIDFILE, ""))
+		mark_facility(GSTATIDFILE, "general interface statistics", "");
+	else {
+		write_error("General interface stats already active in another process");
+		return;
+	}
+
 	initiflist(&(table.head));
-	if (!table.head) {
+	if (table.head == NULL) {
 		no_ifaces_error();
+		unmark_facility(GSTATIDFILE, "");
 		return;
 	}
 
 	initiftab(&table);
 
 	LIST_HEAD(promisc);
-	if (options.promisc) {
+	if (options.promisc && first_active_facility()) {
 		promisc_init(&promisc, NULL);
 		promisc_set_list(&promisc);
 	}
+
+	adjust_instance_count(PROCCOUNTFILE, 1);
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -614,10 +625,12 @@ void ifstats(time_t facilitytime)
 	close(fd);
 
 err:
-	if (options.promisc) {
+	if (options.promisc && is_last_instance()) {
 		promisc_restore_list(&promisc);
 		promisc_destroy(&promisc);
 	}
+
+	adjust_instance_count(PROCCOUNTFILE, -1);
 
 	del_panel(table.statpanel);
 	delwin(table.statwin);
@@ -635,6 +648,7 @@ err:
 	}
 	destroyiflist(table.head);
 	pkt_cleanup();
+	unmark_facility(GSTATIDFILE, "");
 	strcpy(current_logfile, "");
 }
 

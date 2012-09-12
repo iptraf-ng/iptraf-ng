@@ -23,6 +23,7 @@ fltselect.c - a menu-based module that allows selection of
 #include "ipfilter.h"
 #include "deskman.h"
 #include "attrs.h"
+#include "instances.h"
 
 struct filterstate ofilter;
 
@@ -191,6 +192,15 @@ void savefilters(void)
 	int pfd;
 	int bw;
 
+	if (!facility_active(FLTIDFILE, ""))
+		mark_facility(FLTIDFILE, "Filter configuration change", "");
+	else {
+		tui_error(ANYKEY_MSG,
+			  "Filter state file currently in use;"
+			  " try again later");
+		return;
+	}
+
 	pfd =
 	    open(FLTSTATEFILE, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
 	bw = write(pfd, &ofilter, sizeof(struct filterstate));
@@ -200,4 +210,5 @@ void savefilters(void)
 
 	close(pfd);
 
+	unmark_facility(FLTIDFILE, "");
 }

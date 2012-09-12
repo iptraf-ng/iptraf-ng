@@ -30,5 +30,7 @@ void get_filter_description(char *description, int *aborted, char *pre_edit);
 void genname(unsigned long n, char *m);
 unsigned long int nametoaddr(char *ascname, int *err);
 void listfileerr(int code);
+int mark_filter_change(void);
+void clear_flt_tag(void);
 
 #endif	/* IPTRAF_NG_FLTMGR_H */

@@ -52,6 +52,7 @@ struct cmd_struct {
 int exitloop = 0;
 int daemonized = 0;
 int facility_running = 0;
+int is_first_instance;
 
 static void press_enter_to_continue(void)
 {
@@ -245,6 +246,33 @@ static void program_interface(void)
 	tx_destroymenu(&menu);
 }
 
+static int first_instance(void)
+{
+	int fd;
+
+	fd = open(IPTIDFILE, O_RDONLY);
+
+	if (fd < 0)
+		return !0;
+	else {
+		close(fd);
+		return 0;
+	}
+}
+
+static void mark_first_instance(void)
+{
+	int fd;
+
+	fd = open(IPTIDFILE, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+	if (fd < 0) {
+		fprintf(stderr, "\nWarning: unable to tag this process\r\n");
+		press_enter_to_continue();
+		return;
+	}
+	close(fd);
+}
+
 static const char *const iptraf_ng_usage[] = {
 	IPTRAF_NAME " [options]",
 	IPTRAF_NAME " [options] -B [-i <iface> | -d <iface> | -s <iface> | -z <iface> | -l <iface> | -g]",
@@ -391,6 +419,8 @@ int main(int argc, char **argv)
 		current_log_interval = I_opt;
 #endif
 
+	is_first_instance = first_instance();
+
 	if ((getenv("TERM") == NULL) && (!daemonized))
 		die("Your TERM variable is not set.\n"
 		    "Please set it to an appropriate value");
@@ -429,6 +459,8 @@ int main(int argc, char **argv)
 		endwin();
 		die("This program requires a screen size of at least 80 columns by 24 lines\n" "Please resize your window");
 	}
+
+	mark_first_instance();
 
 	signal(SIGTSTP, SIG_IGN);
 	signal(SIGINT, SIG_IGN);
@@ -500,6 +532,9 @@ int main(int argc, char **argv)
 	update_panels();
 	doupdate();
 	endwin();
+
+	if (is_first_instance)
+		unlink(IPTIDFILE);
 
 	return (0);
 }

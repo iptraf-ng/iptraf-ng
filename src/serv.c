@@ -27,6 +27,7 @@ serv.c  - TCP/UDP port statistics module
 #include "timer.h"
 #include "promisc.h"
 #include "options.h"
+#include "instances.h"
 #include "packet.h"
 #include "logvars.h"
 #include "error.h"
@@ -786,18 +787,32 @@ void servmon(char *ifname, time_t facilitytime)
 
 	struct porttab *ports;
 
+	/*
+	 * Mark this facility
+	 */
+
+	if (!facility_active(TCPUDPIDFILE, ifname))
+		mark_facility(TCPUDPIDFILE, "TCP/UDP monitor", ifname);
+	else {
+		write_error("TCP/UDP monitor already running on %s", ifname);
+		return;
+	}
+
 	if (!dev_up(ifname)) {
 		err_iface_down();
+		unmark_facility(TCPUDPIDFILE, ifname);
 		return;
 	}
 
 	loadaddports(&ports);
 
 	LIST_HEAD(promisc);
-	if (options.promisc) {
+	if (first_active_facility() && options.promisc) {
 		promisc_init(&promisc, ifname);
 		promisc_set_list(&promisc);
 	}
+
+	adjust_instance_count(PROCCOUNTFILE, 1);
 
 	initportlist(&list);
 	statwin = newwin(1, COLS, LINES - 2, 0);
@@ -1070,10 +1085,12 @@ err:
 	if (options.servnames)
 		endservent();
 
-	if (options.promisc) {
+	if (options.promisc && is_last_instance()) {
 		promisc_restore_list(&promisc);
 		promisc_destroy(&promisc);
 	}
+
+	adjust_instance_count(PROCCOUNTFILE, -1);
 
 	del_panel(list.panel);
 	delwin(list.win);
@@ -1081,6 +1098,7 @@ err:
 	delwin(list.borderwin);
 	del_panel(statpanel);
 	delwin(statwin);
+	unmark_facility(TCPUDPIDFILE, ifname);
 	update_panels();
 	doupdate();
 	destroyportlist(&list);
