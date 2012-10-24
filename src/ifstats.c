@@ -253,10 +253,10 @@ static void no_ifaces_error(void)
 	write_error("No active interfaces. Check their status or the /proc filesystem");
 }
 
-static void updaterates(struct iftab *table, unsigned long msecs,
-			unsigned int idx)
+static void updaterates(struct iftab *table, unsigned long msecs)
 {
 	struct iflist *ptmp = table->firstvisible;
+	unsigned int idx = table->firstvisible->index;
 	unsigned long rate;
 	char buf[64];
 
@@ -301,7 +301,7 @@ static void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 	wprintw(win, "%7lu", ptmp->badtotal);
 }
 
-static void print_if_entries(struct iftab *table, unsigned int idx)
+static void print_if_entries(struct iftab *table)
 {
 	struct iflist *ptmp = table->firstvisible;
 	unsigned int i = 1;
@@ -309,7 +309,7 @@ static void print_if_entries(struct iftab *table, unsigned int idx)
 	unsigned int winht = LINES - 4;
 
 	do {
-		printifentry(ptmp, table->statwin, idx);
+		printifentry(ptmp, table->statwin, table->firstvisible->index);
 
 		if (i <= winht)
 			table->lastvisible = ptmp;
@@ -368,8 +368,7 @@ static void initiftab(struct iftab *table)
  * Scrolling routines for the general interface statistics window
  */
 
-static void scrollgstatwin(struct iftab *table, int direction,
-			   unsigned int *idx)
+static void scrollgstatwin(struct iftab *table, int direction)
 {
 	char buf[255];
 
@@ -380,27 +379,27 @@ static void scrollgstatwin(struct iftab *table, int direction,
 			wscrl(table->statwin, 1);
 			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
-			(*idx)++;
 			wmove(table->statwin, LINES - 5, 0);
 			scrollok(table->statwin, 0);
 			wprintw(table->statwin, buf, ' ');
 			scrollok(table->statwin, 1);
-			printifentry(table->lastvisible, table->statwin, *idx);
+			printifentry(table->lastvisible, table->statwin,
+				     table->firstvisible->index);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
 			wscrl(table->statwin, -1);
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
-			(*idx)--;
 			wmove(table->statwin, 0, 0);
 			wprintw(table->statwin, buf, ' ');
-			printifentry(table->firstvisible, table->statwin, *idx);
+			printifentry(table->firstvisible, table->statwin,
+				     table->firstvisible->index);
 		}
 	}
 }
 
-static void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
+static void pagegstatwin(struct iftab *table, int direction)
 {
 	int i = 1;
 
@@ -408,12 +407,12 @@ static void pagegstatwin(struct iftab *table, int direction, unsigned int *idx)
 		while ((i <= LINES - 5)
 		       && (table->lastvisible->next_entry != NULL)) {
 			i++;
-			scrollgstatwin(table, direction, idx);
+			scrollgstatwin(table, direction);
 		}
 	} else {
 		while ((i <= LINES - 5) && (table->firstvisible != table->head)) {
 			i++;
-			scrollgstatwin(table, direction, idx);
+			scrollgstatwin(table, direction);
 		}
 	}
 }
@@ -431,8 +430,6 @@ void ifstats(time_t facilitytime)
 	int pkt_result = 0;
 
 	struct iflist *ptmp = NULL;
-
-	unsigned int idx = 1;
 
 	FILE *logfile = NULL;
 
@@ -486,7 +483,7 @@ void ifstats(time_t facilitytime)
 	}
 
 	table.firstvisible = table.head;
-	print_if_entries(&table, idx);
+	print_if_entries(&table);
 
 	update_panels();
 	doupdate();
@@ -513,7 +510,7 @@ void ifstats(time_t facilitytime)
 			unsigned long msecs;
 
 			msecs = timeval_diff_msec(&tv, &start_tv);
-			updaterates(&table, msecs, idx);
+			updaterates(&table, msecs);
 			printelapsedtime(statbegin, now, LINES - 3, 1,
 					 table.borderwin);
 			starttime = now;
@@ -529,7 +526,7 @@ void ifstats(time_t facilitytime)
 			}
 		}
 		if (screen_update_needed(&tv, &updtime)) {
-			print_if_entries(&table, idx);
+			print_if_entries(&table);
 			update_panels();
 			doupdate();
 
@@ -551,18 +548,18 @@ void ifstats(time_t facilitytime)
 			/* no key ready, do nothing */
 			break;
 		case KEY_UP:
-			scrollgstatwin(&table, SCROLLDOWN, &idx);
+			scrollgstatwin(&table, SCROLLDOWN);
 			break;
 		case KEY_DOWN:
-			scrollgstatwin(&table, SCROLLUP, &idx);
+			scrollgstatwin(&table, SCROLLUP);
 			break;
 		case KEY_PPAGE:
 		case '-':
-			pagegstatwin(&table, SCROLLDOWN, &idx);
+			pagegstatwin(&table, SCROLLDOWN);
 			break;
 		case KEY_NPAGE:
 		case ' ':
-			pagegstatwin(&table, SCROLLUP, &idx);
+			pagegstatwin(&table, SCROLLUP);
 			break;
 		case 12:
 		case 'l':
