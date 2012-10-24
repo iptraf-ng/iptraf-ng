@@ -301,15 +301,15 @@ static void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 	wprintw(win, "%7lu", ptmp->badtotal);
 }
 
-static void print_if_entries(struct iftab *table)
+static void print_if_entries(struct iftab *table, unsigned int idx)
 {
-	struct iflist *ptmp = table->head;
+	struct iflist *ptmp = table->firstvisible;
 	unsigned int i = 1;
 
 	unsigned int winht = LINES - 4;
 
 	do {
-		printifentry(ptmp, table->statwin, 1);
+		printifentry(ptmp, table->statwin, idx);
 
 		if (i <= winht)
 			table->lastvisible = ptmp;
@@ -486,7 +486,7 @@ void ifstats(time_t facilitytime)
 	}
 
 	table.firstvisible = table.head;
-	print_if_entries(&table);
+	print_if_entries(&table, idx);
 
 	update_panels();
 	doupdate();
@@ -529,7 +529,7 @@ void ifstats(time_t facilitytime)
 			}
 		}
 		if (screen_update_needed(&tv, &updtime)) {
-			print_if_entries(&table);
+			print_if_entries(&table, idx);
 			update_panels();
 			doupdate();
 
