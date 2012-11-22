@@ -76,7 +76,6 @@ static inline __u8 pkt_ip_protocol(const struct pkt_hdr *p)
 	return 0;
 }
 
-void open_socket(int *fd);
 int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   in_port_t *sport, in_port_t *dport,
