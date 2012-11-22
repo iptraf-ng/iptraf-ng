@@ -147,12 +147,21 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 	PACKET_INIT_STRUCT(pkt);
 	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
 		struct sockaddr_ll from;
-		socklen_t fromlen = sizeof(struct sockaddr_ll);
-		ssize_t len;
+		struct iovec iov;
+		struct msghdr msg;
 
-		len = recvfrom(fd, pkt->pkt_buf, pkt->pkt_bufsize,
-			       MSG_TRUNC | MSG_DONTWAIT,
-			       (struct sockaddr *) &from, &fromlen);
+		iov.iov_len = pkt->pkt_bufsize;
+		iov.iov_base = pkt->pkt_buf;
+
+		msg.msg_name = &from;
+		msg.msg_namelen = sizeof(from);
+		msg.msg_iov = &iov;
+		msg.msg_iovlen = 1;
+		msg.msg_control = NULL;
+		msg.msg_controllen = 0;
+		msg.msg_flags = 0;
+
+		ssize_t len = recvmsg(fd, &msg, MSG_TRUNC | MSG_DONTWAIT);
 		if (len > 0) {
 			pkt->pkt_len = len;
 			pkt->pkt_caplen = len;
