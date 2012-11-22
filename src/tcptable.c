@@ -118,11 +118,16 @@ void init_tcp_table(struct tcptable *table)
 	setlabels(table->borderwin, 0);	/* initially use mode 0 */
 
 	wmove(table->borderwin, 0, 65 * COLS / 80);
-	wprintw(table->borderwin, " Flags ");
-	wmove(table->borderwin, 0, 72 * COLS / 80);
+	wprintw(table->borderwin, " Flag ");
+	wmove(table->borderwin, 0, 70 * COLS / 80);
 	wprintw(table->borderwin, " Iface ");
 	update_panels();
 	doupdate();
+	table->ifnamew = COLS - (70 * COLS / 80) - 3;
+	if (table->ifnamew < 7)
+		table->ifnamew = 7;
+	if (table->ifnamew > IFNAMSIZ)
+		table->ifnamew = IFNAMSIZ;
 
 	table->head = table->tail = NULL;
 	table->firstvisible = table->lastvisible = NULL;
@@ -862,39 +867,23 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry,
 	wattrset(table->tcpscreen, normalattr);
 
 	if (tableentry->finsent == 1)
-		strcpy(stat, "DONE  ");
+		strcpy(stat, "DONE");
 	else if (tableentry->finsent == 2)
-		strcpy(stat, "CLOSED");
+		strcpy(stat, "CLOS");
 	else if (tableentry->stat & FLAG_RST)
-		strcpy(stat, "RESET ");
+		strcpy(stat, "RSET");
 	else {
-		if (tableentry->stat & FLAG_SYN)
-			strcat(stat, "S");
-		else
-			strcat(stat, "-");
-
-		if (tableentry->stat & FLAG_PSH)
-			strcat(stat, "P");
-		else
-			strcat(stat, "-");
-
-		if (tableentry->stat & FLAG_ACK)
-			strcat(stat, "A");
-		else
-			strcat(stat, "-");
-
-		if (tableentry->stat & FLAG_URG)
-			strcat(stat, "U");
-		else
-			strcat(stat, "-");
-
-		strcat(stat, " ");
+		strcat(stat, (tableentry->stat & FLAG_SYN) ? "S" : "-");
+		strcat(stat, (tableentry->stat & FLAG_PSH) ? "P" : "-");
+		strcat(stat, (tableentry->stat & FLAG_ACK) ? "A" : "-");
+		strcat(stat, (tableentry->stat & FLAG_URG) ? "U" : "-");
 	}
 
 	wmove(table->tcpscreen, target_row, 65 * COLS / 80);
-	wprintw(table->tcpscreen, "%s", stat);
-	wmove(table->tcpscreen, target_row, 72 * COLS / 80);
-	wprintw(table->tcpscreen, "%s", tableentry->ifname);
+	wprintw(table->tcpscreen, "%4.4s", stat);
+	wmove(table->tcpscreen, target_row, 70 * COLS / 80);
+	wprintw(table->tcpscreen, "%-*.*s", table->ifnamew, table->ifnamew,
+		tableentry->ifname);
 }
 
 /*

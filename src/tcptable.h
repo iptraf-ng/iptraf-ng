@@ -86,6 +86,7 @@ struct tcptable {
 	unsigned int count;
 	unsigned int bmaxy;	/* number of lines of the border window */
 	unsigned int imaxy;	/* number of lines inside the border */
+	int ifnamew;		/* interface name width to display */
 	WINDOW *tcpscreen;
 	PANEL *tcppanel;
 	WINDOW *borderwin;
