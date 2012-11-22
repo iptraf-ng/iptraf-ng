@@ -40,13 +40,13 @@ struct pkt_hdr {
 
 static inline void PACKET_INIT_STRUCT(struct pkt_hdr *p)
 {
-	p->pkt_bufsize = MAX_PACKET_SIZE;
-	p->pkt_payload = NULL;
-	p->ethhdr      = NULL;
-	p->fddihdr     = NULL;
-	p->iphdr       = NULL;
-	p->ip6_hdr     = NULL;
-	p->pkt_len     = 0;             /* signalize we have no packet prepared */
+	p->pkt_bufsize	= MAX_PACKET_SIZE;
+	p->pkt_payload	= NULL;
+	p->ethhdr	= NULL;
+	p->fddihdr	= NULL;
+	p->iphdr	= NULL;
+	p->ip6_hdr	= NULL;
+	p->pkt_len	= 0;	/* signalize we have no packet prepared */
 }
 
 #define PACKET_INIT(packet)					\
