@@ -9,7 +9,16 @@
 
 #include "rate.h"
 
-#define max(a, b) (( a > b) ? a : b)
+/*
+ * max() macros that also do
+ * strict type-checking.. See the
+ * "unnecessary" pointer comparison.
+ */
+#define max(x, y) ({				\
+	typeof(x) _max1 = (x);			\
+	typeof(y) _max2 = (y);			\
+	(void) (&_max1 == &_max2);		\
+	_max1 > _max2 ? _max1 : _max2; })
 
 #define FLAG_SYN	1
 #define FLAG_RST	2
