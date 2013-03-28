@@ -245,18 +245,18 @@ endif
 
 # try find ncuses by autodetect
 ifndef NCURSES_LDFLAGS
-	ifneq ($(shell ncurses5-config --libs 2>/dev/null),)
-		NCURSES_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
-		NCURSES_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
-	else ifneq ($(shell ncursesw5-config --libs 2>/dev/null),)
-		NCURSES_CFLAGS := $(shell ncursesw5-config --cflags 2>/dev/null)
-		NCURSES_LDFLAGS := $(shell ncursesw5-config --libs 2>/dev/null)
+	ifneq ($(shell ncursesw6-config --libs 2>/dev/null),)
+		NCURSES_CFLAGS := $(shell ncursesw6-config --cflags 2>/dev/null)
+		NCURSES_LDFLAGS := $(shell ncursesw6-config --libs 2>/dev/null)
 	else ifneq ($(shell ncurses6-config --libs 2>/dev/null),)
 		NCURSES_CFLAGS := $(shell ncurses6-config --cflags 2>/dev/null)
 		NCURSES_LDFLAGS := $(shell ncurses6-config --libs 2>/dev/null)
-	else ifneq ($(shell ncursesw6-config --libs 2>/dev/null),)
-		NCURSES_CFLAGS := $(shell ncursesw6-config --cflags 2>/dev/null)
-		NCURSES_LDFLAGS := $(shell ncursesw6-config --libs 2>/dev/null)
+	else ifneq ($(shell ncursesw5-config --libs 2>/dev/null),)
+		NCURSES_CFLAGS := $(shell ncursesw5-config --cflags 2>/dev/null)
+		NCURSES_LDFLAGS := $(shell ncursesw5-config --libs 2>/dev/null)
+	else ifneq ($(shell ncurses5-config --libs 2>/dev/null),)
+		NCURSES_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
+		NCURSES_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
 	endif
 
 	ifneq ($(NCURSES_LDFLAGS),)
