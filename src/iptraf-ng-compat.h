@@ -44,6 +44,22 @@
 #include <linux/if.h>
 #include <linux/if_arp.h>
 
+#ifndef ETH_P_8021AD
+#define ETH_P_8021AD	0x88A8          /* 802.1ad Service VLAN		*/
+#endif
+
+#ifndef ETH_P_QINQ1
+#define ETH_P_QINQ1	0x9100		/* deprecated QinQ VLAN [ NOT AN OFFICIALLY REGISTERED ID ] */
+#endif
+
+#ifndef ETH_P_QINQ2
+#define ETH_P_QINQ2	0x9200		/* deprecated QinQ VLAN [ NOT AN OFFICIALLY REGISTERED ID ] */
+#endif
+
+#ifndef ETH_P_QINQ3
+#define ETH_P_QINQ3	0x9300		/* deprecated QinQ VLAN [ NOT AN OFFICIALLY REGISTERED ID ] */
+#endif
+
 #define debug(...)							\
 	do {								\
                 fprintf(stderr, "%s:%s():%d:",				\
