@@ -255,6 +255,23 @@ static void no_ifaces_error(void)
 
 static void updaterates(struct iftab *table, unsigned long msecs)
 {
+	struct iflist *ptmp = table->head;
+	unsigned long rate;
+
+	while (ptmp != NULL) {
+		rate_add_rate(&ptmp->rate, ptmp->spanbr, msecs);
+		rate = rate_get_average(&ptmp->rate);
+
+		if (rate > ptmp->peakrate)
+			ptmp->peakrate = rate;
+
+		ptmp->spanbr = 0;
+		ptmp = ptmp->next_entry;
+	}
+}
+
+static void showrates(struct iftab *table)
+{
 	struct iflist *ptmp = table->firstvisible;
 	unsigned int idx = table->firstvisible->index;
 	unsigned long rate;
@@ -262,16 +279,11 @@ static void updaterates(struct iftab *table, unsigned long msecs)
 
 	wattrset(table->statwin, HIGHATTR);
 	do {
-		rate_add_rate(&ptmp->rate, ptmp->spanbr, msecs);
 		rate = rate_get_average(&ptmp->rate);
 		rate_print(rate, buf, sizeof(buf));
 		wmove(table->statwin, ptmp->index - idx, 63 * COLS / 80);
 		wprintw(table->statwin, "%s", buf);
 
-		if (rate > ptmp->peakrate)
-			ptmp->peakrate = rate;
-
-		ptmp->spanbr = 0;
 		ptmp = ptmp->next_entry;
 	} while (ptmp != table->lastvisible->next_entry);
 }
@@ -511,6 +523,7 @@ void ifstats(time_t facilitytime)
 
 			msecs = timeval_diff_msec(&tv, &start_tv);
 			updaterates(&table, msecs);
+			showrates(&table);
 			printelapsedtime(statbegin, now, LINES - 3, 1,
 					 table.borderwin);
 			starttime = now;
