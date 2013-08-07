@@ -36,7 +36,7 @@ void tx_init_listbox(struct scroll_list *list, int width, int height,
 void tx_set_listbox_title(struct scroll_list *list, char *text, int x);
 void tx_add_list_entry(struct scroll_list *list, char *node, char *text);
 void tx_show_listbox(struct scroll_list *list);
-void tx_operate_listbox(struct scroll_list *list, int *keystroke, int *aborted);
+void tx_operate_listbox(struct scroll_list *list, int *aborted);
 void tx_hide_listbox(struct scroll_list *list);
 void tx_unhide_listbox(struct scroll_list *list);
 void tx_close_listbox(struct scroll_list *list);

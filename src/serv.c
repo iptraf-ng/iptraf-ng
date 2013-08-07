@@ -1272,7 +1272,6 @@ void loadaddports(struct porttab **table)
 static void operate_portselect(struct porttab **table, struct porttab **node,
 			       int *aborted)
 {
-	int ch = 0;
 	struct scroll_list list;
 	char listtext[20];
 
@@ -1290,7 +1289,7 @@ static void operate_portselect(struct porttab **table, struct porttab **node,
 	}
 
 	tx_show_listbox(&list);
-	tx_operate_listbox(&list, &ch, aborted);
+	tx_operate_listbox(&list, aborted);
 
 	if (!(*aborted))
 		*node = (struct porttab *) list.textptr->nodeptr;

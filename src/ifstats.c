@@ -636,8 +636,6 @@ err:
 
 void selectiface(char *ifname, int withall, int *aborted)
 {
-	int ch;
-
 	struct iflist *list;
 	struct iflist *ptmp;
 
@@ -678,7 +676,7 @@ void selectiface(char *ifname, int withall, int *aborted)
 	}
 
 	tx_show_listbox(&scrolllist);
-	tx_operate_listbox(&scrolllist, &ch, aborted);
+	tx_operate_listbox(&scrolllist, aborted);
 	tx_close_listbox(&scrolllist);
 
 	if (!(*aborted) && (list != NULL)) {

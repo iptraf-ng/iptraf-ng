@@ -228,7 +228,6 @@ void save_filterlist(struct ffnode *fltlist)
 void operate_select(struct ffnode *ffiles, struct ffnode **item, int *aborted)
 {
 	struct ffnode *pptr;
-	int ch;
 	struct scroll_list list;
 
 	tx_listkeyhelp(STDATTR, HIGHATTR);
@@ -249,7 +248,7 @@ void operate_select(struct ffnode *ffiles, struct ffnode **item, int *aborted)
 	}
 
 	tx_show_listbox(&list);
-	tx_operate_listbox(&list, &ch, aborted);
+	tx_operate_listbox(&list, aborted);
 
 	if (!(*aborted))
 		*item = (struct ffnode *) list.textptr->nodeptr;

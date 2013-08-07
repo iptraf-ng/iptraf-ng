@@ -195,7 +195,6 @@ void free_eth_desc(struct eth_desc *hd)
 static struct eth_desc *select_eth_desc(const struct eth_desc *hd)
 {
 
-	int resp;
 	struct scroll_list slist;
 	char descline[80];
 
@@ -222,7 +221,7 @@ static struct eth_desc *select_eth_desc(const struct eth_desc *hd)
 
 	int aborted = 0;
 
-	tx_operate_listbox(&slist, &resp, &aborted);
+	tx_operate_listbox(&slist, &aborted);
 
 	if (!aborted)
 		entry = (struct eth_desc *) slist.textptr->nodeptr;

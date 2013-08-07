@@ -78,7 +78,7 @@ void tx_show_listbox(struct scroll_list *list)
 	doupdate();
 }
 
-void tx_operate_listbox(struct scroll_list *list, int *keystroke, int *aborted)
+void tx_operate_listbox(struct scroll_list *list, int *aborted)
 {
 	int ch;
 	int endloop = 0;
@@ -154,7 +154,6 @@ void tx_operate_listbox(struct scroll_list *list, int *keystroke, int *aborted)
 			break;
 		}
 	}
-	*keystroke = ch;
 }
 
 void tx_hide_listbox(struct scroll_list *list)
