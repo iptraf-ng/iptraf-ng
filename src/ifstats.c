@@ -288,14 +288,13 @@ static void showrates(struct iftab *table)
 	} while (ptmp != table->lastvisible->next_entry);
 }
 
-static void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
+static void printifentry(struct iftab *table, struct iflist *ptmp)
 {
-	unsigned int target_row;
+	int target_row = ptmp->index - table->firstvisible->index;
+	WINDOW *win = table->statwin;
 
-	if ((ptmp->index < idx) || (ptmp->index > idx + (LINES - 5)))
+	if ((target_row < 0) || (target_row > LINES - 5))
 		return;
-
-	target_row = ptmp->index - idx;
 
 	wattrset(win, STDATTR);
 	mvwprintw(win, target_row, 1, "%s", ptmp->ifname);
@@ -320,7 +319,7 @@ static void print_if_entries(struct iftab *table)
 	unsigned int winht = LINES - 4;
 
 	do {
-		printifentry(ptmp, table->statwin, table->firstvisible->index);
+		printifentry(table, ptmp);
 
 		if (i <= winht)
 			table->lastvisible = ptmp;
@@ -382,8 +381,7 @@ static void scrollgstatwin(struct iftab *table, int direction)
 			scrollok(table->statwin, 0);
 			mvwprintw(table->statwin, LINES - 5, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->statwin, 1);
-			printifentry(table->lastvisible, table->statwin,
-				     table->firstvisible->index);
+			printifentry(table, table->lastvisible);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
@@ -391,8 +389,7 @@ static void scrollgstatwin(struct iftab *table, int direction)
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
 			mvwprintw(table->statwin, 0, 0, "%*c", COLS - 2, ' ');
-			printifentry(table->firstvisible, table->statwin,
-				     table->firstvisible->index);
+			printifentry(table, table->firstvisible);
 		}
 	}
 }
