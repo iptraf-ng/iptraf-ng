@@ -30,11 +30,11 @@ detstats.c	- the interface statistics module
 
 struct ifcounts {
 	struct proto_counter total;
-	struct pkt_counter bcast;
 	struct pkt_counter bad;
 	struct proto_counter ipv4;
 	struct proto_counter ipv6;
 	struct proto_counter nonip;
+	struct proto_counter bcast;
 
 	struct proto_counter tcp;
 	struct proto_counter udp;
@@ -128,8 +128,8 @@ static void writedstatlog(char *ifname,
 		ts->nonip.proto_out.pc_packets,
 		ts->nonip.proto_out.pc_bytes);
 	fprintf(fd, "Broadcast: %llu packets, %llu bytes\n",
-		ts->bcast.pc_packets,
-		ts->bcast.pc_bytes);
+		ts->bcast.proto_total.pc_packets,
+		ts->bcast.proto_total.pc_bytes);
 
 	if (nsecs > 5) {
 		char bps_string[64];
@@ -177,12 +177,12 @@ static void printdetlabels(WINDOW * win)
 	mvwprintw(win, 9, 2, "ICMP:");
 	mvwprintw(win, 10, 2, "Other IP:");
 	mvwprintw(win, 11, 2, "Non-IP:");
+	mvwprintw(win, 12, 2, "Broadcast:");
 	mvwprintw(win, 14, 2, "Total rates:");
 	mvwprintw(win, 17, 2, "Incoming rates:");
 	mvwprintw(win, 20, 2, "Outgoing rates:");
 
-	mvwprintw(win, 14, 45, "Broadcast packets:");
-	mvwprintw(win, 15, 45, "Broadcast bytes:");
+	mvwprintw(win, 14, 45, "Broadcast rates:");
 	mvwprintw(win, 19, 45, "IP checksum errors:");
 
 	update_panels();
@@ -232,18 +232,15 @@ static void printdetails(struct ifcounts *ifcounts, WINDOW * win)
 	printstatrow_proto(win, 10, &ifcounts->other);
 
 	/* Print non-IP totals */
-
 	printstatrow_proto(win, 11, &ifcounts->nonip);
 
-	/* Broadcast totals */
-	wmove(win, 14, 67);
-	printlargenum(ifcounts->bcast.pc_packets, win);
-	wmove(win, 15, 67);
-	printlargenum(ifcounts->bcast.pc_bytes, win);
+	/* Print broadcast totals */
+	printstatrow_proto(win, 12, &ifcounts->bcast);
+
 
 	/* Bad packet count */
 
-	mvwprintw(win, 19, 68, "%8lu", ifcounts->bad.pc_packets);
+	mvwprintw(win, 19, 65, "%8lu", ifcounts->bad.pc_packets);
 }
 
 /*
@@ -275,10 +272,12 @@ void detstats(char *iface, time_t facilitytime)
 	time_t startlog;
 
 	struct proto_counter span;
+	struct pkt_counter span_bcast;
 
 	struct rate rate;
 	struct rate rate_in;
 	struct rate rate_out;
+	struct rate rate_bcast;
 	unsigned long peakactivity = 0;
 	unsigned long peakactivity_in = 0;
 	unsigned long peakactivity_out = 0;
@@ -286,6 +285,7 @@ void detstats(char *iface, time_t facilitytime)
 	struct rate pps_rate;
 	struct rate pps_rate_in;
 	struct rate pps_rate_out;
+	struct rate pps_rate_bcast;
 	unsigned long peakpps = 0;
 	unsigned long peakpps_in = 0;
 	unsigned long peakpps_out = 0;
@@ -350,13 +350,16 @@ void detstats(char *iface, time_t facilitytime)
 	doupdate();
 
 	memset(&span, 0, sizeof(span));
+	memset(&span_bcast, 0, sizeof(span_bcast));
 	rate_alloc(&rate, 5);
 	rate_alloc(&rate_in, 5);
 	rate_alloc(&rate_out, 5);
+	rate_alloc(&rate_bcast, 5);
 
 	rate_alloc(&pps_rate, 5);
 	rate_alloc(&pps_rate_in, 5);
 	rate_alloc(&pps_rate_out, 5);
+	rate_alloc(&pps_rate_bcast, 5);
 
 	gettimeofday(&tv, NULL);
 	start_tv = tv;
@@ -390,7 +393,9 @@ void detstats(char *iface, time_t facilitytime)
 		if ((now - starttime) >= 1) {
 			char buf[64];
 			unsigned long activity, activity_in, activity_out;
+			unsigned long activity_bcast;
 			unsigned long pps, pps_in, pps_out;
+			unsigned long pps_bcast;
 			unsigned long msecs;
 
 			wattrset(statwin, BOXATTR);
@@ -404,6 +409,8 @@ void detstats(char *iface, time_t facilitytime)
 			activity_in = rate_get_average(&rate_in);
 			rate_add_rate(&rate_out, span.proto_out.pc_bytes, msecs);
 			activity_out = rate_get_average(&rate_out);
+			rate_add_rate(&rate_bcast, span_bcast.pc_bytes, msecs);
+			activity_bcast = rate_get_average(&rate_bcast);
 
 			rate_add_rate(&pps_rate, span.proto_total.pc_packets, msecs);
 			pps = rate_get_average(&pps_rate);
@@ -411,8 +418,11 @@ void detstats(char *iface, time_t facilitytime)
 			pps_in = rate_get_average(&pps_rate_in);
 			rate_add_rate(&pps_rate_out, span.proto_out.pc_packets, msecs);
 			pps_out = rate_get_average(&pps_rate_out);
+			rate_add_rate(&pps_rate_bcast, span_bcast.pc_packets, msecs);
+			pps_bcast = rate_get_average(&pps_rate_bcast);
 
 			memset(&span, 0, sizeof(span));
+			memset(&span_bcast, 0, sizeof(span_bcast));
 			starttime = now;
 			start_tv = tv;
 
@@ -429,6 +439,10 @@ void detstats(char *iface, time_t facilitytime)
 			mvwprintw(statwin, 20, 19, "%s", buf);
 			rate_print_pps(pps_out, buf, sizeof(buf));
 			mvwprintw(statwin, 21, 19, "%s", buf);
+			rate_print(activity_bcast, buf, sizeof(buf));
+			mvwprintw(statwin, 14, 64, "%s", buf);
+			rate_print_pps(pps_bcast, buf, sizeof(buf));
+			mvwprintw(statwin, 15, 64, "%s", buf);
 
 			if (activity > peakactivity)
 				peakactivity = activity;
@@ -516,7 +530,8 @@ void detstats(char *iface, time_t facilitytime)
 		outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
 		update_proto_counter(&ifcounts.total, outgoing, pkt.pkt_len);
 		if (pkt.pkt_pkttype == PACKET_BROADCAST) {
-			update_pkt_counter(&ifcounts.bcast, pkt.pkt_len);
+			update_proto_counter(&ifcounts.bcast, outgoing, pkt.pkt_len);
+			update_pkt_counter(&span_bcast, pkt.pkt_len);
 		}
 
 		update_proto_counter(&span, outgoing, pkt.pkt_len);
@@ -567,10 +582,12 @@ err_close:
 	close(fd);
 
 err:
+	rate_destroy(&pps_rate_bcast);
 	rate_destroy(&pps_rate_out);
 	rate_destroy(&pps_rate_in);
 	rate_destroy(&pps_rate);
 
+	rate_destroy(&rate_bcast);
 	rate_destroy(&rate_out);
 	rate_destroy(&rate_in);
 	rate_destroy(&rate);
