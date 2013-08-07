@@ -217,15 +217,9 @@ void tx_destroy_list(struct scroll_list *list)
 	struct textlisttype *ttmp = list->textlist;
 	struct textlisttype *ctmp;
 
-	if (ttmp != NULL) {
+	while (ttmp != NULL) {
 		ctmp = ttmp->next_entry;
-
-		while (ttmp != NULL) {
-			free(ttmp);
-			ttmp = ctmp;
-
-			if (ctmp != NULL)
-				ctmp = ctmp->next_entry;
-		}
+		free(ttmp);
+		ttmp = ctmp;
 	}
 }
