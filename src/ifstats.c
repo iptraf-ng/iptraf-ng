@@ -370,48 +370,42 @@ static void initiftab(struct iftab *table)
  * Scrolling routines for the general interface statistics window
  */
 
-static void scrollgstatwin(struct iftab *table, int direction)
+static void scrollgstatwin(struct iftab *table, int direction, int lines)
 {
+	if (lines < 1)
+		return;
+
 	wattrset(table->statwin, STDATTR);
 	if (direction == SCROLLUP) {
-		if (table->lastvisible->next_entry != NULL) {
-			wscrl(table->statwin, 1);
-			table->lastvisible = table->lastvisible->next_entry;
+		for (int i = 0; i < lines; i++) {
+			if (table->lastvisible->next_entry == NULL)
+				break;
+
 			table->firstvisible = table->firstvisible->next_entry;
+			table->lastvisible = table->lastvisible->next_entry;
+
+			wscrl(table->statwin, 1);
 			scrollok(table->statwin, 0);
 			mvwprintw(table->statwin, LINES - 5, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->statwin, 1);
+
 			printifentry(table, table->lastvisible);
 		}
 	} else {
-		if (table->firstvisible != table->head) {
-			wscrl(table->statwin, -1);
+		for (int i = 0; i < lines; i++) {
+			if (table->firstvisible == table->head)
+				break;
+
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
+
+			wscrl(table->statwin, -1);
 			mvwprintw(table->statwin, 0, 0, "%*c", COLS - 2, ' ');
+
 			printifentry(table, table->firstvisible);
 		}
 	}
 }
-
-static void pagegstatwin(struct iftab *table, int direction)
-{
-	int i = 1;
-
-	if (direction == SCROLLUP) {
-		while ((i <= LINES - 5)
-		       && (table->lastvisible->next_entry != NULL)) {
-			i++;
-			scrollgstatwin(table, direction);
-		}
-	} else {
-		while ((i <= LINES - 5) && (table->firstvisible != table->head)) {
-			i++;
-			scrollgstatwin(table, direction);
-		}
-	}
-}
-
 
 /*
  * The general interface statistics function
@@ -544,18 +538,24 @@ void ifstats(time_t facilitytime)
 			/* no key ready, do nothing */
 			break;
 		case KEY_UP:
-			scrollgstatwin(&table, SCROLLDOWN);
+			scrollgstatwin(&table, SCROLLDOWN, 1);
 			break;
 		case KEY_DOWN:
-			scrollgstatwin(&table, SCROLLUP);
+			scrollgstatwin(&table, SCROLLUP, 1);
 			break;
 		case KEY_PPAGE:
 		case '-':
-			pagegstatwin(&table, SCROLLDOWN);
+			scrollgstatwin(&table, SCROLLDOWN, LINES - 5);
 			break;
 		case KEY_NPAGE:
 		case ' ':
-			pagegstatwin(&table, SCROLLUP);
+			scrollgstatwin(&table, SCROLLUP, LINES - 5);
+			break;
+		case KEY_HOME:
+			scrollgstatwin(&table, SCROLLDOWN, INT_MAX);
+			break;
+		case KEY_END:
+			scrollgstatwin(&table, SCROLLUP, INT_MAX);
 			break;
 		case 12:
 		case 'l':
