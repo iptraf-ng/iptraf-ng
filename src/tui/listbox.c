@@ -108,9 +108,6 @@ void tx_operate_listbox(struct scroll_list *list, int *aborted)
 
 		switch (ch) {
 		case KEY_UP:
-			if (list->textptr == NULL)
-				continue;
-
 			if (list->textptr->prev_entry != NULL) {
 				if (row == 0) {
 					scrollok(list->win, 1);
@@ -123,9 +120,6 @@ void tx_operate_listbox(struct scroll_list *list, int *aborted)
 			}
 			break;
 		case KEY_DOWN:
-			if (list->textptr == NULL)
-				continue;
-
 			if (list->textptr->next_entry != NULL) {
 				if (row == list->height - 3) {
 					scrollok(list->win, 1);
