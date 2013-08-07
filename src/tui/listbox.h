@@ -5,15 +5,12 @@
 
 struct textlisttype {
 	char text[MAX_TEXT_LENGTH];
-	int cellwidth[10];	/* up to 10 cells per line */
 	char *nodeptr;		/* generic pointer, cast to appropriate type */
 	struct textlisttype *next_entry;
 	struct textlisttype *prev_entry;
 };
 
 struct scroll_list {
-	char *mainlist;		/* generic pointer, cast to appropriate type */
-	char *mlistptr;		/* generic pointer, cast to appropriate type */
 	struct textlisttype *textlist;	/* list of raw text entries */
 	struct textlisttype *texttail;
 	struct textlisttype *textptr;
@@ -22,14 +19,13 @@ struct scroll_list {
 	int mainattr;
 	int selectattr;
 	int keyattr;
-	char *exitkeys;
 
 	WINDOW *win;
 	PANEL *panel;
 	WINDOW *borderwin;
 	PANEL *borderpanel;
-
 };
+
 void tx_init_listbox(struct scroll_list *list, int width, int height,
 		     int startx, int starty, int mainattr, int borderattr,
 		     int selectattr, int keyattr);
