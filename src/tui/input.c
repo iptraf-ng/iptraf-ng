@@ -32,7 +32,6 @@ void tx_addfield(struct FIELDLIST *list, unsigned int len, unsigned int y,
 		 unsigned int x, const char *initstr)
 {
 	struct FIELD *newfield;
-	unsigned int i;
 
 	newfield = xmalloc(sizeof(struct FIELD));
 
@@ -58,11 +57,7 @@ void tx_addfield(struct FIELDLIST *list, unsigned int len, unsigned int y,
 		newfield->tlen = len;
 
 	wattrset(list->fieldwin, list->fieldattr);
-	wmove(list->fieldwin, y, x);
-	for (i = 1; i <= len; i++)
-		wprintw(list->fieldwin, " ");
-
-	mvwprintw(list->fieldwin, y, x, "%s", newfield->buf);
+	mvwprintw(list->fieldwin, y, x, "%-*s", len, newfield->buf);
 
 	update_panels();
 	doupdate();
