@@ -405,6 +405,7 @@ static void scrollgstatwin(struct iftab *table, int direction, int lines)
 			printifentry(table, table->firstvisible);
 		}
 	}
+	showrates(table);
 }
 
 /*
@@ -473,6 +474,7 @@ void ifstats(time_t facilitytime)
 
 	table.firstvisible = table.head;
 	print_if_entries(&table);
+	showrates(&table);
 
 	update_panels();
 	doupdate();
