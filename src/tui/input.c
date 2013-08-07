@@ -62,8 +62,7 @@ void tx_addfield(struct FIELDLIST *list, unsigned int len, unsigned int y,
 	for (i = 1; i <= len; i++)
 		wprintw(list->fieldwin, " ");
 
-	wmove(list->fieldwin, y, x);
-	wprintw(list->fieldwin, "%s", newfield->buf);
+	mvwprintw(list->fieldwin, y, x, "%s", newfield->buf);
 
 	update_panels();
 	doupdate();
@@ -75,9 +74,8 @@ void tx_getinput(struct FIELDLIST *list, struct FIELD *field, int *exitkey)
 	int y, x;
 	int endloop = 0;
 
-	wmove(list->fieldwin, field->ypos, field->xpos);
 	wattrset(list->fieldwin, list->fieldattr);
-	wprintw(list->fieldwin, "%s", field->buf);
+	mvwprintw(list->fieldwin, field->ypos, field->xpos, "%s", field->buf);
 	update_panels();
 	doupdate();
 
@@ -93,8 +91,7 @@ void tx_getinput(struct FIELDLIST *list, struct FIELD *field, int *exitkey)
 			if (field->tlen > 0) {
 				getyx(list->fieldwin, y, x);
 				x--;
-				wmove(list->fieldwin, y, x);
-				wprintw(list->fieldwin, " ");
+				mvwprintw(list->fieldwin, y, x, " ");
 				wmove(list->fieldwin, y, x);
 				field->tlen--;
 				field->buf[field->tlen] = '\0';

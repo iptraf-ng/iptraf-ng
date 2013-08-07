@@ -72,8 +72,7 @@ static void uniq_help(int what)
 static void prepare_statwin(WINDOW * win)
 {
 	wattrset(win, IPSTATLABELATTR);
-	wmove(win, 0, 1);
-	wprintw(win, "Packets captured:");
+	mvwprintw(win, 0, 1, "Packets captured:");
 	mvwaddch(win, 0, 45 * COLS / 80, ACS_VLINE);
 }
 
@@ -136,8 +135,7 @@ static void scrollupperwin(struct tcptable *table, int direction,
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
 			(*idx)--;
-			wmove(table->tcpscreen, 0, 0);
-			wprintw(table->tcpscreen, "%*c", COLS - 2, ' ');
+			mvwprintw(table->tcpscreen, 0, 0, "%*c", COLS - 2, ' ');
 			printentry(table, table->firstvisible, *idx, mode);
 		}
 	}
@@ -622,8 +620,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	statwin = newwin(1, COLS, LINES - 2, 0);
 	statpanel = new_panel(statwin);
 	wattrset(statwin, IPSTATLABELATTR);
-	wmove(statwin, 0, 0);
-	wprintw(statwin, "%*c", COLS, ' ');
+	mvwprintw(statwin, 0, 0, "%*c", COLS, ' ');
 	prepare_statwin(statwin);
 	show_stats(statwin, 0);
 	markactive(curwin, table.borderwin, othptbl.borderwin);

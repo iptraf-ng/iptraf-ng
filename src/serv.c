@@ -159,20 +159,13 @@ static void initportlist(struct portlist *list)
 	wattrset(list->borderwin, BOXATTR);
 	tx_box(list->borderwin, ACS_VLINE, ACS_HLINE);
 
-	wmove(list->borderwin, 0, 1 * screen_scale);
-	wprintw(list->borderwin, " Proto/Port ");
-	wmove(list->borderwin, 0, 22 * screen_scale);
-	wprintw(list->borderwin, " Pkts ");
-	wmove(list->borderwin, 0, 31 * screen_scale);
-	wprintw(list->borderwin, " Bytes ");
-	wmove(list->borderwin, 0, 40 * screen_scale);
-	wprintw(list->borderwin, " PktsTo ");
-	wmove(list->borderwin, 0, 49 * screen_scale);
-	wprintw(list->borderwin, " BytesTo ");
-	wmove(list->borderwin, 0, 58 * screen_scale);
-	wprintw(list->borderwin, " PktsFrom ");
-	wmove(list->borderwin, 0, 67 * screen_scale);
-	wprintw(list->borderwin, " BytesFrom ");
+	mvwprintw(list->borderwin, 0,  1 * screen_scale, " Proto/Port ");
+	mvwprintw(list->borderwin, 0, 22 * screen_scale, " Pkts ");
+	mvwprintw(list->borderwin, 0, 31 * screen_scale, " Bytes ");
+	mvwprintw(list->borderwin, 0, 40 * screen_scale, " PktsTo ");
+	mvwprintw(list->borderwin, 0, 49 * screen_scale, " BytesTo ");
+	mvwprintw(list->borderwin, 0, 58 * screen_scale, " PktsFrom ");
+	mvwprintw(list->borderwin, 0, 67 * screen_scale, " BytesFrom ");
 
 	list->win = newwin(LINES - 5, COLS - 2, 2, 1);
 	list->panel = new_panel(list->win);
@@ -228,8 +221,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 	if (list->count <= (unsigned) LINES - 5)
 		list->lastvisible = ptemp;
 
-	wmove(list->borderwin, LINES - 4, 1);
-	wprintw(list->borderwin, " %u entries ", list->count);
+	mvwprintw(list->borderwin, LINES - 4, 1, " %u entries ", list->count);
 
 	return ptemp;
 }
@@ -632,9 +624,8 @@ static void scrollservwin(struct portlist *table, int direction,
 			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
 			(*idx)++;
-			wmove(table->win, LINES - 6, 0);
 			scrollok(table->win, 0);
-			wprintw(table->win, "%*c", COLS - 2, ' ');
+			mvwprintw(table->win, LINES - 6, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->win, 1);
 			printportent(table, table->lastvisible, *idx);
 		}
@@ -644,8 +635,7 @@ static void scrollservwin(struct portlist *table, int direction,
 			table->lastvisible = table->lastvisible->prev_entry;
 			table->firstvisible = table->firstvisible->prev_entry;
 			(*idx)--;
-			wmove(table->win, 0, 0);
-			wprintw(table->win, "%*c", COLS - 2, ' ');
+			mvwprintw(table->win, 0, 0, "%*c", COLS - 2, ' ');
 			printportent(table, table->firstvisible, *idx);
 		}
 	}

@@ -77,12 +77,10 @@ static int initialize_brackets(struct ifstat_brackets *brackets,
 
 	for (i = 0; i <= 9; i++) {
 		wattrset(win, STDATTR);
-		wmove(win, i + 5, 2);
-		wprintw(win, "%4u to %4u:", brackets[i].floor,
+		mvwprintw(win, i + 5, 2, "%4u to %4u:", brackets[i].floor,
 			brackets[i].ceil);
-		wmove(win, i + 5, 23);
 		wattrset(win, HIGHATTR);
-		wprintw(win, "%8lu", 0);
+		mvwprintw(win, i + 5, 23, "%8lu", 0);
 	}
 
 	for (i = 10; i <= 19; i++) {
@@ -96,9 +94,8 @@ static int initialize_brackets(struct ifstat_brackets *brackets,
 			wprintw(win, "%4u to %4u+:", brackets[i].floor,
 				brackets[i].ceil);
 
-		wmove(win, (i - 10) + 5, 57);
 		wattrset(win, HIGHATTR);
-		wprintw(win, "%8lu", 0);
+		mvwprintw(win, (i - 10) + 5, 57, "%8lu", 0);
 	}
 
 	wattrset(win, STDATTR);

@@ -298,8 +298,7 @@ static void printifentry(struct iflist *ptmp, WINDOW * win, unsigned int idx)
 	target_row = ptmp->index - idx;
 
 	wattrset(win, STDATTR);
-	wmove(win, target_row, 1);
-	wprintw(win, "%s", ptmp->ifname);
+	mvwprintw(win, target_row, 1, "%s", ptmp->ifname);
 	wattrset(win, HIGHATTR);
 	wmove(win, target_row, 14 * COLS / 80);
 	printlargenum(ptmp->total, win);
@@ -333,24 +332,17 @@ static void print_if_entries(struct iftab *table)
 
 static void labelstats(WINDOW *win)
 {
-	wmove(win, 0, 1);
-	wprintw(win, " Iface ");
+	mvwprintw(win, 0, 1, " Iface ");
 	/* 14, 24, 34, ... from printifentry() */
 	/* 10 = strlen(printed number); from printlargenum() */
 	/* 7 = strlen(" Total ") */
 	/* 1 = align the string on 'l' from " Total " */
-	wmove(win, 0, (14 * COLS / 80) + 10 - 7 + 1);
-	wprintw(win, " Total ");
-	wmove(win, 0, (24 * COLS / 80) + 10 - 6 + 1);
-	wprintw(win, " IPv4 ");
-	wmove(win, 0, (34 * COLS / 80) + 10 - 6 + 1);
-	wprintw(win, " IPv6 ");
-	wmove(win, 0, (44 * COLS / 80) + 10 - 7 + 1);
-	wprintw(win, " NonIP ");
-	wmove(win, 0, (53 * COLS / 80) + 8 - 7 + 1);
-	wprintw(win, " BadIP ");
-	wmove(win, 0, (63 * COLS / 80) + 14 - 10);
-	wprintw(win, " Activity ");
+	mvwprintw(win, 0, (14 * COLS / 80) + 10 - 7 + 1, " Total ");
+	mvwprintw(win, 0, (24 * COLS / 80) + 10 - 6 + 1, " IPv4 ");
+	mvwprintw(win, 0, (34 * COLS / 80) + 10 - 6 + 1, " IPv6 ");
+	mvwprintw(win, 0, (44 * COLS / 80) + 10 - 7 + 1, " NonIP ");
+	mvwprintw(win, 0, (53 * COLS / 80) + 8 - 7 + 1, " BadIP ");
+	mvwprintw(win, 0, (63 * COLS / 80) + 14 - 10, " Activity ");
 }
 
 static void initiftab(struct iftab *table)
@@ -371,8 +363,7 @@ static void initiftab(struct iftab *table)
 	wattrset(table->statwin, STDATTR);
 	tx_colorwin(table->statwin);
 	wattrset(table->statwin, BOXATTR);
-	wmove(table->borderwin, LINES - 3, 32 * COLS / 80);
-	wprintw(table->borderwin,
+	mvwprintw(table->borderwin, LINES - 3, 32 * COLS / 80,
 		" Total, IP, NonIP, and BadIP are packet counts ");
 }
 
@@ -388,9 +379,8 @@ static void scrollgstatwin(struct iftab *table, int direction)
 			wscrl(table->statwin, 1);
 			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
-			wmove(table->statwin, LINES - 5, 0);
 			scrollok(table->statwin, 0);
-			wprintw(table->statwin, "%*c", COLS - 2, ' ');
+			mvwprintw(table->statwin, LINES - 5, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->statwin, 1);
 			printifentry(table->lastvisible, table->statwin,
 				     table->firstvisible->index);
@@ -400,8 +390,7 @@ static void scrollgstatwin(struct iftab *table, int direction)
 			wscrl(table->statwin, -1);
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
-			wmove(table->statwin, 0, 0);
-			wprintw(table->statwin, "%*c", COLS - 2, ' ');
+			mvwprintw(table->statwin, 0, 0, "%*c", COLS - 2, ' ');
 			printifentry(table->firstvisible, table->statwin,
 				     table->firstvisible->index);
 		}

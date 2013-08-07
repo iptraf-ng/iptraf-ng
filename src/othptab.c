@@ -721,9 +721,8 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 	strcat(msgstring, " on ");
 	strcat(msgstring, entry->iface);
 
-	wmove(table->othpwin, target_row, 0);
 	scrollok(table->othpwin, 0);
-	wprintw(table->othpwin, "%*c", COLS - 2, ' ');
+	mvwprintw(table->othpwin, target_row, 0, "%*c", COLS - 2, ' ');
 	scrollok(table->othpwin, 1);
 	wmove(table->othpwin, target_row, 1);
 	startstr = msgstring + table->strindex;

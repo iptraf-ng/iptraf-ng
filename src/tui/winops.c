@@ -38,8 +38,7 @@ void tx_colorwin(WINDOW * win)
 
 	scrollok(win, 0);
 	for (ctr = 0; ctr < getmaxy(win); ctr++) {
-		wmove(win, ctr, 0);
-		wprintw(win, "%s", blankpad);
+		mvwprintw(win, ctr, 0, "%s", blankpad);
 	}
 	scrollok(win, 1);
 	free(blankpad);

@@ -162,28 +162,18 @@ static void initethtab(struct ethtab *table)
 
 	wattrset(table->borderwin, BOXATTR);
 	tx_box(table->borderwin, ACS_VLINE, ACS_HLINE);
-	wmove(table->borderwin, 0, 5 * COLS / 80);
-	wprintw(table->borderwin, " PktsIn ");
-	wmove(table->borderwin, 0, 16 * COLS / 80);
-	wprintw(table->borderwin, " IP In ");
-	wmove(table->borderwin, 0, 24 * COLS / 80);
-	wprintw(table->borderwin, " BytesIn ");
-	wmove(table->borderwin, 0, 34 * COLS / 80);
-	wprintw(table->borderwin, " InRate ");
 
-	wmove(table->borderwin, 0, 42 * COLS / 80);
-	wprintw(table->borderwin, " PktsOut ");
-	wmove(table->borderwin, 0, 53 * COLS / 80);
-	wprintw(table->borderwin, " IP Out ");
-	wmove(table->borderwin, 0, 61 * COLS / 80);
-	wprintw(table->borderwin, " BytesOut ");
-	wmove(table->borderwin, 0, 70 * COLS / 80);
-	wprintw(table->borderwin, " OutRate ");
+	mvwprintw(table->borderwin, 0,  5 * COLS / 80, " PktsIn ");
+	mvwprintw(table->borderwin, 0, 16 * COLS / 80, " IP In ");
+	mvwprintw(table->borderwin, 0, 24 * COLS / 80, " BytesIn ");
+	mvwprintw(table->borderwin, 0, 34 * COLS / 80, " InRate ");
+	mvwprintw(table->borderwin, 0, 42 * COLS / 80, " PktsOut ");
+	mvwprintw(table->borderwin, 0, 53 * COLS / 80, " IP Out ");
+	mvwprintw(table->borderwin, 0, 61 * COLS / 80, " BytesOut ");
+	mvwprintw(table->borderwin, 0, 70 * COLS / 80, " OutRate ");
 
-	wmove(table->borderwin, LINES - 3, 40);
-
-	wprintw(table->borderwin, " InRate and OutRate are in %s ",
-		dispmode(options.actmode));
+	mvwprintw(table->borderwin, LINES - 3, 40,
+		  " InRate and OutRate are in %s ", dispmode(options.actmode));
 
 	wattrset(table->tabwin, STDATTR);
 	tx_colorwin(table->tabwin);
@@ -283,8 +273,8 @@ static struct ethtabent *addethentry(struct ethtab *table,
 
 	table->entcount++;
 
-	wmove(table->borderwin, LINES - 3, 1);
-	wprintw(table->borderwin, " %u entries ", table->entcount);
+	mvwprintw(table->borderwin, LINES - 3, 1, " %u entries ",
+		  table->entcount);
 
 	return ptemp;
 }
@@ -414,13 +404,11 @@ static void printrates(struct ethtab *table, unsigned int target_row,
 
 	rate_print_no_units(rate_get_average(&ptmp->un.figs.inrate),
 		   buf, sizeof(buf));
-	wmove(table->tabwin, target_row, 32 * COLS / 80);
-	wprintw(table->tabwin, "%s", buf);
+	mvwprintw(table->tabwin, target_row, 32 * COLS / 80, "%s", buf);
 
 	rate_print_no_units(rate_get_average(&ptmp->un.figs.outrate),
 		   buf, sizeof(buf));
-	wmove(table->tabwin, target_row, 69 * COLS / 80);
-	wprintw(table->tabwin, "%s", buf);
+	mvwprintw(table->tabwin, target_row, 69 * COLS / 80, "%s", buf);
 }
 
 static void updateethrates(struct ethtab *table, unsigned long msecs,
@@ -476,9 +464,8 @@ static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
 			(*idx)++;
-			wmove(table->tabwin, LINES - 5, 0);
 			scrollok(table->tabwin, 0);
-			wprintw(table->tabwin, "%*c", COLS - 2, ' ');
+			mvwprintw(table->tabwin, LINES - 5, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->tabwin, 1);
 			printethent(table, table->lastvisible, *idx);
 			if (table->lastvisible->type == 1)
@@ -491,8 +478,7 @@ static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 			table->lastvisible = table->lastvisible->prev_entry;
 			table->firstvisible = table->firstvisible->prev_entry;
 			(*idx)--;
-			wmove(table->tabwin, 0, 0);
-			wprintw(table->tabwin, "%*c", COLS - 2, ' ');
+			mvwprintw(table->tabwin, 0, 0, "%*c", COLS - 2, ' ');
 			printethent(table, table->firstvisible, *idx);
 			if (table->firstvisible->type == 1)
 				printrates(table, 0, table->firstvisible);

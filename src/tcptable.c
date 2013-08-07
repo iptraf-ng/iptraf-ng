@@ -33,17 +33,13 @@ static void setlabels(WINDOW *win, int mode)
 	whline(win, ACS_HLINE, 23 * COLS / 80);
 
 	if (mode == 0) {
-		wmove(win, 0, 47 * COLS / 80);
-		wprintw(win, " Packets ");
-		wmove(win, 0, 59 * COLS / 80);
-		wprintw(win, " Bytes ");
+		mvwprintw(win, 0, 47 * COLS / 80, " Packets ");
+		mvwprintw(win, 0, 59 * COLS / 80, " Bytes ");
 	} else if (mode == 1) {
 		mvwprintw(win, 0, 47 * COLS / 80, " Source MAC Addr ");
 	} else if (mode == 2) {
-		wmove(win, 0, 45 * COLS / 80);
-		wprintw(win, " Pkt Size ");
-		wmove(win, 0, 56 * COLS / 80);
-		wprintw(win, " Win Size ");
+		mvwprintw(win, 0, 45 * COLS / 80, " Pkt Size ");
+		mvwprintw(win, 0, 56 * COLS / 80, " Win Size ");
 	}
 }
 
@@ -112,15 +108,12 @@ void init_tcp_table(struct tcptable *table)
 
 	wattrset(table->borderwin, BOXATTR);
 	tx_box(table->borderwin, ACS_VLINE, ACS_HLINE);
-	wmove(table->borderwin, 0, 1);
-	wprintw(table->borderwin, " TCP Connections (Source Host:Port) ");
+	mvwprintw(table->borderwin, 0, 1, " TCP Connections (Source Host:Port) ");
 
 	setlabels(table->borderwin, 0);	/* initially use mode 0 */
 
-	wmove(table->borderwin, 0, 65 * COLS / 80);
-	wprintw(table->borderwin, " Flag ");
-	wmove(table->borderwin, 0, 70 * COLS / 80);
-	wprintw(table->borderwin, " Iface ");
+	mvwprintw(table->borderwin, 0, 65 * COLS / 80, " Flag ");
+	mvwprintw(table->borderwin, 0, 70 * COLS / 80, " Iface ");
 	update_panels();
 	doupdate();
 	table->ifnamew = COLS - (70 * COLS / 80) - 3;
@@ -767,8 +760,7 @@ void clearaddr(struct tcptable *table, struct tcptableent *tableentry,
 
 	target_row = (tableentry->index) - screen_idx;
 
-	wmove(table->tcpscreen, target_row, 1);
-	wprintw(table->tcpscreen, "%44c", ' ');
+	mvwprintw(table->tcpscreen, target_row, 1, "%44c", ' ');
 }
 
 /*

@@ -200,8 +200,7 @@ void tx_operatemenu(struct MENU *menu, int *position, int *aborted)
 
 		wattrset(menu->descwin, menu->descriptionattr);
 		tx_colorwin(menu->descwin);
-		wmove(menu->descwin, 0, 0);
-		wprintw(menu->descwin, " %s", itemptr->desc);
+		mvwprintw(menu->descwin, 0, 0, " %s", itemptr->desc);
 		update_panels();
 		doupdate();
 

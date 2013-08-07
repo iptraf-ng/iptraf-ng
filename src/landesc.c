@@ -254,10 +254,8 @@ static int dialog_eth_desc(struct FIELDLIST *fields, const char *initaddr,
 	stdkeyhelp(win);
 
 	wattrset(win, DLGTEXTATTR);
-	wmove(win, 2, 2 * COLS / 80);
-	wprintw(win, "MAC Address:");
-	wmove(win, 4, 2 * COLS / 80);
-	wprintw(win, "Description:");
+	mvwprintw(win, 2, 2 * COLS / 80, "MAC Address:");
+	mvwprintw(win, 4, 2 * COLS / 80, "Description:");
 
 	tx_initfields(fields, 3, 52, 10, (COLS - 52) / 2 + 6 * COLS / 80,
 		      DLGTEXTATTR, FIELDATTR);
