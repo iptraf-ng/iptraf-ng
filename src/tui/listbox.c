@@ -83,8 +83,7 @@ void tx_operate_listbox(struct scroll_list *list, int *keystroke, int *aborted)
 	int ch;
 	int endloop = 0;
 	int row = 0;
-	char padding[MAX_TEXT_LENGTH];
-	char sp_buf[10];
+	int width = list->width - 3;
 
 	if (list->textlist == NULL) {
 		tui_error(ANYKEY_MSG, "No list entries");
@@ -99,18 +98,13 @@ void tx_operate_listbox(struct scroll_list *list, int *keystroke, int *aborted)
 	doupdate();
 
 	while (!endloop) {
-		snprintf(sp_buf, 9, "%%%zuc",
-			 list->width - strlen(list->textptr->text) - 3);
-		snprintf(padding, MAX_TEXT_LENGTH - 1, sp_buf, ' ');
 		wattrset(list->win, list->selectattr);
-		mvwprintw(list->win, row, 0, " %s%s", list->textptr->text,
-			  padding);
+		mvwprintw(list->win, row, 0, " %-*s", width, list->textptr->text);
 
 		ch = wgetch(list->win);
 
 		wattrset(list->win, list->mainattr);
-		mvwprintw(list->win, row, 0, " %s%s", list->textptr->text,
-			  padding);
+		mvwprintw(list->win, row, 0, " %-*s", width, list->textptr->text);
 
 		switch (ch) {
 		case KEY_UP:

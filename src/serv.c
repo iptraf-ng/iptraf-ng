@@ -277,7 +277,6 @@ static void printportent(struct portlist *list, struct portlistent *entry,
 	int tcplabelattr;
 	int udplabelattr;
 	int highattr;
-	char sp_buf[10];
 
 	if ((entry->idx < idx) || (entry->idx > idx + (LINES - 6)))
 		return;
@@ -295,9 +294,8 @@ static void printportent(struct portlist *list, struct portlistent *entry,
 	}
 
 	wattrset(list->win, tcplabelattr);
-	sprintf(sp_buf, "%%%dc", COLS - 2);
 	scrollok(list->win, 0);
-	mvwprintw(list->win, target_row, 0, sp_buf, ' ');
+	mvwprintw(list->win, target_row, 0, "%*c", COLS - 2, ' ');
 	scrollok(list->win, 1);
 
 	wmove(list->win, target_row, 1);
@@ -627,9 +625,6 @@ static void sortportents(struct portlist *list, unsigned int *idx, int command)
 static void scrollservwin(struct portlist *table, int direction,
 			  unsigned int *idx)
 {
-	char sp_buf[10];
-
-	sprintf(sp_buf, "%%%dc", COLS - 2);
 	wattrset(table->win, STDATTR);
 	if (direction == SCROLLUP) {
 		if (table->lastvisible != table->tail) {
@@ -639,7 +634,7 @@ static void scrollservwin(struct portlist *table, int direction,
 			(*idx)++;
 			wmove(table->win, LINES - 6, 0);
 			scrollok(table->win, 0);
-			wprintw(table->win, sp_buf, ' ');
+			wprintw(table->win, "%*c", COLS - 2, ' ');
 			scrollok(table->win, 1);
 			printportent(table, table->lastvisible, *idx);
 		}
@@ -650,7 +645,7 @@ static void scrollservwin(struct portlist *table, int direction,
 			table->firstvisible = table->firstvisible->prev_entry;
 			(*idx)--;
 			wmove(table->win, 0, 0);
-			wprintw(table->win, sp_buf, ' ');
+			wprintw(table->win, "%*c", COLS - 2, ' ');
 			printportent(table, table->firstvisible, *idx);
 		}
 	}
@@ -780,8 +775,6 @@ void servmon(char *ifname, time_t facilitytime)
 	WINDOW *statwin;
 	PANEL *statpanel;
 
-	char sp_buf[10];
-
 	int fd;
 
 	struct porttab *ports;
@@ -804,8 +797,7 @@ void servmon(char *ifname, time_t facilitytime)
 	statpanel = new_panel(statwin);
 	scrollok(statwin, 0);
 	wattrset(statwin, IPSTATLABELATTR);
-	sprintf(sp_buf, "%%%dc", COLS);
-	mvwprintw(statwin, 0, 0, sp_buf, ' ');
+	mvwprintw(statwin, 0, 0, "%*c", COLS, ' ');
 
 	move(LINES - 1, 1);
 	scrollkeyhelp();

@@ -117,9 +117,6 @@ static void show_stats(WINDOW * win, unsigned long long total)
 static void scrollupperwin(struct tcptable *table, int direction,
 			   unsigned long *idx, int mode)
 {
-	char sp_buf[10];
-
-	sprintf(sp_buf, "%%%dc", COLS - 2);
 	wattrset(table->tcpscreen, STDATTR);
 	if (direction == SCROLLUP) {
 		if (table->lastvisible != table->tail) {
@@ -129,7 +126,7 @@ static void scrollupperwin(struct tcptable *table, int direction,
 			(*idx)++;
 			wmove(table->tcpscreen, table->imaxy - 1, 0);
 			scrollok(table->tcpscreen, 0);
-			wprintw(table->tcpscreen, sp_buf, ' ');
+			wprintw(table->tcpscreen, "%*c", COLS - 2, ' ');
 			scrollok(table->tcpscreen, 1);
 			printentry(table, table->lastvisible, *idx, mode);
 		}
@@ -140,7 +137,7 @@ static void scrollupperwin(struct tcptable *table, int direction,
 			table->lastvisible = table->lastvisible->prev_entry;
 			(*idx)--;
 			wmove(table->tcpscreen, 0, 0);
-			wprintw(table->tcpscreen, sp_buf, ' ');
+			wprintw(table->tcpscreen, "%*c", COLS - 2, ' ');
 			printentry(table, table->firstvisible, *idx, mode);
 		}
 	}
@@ -550,7 +547,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	unsigned int frag_off;
 	struct tcphdr *transpacket;	/* IP-encapsulated packet */
 	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
-	char sp_buf[10];
 
 	unsigned long screen_idx = 1;
 
@@ -627,8 +623,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	statpanel = new_panel(statwin);
 	wattrset(statwin, IPSTATLABELATTR);
 	wmove(statwin, 0, 0);
-	sprintf(sp_buf, "%%%dc", COLS);
-	wprintw(statwin, sp_buf, ' ');
+	wprintw(statwin, "%*c", COLS, ' ');
 	prepare_statwin(statwin);
 	show_stats(statwin, 0);
 	markactive(curwin, table.borderwin, othptbl.borderwin);

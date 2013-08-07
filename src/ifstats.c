@@ -382,9 +382,6 @@ static void initiftab(struct iftab *table)
 
 static void scrollgstatwin(struct iftab *table, int direction)
 {
-	char buf[255];
-
-	sprintf(buf, "%%%dc", COLS - 2);
 	wattrset(table->statwin, STDATTR);
 	if (direction == SCROLLUP) {
 		if (table->lastvisible->next_entry != NULL) {
@@ -393,7 +390,7 @@ static void scrollgstatwin(struct iftab *table, int direction)
 			table->firstvisible = table->firstvisible->next_entry;
 			wmove(table->statwin, LINES - 5, 0);
 			scrollok(table->statwin, 0);
-			wprintw(table->statwin, buf, ' ');
+			wprintw(table->statwin, "%*c", COLS - 2, ' ');
 			scrollok(table->statwin, 1);
 			printifentry(table->lastvisible, table->statwin,
 				     table->firstvisible->index);
@@ -404,7 +401,7 @@ static void scrollgstatwin(struct iftab *table, int direction)
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
 			wmove(table->statwin, 0, 0);
-			wprintw(table->statwin, buf, ' ');
+			wprintw(table->statwin, "%*c", COLS - 2, ' ');
 			printifentry(table->firstvisible, table->statwin,
 				     table->firstvisible->index);
 		}

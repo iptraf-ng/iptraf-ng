@@ -809,8 +809,7 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry,
 	wmove(table->tcpscreen, target_row, 2);
 	if (tableentry->reused) {
 		scrollok(table->tcpscreen, 0);
-		sprintf(sp_buf, "%%%dc", COLS - 4);
-		wprintw(table->tcpscreen, sp_buf, ' ');
+		wprintw(table->tcpscreen, "%*c", COLS - 4, ' ');
 		scrollok(table->tcpscreen, 1);
 		tableentry->reused = 0;
 		wmove(table->tcpscreen, target_row, 1);
@@ -823,8 +822,7 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry,
 	/* proceed with the actual entry */
 
 	wattrset(table->tcpscreen, normalattr);
-	sprintf(sp_buf, "%%%dc", COLS - 5);
-	mvwprintw(table->tcpscreen, target_row, 2, sp_buf, ' ');
+	mvwprintw(table->tcpscreen, target_row, 2, "%*c", COLS - 5, ' ');
 
 	sprintf(sp_buf, "%%.%ds:%%.%ds", 32 * COLS / 80, 10);
 

@@ -54,21 +54,19 @@ int ICMPV6ATTR;
 void draw_desktop(void)
 {
 	int row;		/* counter for desktop construction */
-	char sp_buf[10];
 
-	sprintf(sp_buf, "%%%dc", COLS);
 	scrollok(stdscr, 0);
 	attrset(STATUSBARATTR);
 	move(0, 0);
-	printw(sp_buf, ' ');	/* these two print the top n' bottom */
+	printw("%*c", COLS, ' ');	/* these two print the top n' bottom */
 	move(LINES - 1, 0);
-	printw(sp_buf, ' ');	/* lines */
+	printw("%*c", COLS, ' ');	/* lines */
 
 	attrset(FIELDATTR);
 
 	for (row = 1; row <= LINES - 2; row++) {	/* draw the background */
 		move(row, 0);
-		printw(sp_buf, ' ');
+		printw("%*c", COLS, ' ');
 	}
 
 	refresh();
@@ -172,11 +170,8 @@ void tabkeyhelp(WINDOW * win)
 
 void indicate(char *message)
 {
-	char sp_buf[10];
-
 	attrset(STATUSBARATTR);
-	sprintf(sp_buf, "%%%dc", COLS);
-	mvprintw(LINES - 1, 0, sp_buf, ' ');
+	mvprintw(LINES - 1, 0, "%*c", COLS, ' ');
 	mvprintw(LINES - 1, 1, message);
 	refresh();
 }

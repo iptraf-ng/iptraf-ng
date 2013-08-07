@@ -50,13 +50,11 @@ void tx_wcoloreol(WINDOW * win)
 	int x, curx;
 	int y __unused;
 	int cury __unused;
-	char sp_buf[10];
 
 	getyx(win, cury, curx);
 	getmaxyx(win, y, x);
-	sprintf(sp_buf, "%%%dc", x - curx - 1);
 	scrollok(win, 0);
-	wprintw(win, sp_buf, ' ');
+	wprintw(win, "%*c", x - curx - 1, ' ');
 }
 
 /*

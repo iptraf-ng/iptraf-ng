@@ -341,7 +341,6 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 	char additional[MSGSTRING_MAX];
 	char msgstring[MSGSTRING_MAX];
 	char scratchpad[MSGSTRING_MAX];
-	char sp_buf[SHORTSTRING_MAX];
 	char *startstr;
 
 	char *packet_type;
@@ -353,8 +352,6 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 	unsigned int unknown = 0;
 
 	struct protoent *protptr;
-
-	sprintf(sp_buf, "%%%dc", COLS - 2);
 
 	wmove(table->borderwin, table->obmaxy - 1, 1);
 	if ((table->lastvisible == table->tail) && (table->htstat != TIND)
@@ -370,7 +367,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 		wmove(table->othpwin, target_row, 0);
 		scrollok(table->othpwin, 0);
 		wattrset(table->othpwin, UNKNATTR);
-		wprintw(table->othpwin, sp_buf, ' ');
+		wprintw(table->othpwin, "%*c", COLS - 2, ' ');
 		scrollok(table->othpwin, 1);
 		wmove(table->othpwin, target_row, 1);
 
@@ -726,7 +723,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 
 	wmove(table->othpwin, target_row, 0);
 	scrollok(table->othpwin, 0);
-	wprintw(table->othpwin, sp_buf, ' ');
+	wprintw(table->othpwin, "%*c", COLS - 2, ' ');
 	scrollok(table->othpwin, 1);
 	wmove(table->othpwin, target_row, 1);
 	startstr = msgstring + table->strindex;

@@ -469,9 +469,6 @@ static void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
 
 static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 {
-	char sp_buf[10];
-
-	sprintf(sp_buf, "%%%dc", COLS - 2);
 	wattrset(table->tabwin, STDATTR);
 	if (direction == SCROLLUP) {
 		if (table->lastvisible != table->tail) {
@@ -481,7 +478,7 @@ static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 			(*idx)++;
 			wmove(table->tabwin, LINES - 5, 0);
 			scrollok(table->tabwin, 0);
-			wprintw(table->tabwin, sp_buf, ' ');
+			wprintw(table->tabwin, "%*c", COLS - 2, ' ');
 			scrollok(table->tabwin, 1);
 			printethent(table, table->lastvisible, *idx);
 			if (table->lastvisible->type == 1)
@@ -495,7 +492,7 @@ static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 			table->firstvisible = table->firstvisible->prev_entry;
 			(*idx)--;
 			wmove(table->tabwin, 0, 0);
-			wprintw(table->tabwin, sp_buf, ' ');
+			wprintw(table->tabwin, "%*c", COLS - 2, ' ');
 			printethent(table, table->firstvisible, *idx);
 			if (table->firstvisible->type == 1)
 				printrates(table, 0, table->firstvisible);
