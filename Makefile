@@ -18,7 +18,7 @@ VERSION-FILE: FORCE
 	@$(SHELL_PATH) ./GEN-VERSION-FILE
 -include VERSION-FILE
 
-CFLAGS = -g -O2 -Wall -W -std=gnu99
+CFLAGS = -g -O2 -Wall -W -std=gnu99 -Werror=format-security
 LDFLAGS =
 ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS)
 ALL_LDFLAGS = $(LDFLAGS)

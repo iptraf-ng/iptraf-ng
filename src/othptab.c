@@ -407,7 +407,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 				break;
 			}
 
-			sprintf(scratchpad, rarp_mac_addr);
+			sprintf(scratchpad, "%s", rarp_mac_addr);
 			strcat(msgstring, scratchpad);
 			wattrset(table->othpwin, ARPATTR);
 			break;
@@ -482,7 +482,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 		wattrset(table->othpwin, UNKNIPATTR);
 		protptr = getprotobynumber(entry->protocol);
 		if (protptr != NULL) {
-			sprintf(protname, protptr->p_aliases[0]);
+			sprintf(protname, "%s", protptr->p_aliases[0]);
 		} else {
 			sprintf(protname, "IP protocol");
 			unknown = 1;
