@@ -126,6 +126,15 @@ static int ifinlist(struct iflist *list, char *ifname)
 	return result;
 }
 
+static struct iflist *alloc_iflist_entry(void)
+{
+	struct iflist *tmp = xmallocz(sizeof(struct iflist));
+
+	rate_alloc(&tmp->rate, 5);
+
+	return tmp;
+}
+
 /*
  * Initialize the list of interfaces.  This linked list is used in the
  * selection boxes as well as in the general interface statistics screen.
@@ -171,10 +180,9 @@ static void initiflist(struct iflist **list)
 		 * At this point, the interface is now sure to be up and running.
 		 */
 
-		struct iflist *itmp = xmallocz(sizeof(struct iflist));
-		strcpy(itmp->ifname, ifname);
+		struct iflist *itmp = alloc_iflist_entry();
 		itmp->ifindex = ifindex;
-		rate_alloc(&itmp->rate, 5);
+		strcpy(itmp->ifname, ifname);
 
 		/* make the linked list sorted by ifindex */
 		struct iflist *cur = *list, *last = NULL;
@@ -211,7 +219,7 @@ static struct iflist *positionptr(struct iflist *iflist, const int ifindex)
 	}
 	/* no interface was found, try to create new one */
 	if (ptmp == NULL) {
-		struct iflist *itmp = xmallocz(sizeof(struct iflist));
+		struct iflist *itmp = alloc_iflist_entry();
 		itmp->ifindex = ifindex;
 		itmp->index = last->index + 1;
 		int r = dev_get_ifname(ifindex, itmp->ifname);
