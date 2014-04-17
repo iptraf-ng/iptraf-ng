@@ -218,7 +218,7 @@ ifdef NEEDS_NCURSESW5
 	NCURSES_CFLAGS := $(shell ncursesw5-config --cflags 2>/dev/null)
 	NCURSES_LDFLAGS := $(shell ncursesw5-config --libs 2>/dev/null)
 	ifndef NO_PANEL
-		NCURSES_LDFLAGS += -lpanel
+		NCURSES_LDFLAGS += -lpanelw
 	endif
 endif
 endif
@@ -238,7 +238,7 @@ ifdef NEEDS_NCURSESW6
 	NCURSES_CFLAGS := $(shell ncursesw6-config --cflags 2>/dev/null)
 	NCURSES_LDFLAGS := $(shell ncursesw6-config --libs 2>/dev/null)
 	ifndef NO_PANEL
-		NCURSES_LDFLAGS += -lpanel
+		NCURSES_LDFLAGS += -lpanelw
 	endif
 endif
 endif
@@ -248,21 +248,27 @@ ifndef NCURSES_LDFLAGS
 	ifneq ($(shell ncursesw6-config --libs 2>/dev/null),)
 		NCURSES_CFLAGS := $(shell ncursesw6-config --cflags 2>/dev/null)
 		NCURSES_LDFLAGS := $(shell ncursesw6-config --libs 2>/dev/null)
+		ifndef NO_PANEL
+			NCURSES_LDFLAGS += -lpanelw
+		endif
 	else ifneq ($(shell ncurses6-config --libs 2>/dev/null),)
 		NCURSES_CFLAGS := $(shell ncurses6-config --cflags 2>/dev/null)
 		NCURSES_LDFLAGS := $(shell ncurses6-config --libs 2>/dev/null)
+		ifndef NO_PANEL
+			NCURSES_LDFLAGS += -lpanel
+		endif
 	else ifneq ($(shell ncursesw5-config --libs 2>/dev/null),)
 		NCURSES_CFLAGS := $(shell ncursesw5-config --cflags 2>/dev/null)
 		NCURSES_LDFLAGS := $(shell ncursesw5-config --libs 2>/dev/null)
+		ifndef NO_PANEL
+			NCURSES_LDFLAGS += -lpanelw
+		endif
 	else ifneq ($(shell ncurses5-config --libs 2>/dev/null),)
 		NCURSES_CFLAGS := $(shell ncurses5-config --cflags 2>/dev/null)
 		NCURSES_LDFLAGS := $(shell ncurses5-config --libs 2>/dev/null)
-	endif
-
-	ifneq ($(NCURSES_LDFLAGS),)
-	ifndef NO_PANEL
-		NCURSES_LDFLAGS += -lpanel
-	endif
+		ifndef NO_PANEL
+			NCURSES_LDFLAGS += -lpanel
+		endif
 	endif
 endif
 
