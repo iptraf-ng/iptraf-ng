@@ -49,9 +49,6 @@ static int verify_ipv4_hdr_chksum(struct iphdr *ip)
 		len -= 2;
 	}
 
-	if (len > 0)
-		sum += *(unsigned char *) addr;
-
 	while (sum >> 16)
 		sum = (sum & 0xffff) + (sum >> 16);
 
