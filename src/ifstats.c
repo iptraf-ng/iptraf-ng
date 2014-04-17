@@ -231,20 +231,14 @@ static struct iflist *positionptr(struct iflist *iflist, const int ifindex)
 
 static void destroyiflist(struct iflist *list)
 {
-	struct iflist *ctmp;
-	struct iflist *ptmp;
+	struct iflist *ptmp = list;
 
-	if (list != NULL) {
-		ptmp = list;
-		ctmp = ptmp->next_entry;
+	while (ptmp != NULL) {
+		struct iflist *ctmp = ptmp->next_entry;
 
-		do {
-			rate_destroy(&ptmp->rate);
-			free(ptmp);
-			ptmp = ctmp;
-			if (ctmp != NULL)
-				ctmp = ctmp->next_entry;
-		} while (ptmp != NULL);
+		rate_destroy(&ptmp->rate);
+		free(ptmp);
+		ptmp = ctmp;
 	}
 }
 
