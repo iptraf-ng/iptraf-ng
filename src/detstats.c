@@ -253,8 +253,6 @@ void detstats(char *iface, time_t facilitytime)
 	WINDOW *statwin;
 	PANEL *statpanel;
 
-	int pkt_result = 0;
-
 	FILE *logfile = NULL;
 
 	unsigned int iplen = 0;
@@ -518,14 +516,18 @@ void detstats(char *iface, time_t facilitytime)
 
 		int outgoing;
 
-		pkt_result =
-			packet_process(&pkt, NULL, NULL, NULL,
-				       MATCH_OPPOSITE_USECONFIG,
-				       options.v6inv4asv6);
+		int pkt_result = packet_process(&pkt, NULL, NULL, NULL,
+						MATCH_OPPOSITE_USECONFIG,
+						options.v6inv4asv6);
 
-		if (pkt_result != PACKET_OK
-		    && pkt_result != MORE_FRAGMENTS)
+		switch (pkt_result) {
+		case PACKET_OK:			/* we only handle these */
+		case MORE_FRAGMENTS:
+		case CHECKSUM_ERROR:
+			break;
+		default:			/* drop others */
 			continue;
+		}
 
 		outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
 		update_proto_counter(&ifcounts.total, outgoing, pkt.pkt_len);

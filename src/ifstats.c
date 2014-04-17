@@ -411,8 +411,6 @@ void ifstats(time_t facilitytime)
 	int logging = options.logging;
 	struct iftab table;
 
-	int pkt_result = 0;
-
 	struct iflist *ptmp = NULL;
 
 	FILE *logfile = NULL;
@@ -570,13 +568,18 @@ void ifstats(time_t facilitytime)
 		if (pkt.pkt_len <= 0)
 			continue;
 
-		pkt_result = packet_process(&pkt, NULL, NULL, NULL,
-					   MATCH_OPPOSITE_USECONFIG,
-					   options.v6inv4asv6);
+		int pkt_result = packet_process(&pkt, NULL, NULL, NULL,
+						MATCH_OPPOSITE_USECONFIG,
+						options.v6inv4asv6);
 
-		if (pkt_result != PACKET_OK
-		    && pkt_result != MORE_FRAGMENTS)
+		switch (pkt_result) {
+		case PACKET_OK:			/* we only handle these */
+		case MORE_FRAGMENTS:
+		case CHECKSUM_ERROR:
+			break;
+		default:			/* drop others */
 			continue;
+		}
 
 		ptmp = positionptr(table.head, pkt.pkt_ifindex);
 		if (!ptmp)
