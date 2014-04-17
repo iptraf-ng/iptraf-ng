@@ -143,7 +143,9 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 		ss = poll(pfds, nfds, DEFAULT_UPDATE_DELAY);
 	} while ((ss == -1) && (errno == EINTR));
 
-	PACKET_INIT_STRUCT(pkt);
+	/* no packet ready yet */
+	pkt->pkt_len = 0;
+
 	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
 		struct sockaddr_ll from;
 		struct iovec iov;
