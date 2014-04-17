@@ -427,9 +427,7 @@ int main(int argc, char **argv)
 
 
 	if (create_pidfile() < 0)
-		goto cleanup;
-
-	int pidfile_created = 1;
+		goto bailout;
 
 	/*
 	 * If a facility is directly invoked from the command line, check for
@@ -537,8 +535,7 @@ int main(int argc, char **argv)
 	endwin();
 
 cleanup:
-	if (pidfile_created)
-		unlink(IPTRAF_PIDFILE);
-
+	unlink(IPTRAF_PIDFILE);
+bailout:
 	return 0;
 }
