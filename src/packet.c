@@ -212,7 +212,7 @@ again:
 			 * Process TCP/UDP fragments
 			 */
 			if ((ntohs(ip->frag_off) & 0x3fff) != 0) {
-				int firstin;
+				int firstin = 0;
 
 				/*
 				 * total_br contains total byte count of all fragments
