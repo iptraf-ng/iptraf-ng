@@ -38,12 +38,14 @@ packet.c - routines to open the raw socket, read socket data and
 		pkt_cast_hdrp_l3off_t(hdr, pkt, 0)
 
 /* code taken from http://www.faqs.org/rfcs/rfc1071.html. See section 4.1 "C"  */
-static int in_cksum(u_short * addr, int len)
+static int verify_ipv4_hdr_chksum(struct iphdr *ip)
 {
 	register int sum = 0;
+	u_short *addr = (u_short *)ip;
+	int len = ip->ihl * 4;
 
 	while (len > 1) {
-		sum += *(u_short *) addr++;
+		sum += *addr++;
 		len -= 2;
 	}
 
@@ -53,7 +55,7 @@ static int in_cksum(u_short * addr, int len)
 	while (sum >> 16)
 		sum = (sum & 0xffff) + (sum >> 16);
 
-	return (u_short) (~sum);
+	return ((u_short) ~sum) == 0;
 }
 
 static int packet_adjust(struct pkt_hdr *pkt)
@@ -198,19 +200,9 @@ again:
 	switch (pkt->pkt_protocol) {
 	case ETH_P_IP: {
 		struct iphdr *ip = pkt->iphdr;
-		int hdr_check;
-		register int ip_checksum;
 		in_port_t f_sport = 0, f_dport = 0;
 
-		/*
-		 * Compute and verify IP header checksum.
-		 */
-
-		ip_checksum = ip->check;
-		ip->check = 0;
-		hdr_check = in_cksum((u_short *) pkt->iphdr, pkt_iph_len(pkt));
-
-		if ((hdr_check != ip_checksum))
+		if (!verify_ipv4_hdr_chksum(ip))
 			return CHECKSUM_ERROR;
 
 		if ((ip->protocol == IPPROTO_TCP || ip->protocol == IPPROTO_UDP)
