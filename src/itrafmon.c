@@ -588,6 +588,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	int fd;
 
+	struct pkt_hdr pkt;
+
 	int ch;
 	int keymode = 0;
 	char msgstring[80];
@@ -692,7 +694,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	updtime = tv;
 	starttime = timeint = closedint = tv.tv_sec;
 
-	PACKET_INIT(pkt);
+	packet_init(&pkt);
 
 	while (!exitloop) {
 		char ifnamebuf[IFNAMSIZ];

@@ -758,6 +758,8 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	int fd;
 
+	struct pkt_hdr pkt;
+
 	if (ifptr && !dev_up(ifptr)) {
 		err_iface_down();
 		return;
@@ -821,7 +823,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 	updtime = tv;
 	statbegin = startlog = tv.tv_sec;
 
-	PACKET_INIT(pkt);
+	packet_init(&pkt);
 
 	do {
 		gettimeofday(&tv, NULL);

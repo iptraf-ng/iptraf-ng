@@ -329,6 +329,19 @@ again:
 	return PACKET_OK;
 }
 
+int packet_init(struct pkt_hdr *pkt)
+{
+	pkt->pkt_bufsize	= MAX_PACKET_SIZE;
+	pkt->pkt_payload	= NULL;
+	pkt->ethhdr		= NULL;
+	pkt->fddihdr		= NULL;
+	pkt->iphdr		= NULL;
+	pkt->ip6_hdr		= NULL;
+	pkt->pkt_len		= 0;	/* signalize we have no packet prepared */
+
+	return 0;	/* all O.K. */
+}
+
 void pkt_cleanup(void)
 {
 	destroyfraglist();

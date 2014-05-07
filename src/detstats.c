@@ -290,6 +290,8 @@ void detstats(char *iface, time_t facilitytime)
 
 	int fd;
 
+	struct pkt_hdr pkt;
+
 	if (!dev_up(iface)) {
 		err_iface_down();
 		return;
@@ -378,7 +380,7 @@ void detstats(char *iface, time_t facilitytime)
 
 	exitloop = 0;
 
-	PACKET_INIT(pkt);
+	packet_init(&pkt);
 
 	/*
 	 * Data-gathering loop

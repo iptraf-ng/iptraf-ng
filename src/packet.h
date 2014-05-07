@@ -38,21 +38,6 @@ struct pkt_hdr {
 	char		pkt_buf[MAX_PACKET_SIZE];
 };
 
-static inline void PACKET_INIT_STRUCT(struct pkt_hdr *p)
-{
-	p->pkt_bufsize	= MAX_PACKET_SIZE;
-	p->pkt_payload	= NULL;
-	p->ethhdr	= NULL;
-	p->fddihdr	= NULL;
-	p->iphdr	= NULL;
-	p->ip6_hdr	= NULL;
-	p->pkt_len	= 0;	/* signalize we have no packet prepared */
-}
-
-#define PACKET_INIT(packet)					\
-	struct pkt_hdr packet;					\
-	PACKET_INIT_STRUCT(&packet)
-
 static inline __u8 pkt_iph_len(const struct pkt_hdr *pkt)
 {
 	switch (pkt->pkt_protocol) {
@@ -80,6 +65,7 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win);
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   in_port_t *sport, in_port_t *dport,
 		   int match_opposite, int v6inv4asv6);
+int packet_init(struct pkt_hdr *pkt);
 void pkt_cleanup(void);
 
 #endif	/* IPTRAF_NG_PACKET_H */

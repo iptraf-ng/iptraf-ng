@@ -427,6 +427,8 @@ void ifstats(time_t facilitytime)
 
 	int fd;
 
+	struct pkt_hdr pkt;
+
 	struct timeval tv;
 	time_t starttime = 0;
 	time_t statbegin = 0;
@@ -491,7 +493,7 @@ void ifstats(time_t facilitytime)
 	updtime = tv;
 	starttime = startlog = statbegin = tv.tv_sec;
 
-	PACKET_INIT(pkt);
+	packet_init(&pkt);
 
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);

@@ -769,6 +769,8 @@ void servmon(char *ifname, time_t facilitytime)
 
 	struct porttab *ports;
 
+	struct pkt_hdr pkt;
+
 	if (!dev_up(ifname)) {
 		err_iface_down();
 		return;
@@ -842,7 +844,7 @@ void servmon(char *ifname, time_t facilitytime)
 		goto err_close;
 	}
 
-	PACKET_INIT(pkt);
+	packet_init(&pkt);
 
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);

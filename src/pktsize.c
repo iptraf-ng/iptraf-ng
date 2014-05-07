@@ -164,6 +164,8 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	int fd;
 
+	struct pkt_hdr pkt;
+
 	if (!dev_up(ifname)) {
 		err_iface_down();
 		goto err_unmark;
@@ -249,7 +251,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		goto err_close;
 	}
 
-	PACKET_INIT(pkt);
+	packet_init(&pkt);
 
 	do {
 		gettimeofday(&tv, NULL);
