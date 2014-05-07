@@ -92,8 +92,8 @@ void init_othp_table(struct othptable *table)
 	unsigned int wintop;
 	unsigned int obmaxx __unused;
 
-	winht = LINES - (LINES * 0.6) - 2;
 	wintop = (LINES * 0.6) + 1;
+	winht = LINES - wintop - 2;
 
 	table->count = 0;
 	table->lastpos = 0;
