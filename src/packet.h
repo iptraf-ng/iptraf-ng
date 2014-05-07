@@ -33,6 +33,7 @@ struct pkt_hdr {
 	unsigned char	pkt_addr[8];	/* Physical layer address */
 
 	struct iovec	iov;
+	struct sockaddr_ll *from;
 
 	struct ethhdr  *ethhdr;
 	struct fddihdr *fddihdr;

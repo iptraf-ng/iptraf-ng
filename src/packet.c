@@ -147,11 +147,10 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 	pkt->pkt_len = 0;
 
 	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
-		struct sockaddr_ll from;
 		struct msghdr msg;
 
-		msg.msg_name = &from;
-		msg.msg_namelen = sizeof(from);
+		msg.msg_name = pkt->from;
+		msg.msg_namelen = sizeof(*pkt->from);
 		msg.msg_iov = &pkt->iov;
 		msg.msg_iovlen = 1;
 		msg.msg_control = NULL;
@@ -165,10 +164,10 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 			if (pkt->pkt_caplen > pkt->pkt_bufsize)
 				pkt->pkt_caplen = pkt->pkt_bufsize;
 			pkt->pkt_payload = NULL;
-			pkt->pkt_protocol = ntohs(from.sll_protocol);
-			pkt->pkt_ifindex = from.sll_ifindex;
-			pkt->pkt_hatype = from.sll_hatype;
-			pkt->pkt_pkttype = from.sll_pkttype;
+			pkt->pkt_protocol = ntohs(pkt->from->sll_protocol);
+			pkt->pkt_ifindex = pkt->from->sll_ifindex;
+			pkt->pkt_hatype = pkt->from->sll_hatype;
+			pkt->pkt_pkttype = pkt->from->sll_pkttype;
 		} else
 			ss = len;
 	}
@@ -338,10 +337,15 @@ int packet_init(struct pkt_hdr *pkt)
 	pkt->iov.iov_len	= pkt->pkt_bufsize;
 	pkt->iov.iov_base	= pkt->pkt_buf;
 
+	pkt->from		= xmallocz(sizeof(*pkt->from));
+
 	return 0;	/* all O.K. */
 }
 
 void packet_destroy(struct pkt_hdr *pkt)
 {
+	free(pkt->from);
+	pkt->from = NULL;
+
 	destroyfraglist();
 }
