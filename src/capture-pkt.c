@@ -69,6 +69,8 @@ int cmd_capture(int argc, char **argv)
 	}
 	printf("\n");
 
+	packet_destroy(&pkt);
+
 	close(fd);
 
 	if (fp)

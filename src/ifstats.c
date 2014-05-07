@@ -636,7 +636,7 @@ err:
 		fclose(logfile);
 	}
 	destroyiflist(table.head);
-	pkt_cleanup();
+	packet_destroy(&pkt);
 	strcpy(current_logfile, "");
 }
 

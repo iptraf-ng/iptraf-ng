@@ -318,6 +318,8 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		update_size_distrib(pkt.pkt_len, brackets, interval);
 	} while (!exitloop);
 
+	packet_destroy(&pkt);
+
 err_close:
 	close(fd);
 err:

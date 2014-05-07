@@ -342,7 +342,7 @@ int packet_init(struct pkt_hdr *pkt)
 	return 0;	/* all O.K. */
 }
 
-void pkt_cleanup(void)
+void packet_destroy(struct pkt_hdr *pkt)
 {
 	destroyfraglist();
 }

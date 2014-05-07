@@ -616,7 +616,7 @@ err:
 	del_panel(statpanel);
 	delwin(statwin);
 	strcpy(current_logfile, "");
-	pkt_cleanup();
+	packet_destroy(&pkt);
 	update_panels();
 	doupdate();
 }

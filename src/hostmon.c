@@ -1017,6 +1017,8 @@ err:
 	doupdate();
 	destroyethtab(&table);
 
+	packet_destroy(&pkt);
+
 	free_eth_desc(elist);
 	free_eth_desc(flist);
 

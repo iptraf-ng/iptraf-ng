@@ -1069,7 +1069,7 @@ err:
 	doupdate();
 	destroyportlist(&list);
 	destroyporttab(ports);
-	pkt_cleanup();
+	packet_destroy(&pkt);
 	strcpy(current_logfile, "");
 }
 

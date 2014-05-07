@@ -66,6 +66,6 @@ int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   in_port_t *sport, in_port_t *dport,
 		   int match_opposite, int v6inv4asv6);
 int packet_init(struct pkt_hdr *pkt);
-void pkt_cleanup(void);
+void packet_destroy(struct pkt_hdr *pkt);
 
 #endif	/* IPTRAF_NG_PACKET_H */

@@ -1178,7 +1178,7 @@ err:
 	delwin(statwin);
 	destroytcptable(&table);
 	destroyothptable(&othptbl);
-	pkt_cleanup();
+	packet_destroy(&pkt);
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
