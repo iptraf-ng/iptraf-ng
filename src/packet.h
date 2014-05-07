@@ -21,6 +21,7 @@ packet.h - external declarations for packet.c
 #define MORE_FRAGMENTS 4
 
 struct pkt_hdr {
+	char	       *pkt_buf;
 	size_t		pkt_bufsize;
 	char	       *pkt_payload;
 	size_t		pkt_caplen;	/* bytes captured */
@@ -35,7 +36,6 @@ struct pkt_hdr {
 	struct fddihdr *fddihdr;
 	struct iphdr   *iphdr;
 	struct ip6_hdr *ip6_hdr;
-	char		pkt_buf[MAX_PACKET_SIZE];
 };
 
 static inline __u8 pkt_iph_len(const struct pkt_hdr *pkt)

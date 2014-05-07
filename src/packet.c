@@ -319,6 +319,7 @@ again:
 
 int packet_init(struct pkt_hdr *pkt)
 {
+	pkt->pkt_buf		= xmallocz(MAX_PACKET_SIZE);
 	pkt->pkt_bufsize	= MAX_PACKET_SIZE;
 	pkt->pkt_payload	= NULL;
 	pkt->ethhdr		= NULL;
@@ -349,6 +350,9 @@ void packet_destroy(struct pkt_hdr *pkt)
 
 	free(pkt->from);
 	pkt->from = NULL;
+
+	free(pkt->pkt_buf);
+	pkt->pkt_buf = NULL;
 
 	destroyfraglist();
 }
