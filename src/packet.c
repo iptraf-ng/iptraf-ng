@@ -59,7 +59,7 @@ static int packet_adjust(struct pkt_hdr *pkt)
 {
 	int retval = 0;
 
-	switch (pkt->pkt_hatype) {
+	switch (pkt->from->sll_hatype) {
 	case ARPHRD_ETHER:
 	case ARPHRD_LOOPBACK:
 		pkt_cast_hdrp_l2(ethhdr, pkt);
@@ -161,9 +161,6 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 				pkt->pkt_caplen = pkt->pkt_bufsize;
 			pkt->pkt_payload = NULL;
 			pkt->pkt_protocol = ntohs(pkt->from->sll_protocol);
-			pkt->pkt_ifindex = pkt->from->sll_ifindex;
-			pkt->pkt_hatype = pkt->from->sll_hatype;
-			pkt->pkt_pkttype = pkt->from->sll_pkttype;
 		} else
 			ss = len;
 	}

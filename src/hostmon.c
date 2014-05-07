@@ -922,7 +922,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 			/* we're capturing on "All interfaces", */
 			/* so get the name of the interface */
 			/* of this packet */
-			int r = dev_get_ifname(pkt.pkt_ifindex, ifnamebuf);
+			int r = dev_get_ifname(pkt.from->sll_ifindex, ifnamebuf);
 			if (r != 0) {
 				write_error("Unable to get interface name");
 				break;	/* can't get interface name, get out! */
@@ -931,7 +931,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 		}
 
 		/* get HW addresses */
-		switch (pkt.pkt_hatype) {
+		switch (pkt.from->sll_hatype) {
 		case ARPHRD_ETHER: {
 			memcpy(scratch_saddr, pkt.ethhdr->h_source, ETH_ALEN);
 			memcpy(scratch_daddr, pkt.ethhdr->h_dest, ETH_ALEN);
@@ -958,11 +958,11 @@ void hostmon(time_t facilitytime, char *ifptr)
 		}
 
 		/* Check source address entry */
-		entry = in_ethtable(&table, pkt.pkt_hatype,
+		entry = in_ethtable(&table, pkt.from->sll_hatype,
 				    scratch_saddr);
 
 		if (!entry)
-			entry = addethentry(&table, pkt.pkt_hatype,
+			entry = addethentry(&table, pkt.from->sll_hatype,
 					    ifname, scratch_saddr, list);
 
 		if (entry != NULL) {
@@ -975,10 +975,10 @@ void hostmon(time_t facilitytime, char *ifptr)
 		}
 
 		/* Check destination address entry */
-		entry = in_ethtable(&table, pkt.pkt_hatype,
+		entry = in_ethtable(&table, pkt.from->sll_hatype,
 				    scratch_daddr);
 		if (!entry)
-			entry = addethentry(&table, pkt.pkt_hatype,
+			entry = addethentry(&table, pkt.from->sll_hatype,
 					    ifname, scratch_daddr, list);
 
 		if (entry != NULL) {

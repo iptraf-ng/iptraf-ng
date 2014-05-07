@@ -964,7 +964,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			/* we're capturing on "All interfaces", */
 			/* so get the name of the interface */
 			/* of this packet */
-			int r = dev_get_ifname(pkt.pkt_ifindex, ifnamebuf);
+			int r = dev_get_ifname(pkt.from->sll_ifindex, ifnamebuf);
 			if (r != 0) {
 				write_error("Unable to get interface name");
 				break;          /* error getting interface name, get out! */
@@ -1052,13 +1052,13 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				if (pkt.iphdr)
 					updateentry(&table, tcpentry, transpacket,
-						    pkt.pkt_buf, pkt.pkt_hatype,
+						    pkt.pkt_buf, pkt.from->sll_hatype,
 						    pkt.pkt_len, br, pkt.iphdr->frag_off,
 						    logging, &revlook, rvnfd,
 						    logfile);
 				else
 					updateentry(&table, tcpentry, transpacket,
-						    pkt.pkt_buf, pkt.pkt_hatype,
+						    pkt.pkt_buf, pkt.from->sll_hatype,
 						    pkt.pkt_len, pkt.pkt_len, 0, logging,
 						    &revlook, rvnfd,
 						    logfile);

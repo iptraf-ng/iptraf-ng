@@ -591,7 +591,7 @@ void ifstats(time_t facilitytime)
 			continue;
 		}
 
-		ptmp = positionptr(table.head, pkt.pkt_ifindex);
+		ptmp = positionptr(table.head, pkt.from->sll_ifindex);
 		if (!ptmp)
 			continue;
 

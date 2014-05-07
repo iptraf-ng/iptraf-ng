@@ -531,9 +531,9 @@ void detstats(char *iface, time_t facilitytime)
 			continue;
 		}
 
-		outgoing = (pkt.pkt_pkttype == PACKET_OUTGOING);
+		outgoing = (pkt.from->sll_pkttype == PACKET_OUTGOING);
 		update_proto_counter(&ifcounts.total, outgoing, pkt.pkt_len);
-		if (pkt.pkt_pkttype == PACKET_BROADCAST) {
+		if (pkt.from->sll_pkttype == PACKET_BROADCAST) {
 			update_proto_counter(&ifcounts.bcast, outgoing, pkt.pkt_len);
 			update_pkt_counter(&span_bcast, pkt.pkt_len);
 		}

@@ -182,10 +182,10 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 	new_entry->fragment = fragment;
 
 	if (options.mac || !is_ip) {
-		if (pkt->pkt_hatype == ARPHRD_ETHER) {
+		if (pkt->from->sll_hatype == ARPHRD_ETHER) {
 			convmacaddr((char *) pkt->ethhdr->h_source, new_entry->smacaddr);
 			convmacaddr((char *) pkt->ethhdr->h_dest, new_entry->dmacaddr);
-		} else if (pkt->pkt_hatype == ARPHRD_FDDI) {
+		} else if (pkt->from->sll_hatype == ARPHRD_FDDI) {
 			convmacaddr((char *) pkt->fddihdr->saddr, new_entry->smacaddr);
 			convmacaddr((char *) pkt->fddihdr->daddr, new_entry->dmacaddr);
 		}
@@ -231,7 +231,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 			}
 		}
 	} else {
-		new_entry->linkproto = pkt->pkt_hatype;
+		new_entry->linkproto = pkt->from->sll_hatype;
 
 		if (protocol == ETH_P_ARP) {
 			new_entry->un.arp.opcode =

@@ -25,12 +25,7 @@ struct pkt_hdr {
 	char	       *pkt_payload;
 	size_t		pkt_caplen;	/* bytes captured */
 	size_t		pkt_len;	/* bytes on-the-wire */
-	int		pkt_ifindex;	/* Interface number */
 	unsigned short	pkt_protocol;	/* Physical layer protocol: ETH_P_* */
-	unsigned short	pkt_hatype;	/* Header type: ARPHRD_* */
-	unsigned char	pkt_pkttype;	/* Packet type: PACKET_OUTGOING, PACKET_BROADCAST, ... */
-	unsigned char	pkt_halen;	/* Length of address */
-	unsigned char	pkt_addr[8];	/* Physical layer address */
 
 	struct iovec	iov;
 	struct sockaddr_ll *from;
