@@ -729,6 +729,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		 */
 
 		if (screen_update_needed(&tv, &updtime)) {
+			show_stats(statwin, total_pkts);
 			update_panels();
 			doupdate();
 
@@ -950,7 +951,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 			continue;
 
 		total_pkts++;
-		show_stats(statwin, total_pkts);
 
 		pkt_result =
 		    packet_process(&pkt, &br, &sport, &dport,
