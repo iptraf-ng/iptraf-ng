@@ -31,6 +31,9 @@ struct pkt_hdr {
 	unsigned char	pkt_pkttype;	/* Packet type: PACKET_OUTGOING, PACKET_BROADCAST, ... */
 	unsigned char	pkt_halen;	/* Length of address */
 	unsigned char	pkt_addr[8];	/* Physical layer address */
+
+	struct iovec	iov;
+
 	struct ethhdr  *ethhdr;
 	struct fddihdr *fddihdr;
 	struct iphdr   *iphdr;

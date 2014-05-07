@@ -148,15 +148,11 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 
 	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
 		struct sockaddr_ll from;
-		struct iovec iov;
 		struct msghdr msg;
-
-		iov.iov_len = pkt->pkt_bufsize;
-		iov.iov_base = pkt->pkt_buf;
 
 		msg.msg_name = &from;
 		msg.msg_namelen = sizeof(from);
-		msg.msg_iov = &iov;
+		msg.msg_iov = &pkt->iov;
 		msg.msg_iovlen = 1;
 		msg.msg_control = NULL;
 		msg.msg_controllen = 0;
@@ -338,6 +334,9 @@ int packet_init(struct pkt_hdr *pkt)
 	pkt->iphdr		= NULL;
 	pkt->ip6_hdr		= NULL;
 	pkt->pkt_len		= 0;	/* signalize we have no packet prepared */
+
+	pkt->iov.iov_len	= pkt->pkt_bufsize;
+	pkt->iov.iov_base	= pkt->pkt_buf;
 
 	return 0;	/* all O.K. */
 }
