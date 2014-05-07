@@ -172,9 +172,6 @@ static void initethtab(struct ethtab *table)
 	mvwprintw(table->borderwin, 0, 61 * COLS / 80, " BytesOut ");
 	mvwprintw(table->borderwin, 0, 70 * COLS / 80, " OutRate ");
 
-	mvwprintw(table->borderwin, LINES - 3, 40,
-		  " InRate and OutRate are in %s ", dispmode(options.actmode));
-
 	wattrset(table->tabwin, STDATTR);
 	tx_colorwin(table->tabwin);
 	tx_stdwinset(table->tabwin);
@@ -760,6 +757,8 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	struct pkt_hdr pkt;
 
+	unsigned long dropped = 0UL;
+
 	if (ifptr && !dev_up(ifptr)) {
 		err_iface_down();
 		return;
@@ -834,6 +833,8 @@ void hostmon(time_t facilitytime, char *ifptr)
 			printelapsedtime(statbegin, now, LINES - 3, 15,
 					 table.borderwin);
 			updateethrates(&table, msecs, idx);
+			dropped += packet_get_dropped(fd);
+			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
 			tv_rate = tv;
 		}
 		if (logging) {

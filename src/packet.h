@@ -67,5 +67,6 @@ int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   int match_opposite, int v6inv4asv6);
 int packet_init(struct pkt_hdr *pkt);
 void packet_destroy(struct pkt_hdr *pkt);
+unsigned int packet_get_dropped(int fd);
 
 #endif	/* IPTRAF_NG_PACKET_H */

@@ -767,6 +767,8 @@ void servmon(char *ifname, time_t facilitytime)
 
 	int fd;
 
+	unsigned long dropped = 0UL;
+
 	struct porttab *ports;
 
 	struct pkt_hdr pkt;
@@ -873,6 +875,8 @@ void servmon(char *ifname, time_t facilitytime)
 			if (list.barptr != NULL)
 				print_serv_rates(list.barptr, statwin);
 
+			dropped += packet_get_dropped(fd);
+			print_packet_drops(dropped, list.borderwin, LINES - 4, 49);
 			tv_rate = tv;
 		}
 

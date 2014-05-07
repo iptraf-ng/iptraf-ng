@@ -590,6 +590,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	struct pkt_hdr pkt;
 
+	unsigned long dropped = 0UL;
+
 	int ch;
 	int keymode = 0;
 	char msgstring[80];
@@ -751,6 +753,9 @@ void ipmon(time_t facilitytime, char *ifptr)
 					  "No TCP entries              ");
 			}
 			tv_rate = tv;
+
+			dropped += packet_get_dropped(fd);
+			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 49);
 		}
 
 		/*

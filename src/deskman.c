@@ -190,6 +190,12 @@ void printlargenum(unsigned long long i, WINDOW * win)
 		wprintw(win, "%8lluT", i / 1000000000000ULL);
 }
 
+void print_packet_drops(unsigned long count, WINDOW *win, int y, int x)
+{
+	wattrset(win, BOXATTR);
+	mvwprintw(win, y, x, " Dropped packets:  %lu ", count);
+}
+
 int screen_update_needed(const struct timeval *now, const struct timeval *last)
 {
 	unsigned long msecs = timeval_diff_msec(now, last);

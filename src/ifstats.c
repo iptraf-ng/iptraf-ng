@@ -363,9 +363,6 @@ static void initiftab(struct iftab *table)
 	wtimeout(table->statwin, -1);
 	wattrset(table->statwin, STDATTR);
 	tx_colorwin(table->statwin);
-	wattrset(table->statwin, BOXATTR);
-	mvwprintw(table->borderwin, LINES - 3, 32 * COLS / 80,
-		" Total, IP, NonIP, and BadIP are packet counts ");
 }
 
 /*
@@ -428,6 +425,8 @@ void ifstats(time_t facilitytime)
 	int fd;
 
 	struct pkt_hdr pkt;
+
+	unsigned long dropped = 0UL;
 
 	struct timeval tv;
 	time_t starttime = 0;
@@ -507,6 +506,8 @@ void ifstats(time_t facilitytime)
 			showrates(&table);
 			printelapsedtime(statbegin, now, LINES - 3, 1,
 					 table.borderwin);
+			dropped += packet_get_dropped(fd);
+			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
 			starttime = now;
 			start_tv = tv;
 		}

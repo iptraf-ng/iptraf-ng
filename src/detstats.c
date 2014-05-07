@@ -292,6 +292,8 @@ void detstats(char *iface, time_t facilitytime)
 
 	struct pkt_hdr pkt;
 
+	unsigned long dropped = 0UL;
+
 	if (!dev_up(iface)) {
 		err_iface_down();
 		return;
@@ -400,6 +402,9 @@ void detstats(char *iface, time_t facilitytime)
 
 			wattrset(statwin, BOXATTR);
 			printelapsedtime(statbegin, now, LINES - 3, 1, statwin);
+
+			dropped += packet_get_dropped(fd);
+			print_packet_drops(dropped, statwin, LINES - 3, 49);
 
 			msecs = timeval_diff_msec(&tv, &start_tv);
 

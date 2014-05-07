@@ -356,3 +356,16 @@ void packet_destroy(struct pkt_hdr *pkt)
 
 	destroyfraglist();
 }
+
+unsigned int packet_get_dropped(int fd)
+{
+	struct tpacket_stats stats;
+	socklen_t len = sizeof(stats);
+
+	memset(&stats, 0, len);
+	int err = getsockopt(fd, SOL_PACKET, PACKET_STATISTICS, &stats, &len);
+	if (err < 0)
+		die_errno("%s(): getsockopt(PACKET_STATISTICS)", __func__);
+
+	return stats.tp_drops;
+}
