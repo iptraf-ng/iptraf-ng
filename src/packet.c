@@ -147,17 +147,13 @@ int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 	pkt->pkt_len = 0;
 
 	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
-		struct msghdr msg;
 
-		msg.msg_name = pkt->from;
-		msg.msg_namelen = sizeof(*pkt->from);
-		msg.msg_iov = &pkt->iov;
-		msg.msg_iovlen = 1;
-		msg.msg_control = NULL;
-		msg.msg_controllen = 0;
-		msg.msg_flags = 0;
+		/* these are set upon return from recvmsg() so clean */
+		/* them beforehand */
+		pkt->msg->msg_controllen = 0;
+		pkt->msg->msg_flags = 0;
 
-		ssize_t len = recvmsg(fd, &msg, MSG_TRUNC | MSG_DONTWAIT);
+		ssize_t len = recvmsg(fd, pkt->msg, MSG_TRUNC | MSG_DONTWAIT);
 		if (len > 0) {
 			pkt->pkt_len = len;
 			pkt->pkt_caplen = len;
@@ -338,12 +334,22 @@ int packet_init(struct pkt_hdr *pkt)
 	pkt->iov.iov_base	= pkt->pkt_buf;
 
 	pkt->from		= xmallocz(sizeof(*pkt->from));
+	pkt->msg		= xmallocz(sizeof(*pkt->msg));
+
+	pkt->msg->msg_name	= pkt->from;
+	pkt->msg->msg_namelen	= sizeof(*pkt->from);
+	pkt->msg->msg_iov	= &pkt->iov;
+	pkt->msg->msg_iovlen	= 1;
+	pkt->msg->msg_control	= NULL;
 
 	return 0;	/* all O.K. */
 }
 
 void packet_destroy(struct pkt_hdr *pkt)
 {
+	free(pkt->msg);
+	pkt->msg = NULL;
+
 	free(pkt->from);
 	pkt->from = NULL;
 

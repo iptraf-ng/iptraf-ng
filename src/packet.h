@@ -34,6 +34,7 @@ struct pkt_hdr {
 
 	struct iovec	iov;
 	struct sockaddr_ll *from;
+	struct msghdr  *msg;
 
 	struct ethhdr  *ethhdr;
 	struct fddihdr *fddihdr;
