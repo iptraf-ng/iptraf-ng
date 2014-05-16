@@ -536,11 +536,10 @@ struct tcptableent *in_table(struct tcptable *table,
  * Update the TCP status record should an applicable packet arrive.
  */
 
-void updateentry(struct tcptable *table, struct tcptableent *tableentry,
-		 struct tcphdr *transpacket, char *packet, int linkproto,
-		 unsigned long packetlength, unsigned int bcount,
-		 unsigned int fragofs, int logging, int *revlook, int rvnfd,
-		 FILE *logfile)
+void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
+		 struct tcptableent *tableentry, struct tcphdr *transpacket,
+		 unsigned int bcount, unsigned int fragofs, int *revlook,
+		 int rvnfd, int logging, FILE *logfile)
 {
 	char msgstring[MSGSTRING_MAX];
 	char newmacaddr[18];
@@ -561,20 +560,16 @@ void updateentry(struct tcptable *table, struct tcptableent *tableentry,
 	}
 	tableentry->pcount++;
 	tableentry->bcount += bcount;
-	tableentry->psize = packetlength;
+	tableentry->psize = pkt->pkt_len;
 	tableentry->spanbr += bcount;
 
 	if (options.mac) {
 		memset(newmacaddr, 0, sizeof(newmacaddr));
 
-
-		/* change updateentry to take struct pkt to remove this */
-		if (linkproto == ARPHRD_ETHER) {
-			convmacaddr((char *) (((struct ethhdr *) packet)->
-					      h_source), newmacaddr);
-		} else if (linkproto == ARPHRD_FDDI) {
-			convmacaddr((char *) (((struct fddihdr *) packet)->
-					      saddr), newmacaddr);
+		if (pkt->from->sll_hatype == ARPHRD_ETHER) {
+			convmacaddr((char *) pkt->ethhdr->h_source, newmacaddr);
+		} else if (pkt->from->sll_hatype == ARPHRD_FDDI) {
+			convmacaddr((char *) pkt->fddihdr->saddr, newmacaddr);
 		}
 
 		if (tableentry->smacaddr[0] != '\0') {

@@ -1056,17 +1056,15 @@ void ipmon(time_t facilitytime, char *ifptr)
 				}
 
 				if (pkt.iphdr)
-					updateentry(&table, tcpentry, transpacket,
-						    pkt.pkt_buf, pkt.from->sll_hatype,
-						    pkt.pkt_len, br, pkt.iphdr->frag_off,
-						    logging, &revlook, rvnfd,
-						    logfile);
-				else
-					updateentry(&table, tcpentry, transpacket,
-						    pkt.pkt_buf, pkt.from->sll_hatype,
-						    pkt.pkt_len, pkt.pkt_len, 0, logging,
+					updateentry(&table, &pkt, tcpentry, transpacket,
+						    br, pkt.iphdr->frag_off,
 						    &revlook, rvnfd,
-						    logfile);
+						    logging, logfile);
+				else
+					updateentry(&table, &pkt, tcpentry, transpacket,
+						    pkt.pkt_len, 0,
+						    &revlook, rvnfd,
+						    logging, logfile);
 				/*
 				 * Log first packet of a TCP connection except if
 				 * it's a RST, which was already logged earlier in

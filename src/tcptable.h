@@ -7,6 +7,7 @@
 
 ***/
 
+#include "packet.h"
 #include "rate.h"
 
 /*
@@ -116,11 +117,10 @@ struct tcptableent *in_table(struct tcptable *table,
 			     char *ifname, int logging,
 			     FILE *logfile, time_t timeout);
 
-void updateentry(struct tcptable *table, struct tcptableent *tableentry,
-		 struct tcphdr *transpacket, char *packet, int linkproto,
-		 unsigned long packetlength, unsigned int bcount,
-		 unsigned int fragofs, int logging, int *revlook, int rvnfd,
-		 FILE *logfile);
+void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
+		 struct tcptableent *tableentry, struct tcphdr *transpacket,
+		 unsigned int bcount, unsigned int fragofs, int *revlook,
+		 int rvnfd, int logging, FILE *logfile);
 
 void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
