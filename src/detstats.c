@@ -563,7 +563,7 @@ void detstats(char *iface, time_t facilitytime)
 			update_proto_counter(&ifcounts.ipv6, outgoing, iplen);
 			break;
 		default:
-			update_proto_counter(&ifcounts.nonip, outgoing, iplen);
+			update_proto_counter(&ifcounts.nonip, outgoing, pkt.pkt_len);
 			continue;
 		}
 
