@@ -994,8 +994,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 		/* only when packets fragmented */
 		char *ip_payload = pkt.pkt_payload + pkt_iph_len(&pkt);
-		__u8 ip_protocol = pkt_ip_protocol(&pkt);
-		if (ip_protocol == IPPROTO_TCP) {
+		switch (pkt_ip_protocol(&pkt)) {
+		case IPPROTO_TCP: {
 			struct tcphdr *tcp = (struct tcphdr *)ip_payload;
 			sockaddr_set_port(&saddr, sport);
 			sockaddr_set_port(&daddr, dport);
@@ -1107,19 +1107,17 @@ void ipmon(time_t facilitytime, char *ifptr)
 					printentry(&table, tcpentry->oth_connection,
 						   screen_idx, mode);
 			}
-		} else if (pkt.iphdr) {
+			break; }
+		case IPPROTO_ICMP:
+		case IPPROTO_ICMPV6:
 			check_icmp_dest_unreachable(&table, &pkt, ifname);
+			/* print this ICMP(v6): fall through */
+		default:
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
 				       ip_payload, ifname,
 				       &revlook, rvnfd, logging, logfile);
-
-		} else {
-			check_icmp_dest_unreachable(&table, &pkt, ifname);
-			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
-				       IS_IP, pkt_ip_protocol(&pkt),
-				       ip_payload, ifname,
-				       &revlook, rvnfd, logging, logfile);
+			break;
 		}
 	}
 
