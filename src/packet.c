@@ -199,7 +199,7 @@ again:
 			/*
 			 * Process TCP/UDP fragments
 			 */
-			if ((ntohs(ip->frag_off) & 0x3fff) != 0) {
+			if (ipv4_is_fragmented(ip)) {
 				int firstin = 0;
 
 				/*

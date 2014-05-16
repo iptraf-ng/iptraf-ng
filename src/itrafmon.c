@@ -1115,7 +1115,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		} else if (pkt.iphdr) {
 			check_icmp_dest_unreachable(&table, &pkt, ifname);
 
-			fragment =  ((ntohs(pkt.iphdr->frag_off) & 0x1fff) != 0);
+			fragment = !ipv4_is_first_fragment(pkt.iphdr);
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
 				       ip_payload, ifname,

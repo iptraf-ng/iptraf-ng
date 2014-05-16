@@ -183,10 +183,10 @@ unsigned int processfragment(struct iphdr *packet, in_port_t *sport,
 	 */
 
 	dtmp = ftmp->fragdesclist;	/* Point to hole descriptors */
-	offset = (ntohs(packet->frag_off) & 0x1fff) * 8;
+	offset = ipv4_frag_offset(packet);
 	lastbyte = (offset + (ntohs(packet->tot_len) - (packet->ihl) * 4)) - 1;
 
-	if ((ntohs(packet->frag_off) & 0x1fff) == 0) {	/* first fragment? */
+	if (ipv4_is_first_fragment(packet)) {	/* first fragment? */
 		ftmp->firstin = 1;
 		tpacket = ((char *) (packet)) + (packet->ihl * 4);
 		if (packet->protocol == IPPROTO_TCP) {
@@ -235,7 +235,7 @@ unsigned int processfragment(struct iphdr *packet, in_port_t *sport,
 			ntmp->max = offset - 1;
 		}
 		if ((lastbyte < dtmp->max)
-		    && (ntohs(packet->frag_off) & 0x2000)) {
+		    && ipv4_more_fragments(packet)) {
 			/*
 			 * If last byte in fragment is less than the last byte of the
 			 * hole descriptor, and more fragments, create a new hole
