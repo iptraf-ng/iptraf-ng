@@ -542,7 +542,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 {
 	int logging = options.logging;
 
-	unsigned int frag_off;
 	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
 
 	unsigned long screen_idx = 1;
@@ -977,12 +976,10 @@ void ipmon(time_t facilitytime, char *ifptr)
 		struct sockaddr_storage saddr, daddr;
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
-			frag_off = pkt.iphdr->frag_off;
 			sockaddr_make_ipv4(&saddr, pkt.iphdr->saddr);
 			sockaddr_make_ipv4(&daddr, pkt.iphdr->daddr);
 			break;
 		case ETH_P_IPV6:
-			frag_off = 0;
 			sockaddr_make_ipv6(&saddr, &pkt.ip6_hdr->ip6_src);
 			sockaddr_make_ipv6(&daddr, &pkt.ip6_hdr->ip6_dst);
 			break;
@@ -1010,7 +1007,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			 * to reduce the chances of stales, not a FIN.
 			 */
 
-			if (((ntohs(frag_off) & 0x3fff) == 0)	/* first frag only */
+			if (packet_is_first_fragment(&pkt)	/* first frag only */
 			    && (tcpentry == NULL)
 			    && (!(tcp->fin))) {
 
@@ -1053,12 +1050,12 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				if (pkt.iphdr)
 					updateentry(&table, &pkt, tcpentry, tcp,
-						    br, pkt.iphdr->frag_off,
+						    br,
 						    &revlook, rvnfd,
 						    logging, logfile);
 				else
 					updateentry(&table, &pkt, tcpentry, tcp,
-						    pkt.pkt_len, 0,
+						    pkt.pkt_len,
 						    &revlook, rvnfd,
 						    logging, logfile);
 				/*

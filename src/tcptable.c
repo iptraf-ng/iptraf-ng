@@ -538,8 +538,8 @@ struct tcptableent *in_table(struct tcptable *table,
 
 void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 		 struct tcptableent *tableentry, struct tcphdr *transpacket,
-		 unsigned int bcount, unsigned int fragofs, int *revlook,
-		 int rvnfd, int logging, FILE *logfile)
+		 unsigned int bcount, int *revlook, int rvnfd, int logging,
+		 FILE *logfile)
 {
 	char msgstring[MSGSTRING_MAX];
 	char newmacaddr[18];
@@ -593,7 +593,7 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 	 * TCP header.
 	 */
 
-	if ((ntohs(fragofs) & 0x1fff) != 0) {
+	if (!packet_is_first_fragment(pkt)) {
 		tableentry->lastupdate =
 		    tableentry->oth_connection->lastupdate = time(NULL);
 		return;

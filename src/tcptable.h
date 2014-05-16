@@ -119,8 +119,8 @@ struct tcptableent *in_table(struct tcptable *table,
 
 void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 		 struct tcptableent *tableentry, struct tcphdr *transpacket,
-		 unsigned int bcount, unsigned int fragofs, int *revlook,
-		 int rvnfd, int logging, FILE *logfile);
+		 unsigned int bcount, int *revlook, int rvnfd, int logging,
+		 FILE *logfile);
 
 void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
