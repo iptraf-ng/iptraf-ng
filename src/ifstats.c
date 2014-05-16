@@ -407,6 +407,87 @@ static void scrollgstatwin(struct iftab *table, int direction, int lines)
 	showrates(table);
 }
 
+static void ifstats_process_key(struct iftab *table, int ch)
+{
+	switch (ch) {
+	case KEY_UP:
+		scrollgstatwin(table, SCROLLDOWN, 1);
+		break;
+	case KEY_DOWN:
+		scrollgstatwin(table, SCROLLUP, 1);
+		break;
+	case KEY_PPAGE:
+	case '-':
+		scrollgstatwin(table, SCROLLDOWN, LINES - 5);
+		break;
+	case KEY_NPAGE:
+	case ' ':
+		scrollgstatwin(table, SCROLLUP, LINES - 5);
+		break;
+	case KEY_HOME:
+		scrollgstatwin(table, SCROLLDOWN, INT_MAX);
+		break;
+	case KEY_END:
+		scrollgstatwin(table, SCROLLUP, INT_MAX);
+		break;
+	case 12:
+	case 'l':
+	case 'L':
+		tx_refresh_screen();
+		break;
+	case 'Q':
+	case 'q':
+	case 'X':
+	case 'x':
+	case 27:
+	case 24:
+		exitloop = 1;
+		break;
+	case ERR:
+	default:
+		/* no key ready, do nothing */
+		break;
+	}
+}
+
+static void ifstats_process_packet(struct iftab *table, struct pkt_hdr *pkt)
+{
+	int pkt_result = packet_process(pkt, NULL, NULL, NULL,
+					MATCH_OPPOSITE_USECONFIG,
+					options.v6inv4asv6);
+
+	switch (pkt_result) {
+	case PACKET_OK:			/* we only handle these */
+	case MORE_FRAGMENTS:
+	case CHECKSUM_ERROR:
+		break;
+	default:			/* drop others */
+		return;
+	}
+
+	struct iflist *ptmp = positionptr(table->head, pkt->from->sll_ifindex);
+	if (!ptmp)
+		return;
+
+	ptmp->total++;
+
+	ptmp->spanbr += pkt->pkt_len;
+	ptmp->br += pkt->pkt_len;
+
+	if (pkt->pkt_protocol == ETH_P_IP) {
+		ptmp->iptotal++;
+
+		if (pkt_result == CHECKSUM_ERROR) {
+			ptmp->badtotal++;
+			return;
+		}
+	} else if (pkt->pkt_protocol == ETH_P_IPV6) {
+		ptmp->ip6total++;
+	} else {
+		ptmp->noniptotal++;
+	}
+}
+
 /*
  * The general interface statistics function
  */
@@ -415,8 +496,6 @@ void ifstats(time_t facilitytime)
 {
 	int logging = options.logging;
 	struct iftab table;
-
-	struct iflist *ptmp = NULL;
 
 	FILE *logfile = NULL;
 
@@ -538,81 +617,12 @@ void ifstats(time_t facilitytime)
 			break;
 		}
 
-		switch (ch) {
-		case ERR:
-			/* no key ready, do nothing */
-			break;
-		case KEY_UP:
-			scrollgstatwin(&table, SCROLLDOWN, 1);
-			break;
-		case KEY_DOWN:
-			scrollgstatwin(&table, SCROLLUP, 1);
-			break;
-		case KEY_PPAGE:
-		case '-':
-			scrollgstatwin(&table, SCROLLDOWN, LINES - 5);
-			break;
-		case KEY_NPAGE:
-		case ' ':
-			scrollgstatwin(&table, SCROLLUP, LINES - 5);
-			break;
-		case KEY_HOME:
-			scrollgstatwin(&table, SCROLLDOWN, INT_MAX);
-			break;
-		case KEY_END:
-			scrollgstatwin(&table, SCROLLUP, INT_MAX);
-			break;
-		case 12:
-		case 'l':
-		case 'L':
-			tx_refresh_screen();
-			break;
-		case 'Q':
-		case 'q':
-		case 'X':
-		case 'x':
-		case 27:
-		case 24:
-			exitloop = 1;
-			break;
-		}
-		if (pkt.pkt_len <= 0)
-			continue;
+		if (ch != ERR)
+			ifstats_process_key(&table, ch);
 
-		int pkt_result = packet_process(&pkt, NULL, NULL, NULL,
-						MATCH_OPPOSITE_USECONFIG,
-						options.v6inv4asv6);
+		if (pkt.pkt_len > 0)
+			ifstats_process_packet(&table, &pkt);
 
-		switch (pkt_result) {
-		case PACKET_OK:			/* we only handle these */
-		case MORE_FRAGMENTS:
-		case CHECKSUM_ERROR:
-			break;
-		default:			/* drop others */
-			continue;
-		}
-
-		ptmp = positionptr(table.head, pkt.from->sll_ifindex);
-		if (!ptmp)
-			continue;
-
-		ptmp->total++;
-
-		ptmp->spanbr += pkt.pkt_len;
-		ptmp->br += pkt.pkt_len;
-
-		if (pkt.pkt_protocol == ETH_P_IP) {
-			ptmp->iptotal++;
-
-			if (pkt_result == CHECKSUM_ERROR) {
-				(ptmp->badtotal)++;
-				continue;
-			}
-		} else if (pkt.pkt_protocol == ETH_P_IPV6) {
-			ptmp->ip6total++;
-		} else {
-			(ptmp->noniptotal)++;
-		}
 	}
 	close(fd);
 
