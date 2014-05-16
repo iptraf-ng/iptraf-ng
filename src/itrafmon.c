@@ -543,7 +543,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	int logging = options.logging;
 
 	unsigned int frag_off;
-	struct tcphdr *transpacket;	/* IP-encapsulated packet */
 	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
 
 	unsigned long screen_idx = 1;
@@ -999,11 +998,10 @@ void ipmon(time_t facilitytime, char *ifptr)
 		}
 
 		/* only when packets fragmented */
-		__u8 iphlen = pkt_iph_len(&pkt);
-		transpacket = (struct tcphdr *) (pkt.pkt_payload + iphlen);
-
+		char *ip_payload = pkt.pkt_payload + pkt_iph_len(&pkt);
 		__u8 ip_protocol = pkt_ip_protocol(&pkt);
 		if (ip_protocol == IPPROTO_TCP) {
+			struct tcphdr *tcp = (struct tcphdr *)ip_payload;
 			sockaddr_set_port(&saddr, sport);
 			sockaddr_set_port(&daddr, dport);
 			tcpentry = in_table(&table, &saddr, &daddr, ifname,
@@ -1016,7 +1014,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 			if (((ntohs(frag_off) & 0x3fff) == 0)	/* first frag only */
 			    && (tcpentry == NULL)
-			    && (!(transpacket->fin))) {
+			    && (!(tcp->fin))) {
 
 				/*
 				 * Ok, so we have a packet.  Add it if this connection
@@ -1056,12 +1054,12 @@ void ipmon(time_t facilitytime, char *ifptr)
 				}
 
 				if (pkt.iphdr)
-					updateentry(&table, &pkt, tcpentry, transpacket,
+					updateentry(&table, &pkt, tcpentry, tcp,
 						    br, pkt.iphdr->frag_off,
 						    &revlook, rvnfd,
 						    logging, logfile);
 				else
-					updateentry(&table, &pkt, tcpentry, transpacket,
+					updateentry(&table, &pkt, tcpentry, tcp,
 						    pkt.pkt_len, 0,
 						    &revlook, rvnfd,
 						    logging, logfile);
@@ -1075,7 +1073,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 				    && (tcpentry->pcount == 1)
 				    && (!(tcpentry->stat & FLAG_RST))) {
 					strcpy(msgstring, "first packet");
-					if (transpacket->syn)
+					if (tcp->syn)
 						strcat(msgstring, " (SYN)");
 
 					writetcplog(logging, logfile, tcpentry,
@@ -1105,7 +1103,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				if (((tcpentry->oth_connection->finsent == 2)
 				     &&	/* FINed and ACKed */
-				     (ntohl(transpacket->seq) == tcpentry->oth_connection->finack))
+				     (ntohl(tcp->seq) == tcpentry->oth_connection->finack))
 				    || ((revlook)
 					&& (((p_sstat != RESOLVED)
 					     && (tcpentry->s_fstat == RESOLVED))
@@ -1118,6 +1116,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			fragment =  ((ntohs(pkt.iphdr->frag_off) & 0x1fff) != 0);
 
 			if (pkt_ip_protocol(&pkt) == IPPROTO_ICMP) {
+				struct icmphdr *icmp = (struct icmphdr *)ip_payload;
 
 				/*
 				 * Cancel the corresponding TCP entry if an ICMP
@@ -1125,25 +1124,27 @@ void ipmon(time_t facilitytime, char *ifptr)
 				 * is received.
 				 */
 
-				if (((struct icmphdr *) transpacket)->type == ICMP_DEST_UNREACH)
-					process_dest_unreach(&table, (char *) transpacket,
+				if (icmp->type == ICMP_DEST_UNREACH)
+					process_dest_unreach(&table, (char *)icmp,
 							     ifname);
 			}
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
-				       (char *) transpacket, ifname,
+				       ip_payload, ifname,
 				       &revlook, rvnfd, logging, logfile,
 				       fragment);
 
 		} else {
-			if (pkt_ip_protocol(&pkt) == IPPROTO_ICMPV6
-			    && (((struct icmp6_hdr *) transpacket)->icmp6_type == ICMP6_DST_UNREACH))
-				process_dest_unreach(&table, (char *) transpacket,
-						     ifname);
+			if (pkt_ip_protocol(&pkt) == IPPROTO_ICMPV6) {
+				struct icmp6_hdr *icmp6 = (struct icmp6_hdr *)ip_payload;
 
+				if (icmp6->icmp6_type == ICMP6_DST_UNREACH)
+					process_dest_unreach(&table, (char *)icmp6,
+						     ifname);
+			}
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
-				       (char *) transpacket, ifname,
+				       ip_payload, ifname,
 				       &revlook, rvnfd, logging, logfile,
 				       fragment);
 		}
