@@ -36,7 +36,6 @@ ifstats.c	- the interface statistics module
 struct iflist {
 	char ifname[IFNAMSIZ];
 	int ifindex;
-	unsigned int encap;
 	unsigned long long iptotal;
 	unsigned long long ip6total;
 	unsigned long badtotal;
