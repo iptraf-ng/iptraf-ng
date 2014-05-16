@@ -195,7 +195,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				  int protocol,
 				  char *packet2,
 				  char *ifname, int *rev_lookup, int rvnfd,
-				  int logging, FILE *logfile, int fragment)
+				  int logging, FILE *logfile)
 {
 	struct othptabent *new_entry;
 	struct othptabent *temp;
@@ -203,7 +203,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 	new_entry = xmallocz(sizeof(struct othptabent));
 
 	new_entry->is_ip = is_ip;
-	new_entry->fragment = fragment;
+	new_entry->fragment = !packet_is_first_fragment(pkt);
 
 	if (options.mac || !is_ip) {
 		if (pkt->from->sll_hatype == ARPHRD_ETHER) {
@@ -224,7 +224,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 		revname(rev_lookup, daddr, new_entry->d_fqdn,
 			sizeof(new_entry->d_fqdn), rvnfd);
 
-		if (!fragment) {
+		if (!new_entry->fragment) {
 			if (protocol == IPPROTO_ICMP) {
 				new_entry->un.icmp.type =
 				    ((struct icmphdr *) packet2)->type;

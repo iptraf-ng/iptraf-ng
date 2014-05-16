@@ -369,3 +369,16 @@ unsigned int packet_get_dropped(int fd)
 
 	return stats.tp_drops;
 }
+
+int packet_is_first_fragment(struct pkt_hdr *pkt)
+{
+	switch (pkt->pkt_protocol) {
+	case ETH_P_IP:
+		return ipv4_is_first_fragment(pkt->iphdr);
+	case ETH_P_IPV6:
+		/* FIXME: IPv6 can also be fragmented !!! */
+		/* fall through for now */
+	default:
+		return !0;
+	}
+}

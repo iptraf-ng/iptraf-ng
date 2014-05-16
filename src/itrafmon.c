@@ -583,8 +583,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	/* reattempt in updateentry() */
 	int pkt_result = 0;	/* Non-IP filter ok */
 
-	int fragment = 0;	/* Set to 1 if not first fragment */
-
 	int fd;
 
 	struct pkt_hdr pkt;
@@ -993,7 +991,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 				       NOT_IP,
 				       pkt.pkt_protocol,
 				       pkt.pkt_payload, ifname, 0,
-				       0, logging, logfile, 0);
+				       0, logging, logfile);
 			continue;
 		}
 
@@ -1114,21 +1112,17 @@ void ipmon(time_t facilitytime, char *ifptr)
 			}
 		} else if (pkt.iphdr) {
 			check_icmp_dest_unreachable(&table, &pkt, ifname);
-
-			fragment = !ipv4_is_first_fragment(pkt.iphdr);
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
 				       ip_payload, ifname,
-				       &revlook, rvnfd, logging, logfile,
-				       fragment);
+				       &revlook, rvnfd, logging, logfile);
 
 		} else {
 			check_icmp_dest_unreachable(&table, &pkt, ifname);
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
 				       ip_payload, ifname,
-				       &revlook, rvnfd, logging, logfile,
-				       fragment);
+				       &revlook, rvnfd, logging, logfile);
 		}
 	}
 

@@ -128,7 +128,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				  int protocol,
 				  char *packet2,
 				  char *ifname, int *rev_lookup, int rvnamedon,
-				  int logging, FILE *logfile, int fragment);
+				  int logging, FILE *logfile);
 
 void printothpentry(struct othptable *table, struct othptabent *entry,
 		    unsigned int screen_idx, int logging, FILE * logfile);
