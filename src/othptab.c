@@ -119,47 +119,71 @@ void init_othp_table(struct othptable *table)
 	table->oimaxy = table->obmaxy - 2;
 }
 
-void process_dest_unreach(struct tcptable *table, char *packet, char *ifname)
+/* Cancel the corresponding TCP entry if an ICMP Destination Unreachable
+ * is received.
+ */
+void check_icmp_dest_unreachable(struct tcptable *table, struct pkt_hdr *pkt,
+				 char *ifname)
 {
-	struct iphdr *ip;
-	struct ip6_hdr *ip6;
+	char *ip_payload = pkt->pkt_payload + pkt_iph_len(pkt);
 	struct tcphdr *tcp;
-	struct tcptableent *tcpentry;
+	struct tcptableent *tcpentry = NULL;
 
-	ip = (struct iphdr *) (packet + 8);
-
-	/*
-	 * Timeout checking won't be performed either, so we just pass 0
-	 * as timeout variable.
-	 */
-
-	if (ip->version == 6) {
-		ip6 = (struct ip6_hdr *) (packet + 8);
-		if (ip6->ip6_nxt != IPPROTO_TCP)
+	switch (pkt_ip_protocol(pkt)) {
+	case IPPROTO_ICMP: {
+		struct icmphdr *icmp = (struct icmphdr *)ip_payload;
+		if (icmp->type != ICMP_DEST_UNREACH)
 			return;
-		tcp = (struct tcphdr *) (packet + 48);
-		struct sockaddr_storage saddr, daddr;
-		sockaddr_make_ipv6(&saddr, &ip6->ip6_src);
-		sockaddr_set_port(&saddr, ntohs(tcp->source));
-		sockaddr_make_ipv6(&daddr, &ip6->ip6_dst);
-		sockaddr_set_port(&daddr, ntohs(tcp->dest));
-		tcpentry =
-		    in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
-	} else {
+
+		/* get an original IP header located after ICMP header */
+		struct iphdr *ip = (struct iphdr *)(ip_payload + 8);
 		if (ip->protocol != IPPROTO_TCP)
 			return;
-		tcp = (struct tcphdr *) (packet + 8 + (ip->ihl * 4));
+
 		struct sockaddr_storage saddr, daddr;
 		sockaddr_make_ipv4(&saddr, ip->saddr);
-		sockaddr_set_port(&saddr, ntohs(tcp->source));
 		sockaddr_make_ipv4(&daddr, ip->daddr);
+
+		/* get an original TCP header */
+		tcp = (struct tcphdr *) (ip_payload + 8 + (ip->ihl * 4));
+		sockaddr_set_port(&saddr, ntohs(tcp->source));
 		sockaddr_set_port(&daddr, ntohs(tcp->dest));
-		tcpentry =
-		    in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
+
+		/* check if this tcpentry exists */
+		tcpentry = in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
+
+		break; }
+	case IPPROTO_ICMPV6: {
+		struct icmp6_hdr *icmp6 = (struct icmp6_hdr *)ip_payload;
+		if (icmp6->icmp6_type != ICMP6_DST_UNREACH)
+			return;
+
+		/* get an original IPv6 header located after ICMPv6 header */
+		struct ip6_hdr *ip6 = (struct ip6_hdr *)(ip_payload + 8);
+		if (ip6->ip6_nxt != IPPROTO_TCP)		/* FIXME: IPv6 extension headers ??? */
+			return;
+
+		struct sockaddr_storage saddr, daddr;
+		sockaddr_make_ipv6(&saddr, &ip6->ip6_src);
+		sockaddr_make_ipv6(&daddr, &ip6->ip6_dst);
+
+		/* get an original TCP header */
+		tcp = (struct tcphdr *) (ip_payload + 8 + 40);	/* FIXME: 40: IPv6 extension headers ??? */
+		sockaddr_set_port(&saddr, ntohs(tcp->source));
+		sockaddr_set_port(&daddr, ntohs(tcp->dest));
+
+		/* check if this tcpentry exists */
+		tcpentry = in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
+
+		break; }
+	default:
+		return;
 	}
 
 	if (tcpentry != NULL) {
-		tcpentry->stat = tcpentry->oth_connection->stat = FLAG_RST;
+		/* yes, tcpentry exists --> reset it */
+		tcpentry->stat = FLAG_RST;
+		tcpentry->oth_connection->stat = FLAG_RST;
 		addtoclosedlist(table, tcpentry);
 	}
 }

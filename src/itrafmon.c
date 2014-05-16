@@ -1113,21 +1113,9 @@ void ipmon(time_t facilitytime, char *ifptr)
 						   screen_idx, mode);
 			}
 		} else if (pkt.iphdr) {
+			check_icmp_dest_unreachable(&table, &pkt, ifname);
+
 			fragment =  ((ntohs(pkt.iphdr->frag_off) & 0x1fff) != 0);
-
-			if (pkt_ip_protocol(&pkt) == IPPROTO_ICMP) {
-				struct icmphdr *icmp = (struct icmphdr *)ip_payload;
-
-				/*
-				 * Cancel the corresponding TCP entry if an ICMP
-				 * Destination Unreachable or TTL Exceeded message
-				 * is received.
-				 */
-
-				if (icmp->type == ICMP_DEST_UNREACH)
-					process_dest_unreach(&table, (char *)icmp,
-							     ifname);
-			}
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
 				       ip_payload, ifname,
@@ -1135,13 +1123,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 				       fragment);
 
 		} else {
-			if (pkt_ip_protocol(&pkt) == IPPROTO_ICMPV6) {
-				struct icmp6_hdr *icmp6 = (struct icmp6_hdr *)ip_payload;
-
-				if (icmp6->icmp6_type == ICMP6_DST_UNREACH)
-					process_dest_unreach(&table, (char *)icmp6,
-						     ifname);
-			}
+			check_icmp_dest_unreachable(&table, &pkt, ifname);
 			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
 				       IS_IP, pkt_ip_protocol(&pkt),
 				       ip_payload, ifname,
