@@ -30,11 +30,6 @@ struct fragent {
 	struct fragent *next_entry;
 };
 
-struct fragfreelistent {
-	struct fragent *top;
-	struct fragfreelist *next_entry;
-};
-
 static inline unsigned int ipv4_frag_offset(struct iphdr *ip)
 {
 	return (ntohs(ip->frag_off) & 0x1fff) * 8;
