@@ -18,6 +18,7 @@ the IP traffic monitor routine.
 #include "iptraf-ng-compat.h"
 
 #include "ipfrag.h"
+#include "list.h"
 
 struct fragdescent {
 	unsigned int min;
@@ -27,6 +28,7 @@ struct fragdescent {
 };
 
 struct fragent {
+	struct list_head fragent_list;
 	unsigned long s_addr;
 	in_port_t s_port;
 	unsigned long d_addr;
@@ -38,35 +40,23 @@ struct fragent {
 	struct fragdescent *fragdesclist;
 	struct fragdescent *fragdesctail;
 	unsigned int bcount;
-	struct fragent *prev_entry;
-	struct fragent *next_entry;
 };
 
-static struct fragent *fraglist = NULL;
-static struct fragent *fragtail = NULL;
+LIST_HEAD(frag_head);
 
 static struct fragent *addnewdgram(struct iphdr *packet)
 {
 	struct fragent *ptmp;
 
 	ptmp = xmallocz(sizeof(struct fragent));
-	if (fraglist == NULL) {
-		fraglist = ptmp;
-		ptmp->prev_entry = NULL;
-	}
-	if (fragtail != NULL) {
-		fragtail->next_entry = ptmp;
-		ptmp->prev_entry = fragtail;
-	}
+	list_add_tail(&ptmp->fragent_list, &frag_head);
+
 	ptmp->fragdesclist = xmalloc(sizeof(struct fragdescent));
 	ptmp->fragdesclist->min = 0;
 	ptmp->fragdesclist->max = 65535;
 	ptmp->fragdesclist->next_entry = NULL;
 	ptmp->fragdesclist->prev_entry = NULL;
 	ptmp->fragdesctail = ptmp->fragdesclist;
-
-	fragtail = ptmp;
-	ptmp->next_entry = NULL;
 
 	ptmp->s_addr = packet->saddr;
 	ptmp->d_addr = packet->daddr;
@@ -99,14 +89,12 @@ static struct fragdescent *addnewhole(struct fragent *frag)
 static struct fragent *searchfrags(unsigned long saddr, unsigned long daddr,
 				   unsigned int protocol, unsigned int id)
 {
-	struct fragent *ftmp = fraglist;
+	struct fragent *ftmp;
 
-	while (ftmp != NULL) {
+	list_for_each_entry(ftmp, &frag_head, fragent_list) {
 		if ((saddr == ftmp->s_addr) && (daddr == ftmp->d_addr)
 		    && (protocol == ftmp->protocol) && (id == ftmp->id))
 			return ftmp;
-
-		ftmp = ftmp->next_entry;
 	}
 
 	return NULL;
@@ -114,16 +102,7 @@ static struct fragent *searchfrags(unsigned long saddr, unsigned long daddr,
 
 static void deldgram(struct fragent *ftmp)
 {
-	if (ftmp->prev_entry != NULL)
-		ftmp->prev_entry->next_entry = ftmp->next_entry;
-	else
-		fraglist = ftmp->next_entry;
-
-	if (ftmp->next_entry != NULL)
-		ftmp->next_entry->prev_entry = ftmp->prev_entry;
-	else
-		fragtail = ftmp->prev_entry;
-
+	list_del(&ftmp->fragent_list);
 	free(ftmp);
 }
 
@@ -152,23 +131,12 @@ static void destroyholes(struct fragent *ftmp)
 
 void destroyfraglist(void)
 {
-	struct fragent *ptmp = fraglist;
-	struct fragent *ctmp = NULL;
+	struct fragent *entry, *tmp;
 
-	if (fraglist != NULL) {
-		ctmp = ptmp->next_entry;
-
-		while (ptmp != NULL) {
-			destroyholes(ptmp);
-			free(ptmp);
-			ptmp = ctmp;
-
-			if (ctmp != NULL)
-				ctmp = ctmp->next_entry;
-		}
+	list_for_each_entry_safe(entry, tmp, &frag_head, fragent_list) {
+		destroyholes(entry);
+		deldgram(entry);
 	}
-	fraglist = NULL;
-	fragtail = NULL;
 }
 
 /*
