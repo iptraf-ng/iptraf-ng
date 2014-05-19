@@ -19,6 +19,29 @@ the IP traffic monitor routine.
 
 #include "ipfrag.h"
 
+struct fragdescent {
+	unsigned int min;
+	unsigned int max;
+	struct fragdescent *prev_entry;
+	struct fragdescent *next_entry;
+};
+
+struct fragent {
+	unsigned long s_addr;
+	in_port_t s_port;
+	unsigned long d_addr;
+	in_port_t d_port;
+	unsigned int id;
+	unsigned int protocol;
+	int firstin;
+	time_t starttime;
+	struct fragdescent *fragdesclist;
+	struct fragdescent *fragdesctail;
+	unsigned int bcount;
+	struct fragent *prev_entry;
+	struct fragent *next_entry;
+};
+
 static struct fragent *fraglist = NULL;
 static struct fragent *fragtail = NULL;
 
