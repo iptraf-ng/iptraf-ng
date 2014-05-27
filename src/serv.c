@@ -617,6 +617,30 @@ static void sortportents(struct portlist *list, int command)
 	}
 }
 
+static void print_serv_rates(struct portlist *table)
+{
+	if (table->barptr == NULL) {
+		wattrset(table->statwin, IPSTATATTR);
+		mvwprintw(table->statwin, 0, 1, "No entries");
+	} else {
+		char buf[64];
+
+		wattrset(table->statwin, IPSTATLABELATTR);
+		mvwprintw(table->statwin, 0, 1, "Protocol data rates:");
+		mvwprintw(table->statwin, 0, 36, "total");
+		mvwprintw(table->statwin, 0, 57, "in");
+		mvwprintw(table->statwin, 0, 76, "out");
+
+		wattrset(table->statwin, IPSTATATTR);
+		rate_print(rate_get_average(&table->barptr->rate), buf, sizeof(buf));
+		mvwprintw(table->statwin, 0, 21, "%s", buf);
+		rate_print(rate_get_average(&table->barptr->rate_in), buf, sizeof(buf));
+		mvwprintw(table->statwin, 0, 42, "%s", buf);
+		rate_print(rate_get_average(&table->barptr->rate_out), buf, sizeof(buf));
+		mvwprintw(table->statwin, 0, 61, "%s", buf);
+	}
+}
+
 static void scrollservwin(struct portlist *table, int direction)
 {
 	wattrset(table->win, STDATTR);
@@ -712,6 +736,8 @@ static void move_bar(struct portlist *table, int direction, int lines)
 			move_bar_one(table, direction);
 	else
 		move_bar_many(table, direction, lines);
+
+	print_serv_rates(table);
 }
 
 static void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
@@ -745,30 +771,6 @@ static void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
 			DLGTEXTATTR);
 	update_panels();
 	doupdate();
-}
-
-static void print_serv_rates(struct portlist *table)
-{
-	if (table->barptr == NULL) {
-		wattrset(table->statwin, IPSTATATTR);
-		mvwprintw(table->statwin, 0, 1, "No entries");
-	} else {
-		char buf[64];
-
-		wattrset(table->statwin, IPSTATLABELATTR);
-		mvwprintw(table->statwin, 0, 1, "Protocol data rates:");
-		mvwprintw(table->statwin, 0, 36, "total");
-		mvwprintw(table->statwin, 0, 57, "in");
-		mvwprintw(table->statwin, 0, 76, "out");
-
-		wattrset(table->statwin, IPSTATATTR);
-		rate_print(rate_get_average(&table->barptr->rate), buf, sizeof(buf));
-		mvwprintw(table->statwin, 0, 21, "%s", buf);
-		rate_print(rate_get_average(&table->barptr->rate_in), buf, sizeof(buf));
-		mvwprintw(table->statwin, 0, 42, "%s", buf);
-		rate_print(rate_get_average(&table->barptr->rate_out), buf, sizeof(buf));
-		mvwprintw(table->statwin, 0, 61, "%s", buf);
-	}
 }
 
 static void update_serv_rates(struct portlist *list, unsigned long msecs)
@@ -948,29 +950,23 @@ void servmon(char *ifname, time_t facilitytime)
 			switch (ch) {
 			case KEY_UP:
 				move_bar(&list, SCROLLDOWN, 1);
-				print_serv_rates(&list);
 				break;
 			case KEY_DOWN:
 				move_bar(&list, SCROLLUP, 1);
-				print_serv_rates(&list);
 				break;
 			case KEY_PPAGE:
 			case '-':
 				move_bar(&list, SCROLLDOWN, LINES - 5);
-				print_serv_rates(&list);
 				break;
 			case KEY_NPAGE:
 			case ' ':
 				move_bar(&list, SCROLLUP, LINES - 5);
-				print_serv_rates(&list);
 				break;
 			case KEY_HOME:
 				move_bar(&list, SCROLLDOWN, INT_MAX);
-				print_serv_rates(&list);
 				break;
 			case KEY_END:
 				move_bar(&list, SCROLLUP, INT_MAX);
-				print_serv_rates(&list);
 				break;
 			case 12:
 			case 'l':
@@ -996,11 +992,9 @@ void servmon(char *ifname, time_t facilitytime)
 			delwin(sortwin);
 			sortportents(&list, ch);
 			keymode = 0;
-			if (list.barptr != NULL) {
-				list.barptr = list.firstvisible;
-				print_serv_rates(&list);
-			}
 			refresh_serv_screen(&list);
+			list.barptr = list.firstvisible;
+			print_serv_rates(&list);
 			update_panels();
 			doupdate();
 		}
