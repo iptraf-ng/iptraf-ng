@@ -70,8 +70,6 @@ struct portlist {
 	struct portlistent *firstvisible;
 	struct portlistent *lastvisible;
 	struct portlistent *barptr;
-	unsigned imaxy;
-	unsigned int baridx;
 	unsigned int count;
 	unsigned long bcount;
 	WINDOW *win;
@@ -147,12 +145,10 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs, FILE *fd)
 static void initportlist(struct portlist *list)
 {
 	float screen_scale = ((float) COLS / 80 + 1) / 2;
-	int scratchx __unused;
 
 	list->head = list->tail = list->barptr = NULL;
 	list->firstvisible = list->lastvisible = NULL;
 	list->count = 0;
-	list->baridx = 0;
 
 	list->borderwin = newwin(LINES - 3, COLS, 1, 0);
 	list->borderpanel = new_panel(list->borderwin);
@@ -169,7 +165,6 @@ static void initportlist(struct portlist *list)
 
 	list->win = newwin(LINES - 5, COLS - 2, 2, 1);
 	list->panel = new_panel(list->win);
-	getmaxyx(list->win, list->imaxy, scratchx);
 
 	tx_stdwinset(list->win);
 	wtimeout(list->win, -1);
@@ -904,10 +899,8 @@ void servmon(char *ifname, time_t facilitytime)
 				list.barptr = list.barptr->prev_entry;
 				printportent(&list, serv_tmp);
 
-				if (list.baridx == 1)
+				if (serv_tmp == list.firstvisible)
 					scrollservwin(&list, SCROLLDOWN);
-				else
-					list.baridx--;
 
 				printportent(&list, list.barptr);
 
@@ -922,10 +915,8 @@ void servmon(char *ifname, time_t facilitytime)
 				list.barptr = list.barptr->next_entry;
 				printportent(&list, serv_tmp);
 
-				if (list.baridx == list.imaxy)
+				if (serv_tmp == list.lastvisible)
 					scrollservwin(&list, SCROLLUP);
-				else
-					list.baridx++;
 
 				printportent(&list, list.barptr);
 
@@ -939,8 +930,6 @@ void servmon(char *ifname, time_t facilitytime)
 				pageservwin(&list, SCROLLDOWN);
 
 				list.barptr = list.lastvisible;
-				list.baridx = list.lastvisible->idx -
-					      list.firstvisible->idx + 1;
 
 				refresh_serv_screen(&list);
 
@@ -954,7 +943,6 @@ void servmon(char *ifname, time_t facilitytime)
 				pageservwin(&list, SCROLLUP);
 
 				list.barptr = list.firstvisible;
-				list.baridx = 1;
 
 				refresh_serv_screen(&list);
 
@@ -986,7 +974,6 @@ void servmon(char *ifname, time_t facilitytime)
 			keymode = 0;
 			if (list.barptr != NULL) {
 				list.barptr = list.firstvisible;
-				list.baridx = 1;
 				print_serv_rates(list.barptr, statwin);
 			}
 			refresh_serv_screen(&list);
@@ -1032,7 +1019,6 @@ void servmon(char *ifname, time_t facilitytime)
 		}
 		if ((list.barptr == NULL) && (list.head != NULL)) {
 			list.barptr = list.head;
-			list.baridx = 1;
 			print_serv_rates(list.barptr, statwin);
 		}
 	}
