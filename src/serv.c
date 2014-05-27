@@ -261,8 +261,7 @@ static struct portlistent *inportlist(struct portlist *list,
 	return NULL;
 }
 
-static void printportent(struct portlist *list, struct portlistent *entry,
-		  unsigned int idx)
+static void printportent(struct portlist *list, struct portlistent *entry)
 {
 	unsigned int target_row;
 	float screen_scale = ((float) COLS / 80 + 1) / 2;
@@ -270,10 +269,11 @@ static void printportent(struct portlist *list, struct portlistent *entry,
 	int udplabelattr;
 	int highattr;
 
-	if ((entry->idx < idx) || (entry->idx > idx + (LINES - 6)))
+	if ((entry->idx < list->firstvisible->idx) ||
+	    (entry->idx > list->lastvisible->idx))
 		return;
 
-	target_row = entry->idx - idx;
+	target_row = entry->idx - list->firstvisible->idx;
 
 	if (entry == list->barptr) {
 		tcplabelattr = BARSTDATTR;
@@ -458,7 +458,7 @@ static unsigned long long qp_getkey(struct portlistent *entry, int ch)
  * Refresh TCP/UDP service screen.
  */
 
-static void refresh_serv_screen(struct portlist *table, int idx)
+static void refresh_serv_screen(struct portlist *table)
 {
 	struct portlistent *ptmp = table->firstvisible;
 
@@ -466,7 +466,7 @@ static void refresh_serv_screen(struct portlist *table, int idx)
 	tx_colorwin(table->win);
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
-		printportent(table, ptmp, idx);
+		printportent(table, ptmp);
 		ptmp = ptmp->next_entry;
 	}
 	update_panels();
@@ -584,7 +584,7 @@ static void quicksort_port_entries(struct portlist *table,
 	}
 }
 
-static void sortportents(struct portlist *list, unsigned int *idx, int command)
+static void sortportents(struct portlist *list, int command)
 {
 	struct portlistent *ptemp1;
 	int idxtmp;
@@ -602,11 +602,10 @@ static void sortportents(struct portlist *list, unsigned int *idx, int command)
 	quicksort_port_entries(list, list->head, list->tail, command);
 
 	ptemp1 = list->firstvisible = list->head;
-	*idx = 1;
 	idxtmp = 1;
 
 	while ((ptemp1) && (idxtmp <= LINES - 5)) {	/* printout */
-		printportent(list, ptemp1, *idx);
+		printportent(list, ptemp1);
 		if (idxtmp <= LINES - 5)
 			list->lastvisible = ptemp1;
 		ptemp1 = ptemp1->next_entry;
@@ -614,8 +613,7 @@ static void sortportents(struct portlist *list, unsigned int *idx, int command)
 	}
 }
 
-static void scrollservwin(struct portlist *table, int direction,
-			  unsigned int *idx)
+static void scrollservwin(struct portlist *table, int direction)
 {
 	wattrset(table->win, STDATTR);
 	if (direction == SCROLLUP) {
@@ -623,26 +621,23 @@ static void scrollservwin(struct portlist *table, int direction,
 			wscrl(table->win, 1);
 			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
-			(*idx)++;
 			scrollok(table->win, 0);
 			mvwprintw(table->win, LINES - 6, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->win, 1);
-			printportent(table, table->lastvisible, *idx);
+			printportent(table, table->lastvisible);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
 			wscrl(table->win, -1);
 			table->lastvisible = table->lastvisible->prev_entry;
 			table->firstvisible = table->firstvisible->prev_entry;
-			(*idx)--;
 			mvwprintw(table->win, 0, 0, "%*c", COLS - 2, ' ');
-			printportent(table, table->firstvisible, *idx);
+			printportent(table, table->firstvisible);
 		}
 	}
 }
 
-static void pageservwin(struct portlist *table, int direction,
-			unsigned int *idx)
+static void pageservwin(struct portlist *table, int direction)
 {
 	int i = 1;
 
@@ -651,17 +646,15 @@ static void pageservwin(struct portlist *table, int direction,
 			i++;
 			table->firstvisible = table->firstvisible->next_entry;
 			table->lastvisible = table->lastvisible->next_entry;
-			(*idx)++;
 		}
 	} else {
 		while ((i <= LINES - 9) && (table->firstvisible != table->head)) {
 			i++;
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
-			(*idx)--;
 		}
 	}
-	refresh_serv_screen(table, *idx);
+	refresh_serv_screen(table);
 }
 
 static void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
@@ -738,8 +731,6 @@ void servmon(char *ifname, time_t facilitytime)
 	int pkt_result;
 
 	int keymode = 0;
-
-	unsigned int idx = 1;
 
 	in_port_t sport = 0;
 	in_port_t dport = 0;
@@ -881,7 +872,7 @@ void servmon(char *ifname, time_t facilitytime)
 		}
 
 		if (screen_update_needed(&tv, &updtime)) {
-			refresh_serv_screen(&list, idx);
+			refresh_serv_screen(&list);
 
 			update_panels();
 			doupdate();
@@ -911,14 +902,14 @@ void servmon(char *ifname, time_t facilitytime)
 
 				serv_tmp = list.barptr;
 				list.barptr = list.barptr->prev_entry;
-				printportent(&list, serv_tmp, idx);
+				printportent(&list, serv_tmp);
 
 				if (list.baridx == 1)
-					scrollservwin(&list, SCROLLDOWN, &idx);
+					scrollservwin(&list, SCROLLDOWN);
 				else
 					list.baridx--;
 
-				printportent(&list, list.barptr, idx);
+				printportent(&list, list.barptr);
 
 				print_serv_rates(list.barptr, statwin);
 				break;
@@ -929,14 +920,14 @@ void servmon(char *ifname, time_t facilitytime)
 
 				serv_tmp = list.barptr;
 				list.barptr = list.barptr->next_entry;
-				printportent(&list,serv_tmp, idx);
+				printportent(&list, serv_tmp);
 
 				if (list.baridx == list.imaxy)
-					scrollservwin(&list, SCROLLUP, &idx);
+					scrollservwin(&list, SCROLLUP);
 				else
 					list.baridx++;
 
-				printportent(&list, list.barptr, idx);
+				printportent(&list, list.barptr);
 
 				print_serv_rates(list.barptr, statwin);
 				break;
@@ -945,12 +936,13 @@ void servmon(char *ifname, time_t facilitytime)
 				if (!list.barptr)
 					break;
 
-				pageservwin(&list, SCROLLDOWN, &idx);
+				pageservwin(&list, SCROLLDOWN);
 
 				list.barptr = list.lastvisible;
-				list.baridx = list.lastvisible->idx - idx + 1;
+				list.baridx = list.lastvisible->idx -
+					      list.firstvisible->idx + 1;
 
-				refresh_serv_screen(&list, idx);
+				refresh_serv_screen(&list);
 
 				print_serv_rates(list.barptr, statwin);
 				break;
@@ -959,12 +951,12 @@ void servmon(char *ifname, time_t facilitytime)
 				if (!list.barptr)
 					break;
 
-				pageservwin(&list, SCROLLUP, &idx);
+				pageservwin(&list, SCROLLUP);
 
 				list.barptr = list.firstvisible;
 				list.baridx = 1;
 
-				refresh_serv_screen(&list, idx);
+				refresh_serv_screen(&list);
 
 				print_serv_rates(list.barptr, statwin);
 				break;
@@ -990,14 +982,14 @@ void servmon(char *ifname, time_t facilitytime)
 		} else if (keymode == 1) {
 			del_panel(sortpanel);
 			delwin(sortwin);
-			sortportents(&list, &idx, ch);
+			sortportents(&list, ch);
 			keymode = 0;
 			if (list.barptr != NULL) {
 				list.barptr = list.firstvisible;
 				list.baridx = 1;
 				print_serv_rates(list.barptr, statwin);
 			}
-			refresh_serv_screen(&list, idx);
+			refresh_serv_screen(&list);
 			update_panels();
 			doupdate();
 		}
