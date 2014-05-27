@@ -785,6 +785,105 @@ static void update_serv_rates(struct portlist *list, unsigned long msecs)
 	}
 }
 
+static void serv_process_key(struct portlist *table, int ch)
+{
+	static WINDOW *sortwin;
+	static PANEL *sortpanel;
+
+	static int keymode = 0;
+
+	if (keymode == 0) {
+		switch (ch) {
+		case KEY_UP:
+			move_bar(table, SCROLLDOWN, 1);
+			break;
+		case KEY_DOWN:
+			move_bar(table, SCROLLUP, 1);
+			break;
+		case KEY_PPAGE:
+		case '-':
+			move_bar(table, SCROLLDOWN, LINES - 5);
+			break;
+		case KEY_NPAGE:
+		case ' ':
+			move_bar(table, SCROLLUP, LINES - 5);
+			break;
+		case KEY_HOME:
+			move_bar(table, SCROLLDOWN, INT_MAX);
+			break;
+		case KEY_END:
+			move_bar(table, SCROLLUP, INT_MAX);
+			break;
+		case 12:
+		case 'l':
+		case 'L':
+			tx_refresh_screen();
+			break;
+		case 's':
+		case 'S':
+			show_portsort_keywin(&sortwin, &sortpanel);
+			keymode = 1;
+			break;
+		case 'q':
+		case 'Q':
+		case 'x':
+		case 'X':
+		case 27:
+		case 24:
+			exitloop = 1;
+		}
+	} else if (keymode == 1) {
+		del_panel(sortpanel);
+		delwin(sortwin);
+		sortportents(table, ch);
+		keymode = 0;
+		refresh_serv_screen(table);
+		table->barptr = table->firstvisible;
+		print_serv_rates(table);
+		update_panels();
+		doupdate();
+	}
+}
+
+static void serv_process_packet(struct portlist *table, struct pkt_hdr *pkt,
+				struct porttab *ports)
+{
+	unsigned int tot_br;
+	in_port_t sport = 0;
+	in_port_t dport = 0;
+
+	int pkt_result = packet_process(pkt, &tot_br, &sport, &dport,
+					MATCH_OPPOSITE_USECONFIG,
+					options.v6inv4asv6);
+
+	if (pkt_result != PACKET_OK)
+		return;
+
+	unsigned short iplen;
+	switch (pkt->pkt_protocol) {
+	case ETH_P_IP:
+		iplen =	ntohs(pkt->iphdr->tot_len);
+		break;
+	case ETH_P_IPV6:
+		iplen = ntohs(pkt->ip6_hdr->ip6_plen) + 40;
+		break;
+	default:
+		/* unknown link protocol */
+		return;
+	}
+
+	__u8 ip_protocol = pkt_ip_protocol(pkt);
+	switch (ip_protocol) {
+	case IPPROTO_TCP:
+	case IPPROTO_UDP:
+		updateportent(table, ip_protocol, sport, dport, iplen, ports);
+		break;
+	default:
+		/* unknown L4 protocol */
+		return;
+	}
+}
+
 /*
  * The TCP/UDP service monitor
  */
@@ -792,12 +891,6 @@ static void update_serv_rates(struct portlist *list, unsigned long msecs)
 void servmon(char *ifname, time_t facilitytime)
 {
 	int logging = options.logging;
-	int pkt_result;
-
-	int keymode = 0;
-
-	in_port_t sport = 0;
-	in_port_t dport = 0;
 
 	struct timeval tv;
 	struct timeval tv_rate;
@@ -805,17 +898,11 @@ void servmon(char *ifname, time_t facilitytime)
 	time_t now;
 	struct timeval updtime;
 
-	unsigned int tot_br;
-
 	int ch;
 
 	struct portlist list;
 
 	FILE *logfile = NULL;
-
-	WINDOW *sortwin;
-	PANEL *sortpanel;
-
 
 	int fd;
 
@@ -943,98 +1030,12 @@ void servmon(char *ifname, time_t facilitytime)
 			break;
 		}
 
-		if (ch == ERR)
-			goto no_key_ready;
+		if (ch != ERR)
+			serv_process_key(&list, ch);
 
-		if (keymode == 0) {
-			switch (ch) {
-			case KEY_UP:
-				move_bar(&list, SCROLLDOWN, 1);
-				break;
-			case KEY_DOWN:
-				move_bar(&list, SCROLLUP, 1);
-				break;
-			case KEY_PPAGE:
-			case '-':
-				move_bar(&list, SCROLLDOWN, LINES - 5);
-				break;
-			case KEY_NPAGE:
-			case ' ':
-				move_bar(&list, SCROLLUP, LINES - 5);
-				break;
-			case KEY_HOME:
-				move_bar(&list, SCROLLDOWN, INT_MAX);
-				break;
-			case KEY_END:
-				move_bar(&list, SCROLLUP, INT_MAX);
-				break;
-			case 12:
-			case 'l':
-			case 'L':
-				tx_refresh_screen();
-				break;
-			case 's':
-			case 'S':
-				show_portsort_keywin(&sortwin,
-						     &sortpanel);
-				keymode = 1;
-				break;
-			case 'q':
-			case 'Q':
-			case 'x':
-			case 'X':
-			case 27:
-			case 24:
-				exitloop = 1;
-			}
-		} else if (keymode == 1) {
-			del_panel(sortpanel);
-			delwin(sortwin);
-			sortportents(&list, ch);
-			keymode = 0;
-			refresh_serv_screen(&list);
-			list.barptr = list.firstvisible;
-			print_serv_rates(&list);
-			update_panels();
-			doupdate();
-		}
-	no_key_ready:
+		if (pkt.pkt_len > 0)
+			serv_process_packet(&list, &pkt, ports);
 
-		if (pkt.pkt_len <= 0)
-			continue;
-
-		pkt_result =
-			packet_process(&pkt, &tot_br, &sport, &dport,
-				      MATCH_OPPOSITE_USECONFIG,
-				      options.v6inv4asv6);
-
-		if (pkt_result != PACKET_OK)
-			continue;
-
-		unsigned short iplen;
-		switch (pkt.pkt_protocol) {
-		case ETH_P_IP:
-			iplen =	ntohs(pkt.iphdr->tot_len);
-			break;
-		case ETH_P_IPV6:
-			iplen = ntohs(pkt.ip6_hdr->ip6_plen) + 40;
-			break;
-		default:
-			/* unknown link protocol */
-			continue;
-		}
-		__u8 ip_protocol = pkt_ip_protocol(&pkt);
-
-		switch (ip_protocol) {
-		case IPPROTO_TCP:
-		case IPPROTO_UDP:
-			updateportent(&list, ip_protocol, sport,
-				      dport, iplen, ports);
-			break;
-		default:
-			/* unknown L4 protocol */
-			continue;
-		}
 		if ((list.barptr == NULL) && (list.head != NULL)) {
 			list.barptr = list.head;
 			print_serv_rates(&list);
