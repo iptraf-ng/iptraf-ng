@@ -962,6 +962,14 @@ void servmon(char *ifname, time_t facilitytime)
 				move_bar(&list, SCROLLUP, LINES - 5);
 				print_serv_rates(list.barptr, statwin);
 				break;
+			case KEY_HOME:
+				move_bar(&list, SCROLLDOWN, INT_MAX);
+				print_serv_rates(list.barptr, statwin);
+				break;
+			case KEY_END:
+				move_bar(&list, SCROLLUP, INT_MAX);
+				print_serv_rates(list.barptr, statwin);
+				break;
 			case 12:
 			case 'l':
 			case 'L':
