@@ -687,21 +687,26 @@ static void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
 
 static void print_serv_rates(struct portlistent *ple, WINDOW *win)
 {
-	char buf[64];
+	if (ple == NULL) {
+		wattrset(win, IPSTATATTR);
+		mvwprintw(win, 0, 1, "No entries");
+	} else {
+		char buf[64];
 
-	wattrset(win, IPSTATLABELATTR);
-	mvwprintw(win, 0, 1, "Protocol data rates:");
-	mvwprintw(win, 0, 36, "total");
-	mvwprintw(win, 0, 57, "in");
-	mvwprintw(win, 0, 76, "out");
+		wattrset(win, IPSTATLABELATTR);
+		mvwprintw(win, 0, 1, "Protocol data rates:");
+		mvwprintw(win, 0, 36, "total");
+		mvwprintw(win, 0, 57, "in");
+		mvwprintw(win, 0, 76, "out");
 
-	wattrset(win, IPSTATATTR);
-	rate_print(rate_get_average(&ple->rate), buf, sizeof(buf));
-	mvwprintw(win, 0, 21, "%s", buf);
-	rate_print(rate_get_average(&ple->rate_in), buf, sizeof(buf));
-	mvwprintw(win, 0, 42, "%s", buf);
-	rate_print(rate_get_average(&ple->rate_out), buf, sizeof(buf));
-	mvwprintw(win, 0, 61, "%s", buf);
+		wattrset(win, IPSTATATTR);
+		rate_print(rate_get_average(&ple->rate), buf, sizeof(buf));
+		mvwprintw(win, 0, 21, "%s", buf);
+		rate_print(rate_get_average(&ple->rate_in), buf, sizeof(buf));
+		mvwprintw(win, 0, 42, "%s", buf);
+		rate_print(rate_get_average(&ple->rate_out), buf, sizeof(buf));
+		mvwprintw(win, 0, 61, "%s", buf);
+	}
 }
 
 static void update_serv_rates(struct portlist *list, unsigned long msecs)
@@ -817,8 +822,6 @@ void servmon(char *ifname, time_t facilitytime)
 	updtime = tv;
 	starttime = startlog = timeint = tv.tv_sec;
 
-	wattrset(statwin, IPSTATATTR);
-	mvwprintw(statwin, 0, 1, "No entries");
 	update_panels();
 	doupdate();
 
@@ -858,8 +861,7 @@ void servmon(char *ifname, time_t facilitytime)
 			update_serv_rates(&list, rate_msecs);
 
 			/* ... and print the current one */
-			if (list.barptr != NULL)
-				print_serv_rates(list.barptr, statwin);
+			print_serv_rates(list.barptr, statwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, list.borderwin, LINES - 4, 49);
