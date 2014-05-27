@@ -613,43 +613,96 @@ static void scrollservwin(struct portlist *table, int direction)
 	wattrset(table->win, STDATTR);
 	if (direction == SCROLLUP) {
 		if (table->lastvisible != table->tail) {
-			wscrl(table->win, 1);
-			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
+			table->lastvisible = table->lastvisible->next_entry;
+
+			wscrl(table->win, 1);
 			scrollok(table->win, 0);
 			mvwprintw(table->win, LINES - 6, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->win, 1);
+
 			printportent(table, table->lastvisible);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
-			wscrl(table->win, -1);
-			table->lastvisible = table->lastvisible->prev_entry;
 			table->firstvisible = table->firstvisible->prev_entry;
+			table->lastvisible = table->lastvisible->prev_entry;
+
+			wscrl(table->win, -1);
 			mvwprintw(table->win, 0, 0, "%*c", COLS - 2, ' ');
+
 			printportent(table, table->firstvisible);
 		}
 	}
 }
 
-static void pageservwin(struct portlist *table, int direction)
+static void move_bar_one(struct portlist *table, int direction)
 {
-	int i = 1;
+	switch (direction) {
+	case SCROLLDOWN:
+		if (table->barptr->prev_entry == NULL)
+			break;
 
-	if (direction == SCROLLUP) {
-		while ((i <= LINES - 9) && (table->lastvisible != table->tail)) {
-			i++;
+		if (table->barptr == table->firstvisible)
+			scrollservwin(table, SCROLLDOWN);
+
+		table->barptr = table->barptr->prev_entry;
+		printportent(table, table->barptr->next_entry);	/* hide bar */
+		printportent(table, table->barptr);		/* show bar */
+
+		break;
+	case SCROLLUP:
+		if (table->barptr->next_entry == NULL)
+			break;
+
+		if (table->barptr == table->lastvisible)
+			scrollservwin(table, SCROLLUP);
+
+		table->barptr = table->barptr->next_entry;
+		printportent(table, table->barptr->prev_entry);	/* hide bar */
+		printportent(table, table->barptr);		/* show bar */
+
+		break;
+	}
+}
+
+static void move_bar_many(struct portlist *table, int direction, int lines)
+{
+	switch (direction) {
+	case SCROLLUP:
+		while (lines && (table->lastvisible != table->tail)) {
 			table->firstvisible = table->firstvisible->next_entry;
 			table->lastvisible = table->lastvisible->next_entry;
+			lines--;
 		}
-	} else {
-		while ((i <= LINES - 9) && (table->firstvisible != table->head)) {
-			i++;
+		if (lines == 0)
+			table->barptr = table->firstvisible;
+		else
+			table->barptr = table->lastvisible;
+		break;
+	case SCROLLDOWN:
+		while (lines && (table->firstvisible != table->head)) {
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
+			lines--;
 		}
+		table->barptr = table->firstvisible;
+		break;
 	}
 	refresh_serv_screen(table);
+}
+
+static void move_bar(struct portlist *table, int direction, int lines)
+{
+	if (table->barptr == NULL)
+		return;
+	if (lines < 1)
+		return;
+	if (lines < 16)
+		while (lines--)
+			move_bar_one(table, direction);
+	else
+		move_bar_many(table, direction, lines);
 }
 
 static void show_portsort_keywin(WINDOW ** win, PANEL ** panel)
@@ -746,7 +799,6 @@ void servmon(char *ifname, time_t facilitytime)
 	int ch;
 
 	struct portlist list;
-	struct portlistent *serv_tmp;
 
 	FILE *logfile = NULL;
 
@@ -893,61 +945,21 @@ void servmon(char *ifname, time_t facilitytime)
 		if (keymode == 0) {
 			switch (ch) {
 			case KEY_UP:
-				if (!list.barptr
-				    || !list.barptr->prev_entry)
-					break;
-
-				serv_tmp = list.barptr;
-				list.barptr = list.barptr->prev_entry;
-				printportent(&list, serv_tmp);
-
-				if (serv_tmp == list.firstvisible)
-					scrollservwin(&list, SCROLLDOWN);
-
-				printportent(&list, list.barptr);
-
+				move_bar(&list, SCROLLDOWN, 1);
 				print_serv_rates(list.barptr, statwin);
 				break;
 			case KEY_DOWN:
-				if (!list.barptr
-				    || !list.barptr->next_entry)
-					break;
-
-				serv_tmp = list.barptr;
-				list.barptr = list.barptr->next_entry;
-				printportent(&list, serv_tmp);
-
-				if (serv_tmp == list.lastvisible)
-					scrollservwin(&list, SCROLLUP);
-
-				printportent(&list, list.barptr);
-
+				move_bar(&list, SCROLLUP, 1);
 				print_serv_rates(list.barptr, statwin);
 				break;
 			case KEY_PPAGE:
 			case '-':
-				if (!list.barptr)
-					break;
-
-				pageservwin(&list, SCROLLDOWN);
-
-				list.barptr = list.lastvisible;
-
-				refresh_serv_screen(&list);
-
+				move_bar(&list, SCROLLDOWN, LINES - 5);
 				print_serv_rates(list.barptr, statwin);
 				break;
 			case KEY_NPAGE:
 			case ' ':
-				if (!list.barptr)
-					break;
-
-				pageservwin(&list, SCROLLUP);
-
-				list.barptr = list.firstvisible;
-
-				refresh_serv_screen(&list);
-
+				move_bar(&list, SCROLLUP, LINES - 5);
 				print_serv_rates(list.barptr, statwin);
 				break;
 			case 12:
