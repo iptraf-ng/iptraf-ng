@@ -882,6 +882,12 @@ void hostmon(time_t facilitytime, char *ifptr)
 				case ' ':
 					scrollethwin(&table, SCROLLUP, LINES - 4);
 					break;
+				case KEY_HOME:
+					scrollethwin(&table, SCROLLDOWN, INT_MAX);
+					break;
+				case KEY_END:
+					scrollethwin(&table, SCROLLUP, INT_MAX);
+					break;
 				case 12:
 				case 'l':
 				case 'L':
