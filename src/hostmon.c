@@ -72,6 +72,9 @@ struct ethtab {
 	unsigned long count;
 	unsigned long entcount;
 	int units;
+	struct eth_desc *elist;
+	struct eth_desc *flist;
+
 	WINDOW *borderwin;
 	PANEL *borderpanel;
 	WINDOW *tabwin;
@@ -731,6 +734,148 @@ static void sort_hosttab(struct ethtab *list, int command)
 	}
 }
 
+static void hostmon_process_key(struct ethtab *table, int ch)
+{
+	static WINDOW *sortwin;
+	static PANEL *sortpanel;
+	static int keymode = 0;
+
+	if (keymode == 0) {
+		switch (ch) {
+		case KEY_UP:
+			scrollethwin(table, SCROLLDOWN, 1);
+			break;
+		case KEY_DOWN:
+			scrollethwin(table, SCROLLUP, 1);
+			break;
+		case KEY_PPAGE:
+		case '-':
+			scrollethwin(table, SCROLLDOWN, LINES - 4);
+			break;
+		case KEY_NPAGE:
+		case ' ':
+			scrollethwin(table, SCROLLUP, LINES - 4);
+			break;
+		case KEY_HOME:
+			scrollethwin(table, SCROLLDOWN, INT_MAX);
+			break;
+		case KEY_END:
+			scrollethwin(table, SCROLLUP, INT_MAX);
+			break;
+		case 12:
+		case 'l':
+		case 'L':
+			tx_refresh_screen();
+			break;
+		case 's':
+		case 'S':
+			show_hostsort_keywin(&sortwin, &sortpanel);
+			keymode = 1;
+			break;
+		case 'q':
+		case 'Q':
+		case 'x':
+		case 'X':
+		case 27:
+		case 24:
+			exitloop = 1;
+		}
+	} else if (keymode == 1) {
+		del_panel(sortpanel);
+		delwin(sortwin);
+		sort_hosttab(table, ch);
+		keymode = 0;
+		refresh_hostmon_screen(table);
+		print_visible_rates(table);
+	}
+}
+
+static void hostmon_process_packet(struct ethtab *table, struct pkt_hdr *pkt,
+				   char *ifptr)
+{
+	char ifnamebuf[IFNAMSIZ];
+	char *ifname = ifptr;
+
+	int pkt_result = packet_process(pkt, NULL, NULL, NULL,
+					MATCH_OPPOSITE_USECONFIG, 0);
+
+	if (pkt_result != PACKET_OK)
+		return;
+
+	if (ifptr == NULL) {
+		/* we're capturing on "All interfaces", */
+		/* so get the name of the interface */
+		/* of this packet */
+		int r = dev_get_ifname(pkt->from->sll_ifindex, ifnamebuf);
+		if (r != 0) {
+			write_error("Unable to get interface name");
+			return;	/* can't get interface name, get out! */
+		}
+		ifname = ifnamebuf;
+	}
+
+	char scratch_saddr[ETH_ALEN];
+	char scratch_daddr[ETH_ALEN];
+	struct eth_desc *list = NULL;
+	struct ethtabent *entry;
+	int is_ip;
+
+	/* get HW addresses */
+	switch (pkt->from->sll_hatype) {
+	case ARPHRD_ETHER:
+		memcpy(scratch_saddr, pkt->ethhdr->h_source, ETH_ALEN);
+		memcpy(scratch_daddr, pkt->ethhdr->h_dest, ETH_ALEN);
+		list = table->elist;
+		break;
+	case ARPHRD_FDDI:
+		memcpy(scratch_saddr, pkt->fddihdr->saddr, FDDI_K_ALEN);
+		memcpy(scratch_daddr, pkt->fddihdr->daddr, FDDI_K_ALEN);
+		list = table->flist;
+		break;
+	default:
+		/* unknown link protocol */
+		return;
+	}
+
+	switch(pkt->pkt_protocol) {
+	case ETH_P_IP:
+	case ETH_P_IPV6:
+		is_ip = 1;
+		break;
+	default:
+		is_ip = 0;
+		break;
+	}
+
+	/* Check source address entry */
+	entry = in_ethtable(table, pkt->from->sll_hatype, scratch_saddr);
+	if (!entry)
+		entry = addethentry(table, pkt->from->sll_hatype,
+				    ifname, scratch_saddr, list);
+
+	if (entry != NULL) {
+		updateethent(entry, pkt->pkt_len, is_ip, 1);
+		if (!entry->prev_entry->un.desc.printed)
+			printethent(table, entry->prev_entry);
+
+		printethent(table, entry);
+	}
+
+	/* Check destination address entry */
+	entry = in_ethtable(table, pkt->from->sll_hatype, scratch_daddr);
+	if (!entry)
+		entry = addethentry(table, pkt->from->sll_hatype,
+				    ifname, scratch_daddr, list);
+
+	if (entry != NULL) {
+		updateethent(entry, pkt->pkt_len, is_ip, 0);
+		if (!entry->prev_entry->un.desc.printed)
+			printethent(table, entry->prev_entry);
+
+		printethent(table, entry);
+	}
+}
+
 /*
  * The LAN station monitor
  */
@@ -739,14 +884,8 @@ void hostmon(time_t facilitytime, char *ifptr)
 {
 	int logging = options.logging;
 	struct ethtab table;
-	struct ethtabent *entry;
 
-	char scratch_saddr[ETH_ALEN];
-	char scratch_daddr[ETH_ALEN];
-	int is_ip;
 	int ch;
-
-	char *ifname = ifptr;
 
 	struct timeval tv;
 	struct timeval tv_rate;
@@ -755,15 +894,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 	time_t startlog = 0;
 	struct timeval updtime;
 
-	struct eth_desc *list = NULL;
-
 	FILE *logfile = NULL;
-
-	int pkt_result;
-
-	WINDOW *sortwin;
-	PANEL *sortpanel;
-	int keymode = 0;
 
 	int fd;
 
@@ -787,10 +918,10 @@ void hostmon(time_t facilitytime, char *ifptr)
 	initethtab(&table);
 
 	/* Ethernet description list */
-	struct eth_desc *elist = load_eth_desc(ARPHRD_ETHER);
+	table.elist = load_eth_desc(ARPHRD_ETHER);
 
 	/* FDDI description list */
-	struct eth_desc *flist = load_eth_desc(ARPHRD_FDDI);
+	table.flist = load_eth_desc(ARPHRD_FDDI);
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -875,140 +1006,12 @@ void hostmon(time_t facilitytime, char *ifptr)
 			break;
 		}
 
-		if (ch != ERR) {
-			if (keymode == 0) {
-				switch (ch) {
-				case KEY_UP:
-					scrollethwin(&table, SCROLLDOWN, 1);
-					break;
-				case KEY_DOWN:
-					scrollethwin(&table, SCROLLUP, 1);
-					break;
-				case KEY_PPAGE:
-				case '-':
-					scrollethwin(&table, SCROLLDOWN, LINES - 4);
-					break;
-				case KEY_NPAGE:
-				case ' ':
-					scrollethwin(&table, SCROLLUP, LINES - 4);
-					break;
-				case KEY_HOME:
-					scrollethwin(&table, SCROLLDOWN, INT_MAX);
-					break;
-				case KEY_END:
-					scrollethwin(&table, SCROLLUP, INT_MAX);
-					break;
-				case 12:
-				case 'l':
-				case 'L':
-					tx_refresh_screen();
-					break;
-				case 's':
-				case 'S':
-					show_hostsort_keywin(&sortwin,
-							     &sortpanel);
-					keymode = 1;
-					break;
-				case 'q':
-				case 'Q':
-				case 'x':
-				case 'X':
-				case 27:
-				case 24:
-					exitloop = 1;
-				}
-			} else if (keymode == 1) {
-				del_panel(sortpanel);
-				delwin(sortwin);
-				sort_hosttab(&table, ch);
-				keymode = 0;
-				refresh_hostmon_screen(&table);
-				print_visible_rates(&table);
-			}
-		}
+		if (ch != ERR)
+			hostmon_process_key(&table, ch);
 
-		if (pkt.pkt_len <= 0)
-			continue;
+		if (pkt.pkt_len > 0)
+			hostmon_process_packet(&table, &pkt, ifptr);
 
-		char ifnamebuf[IFNAMSIZ];
-
-		pkt_result =
-			packet_process(&pkt, NULL, NULL, NULL,
-				       MATCH_OPPOSITE_USECONFIG,
-				       0);
-
-		if (pkt_result != PACKET_OK)
-			continue;
-
-		if (!ifptr) {
-			/* we're capturing on "All interfaces", */
-			/* so get the name of the interface */
-			/* of this packet */
-			int r = dev_get_ifname(pkt.from->sll_ifindex, ifnamebuf);
-			if (r != 0) {
-				write_error("Unable to get interface name");
-				break;	/* can't get interface name, get out! */
-			}
-			ifname = ifnamebuf;
-		}
-
-		/* get HW addresses */
-		switch (pkt.from->sll_hatype) {
-		case ARPHRD_ETHER: {
-			memcpy(scratch_saddr, pkt.ethhdr->h_source, ETH_ALEN);
-			memcpy(scratch_daddr, pkt.ethhdr->h_dest, ETH_ALEN);
-			list = elist;
-			break; }
-		case ARPHRD_FDDI: {
-			memcpy(scratch_saddr, pkt.fddihdr->saddr, FDDI_K_ALEN);
-			memcpy(scratch_daddr, pkt.fddihdr->daddr, FDDI_K_ALEN);
-			list = flist;
-			break; }
-		default:
-			/* unknown link protocol */
-			continue;
-		}
-
-		switch(pkt.pkt_protocol) {
-		case ETH_P_IP:
-		case ETH_P_IPV6:
-			is_ip = 1;
-			break;
-		default:
-			is_ip = 0;
-			break;
-		}
-
-		/* Check source address entry */
-		entry = in_ethtable(&table, pkt.from->sll_hatype,
-				    scratch_saddr);
-
-		if (!entry)
-			entry = addethentry(&table, pkt.from->sll_hatype,
-					    ifname, scratch_saddr, list);
-
-		if (entry != NULL) {
-			updateethent(entry, pkt.pkt_len, is_ip, 1);
-			if (!entry->prev_entry->un.desc.printed)
-				printethent(&table, entry->prev_entry);
-
-			printethent(&table, entry);
-		}
-
-		/* Check destination address entry */
-		entry = in_ethtable(&table, pkt.from->sll_hatype,
-				    scratch_daddr);
-		if (!entry)
-			entry = addethentry(&table, pkt.from->sll_hatype,
-					    ifname, scratch_daddr, list);
-
-		if (entry != NULL) {
-			updateethent(entry, pkt.pkt_len, is_ip, 0);
-			if (!entry->prev_entry->un.desc.printed)
-				printethent(&table, entry->prev_entry);
-
-			printethent(&table, entry);
-		}
 	} while (!exitloop);
 
 err_close:
@@ -1035,12 +1038,12 @@ err:
 	delwin(table.borderwin);
 	update_panels();
 	doupdate();
-	destroyethtab(&table);
 
 	packet_destroy(&pkt);
 
-	free_eth_desc(elist);
-	free_eth_desc(flist);
+	free_eth_desc(table.elist);
+	free_eth_desc(table.flist);
+	destroyethtab(&table);
 
 	strcpy(current_logfile, "");
 }
