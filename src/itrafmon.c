@@ -437,9 +437,6 @@ static void quicksort_tcp_entries(struct tcptable *table,
 static void sortipents(struct tcptable *table, unsigned long *idx, int ch,
 		       int logging, FILE *logfile)
 {
-	struct tcptableent *tcptmp1;
-	unsigned int idxtmp;
-
 	if ((table->head == NULL)
 	    || (table->head->next_entry->next_entry == NULL))
 		return;
@@ -452,20 +449,14 @@ static void sortipents(struct tcptable *table, unsigned long *idx, int ch,
 	quicksort_tcp_entries(table, table->head, table->tail->prev_entry, ch,
 			      logging, logfile);
 
-	update_panels();
-	doupdate();
-	tx_colorwin(table->tcpscreen);
-
-	tcptmp1 = table->firstvisible = table->head;
+	table->firstvisible = table->head;
+	struct tcptableent *ptmp = table->head;
 	*idx = 1;
-	idxtmp = 0;
 
-	while ((tcptmp1 != NULL) && (idxtmp <= table->imaxy - 1)) {
-		if (idxtmp++ <= table->imaxy - 1)
-			table->lastvisible = tcptmp1;
-		tcptmp1 = tcptmp1->next_entry;
+	while (ptmp && ((int)ptmp->index <= getmaxy(table->tcpscreen))) {
+		table->lastvisible = ptmp;
+		ptmp = ptmp->next_entry;
 	}
-
 }
 
 /*

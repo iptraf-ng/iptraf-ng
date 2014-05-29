@@ -689,9 +689,6 @@ static void quicksort_lan_entries(struct ethtab *table, struct ethtabent *low,
 
 static void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
 {
-	struct ethtabent *ptemp1;
-	int idxtmp;
-
 	if (!list->head)
 		return;
 
@@ -704,18 +701,13 @@ static void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
 	quicksort_lan_entries(list, list->head, list->tail->prev_entry,
 			      command);
 
-	ptemp1 = list->firstvisible = list->head;
+	list->firstvisible = list->head;
 	*idx = 1;
-	idxtmp = 0;
-	tx_colorwin(list->tabwin);
-	while ((ptemp1) && (idxtmp <= LINES - 4)) {
-		printethent(list, ptemp1, *idx);
-		idxtmp++;
-		if (idxtmp <= LINES - 4)
-			list->lastvisible = ptemp1;
-		ptemp1 = ptemp1->next_entry;
+	struct ethtabent *ptmp = list->head;
+	while (ptmp && ((int)ptmp->index <= getmaxy(list->tabwin))) {
+		list->lastvisible = ptmp;
+		ptmp = ptmp->next_entry;
 	}
-
 }
 
 /*
@@ -903,6 +895,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 				delwin(sortwin);
 				sort_hosttab(&table, &idx, ch);
 				keymode = 0;
+				refresh_hostmon_screen(&table, idx);
 			}
 		}
 

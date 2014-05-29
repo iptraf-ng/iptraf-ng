@@ -590,9 +590,6 @@ static void quicksort_port_entries(struct portlist *table,
 
 static void sortportents(struct portlist *list, int command)
 {
-	struct portlistent *ptemp1;
-	int idxtmp;
-
 	if (!(list->head))
 		return;
 
@@ -605,15 +602,11 @@ static void sortportents(struct portlist *list, int command)
 
 	quicksort_port_entries(list, list->head, list->tail, command);
 
-	ptemp1 = list->firstvisible = list->head;
-	idxtmp = 1;
-
-	while ((ptemp1) && (idxtmp <= LINES - 5)) {	/* printout */
-		printportent(list, ptemp1);
-		if (idxtmp <= LINES - 5)
-			list->lastvisible = ptemp1;
-		ptemp1 = ptemp1->next_entry;
-		idxtmp++;
+	list->firstvisible = list->head;
+	struct portlistent *ptmp = list->head;
+	while (ptmp && ((int)ptmp->idx <= getmaxy(list->win))) {
+		list->lastvisible = ptmp;
+		ptmp = ptmp->next_entry;
 	}
 }
 
