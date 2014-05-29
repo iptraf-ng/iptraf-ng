@@ -311,15 +311,15 @@ static void updateethent(struct ethtabent *entry, int pktsize, int is_ip,
 	}
 }
 
-static void printethent(struct ethtab *table, struct ethtabent *entry,
-			unsigned int idx)
+static void printethent(struct ethtab *table, struct ethtabent *entry)
 {
 	unsigned int target_row;
 
-	if ((entry->index < idx) || (entry->index > idx + LINES - 5))
+	if ((entry->index < table->firstvisible->index) ||
+	    (entry->index > table->lastvisible->index))
 		return;
 
-	target_row = entry->index - idx;
+	target_row = entry->index - table->firstvisible->index;
 
 	if (entry->type == 0) {
 		wmove(table->tabwin, target_row, 1);
@@ -408,8 +408,7 @@ static void printrates(struct ethtab *table, unsigned int target_row,
 	mvwprintw(table->tabwin, target_row, 69 * COLS / 80, "%s", buf);
 }
 
-static void updateethrates(struct ethtab *table, unsigned long msecs,
-			   unsigned int idx)
+static void updateethrates(struct ethtab *table, unsigned long msecs)
 {
 	struct ethtabent *ptmp = table->head;
 	unsigned int target_row = 0;
@@ -425,10 +424,10 @@ static void updateethrates(struct ethtab *table, unsigned long msecs,
 			rate_add_rate(&ptmp->un.figs.outrate, ptmp->un.figs.outspanbr, msecs);
 			ptmp->un.figs.outspanbr = 0;
 
-			if ((ptmp->index >= idx)
-			    && (ptmp->index <= idx + LINES - 5)) {
+			if ((ptmp->index >= table->firstvisible->index)
+			    && (ptmp->index <= table->lastvisible->index)) {
 				wattrset(table->tabwin, HIGHATTR);
-				target_row = ptmp->index - idx;
+				target_row = ptmp->index - table->firstvisible->index;
 				printrates(table, target_row, ptmp);
 			}
 		}
@@ -436,7 +435,7 @@ static void updateethrates(struct ethtab *table, unsigned long msecs,
 	}
 }
 
-static void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
+static void refresh_hostmon_screen(struct ethtab *table)
 {
 	struct ethtabent *ptmp = table->firstvisible;
 
@@ -444,7 +443,7 @@ static void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
 	tx_colorwin(table->tabwin);
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
-		printethent(table, ptmp, idx);
+		printethent(table, ptmp);
 		ptmp = ptmp->next_entry;
 	}
 
@@ -452,7 +451,7 @@ static void refresh_hostmon_screen(struct ethtab *table, unsigned int idx)
 	doupdate();
 }
 
-static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
+static void scrollethwin(struct ethtab *table, int direction)
 {
 	wattrset(table->tabwin, STDATTR);
 	if (direction == SCROLLUP) {
@@ -460,11 +459,10 @@ static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 			wscrl(table->tabwin, 1);
 			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
-			(*idx)++;
 			scrollok(table->tabwin, 0);
 			mvwprintw(table->tabwin, LINES - 5, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->tabwin, 1);
-			printethent(table, table->lastvisible, *idx);
+			printethent(table, table->lastvisible);
 			if (table->lastvisible->type == 1)
 				printrates(table, LINES - 5,
 					   table->lastvisible);
@@ -474,16 +472,15 @@ static void scrollethwin(struct ethtab *table, int direction, unsigned int *idx)
 			wscrl(table->tabwin, -1);
 			table->lastvisible = table->lastvisible->prev_entry;
 			table->firstvisible = table->firstvisible->prev_entry;
-			(*idx)--;
 			mvwprintw(table->tabwin, 0, 0, "%*c", COLS - 2, ' ');
-			printethent(table, table->firstvisible, *idx);
+			printethent(table, table->firstvisible);
 			if (table->firstvisible->type == 1)
 				printrates(table, 0, table->firstvisible);
 		}
 	}
 }
 
-static void pageethwin(struct ethtab *table, int direction, unsigned int *idx)
+static void pageethwin(struct ethtab *table, int direction)
 {
 	int i = 1;
 
@@ -492,17 +489,15 @@ static void pageethwin(struct ethtab *table, int direction, unsigned int *idx)
 			i++;
 			table->firstvisible = table->firstvisible->next_entry;
 			table->lastvisible = table->lastvisible->next_entry;
-			(*idx)++;
 		}
 	} else {
 		while ((i <= LINES - 7) && (table->firstvisible != table->head)) {
 			i++;
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
-			(*idx)--;
 		}
 	}
-	refresh_hostmon_screen(table, *idx);
+	refresh_hostmon_screen(table);
 }
 
 static void show_hostsort_keywin(WINDOW ** win, PANEL ** panel)
@@ -687,7 +682,7 @@ static void quicksort_lan_entries(struct ethtab *table, struct ethtabent *low,
 	}
 }
 
-static void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
+static void sort_hosttab(struct ethtab *list, int command)
 {
 	if (!list->head)
 		return;
@@ -702,7 +697,6 @@ static void sort_hosttab(struct ethtab *list, unsigned int *idx, int command)
 			      command);
 
 	list->firstvisible = list->head;
-	*idx = 1;
 	struct ethtabent *ptmp = list->head;
 	while (ptmp && ((int)ptmp->index <= getmaxy(list->tabwin))) {
 		list->lastvisible = ptmp;
@@ -722,7 +716,6 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	char scratch_saddr[ETH_ALEN];
 	char scratch_daddr[ETH_ALEN];
-	unsigned int idx = 1;
 	int is_ip;
 	int ch;
 
@@ -824,7 +817,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 		if (msecs >= 1000) {
 			printelapsedtime(statbegin, now, LINES - 3, 15,
 					 table.borderwin);
-			updateethrates(&table, msecs, idx);
+			updateethrates(&table, msecs);
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
 			tv_rate = tv;
@@ -858,18 +851,18 @@ void hostmon(time_t facilitytime, char *ifptr)
 			if (keymode == 0) {
 				switch (ch) {
 				case KEY_UP:
-					scrollethwin(&table, SCROLLDOWN, &idx);
+					scrollethwin(&table, SCROLLDOWN);
 					break;
 				case KEY_DOWN:
-					scrollethwin(&table, SCROLLUP, &idx);
+					scrollethwin(&table, SCROLLUP);
 					break;
 				case KEY_PPAGE:
 				case '-':
-					pageethwin(&table, SCROLLDOWN, &idx);
+					pageethwin(&table, SCROLLDOWN);
 					break;
 				case KEY_NPAGE:
 				case ' ':
-					pageethwin(&table, SCROLLUP, &idx);
+					pageethwin(&table, SCROLLUP);
 					break;
 				case 12:
 				case 'l':
@@ -893,9 +886,9 @@ void hostmon(time_t facilitytime, char *ifptr)
 			} else if (keymode == 1) {
 				del_panel(sortpanel);
 				delwin(sortwin);
-				sort_hosttab(&table, &idx, ch);
+				sort_hosttab(&table, ch);
 				keymode = 0;
-				refresh_hostmon_screen(&table, idx);
+				refresh_hostmon_screen(&table);
 			}
 		}
 
@@ -962,10 +955,9 @@ void hostmon(time_t facilitytime, char *ifptr)
 		if (entry != NULL) {
 			updateethent(entry, pkt.pkt_len, is_ip, 1);
 			if (!entry->prev_entry->un.desc.printed)
-				printethent(&table, entry->prev_entry,
-					    idx);
+				printethent(&table, entry->prev_entry);
 
-			printethent(&table, entry, idx);
+			printethent(&table, entry);
 		}
 
 		/* Check destination address entry */
@@ -978,10 +970,9 @@ void hostmon(time_t facilitytime, char *ifptr)
 		if (entry != NULL) {
 			updateethent(entry, pkt.pkt_len, is_ip, 0);
 			if (!entry->prev_entry->un.desc.printed)
-				printethent(&table, entry->prev_entry,
-					    idx);
+				printethent(&table, entry->prev_entry);
 
-			printethent(&table, entry, idx);
+			printethent(&table, entry);
 		}
 	} while (!exitloop);
 
