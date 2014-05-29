@@ -394,24 +394,42 @@ static void hostmonhelp(void)
 	stdexitkeyhelp();
 }
 
-static void printrates(struct ethtab *table, unsigned int target_row,
-		       struct ethtabent *ptmp)
+static void print_entry_rates(struct ethtab *table, struct ethtabent *entry)
 {
 	char buf[32];
 
-	rate_print_no_units(rate_get_average(&ptmp->un.figs.inrate),
+	if (entry == NULL)
+		return;
+	if (entry->type != 1)
+		return;
+
+	int target_row = entry->index - table->firstvisible->index;
+
+	wattrset(table->tabwin, HIGHATTR);
+	rate_print_no_units(rate_get_average(&entry->un.figs.inrate),
 		   buf, sizeof(buf));
 	mvwprintw(table->tabwin, target_row, 32 * COLS / 80, "%s", buf);
 
-	rate_print_no_units(rate_get_average(&ptmp->un.figs.outrate),
+	rate_print_no_units(rate_get_average(&entry->un.figs.outrate),
 		   buf, sizeof(buf));
 	mvwprintw(table->tabwin, target_row, 69 * COLS / 80, "%s", buf);
+}
+
+static void print_visible_rates(struct ethtab *table)
+{
+	struct ethtabent *entry = table->firstvisible;
+
+	while ((entry != NULL) && (entry->prev_entry != table->lastvisible)) {
+		print_entry_rates(table, entry);
+		entry = entry->next_entry;
+	}
+	update_panels();
+	doupdate();
 }
 
 static void updateethrates(struct ethtab *table, unsigned long msecs)
 {
 	struct ethtabent *ptmp = table->head;
-	unsigned int target_row = 0;
 
 	if (table->lastvisible == NULL)
 		return;
@@ -423,13 +441,6 @@ static void updateethrates(struct ethtab *table, unsigned long msecs)
 
 			rate_add_rate(&ptmp->un.figs.outrate, ptmp->un.figs.outspanbr, msecs);
 			ptmp->un.figs.outspanbr = 0;
-
-			if ((ptmp->index >= table->firstvisible->index)
-			    && (ptmp->index <= table->lastvisible->index)) {
-				wattrset(table->tabwin, HIGHATTR);
-				target_row = ptmp->index - table->firstvisible->index;
-				printrates(table, target_row, ptmp);
-			}
 		}
 		ptmp = ptmp->next_entry;
 	}
@@ -465,9 +476,7 @@ static void scrollethwin_one(struct ethtab *table, int direction)
 			scrollok(table->tabwin, 1);
 
 			printethent(table, table->lastvisible);
-			if (table->lastvisible->type == 1)
-				printrates(table, LINES - 5,
-					   table->lastvisible);
+			print_entry_rates(table, table->lastvisible);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
@@ -478,8 +487,7 @@ static void scrollethwin_one(struct ethtab *table, int direction)
 			mvwprintw(table->tabwin, 0, 0, "%*c", COLS - 2, ' ');
 
 			printethent(table, table->firstvisible);
-			if (table->firstvisible->type == 1)
-				printrates(table, 0, table->firstvisible);
+			print_entry_rates(table, table->firstvisible);
 		}
 	}
 }
@@ -503,6 +511,7 @@ static void scrollethwin_many(struct ethtab *table, int direction, int lines)
 		break;
 	}
 	refresh_hostmon_screen(table);
+	print_visible_rates(table);
 }
 
 static void scrollethwin(struct ethtab *table, int direction, int lines)
@@ -836,6 +845,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 			printelapsedtime(statbegin, now, LINES - 3, 15,
 					 table.borderwin);
 			updateethrates(&table, msecs);
+			print_visible_rates(&table);
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
 			tv_rate = tv;
@@ -913,6 +923,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 				sort_hosttab(&table, ch);
 				keymode = 0;
 				refresh_hostmon_screen(&table);
+				print_visible_rates(&table);
 			}
 		}
 
