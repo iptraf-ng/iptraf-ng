@@ -451,17 +451,19 @@ static void refresh_hostmon_screen(struct ethtab *table)
 	doupdate();
 }
 
-static void scrollethwin(struct ethtab *table, int direction)
+static void scrollethwin_one(struct ethtab *table, int direction)
 {
 	wattrset(table->tabwin, STDATTR);
 	if (direction == SCROLLUP) {
 		if (table->lastvisible != table->tail) {
-			wscrl(table->tabwin, 1);
-			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
+			table->lastvisible = table->lastvisible->next_entry;
+
+			wscrl(table->tabwin, 1);
 			scrollok(table->tabwin, 0);
 			mvwprintw(table->tabwin, LINES - 5, 0, "%*c", COLS - 2, ' ');
 			scrollok(table->tabwin, 1);
+
 			printethent(table, table->lastvisible);
 			if (table->lastvisible->type == 1)
 				printrates(table, LINES - 5,
@@ -469,10 +471,12 @@ static void scrollethwin(struct ethtab *table, int direction)
 		}
 	} else {
 		if (table->firstvisible != table->head) {
-			wscrl(table->tabwin, -1);
-			table->lastvisible = table->lastvisible->prev_entry;
 			table->firstvisible = table->firstvisible->prev_entry;
+			table->lastvisible = table->lastvisible->prev_entry;
+
+			wscrl(table->tabwin, -1);
 			mvwprintw(table->tabwin, 0, 0, "%*c", COLS - 2, ' ');
+
 			printethent(table, table->firstvisible);
 			if (table->firstvisible->type == 1)
 				printrates(table, 0, table->firstvisible);
@@ -480,24 +484,38 @@ static void scrollethwin(struct ethtab *table, int direction)
 	}
 }
 
-static void pageethwin(struct ethtab *table, int direction)
+static void scrollethwin_many(struct ethtab *table, int direction, int lines)
 {
-	int i = 1;
-
-	if (direction == SCROLLUP) {
-		while ((i <= LINES - 7) && (table->lastvisible != table->tail)) {
-			i++;
+	switch (direction) {
+	case SCROLLUP:
+		while (lines && (table->lastvisible != table->tail)) {
 			table->firstvisible = table->firstvisible->next_entry;
 			table->lastvisible = table->lastvisible->next_entry;
+			lines--;
 		}
-	} else {
-		while ((i <= LINES - 7) && (table->firstvisible != table->head)) {
-			i++;
+		break;
+	case SCROLLDOWN:
+		while (lines && (table->firstvisible != table->head)) {
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
+			lines--;
 		}
+		break;
 	}
 	refresh_hostmon_screen(table);
+}
+
+static void scrollethwin(struct ethtab *table, int direction, int lines)
+{
+	if (table->head == NULL)
+		return;
+	if (lines < 1)
+		return;
+	if (lines < 16)
+		while (lines--)
+			scrollethwin_one(table, direction);
+	else
+		scrollethwin_many(table, direction, lines);
 }
 
 static void show_hostsort_keywin(WINDOW ** win, PANEL ** panel)
@@ -851,18 +869,18 @@ void hostmon(time_t facilitytime, char *ifptr)
 			if (keymode == 0) {
 				switch (ch) {
 				case KEY_UP:
-					scrollethwin(&table, SCROLLDOWN);
+					scrollethwin(&table, SCROLLDOWN, 1);
 					break;
 				case KEY_DOWN:
-					scrollethwin(&table, SCROLLUP);
+					scrollethwin(&table, SCROLLUP, 1);
 					break;
 				case KEY_PPAGE:
 				case '-':
-					pageethwin(&table, SCROLLDOWN);
+					scrollethwin(&table, SCROLLDOWN, LINES - 4);
 					break;
 				case KEY_NPAGE:
 				case ' ':
-					pageethwin(&table, SCROLLUP);
+					scrollethwin(&table, SCROLLUP, LINES - 4);
 					break;
 				case 12:
 				case 'l':
