@@ -585,14 +585,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
 
-	struct timeval tv;
-	struct timeval last_time;
-	time_t starttime = 0;
-	time_t now = 0;
-	time_t timeint = 0;
-	struct timeval updtime;
-	time_t closedint = 0;
-
 	WINDOW *sortwin;
 	PANEL *sortpanel;
 
@@ -712,57 +704,66 @@ void ipmon(time_t facilitytime, char *ifptr)
 		goto err_close;
 	}
 
-	exitloop = 0;
-	gettimeofday(&tv, NULL);
-	last_time = tv;
-	updtime = tv;
-	starttime = timeint = closedint = tv.tv_sec;
-
 	packet_init(&pkt);
+
+	exitloop = 0;
+
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	struct timeval last_time = now;
+	struct timeval updtime = now;
+	time_t starttime = now.tv_sec;
+
+	time_t check_closed;
+	if (options.closedint != 0)
+		check_closed = now.tv_sec + options.closedint * 60;
+	else
+		check_closed = INT_MAX;
+
+	/* set the time after which we terminate the process */
+	time_t endtime;
+	if (facilitytime != 0)
+		endtime = now.tv_sec + facilitytime * 60;
+	else
+		endtime = INT_MAX;
 
 	while (!exitloop) {
 		char ifnamebuf[IFNAMSIZ];
 
-		gettimeofday(&tv, NULL);
-		now = tv.tv_sec;
+		gettimeofday(&now, NULL);
 
-		/*
-		 * Update screen at configured intervals.
-		 */
-
-		if (screen_update_needed(&tv, &updtime)) {
+		/* update screen at configured intervals. */
+		if (screen_update_needed(&now, &updtime)) {
 			show_stats(table.statwin, total_pkts);
 			update_panels();
 			doupdate();
 
-			updtime = tv;
+			updtime = now;
 		}
 
-		if (now > last_time.tv_sec) {
-			unsigned long msecs = timeval_diff_msec(&tv, &last_time);
+		if (now.tv_sec > last_time.tv_sec) {
+			unsigned long msecs = timeval_diff_msec(&now, &last_time);
 			/* update all flowrates ... */
 			update_flowrates(&table, msecs);
 			/* ... and print the current one every second */
 			print_flowrate(&table);
 
 			/* print timer at bottom of screen */
-			printelapsedtime(starttime, now, othptbl.obmaxy - 1, 15,
+			printelapsedtime(starttime, now.tv_sec, othptbl.obmaxy - 1, 15,
 					 othptbl.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 40);
 
 			/* automatically clear closed/timed out entries */
-			if ((options.closedint != 0)
-			    && ((now - closedint) / 60 >= options.closedint)) {
+			if (now.tv_sec > check_closed) {
 				flushclosedentries(&table, logging, logfile);
 				refreshtcpwin(&table);
-				closedint = now;
+				check_closed = now.tv_sec + options.closedint * 60;
 			}
 
 			/* terminate after lifetime specified at the cmdline */
-			if ((facilitytime != 0)
-			    && (((now - starttime) / 60) >= facilitytime))
+			if (now.tv_sec > endtime)
 				exitloop = 1;
 
 			/* close and rotate log file if signal was received */
@@ -774,7 +775,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 				rotate_flag = 0;
 			}
 
-			last_time = tv;
+			last_time = now;
 		}
 
 		if (packet_get(fd, &pkt, &ch, table.tcpscreen) == -1) {
