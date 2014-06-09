@@ -215,69 +215,83 @@ static void move_tcp_bar(struct tcptable *table, int direction, int lines)
  * Scrolling and paging routines for the lower (non-TCP) window.
  */
 
-static void scrolllowerwin(struct othptable *table, int direction)
+static void scroll_othp_one(struct othptable *table, int direction)
 {
-	if (direction == SCROLLUP) {
+	switch (direction) {
+	case SCROLLUP:
 		if (table->lastvisible != table->tail) {
-			wscrl(table->othpwin, 1);
-			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
+			table->lastvisible = table->lastvisible->next_entry;
+
+			wscrl(table->othpwin, 1);
+			printothpentry(table, table->lastvisible,
+				       table->oimaxy - 1, 0, NULL);
 
 			if (table->htstat == HIND) {	/* Head indicator on? */
 				wmove(table->borderwin, table->obmaxy - 1, 1);
 				whline(table->borderwin, ACS_HLINE, 8);
 				table->htstat = NOHTIND;
 			}
-			printothpentry(table, table->lastvisible,
-				       table->oimaxy - 1, 0, NULL);
 		}
-	} else {
+		break;
+	case SCROLLDOWN:
 		if (table->firstvisible != table->head) {
-			wscrl(table->othpwin, -1);
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
+
+			wscrl(table->othpwin, -1);
+			printothpentry(table, table->firstvisible, 0, 0, NULL);
 
 			if (table->htstat == TIND) {	/* Tail indicator on? */
 				wmove(table->borderwin, table->obmaxy - 1, 1);
 				whline(table->borderwin, ACS_HLINE, 8);
 				table->htstat = NOHTIND;
 			}
-			printothpentry(table, table->firstvisible, 0, 0, NULL);
 		}
+		break;
 	}
 }
 
-static void pagelowerwin(struct othptable *table, int direction)
+static void scroll_othp_many(struct othptable *table, int direction, int lines)
 {
-	unsigned int i = 1;
-
-	if (direction == SCROLLUP) {
-		while ((i <= table->oimaxy - 2)
-		       && (table->lastvisible != table->tail)) {
-			i++;
+	switch (direction) {
+	case SCROLLUP:
+		while (lines-- && (table->lastvisible != table->tail)) {
 			table->firstvisible = table->firstvisible->next_entry;
 			table->lastvisible = table->lastvisible->next_entry;
-
-			if (table->htstat == HIND) {	/* Head indicator on? */
-				wmove(table->borderwin, table->obmaxy - 1, 1);
-				whline(table->borderwin, ACS_HLINE, 8);
-				table->htstat = NOHTIND;
-			}
 		}
-	} else {
-		while ((i <= table->oimaxy - 2)
-		       && (table->firstvisible != table->head)) {
-			i++;
+		if (table->htstat == HIND) {	/* Head indicator on? */
+			wmove(table->borderwin, table->obmaxy - 1, 1);
+			whline(table->borderwin, ACS_HLINE, 8);
+			table->htstat = NOHTIND;
+		}
+		break;
+	case SCROLLDOWN:
+		while (lines-- && (table->firstvisible != table->head)) {
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
-
-			if (table->htstat == TIND) {	/* Tail indicator on? */
-				wmove(table->borderwin, table->obmaxy - 1, 1);
-				whline(table->borderwin, ACS_HLINE, 8);
-				table->htstat = NOHTIND;
-			}
 		}
+		if (table->htstat == TIND) {	/* Tail indicator on? */
+			wmove(table->borderwin, table->obmaxy - 1, 1);
+			whline(table->borderwin, ACS_HLINE, 8);
+			table->htstat = NOHTIND;
+		}
+		break;
 	}
+	refresh_othwindow(table);
+}
+
+static void scroll_othp(struct othptable *table, int direction, int lines)
+{
+	if (table->head == NULL)
+		return;
+	if (lines < 1)
+		return;
+	if (lines < getmaxy(table->othpwin))
+		while (lines--)
+			scroll_othp_one(table, direction);
+	else
+		scroll_othp_many(table, direction, lines);
 }
 
 /*
@@ -815,18 +829,16 @@ void ipmon(time_t facilitytime, char *ifptr)
 		if (keymode == 0) {
 			switch (ch) {
 			case KEY_UP:
-				if (curwin) {
-					scrolllowerwin(&othptbl, SCROLLDOWN);
-					break;
-				}
-				move_tcp_bar(&table, SCROLLDOWN, 1);
+				if (curwin)
+					scroll_othp(&othptbl, SCROLLDOWN, 1);
+				else
+					move_tcp_bar(&table, SCROLLDOWN, 1);
 				break;
 			case KEY_DOWN:
-				if (curwin) {
-					scrolllowerwin(&othptbl, SCROLLUP);
-					break;
-				}
-				move_tcp_bar(&table, SCROLLUP, 1);
+				if (curwin)
+					scroll_othp(&othptbl, SCROLLUP, 1);
+				else
+					move_tcp_bar(&table, SCROLLUP, 1);
 				break;
 			case KEY_RIGHT:
 				if (!curwin)
@@ -848,21 +860,17 @@ void ipmon(time_t facilitytime, char *ifptr)
 				break;
 			case KEY_PPAGE:
 			case '-':
-				if (curwin) {
-					pagelowerwin(&othptbl, SCROLLDOWN);
-					refresh_othwindow(&othptbl);
-					break;
-				}
-				move_tcp_bar(&table, SCROLLDOWN, table.imaxy);
+				if (curwin)
+					scroll_othp(&othptbl, SCROLLDOWN, othptbl.oimaxy);
+				else
+					move_tcp_bar(&table, SCROLLDOWN, table.imaxy);
 				break;
 			case KEY_NPAGE:
 			case ' ':
-				if (curwin) {
-					pagelowerwin(&othptbl, SCROLLUP);
-					refresh_othwindow(&othptbl);
-					break;
-				}
-				move_tcp_bar(&table, SCROLLUP, table.imaxy);
+				if (curwin)
+					scroll_othp(&othptbl, SCROLLUP, othptbl.oimaxy);
+				else
+					move_tcp_bar(&table, SCROLLUP, table.imaxy);
 				break;
 			case KEY_F(6):
 			case 'w':
