@@ -534,7 +534,7 @@ struct tcptableent *in_table(struct tcptable *table,
  */
 
 void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
-		 struct tcptableent *tableentry, struct tcphdr *transpacket,
+		 struct tcptableent *tableentry, struct tcphdr *tcp,
 		 unsigned int bcount, int *revlook, int rvnfd, int logging,
 		 FILE *logfile)
 {
@@ -600,19 +600,19 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 	 */
 
 	if (tableentry->pcount == 1) {
-		if ((transpacket->syn) || (transpacket->rst))
+		if (tcp->syn || tcp->rst)
 			tableentry->partial = 0;
 		else
 			tableentry->partial = 1;
 	}
-	tableentry->win = ntohs(transpacket->window);
+	tableentry->win = ntohs(tcp->window);
 
 	tableentry->stat = 0;
 
-	if (transpacket->syn)
+	if (tcp->syn)
 		tableentry->stat |= FLAG_SYN;
 
-	if (transpacket->ack) {
+	if (tcp->ack) {
 		tableentry->stat |= FLAG_ACK;
 
 		/*
@@ -626,7 +626,7 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 		 */
 
 		if ((tableentry->oth_connection->finsent == 1)
-		    && (ntohl(transpacket->seq) ==
+		    && (ntohl(tcp->seq) ==
 			tableentry->oth_connection->finack)) {
 			tableentry->oth_connection->finsent = 2;
 
@@ -647,7 +647,7 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 	 * in ACK above.
 	 */
 
-	if (transpacket->fin) {
+	if (tcp->fin) {
 
 		/*
 		 * First, we check if the opposite direction has no counts, in which
@@ -675,7 +675,7 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 			 */
 
 			tableentry->finsent = 1;
-			tableentry->finack = ntohl(transpacket->ack_seq);
+			tableentry->finack = ntohl(tcp->ack_seq);
 		}
 		if (logging) {
 			char flowrate[64];
@@ -688,7 +688,7 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 				    tableentry->psize, msgstring);
 		}
 	}
-	if (transpacket->rst) {
+	if (tcp->rst) {
 		tableentry->stat |= FLAG_RST;
 		if (!(tableentry->inclosed))
 			addtoclosedlist(table, tableentry);
@@ -707,10 +707,10 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 				    tableentry->psize, msgstring);
 		}
 	}
-	if (transpacket->psh)
+	if (tcp->psh)
 		tableentry->stat |= FLAG_PSH;
 
-	if (transpacket->urg)
+	if (tcp->urg)
 		tableentry->stat |= FLAG_URG;
 
 	tableentry->lastupdate = tableentry->oth_connection->lastupdate =
