@@ -124,18 +124,16 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 
 void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
-void clearaddr(struct tcptable *table, struct tcptableent *tableentry,
-	       unsigned int screen_idx);
+void clearaddr(struct tcptable *table, struct tcptableent *tableentry);
 
 void printentry(struct tcptable *table, struct tcptableent *tableentry,
-		unsigned int screen_idx, int mode);
+		int mode);
 
-void refreshtcpwin(struct tcptable *table, unsigned int idx, int mode);
+void refreshtcpwin(struct tcptable *table, int mode);
 
 void destroytcptable(struct tcptable *table);
 
-void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
-			int logging, FILE *logfile);
+void flushclosedentries(struct tcptable *table, int logging, FILE *logfile);
 
 void write_timeout_log(int logging, FILE *logfile, struct tcptableent *tcpnode);
 

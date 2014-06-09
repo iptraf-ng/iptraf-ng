@@ -746,16 +746,15 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
  * Returns immediately if the entry is not visible in the window.
  */
 
-void clearaddr(struct tcptable *table, struct tcptableent *tableentry,
-	       unsigned int screen_idx)
+void clearaddr(struct tcptable *table, struct tcptableent *tableentry)
 {
 	unsigned int target_row;
 
-	if ((tableentry->index < screen_idx)
-	    || (tableentry->index > screen_idx + (table->imaxy - 1)))
+	if ((tableentry->index < table->firstvisible->index)
+	    || (tableentry->index > table->lastvisible->index))
 		return;
 
-	target_row = (tableentry->index) - screen_idx;
+	target_row = tableentry->index - table->firstvisible->index;
 
 	mvwprintw(table->tcpscreen, target_row, 1, "%44c", ' ');
 }
@@ -766,7 +765,7 @@ void clearaddr(struct tcptable *table, struct tcptableent *tableentry,
  */
 
 void printentry(struct tcptable *table, struct tcptableent *tableentry,
-		unsigned int screen_idx, int mode)
+		int mode)
 {
 	char stat[7] = "";
 	unsigned int target_row;
@@ -786,11 +785,11 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry,
 		highattr = HIGHATTR;
 	}
 
-	if ((tableentry->index < screen_idx)
-	    || (tableentry->index > screen_idx + (table->imaxy - 1)))
+	if ((tableentry->index < table->firstvisible->index)
+	    || (tableentry->index > table->lastvisible->index))
 		return;
 
-	target_row = (tableentry->index) - screen_idx;
+	target_row = tableentry->index - table->firstvisible->index;
 
 	/* clear the data if it's a reused entry */
 
@@ -877,7 +876,7 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry,
  * Redraw the TCP window
  */
 
-void refreshtcpwin(struct tcptable *table, unsigned int idx, int mode)
+void refreshtcpwin(struct tcptable *table, int mode)
 {
 	struct tcptableent *ptmp;
 
@@ -887,7 +886,7 @@ void refreshtcpwin(struct tcptable *table, unsigned int idx, int mode)
 	ptmp = table->firstvisible;
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
-		printentry(table, ptmp, idx, mode);
+		printentry(table, ptmp, mode);
 		ptmp = ptmp->next_entry;
 	}
 
@@ -1006,12 +1005,12 @@ static void destroy_tcp_entry(struct tcptable *table, struct tcptableent *ptmp)
  * entries.
  */
 
-void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
-			int logging, FILE *logfile)
+void flushclosedentries(struct tcptable *table, int logging, FILE *logfile)
 {
 	struct tcptableent *ptmp = table->head;
 	struct tcptableent *ctmp = NULL;
 	unsigned long idx = 1;
+	unsigned long screen_idx = table->firstvisible->index;
 	time_t now;
 	time_t lastupdated = 0;
 
@@ -1064,21 +1063,21 @@ void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
 			 * Adjust screen index if the deleted entry was "above"
 			 * the screen.
 			 */
-			if (idx < *screen_idx)
-				(*screen_idx)--;
+			if (idx < screen_idx)
+				screen_idx--;
 		} else {
 			/*
 			 * Set the first visible pointer once the index matches
 			 * the screen index.
 			 */
-			if (idx == *screen_idx)
+			if (idx == screen_idx)
 				table->firstvisible = ptmp;
 
 			/*
 			 * Keep setting the last visible pointer until the scan
 			 * index "leaves" the screen
 			 */
-			if (idx <= (*screen_idx) + (table->imaxy - 1))
+			if (idx <= screen_idx + (table->imaxy - 1))
 				table->lastvisible = ptmp;
 
 			ptmp->index = idx;
@@ -1103,8 +1102,8 @@ void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
 		 * "above" the screen index.  Set the firstvisible pointer to that
 		 * as well.
 		 */
-		if (table->tail->index < *screen_idx) {
-			*screen_idx = table->tail->index;
+		if (table->tail->index < screen_idx) {
+			screen_idx = table->tail->index;
 			table->firstvisible = table->tail;
 		}
 
@@ -1115,16 +1114,16 @@ void flushclosedentries(struct tcptable *table, unsigned long *screen_idx,
 		 * head of the table.  The highlight bar should "go along" with
 		 * the shifting.
 		 */
-		while ((table->tail->index < *screen_idx + table->imaxy - 1)
+		while ((table->tail->index < screen_idx + table->imaxy - 1)
 		       && (table->firstvisible->prev_entry != NULL)) {
 			table->firstvisible = table->firstvisible->prev_entry;
-			(*screen_idx)--;
+			screen_idx--;
 		}
 
 		/*
 		 * Set the bar position index once everything's done.
 		 */
-		table->baridx = table->barptr->index - *screen_idx + 1;
+		table->baridx = table->barptr->index - screen_idx + 1;
 	}
 }
 
