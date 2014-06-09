@@ -898,19 +898,11 @@ void ipmon(time_t facilitytime, char *ifptr)
 			keymode = 0;
 			del_panel(sortpanel);
 			delwin(sortwin);
-			show_sort_statwin(&sortwin, &sortpanel);
-			update_panels();
-			doupdate();
 			sortipents(&table, ch, logging, logfile);
-
 			if (table.barptr != NULL) {
 				table.barptr = table.firstvisible;
 			}
 			refreshtcpwin(&table);
-			del_panel(sortpanel);
-			delwin(sortwin);
-			update_panels();
-			doupdate();
 		}
 	no_key_ready:
 
