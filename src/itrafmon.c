@@ -555,15 +555,22 @@ static void update_flowrate(struct tcptable *table, unsigned long msecs)
 	}
 }
 
-static void print_flowrate(struct tcptableent *entry, WINDOW *win)
+static void print_flowrate(struct tcptable *table)
 {
-	wattrset(win, IPSTATLABELATTR);
-	mvwprintw(win, 0, COLS * 47 / 80, "TCP flow rate: ");
-	wattrset(win, IPSTATATTR);
+	if (table->barptr == NULL) {
+		wattrset(table->statwin, IPSTATATTR);
+		mvwprintw(table->statwin, 0, COLS * 47 / 80,
+			  "No TCP entries              ");
+	} else {
+		wattrset(table->statwin, IPSTATLABELATTR);
+		mvwprintw(table->statwin, 0, COLS * 47 / 80,
+			  "TCP flow rate: ");
 
-	char buf[32];
-	rate_print(rate_get_average(&entry->rate), buf, sizeof(buf));
-	mvwprintw(win, 0, COLS * 52 / 80 + 13, "%s", buf);
+		char buf[32];
+		rate_print(rate_get_average(&table->barptr->rate), buf, sizeof(buf));
+		wattrset(table->statwin, IPSTATATTR);
+		mvwprintw(table->statwin, 0, COLS * 52 / 80 + 13, "%s", buf);
+	}
 }
 
 /*
@@ -621,8 +628,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	int revlook = options.revlook;
 	int wasempty = 1;
-
-	const int statx = COLS * 47 / 80;
 
 	/*
 	 * Mark this instance of the traffic monitor
@@ -754,18 +759,12 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 		/*
 		 * If highlight bar is on some entry, update the flow rate
-		 * indicator after five seconds.
+		 * indicator every second.
 		 */
 		unsigned long rate_msecs = timeval_diff_msec(&tv, &tv_rate);
 		if (rate_msecs > 1000) {
 			update_flowrate(&table, rate_msecs);
-			if (table.barptr != NULL) {
-				print_flowrate(table.barptr, table.statwin);
-			} else {
-				wattrset(table.statwin, IPSTATATTR);
-				mvwprintw(table.statwin, 0, statx,
-					  "No TCP entries              ");
-			}
+			print_flowrate(&table);
 			tv_rate = tv;
 
 			dropped += packet_get_dropped(fd);
