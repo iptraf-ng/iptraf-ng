@@ -899,23 +899,16 @@ void refreshtcpwin(struct tcptable *table)
 
 static void destroy_closed_entries(struct tcptable *table)
 {
-	struct closedlist *closedtemp;
-	struct closedlist *closedtemp_next;
+	struct closedlist *ptmp = table->closedentries;
 
-	if (table->closedentries != NULL) {
-		closedtemp = table->closedentries;
-		closedtemp_next = table->closedentries->next_entry;
+	while (ptmp != NULL) {
+		struct closedlist *ctmp = ptmp->next_entry;
 
-		while (closedtemp != NULL) {
-			free(closedtemp);
-			closedtemp = closedtemp_next;
-			if (closedtemp_next != NULL)
-				closedtemp_next = closedtemp_next->next_entry;
-		}
-
-		table->closedentries = NULL;
-		table->closedtail = NULL;
+		free(ptmp);
+		ptmp = ctmp;
 	}
+	table->closedentries = NULL;
+	table->closedtail = NULL;
 }
 
 /*
