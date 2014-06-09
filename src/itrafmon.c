@@ -92,6 +92,33 @@ static void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 	whline(win2, ACS_HLINE, 8);
 }
 
+static void update_flowrate(struct tcptable *table, unsigned long msecs)
+{
+	struct tcptableent *entry;
+	for (entry = table->head; entry != NULL; entry = entry->next_entry) {
+		rate_add_rate(&entry->rate, entry->spanbr, msecs);
+		entry->spanbr = 0;
+	}
+}
+
+static void print_flowrate(struct tcptable *table)
+{
+	if (table->barptr == NULL) {
+		wattrset(table->statwin, IPSTATATTR);
+		mvwprintw(table->statwin, 0, COLS * 47 / 80,
+			  "No TCP entries              ");
+	} else {
+		wattrset(table->statwin, IPSTATLABELATTR);
+		mvwprintw(table->statwin, 0, COLS * 47 / 80,
+			  "TCP flow rate: ");
+
+		char buf[32];
+		rate_print(rate_get_average(&table->barptr->rate), buf, sizeof(buf));
+		wattrset(table->statwin, IPSTATATTR);
+		mvwprintw(table->statwin, 0, COLS * 52 / 80 + 13, "%s", buf);
+	}
+}
+
 /*
  * Scrolling and paging routines for the upper (TCP) window
  */
@@ -192,6 +219,8 @@ static void move_tcp_bar(struct tcptable *table, int direction, int lines)
 			move_tcp_bar_one(table, direction);
 	else
 		move_tcp_bar_many(table, direction, lines);
+
+	print_flowrate(table);
 }
 
 /*
@@ -544,33 +573,6 @@ static int checkrvnamed(void)
 		}
 	}
 	return 1;
-}
-
-static void update_flowrate(struct tcptable *table, unsigned long msecs)
-{
-	struct tcptableent *entry;
-	for (entry = table->head; entry != NULL; entry = entry->next_entry) {
-		rate_add_rate(&entry->rate, entry->spanbr, msecs);
-		entry->spanbr = 0;
-	}
-}
-
-static void print_flowrate(struct tcptable *table)
-{
-	if (table->barptr == NULL) {
-		wattrset(table->statwin, IPSTATATTR);
-		mvwprintw(table->statwin, 0, COLS * 47 / 80,
-			  "No TCP entries              ");
-	} else {
-		wattrset(table->statwin, IPSTATLABELATTR);
-		mvwprintw(table->statwin, 0, COLS * 47 / 80,
-			  "TCP flow rate: ");
-
-		char buf[32];
-		rate_print(rate_get_average(&table->barptr->rate), buf, sizeof(buf));
-		wattrset(table->statwin, IPSTATATTR);
-		mvwprintw(table->statwin, 0, COLS * 52 / 80 + 13, "%s", buf);
-	}
 }
 
 /*
