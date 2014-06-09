@@ -388,13 +388,10 @@ struct tcptableent *addentry(struct tcptable *table,
 	 * Mark flow rate start time and byte counter for flow computation
 	 * if the highlight bar is on either flow of the new connection.
 	 */
-	if (table->barptr == new_entry) {
-		new_entry->starttime = time(NULL);
+	if (table->barptr == new_entry)
 		new_entry->spanbr = 0;
-	} else if (table->barptr == new_entry->oth_connection) {
-		new_entry->oth_connection->starttime = time(NULL);
+	else if (table->barptr == new_entry->oth_connection)
 		new_entry->oth_connection->spanbr = 0;
-	}
 
 	/*
 	 * Add entries to hash table

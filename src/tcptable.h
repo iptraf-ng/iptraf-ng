@@ -59,7 +59,6 @@ struct tcptableent {
 	unsigned long spanbr;
 	struct rate rate;
 	time_t lastupdate;
-	time_t starttime;
 	time_t conn_starttime;
 	struct tcp_hashentry *hash_node;
 	struct tcptableent *oth_connection;	/* the other half of the connection */
