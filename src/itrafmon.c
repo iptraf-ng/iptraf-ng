@@ -113,7 +113,7 @@ static void show_stats(WINDOW * win, unsigned long long total)
  * Scrolling and paging routines for the upper (TCP) window
  */
 
-static void scrollupperwin(struct tcptable *table, int direction, int mode)
+static void scrollupperwin(struct tcptable *table, int direction)
 {
 	wattrset(table->tcpscreen, STDATTR);
 	if (direction == SCROLLUP) {
@@ -125,7 +125,7 @@ static void scrollupperwin(struct tcptable *table, int direction, int mode)
 			scrollok(table->tcpscreen, 0);
 			wprintw(table->tcpscreen, "%*c", COLS - 2, ' ');
 			scrollok(table->tcpscreen, 1);
-			printentry(table, table->lastvisible, mode);
+			printentry(table, table->lastvisible);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
@@ -133,7 +133,7 @@ static void scrollupperwin(struct tcptable *table, int direction, int mode)
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
 			mvwprintw(table->tcpscreen, 0, 0, "%*c", COLS - 2, ' ');
-			printentry(table, table->firstvisible, mode);
+			printentry(table, table->firstvisible);
 		}
 	}
 }
@@ -555,7 +555,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	struct tcptable table;
 	struct tcptableent *tcpentry;
 	struct tcptableent *tmptcp;
-	int mode = 0;
 
 	struct othptable othptbl;
 
@@ -699,7 +698,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		if ((options.closedint != 0)
 		    && ((now - closedint) / 60 >= options.closedint)) {
 			flushclosedentries(&table, logging, logfile);
-			refreshtcpwin(&table, mode);
+			refreshtcpwin(&table);
 			closedint = now;
 		}
 
@@ -777,12 +776,12 @@ void ipmon(time_t facilitytime, char *ifptr)
 				tmptcp = table.barptr;
 				table.barptr = table.barptr->prev_entry;
 
-				printentry(&table, tmptcp, mode);
+				printentry(&table, tmptcp);
 
 				if (tmptcp == table.firstvisible)
-					scrollupperwin(&table, SCROLLDOWN, mode);
+					scrollupperwin(&table, SCROLLDOWN);
 
-				printentry(&table, table.barptr, mode);
+				printentry(&table, table.barptr);
 				break;
 			case KEY_DOWN:
 				if (curwin) {
@@ -795,12 +794,12 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				tmptcp = table.barptr;
 				table.barptr = table.barptr->next_entry;
-				printentry(&table, tmptcp, mode);
+				printentry(&table, tmptcp);
 
 				if (tmptcp == table.lastvisible)
-					scrollupperwin(&table, SCROLLUP, mode);
+					scrollupperwin(&table, SCROLLUP);
 
-				printentry(&table,table.barptr, mode);
+				printentry(&table,table.barptr);
 				break;
 			case KEY_RIGHT:
 				if (!curwin)
@@ -833,7 +832,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				pageupperwin(&table, SCROLLDOWN);
 				table.barptr = table.lastvisible;
-				refreshtcpwin(&table, mode);
+				refreshtcpwin(&table);
 				break;
 			case KEY_NPAGE:
 			case ' ':
@@ -848,7 +847,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				pageupperwin(&table, SCROLLUP);
 				table.barptr = table.firstvisible;
-				refreshtcpwin(&table, mode);
+				refreshtcpwin(&table);
 				break;
 			case KEY_F(6):
 			case 'w':
@@ -863,10 +862,10 @@ void ipmon(time_t facilitytime, char *ifptr)
 			case 'M':
 				if (curwin)
 					break;
-				mode = (mode + 1) % 3;
-				if ((mode == 1) && !options.mac)
-					mode = 2;
-				refreshtcpwin(&table, mode);
+				table.mode = (table.mode + 1) % 3;
+				if ((table.mode == 1) && !options.mac)
+					table.mode = 2;
+				refreshtcpwin(&table);
 				break;
 			case 12:
 			case 'l':
@@ -879,7 +878,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			case 'c':
 			case 'C':
 				flushclosedentries(&table, logging, logfile);
-				refreshtcpwin(&table, mode);
+				refreshtcpwin(&table);
 				break;
 			case 's':
 			case 'S':
@@ -907,7 +906,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			if (table.barptr != NULL) {
 				table.barptr = table.firstvisible;
 			}
-			refreshtcpwin(&table, mode);
+			refreshtcpwin(&table);
 			del_panel(sortpanel);
 			delwin(sortwin);
 			update_panels();
@@ -987,7 +986,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 						    pkt_ip_protocol(&pkt),
 						    ifname, &revlook, rvnfd);
 				if (tcpentry != NULL) {
-					printentry(&table, tcpentry->oth_connection, mode);
+					printentry(&table, tcpentry->oth_connection);
 
 					if (wasempty) {
 						table.barptr = table.firstvisible;
@@ -1048,7 +1047,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 					clearaddr(&table, tcpentry);
 					clearaddr(&table, tcpentry->oth_connection);
 				}
-				printentry(&table, tcpentry, mode);
+				printentry(&table, tcpentry);
 
 				/*
 				 * Special cases: Update other direction if it's
@@ -1068,8 +1067,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 					     && (tcpentry->s_fstat == RESOLVED))
 					    || ((p_dstat != RESOLVED)
 						&& (tcpentry->d_fstat == RESOLVED)))))
-					printentry(&table, tcpentry->oth_connection,
-						   mode);
+					printentry(&table, tcpentry->oth_connection);
 			}
 			break; }
 		case IPPROTO_ICMP:

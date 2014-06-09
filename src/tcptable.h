@@ -96,6 +96,7 @@ struct tcptable {
 	unsigned int bmaxy;	/* number of lines of the border window */
 	unsigned int imaxy;	/* number of lines inside the border */
 	int ifnamew;		/* interface name width to display */
+	int mode;
 	WINDOW *tcpscreen;
 	PANEL *tcppanel;
 	WINDOW *borderwin;
@@ -125,10 +126,9 @@ void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
 void clearaddr(struct tcptable *table, struct tcptableent *tableentry);
 
-void printentry(struct tcptable *table, struct tcptableent *tableentry,
-		int mode);
+void printentry(struct tcptable *table, struct tcptableent *tableentry);
 
-void refreshtcpwin(struct tcptable *table, int mode);
+void refreshtcpwin(struct tcptable *table);
 
 void destroytcptable(struct tcptable *table);
 

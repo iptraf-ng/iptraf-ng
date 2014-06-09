@@ -111,6 +111,7 @@ void init_tcp_table(struct tcptable *table)
 	mvwprintw(table->borderwin, 0, 1, " TCP Connections (Source Host:Port) ");
 
 	setlabels(table->borderwin, 0);	/* initially use mode 0 */
+	table->mode = 0;
 
 	mvwprintw(table->borderwin, 0, 65 * COLS / 80, " Flag ");
 	mvwprintw(table->borderwin, 0, 70 * COLS / 80, " Iface ");
@@ -763,8 +764,7 @@ void clearaddr(struct tcptable *table, struct tcptableent *tableentry)
  * not visible in the window.
  */
 
-void printentry(struct tcptable *table, struct tcptableent *tableentry,
-		int mode)
+void printentry(struct tcptable *table, struct tcptableent *tableentry)
 {
 	char stat[7] = "";
 	unsigned int target_row;
@@ -824,7 +824,7 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry,
 	 * on the value of mode.
 	 */
 
-	switch (mode) {
+	switch (table->mode) {
 	case 0:
 		wmove(table->tcpscreen, target_row, 47 * COLS / 80 - 2);
 		if (tableentry->partial)
@@ -875,17 +875,17 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry,
  * Redraw the TCP window
  */
 
-void refreshtcpwin(struct tcptable *table, int mode)
+void refreshtcpwin(struct tcptable *table)
 {
 	struct tcptableent *ptmp;
 
-	setlabels(table->borderwin, mode);
+	setlabels(table->borderwin, table->mode);
 	wattrset(table->tcpscreen, STDATTR);
 	tx_colorwin(table->tcpscreen);
 	ptmp = table->firstvisible;
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
-		printentry(table, ptmp, mode);
+		printentry(table, ptmp);
 		ptmp = ptmp->next_entry;
 	}
 
