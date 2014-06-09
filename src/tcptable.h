@@ -96,11 +96,16 @@ struct tcptable {
 	unsigned int imaxy;	/* number of lines inside the border */
 	int ifnamew;		/* interface name width to display */
 	int mode;
+
 	WINDOW *tcpscreen;
 	PANEL *tcppanel;
 	WINDOW *borderwin;
 	PANEL *borderpanel;
+	WINDOW *statwin;
+	PANEL *statpanel;
 };
+
+void show_stats(WINDOW *win, unsigned long long total);
 
 void init_tcp_table(struct tcptable *table);
 

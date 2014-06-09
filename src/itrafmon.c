@@ -67,15 +67,6 @@ static void uniq_help(int what)
 				STATUSBARATTR);
 }
 
-/* Mark general packet count indicators */
-
-static void prepare_statwin(WINDOW * win)
-{
-	wattrset(win, IPSTATLABELATTR);
-	mvwprintw(win, 0, 1, "Packets captured:");
-	mvwaddch(win, 0, 45 * COLS / 80, ACS_VLINE);
-}
-
 static void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 {
 	WINDOW *win1;
@@ -100,14 +91,6 @@ static void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 	wmove(win2, --y2, COLS - 10);
 	whline(win2, ACS_HLINE, 8);
 }
-
-static void show_stats(WINDOW * win, unsigned long long total)
-{
-	wattrset(win, IPSTATATTR);
-	wmove(win, 0, 35 * COLS / 80);
-	printlargenum(total, win);
-}
-
 
 /*
  * Scrolling and paging routines for the upper (TCP) window
@@ -601,9 +584,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	struct timeval updtime;
 	time_t closedint = 0;
 
-	WINDOW *statwin;
-	PANEL *statpanel;
-
 	WINDOW *sortwin;
 	PANEL *sortpanel;
 
@@ -662,12 +642,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	init_tcp_table(&table);
 	init_othp_table(&othptbl);
 
-	statwin = newwin(1, COLS, LINES - 2, 0);
-	statpanel = new_panel(statwin);
-	wattrset(statwin, IPSTATLABELATTR);
-	mvwprintw(statwin, 0, 0, "%*c", COLS, ' ');
-	prepare_statwin(statwin);
-	show_stats(statwin, 0);
 	markactive(curwin, table.borderwin, othptbl.borderwin);
 	update_panels();
 	doupdate();
@@ -771,7 +745,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		 */
 
 		if (screen_update_needed(&tv, &updtime)) {
-			show_stats(statwin, total_pkts);
+			show_stats(table.statwin, total_pkts);
 			update_panels();
 			doupdate();
 
@@ -786,10 +760,10 @@ void ipmon(time_t facilitytime, char *ifptr)
 		if (rate_msecs > 1000) {
 			update_flowrate(&table, rate_msecs);
 			if (table.barptr != NULL) {
-				print_flowrate(table.barptr, statwin);
+				print_flowrate(table.barptr, table.statwin);
 			} else {
-				wattrset(statwin, IPSTATATTR);
-				mvwprintw(statwin, 0, statx,
+				wattrset(table.statwin, IPSTATATTR);
+				mvwprintw(table.statwin, 0, statx,
 					  "No TCP entries              ");
 			}
 			tv_rate = tv;
@@ -1132,14 +1106,14 @@ err:
 	del_panel(table.borderpanel);
 	del_panel(othptbl.othppanel);
 	del_panel(othptbl.borderpanel);
-	del_panel(statpanel);
+	del_panel(table.statpanel);
 	update_panels();
 	doupdate();
 	delwin(table.tcpscreen);
 	delwin(table.borderwin);
 	delwin(othptbl.othpwin);
 	delwin(othptbl.borderwin);
-	delwin(statwin);
+	delwin(table.statwin);
 	destroytcptable(&table);
 	destroyothptable(&othptbl);
 	packet_destroy(&pkt);

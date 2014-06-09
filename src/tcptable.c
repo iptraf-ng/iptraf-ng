@@ -96,6 +96,20 @@ static void print_tcp_num_entries(struct tcptable *table)
 		  table->count);
 }
 
+static void prepare_statwin(WINDOW *win)
+{
+	wattrset(win, IPSTATLABELATTR);
+	mvwprintw(win, 0, 1, "Packets captured:");
+	mvwaddch(win, 0, 45 * COLS / 80, ACS_VLINE);
+}
+
+void show_stats(WINDOW *win, unsigned long long total)
+{
+	wattrset(win, IPSTATATTR);
+	wmove(win, 0, 35 * COLS / 80);
+	printlargenum(total, win);
+}
+
 void init_tcp_table(struct tcptable *table)
 {
 	int i;
@@ -136,6 +150,13 @@ void init_tcp_table(struct tcptable *table)
 	wtimeout(table->tcpscreen, -1);
 	tx_stdwinset(table->tcpscreen);
 	print_tcp_num_entries(table);
+
+	table->statwin = newwin(1, COLS, LINES - 2, 0);
+	table->statpanel = new_panel(table->statwin);
+	wattrset(table->statwin, IPSTATLABELATTR);
+	mvwprintw(table->statwin, 0, 0, "%*c", COLS, ' ');
+	prepare_statwin(table->statwin);
+	show_stats(table->statwin, 0);
 
 	/* 
 	 * Initialize hash table to nulls
