@@ -586,7 +586,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
 
 	struct timeval tv;
-	struct timeval tv_rate;
+	struct timeval last_time;
 	time_t starttime = 0;
 	time_t now = 0;
 	time_t timeint = 0;
@@ -714,7 +714,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
-	tv_rate = tv;
+	last_time = tv;
 	updtime = tv;
 	starttime = timeint = closedint = tv.tv_sec;
 
@@ -725,27 +725,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
-
-		/* 
-		 * Print timer at bottom of screen
-		 */
-
-		if (now - timeint >= 5) {
-			printelapsedtime(starttime, now, othptbl.obmaxy - 1, 15,
-					 othptbl.borderwin);
-			timeint = now;
-		}
-
-		/*
-		 * Automatically clear closed/timed out entries
-		 */
-
-		if ((options.closedint != 0)
-		    && ((now - closedint) / 60 >= options.closedint)) {
-			flushclosedentries(&table, logging, logfile);
-			refreshtcpwin(&table);
-			closedint = now;
-		}
 
 		/*
 		 * Update screen at configured intervals.
@@ -759,37 +738,43 @@ void ipmon(time_t facilitytime, char *ifptr)
 			updtime = tv;
 		}
 
-		/*
-		 * If highlight bar is on some entry, update the flow rate
-		 * indicator every second.
-		 */
-		unsigned long rate_msecs = timeval_diff_msec(&tv, &tv_rate);
-		if (rate_msecs > 1000) {
-			update_flowrates(&table, rate_msecs);
+		if (now > last_time.tv_sec) {
+			unsigned long msecs = timeval_diff_msec(&tv, &last_time);
+			/* update all flowrates ... */
+			update_flowrates(&table, msecs);
+			/* ... and print the current one every second */
 			print_flowrate(&table);
-			tv_rate = tv;
+
+			/* print timer at bottom of screen */
+			printelapsedtime(starttime, now, othptbl.obmaxy - 1, 15,
+					 othptbl.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 40);
-		}
 
-		/*
-		 * Terminate facility should a lifetime be specified at the
-		 * command line
-		 */
-		if ((facilitytime != 0)
-		    && (((now - starttime) / 60) >= facilitytime))
-			exitloop = 1;
+			/* automatically clear closed/timed out entries */
+			if ((options.closedint != 0)
+			    && ((now - closedint) / 60 >= options.closedint)) {
+				flushclosedentries(&table, logging, logfile);
+				refreshtcpwin(&table);
+				closedint = now;
+			}
 
-		/*
-		 * Close and rotate log file if signal was received
-		 */
-		if (logging && (rotate_flag == 1)) {
-			announce_rotate_prepare(logfile);
-			write_tcp_unclosed(logging, logfile, &table);
-			rotate_logfile(&logfile, target_logname);
-			announce_rotate_complete(logfile);
-			rotate_flag = 0;
+			/* terminate after lifetime specified at the cmdline */
+			if ((facilitytime != 0)
+			    && (((now - starttime) / 60) >= facilitytime))
+				exitloop = 1;
+
+			/* close and rotate log file if signal was received */
+			if (logging && (rotate_flag == 1)) {
+				announce_rotate_prepare(logfile);
+				write_tcp_unclosed(logging, logfile, &table);
+				rotate_logfile(&logfile, target_logname);
+				announce_rotate_complete(logfile);
+				rotate_flag = 0;
+			}
+
+			last_time = tv;
 		}
 
 		if (packet_get(fd, &pkt, &ch, table.tcpscreen) == -1) {
