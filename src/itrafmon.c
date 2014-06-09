@@ -779,10 +779,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				printentry(&table, tmptcp, mode);
 
-				if (table.baridx == 1)
+				if (tmptcp == table.firstvisible)
 					scrollupperwin(&table, SCROLLDOWN, mode);
-				else
-					(table.baridx)--;
 
 				printentry(&table, table.barptr, mode);
 				break;
@@ -799,10 +797,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 				table.barptr = table.barptr->next_entry;
 				printentry(&table, tmptcp, mode);
 
-				if (table.baridx == table.imaxy)
+				if (tmptcp == table.lastvisible)
 					scrollupperwin(&table, SCROLLUP, mode);
-				else
-					(table.baridx)++;
 
 				printentry(&table,table.barptr, mode);
 				break;
@@ -837,8 +833,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				pageupperwin(&table, SCROLLDOWN);
 				table.barptr = table.lastvisible;
-				table.baridx = table.lastvisible->index
-						- table.firstvisible->index + 1;
 				refreshtcpwin(&table, mode);
 				break;
 			case KEY_NPAGE:
@@ -854,7 +848,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 				pageupperwin(&table, SCROLLUP);
 				table.barptr = table.firstvisible;
-				table.baridx = 1;
 				refreshtcpwin(&table, mode);
 				break;
 			case KEY_F(6):
@@ -913,7 +906,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 			if (table.barptr != NULL) {
 				table.barptr = table.firstvisible;
-				table.baridx = 1;
 			}
 			refreshtcpwin(&table, mode);
 			del_panel(sortpanel);
@@ -999,7 +991,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 					if (wasempty) {
 						table.barptr = table.firstvisible;
-						table.baridx = 1;
 					}
 				}
 			}

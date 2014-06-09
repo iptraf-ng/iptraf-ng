@@ -91,7 +91,6 @@ struct tcptable {
 	struct tcptableent *firstvisible;
 	struct tcptableent *lastvisible;
 	struct tcptableent *barptr;
-	unsigned int baridx;
 	unsigned int lastpos;
 	unsigned int count;
 	unsigned int bmaxy;	/* number of lines of the border window */

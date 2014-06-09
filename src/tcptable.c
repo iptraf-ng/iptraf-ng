@@ -145,7 +145,6 @@ void init_tcp_table(struct tcptable *table)
 		table->hash_tails[i] = NULL;
 	}
 	table->barptr = NULL;
-	table->baridx = 0;
 }
 
 /*
@@ -1119,11 +1118,6 @@ void flushclosedentries(struct tcptable *table, int logging, FILE *logfile)
 			table->firstvisible = table->firstvisible->prev_entry;
 			screen_idx--;
 		}
-
-		/*
-		 * Set the bar position index once everything's done.
-		 */
-		table->baridx = table->barptr->index - screen_idx + 1;
 	}
 }
 
