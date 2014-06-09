@@ -911,60 +911,46 @@ static void destroy_closed_entries(struct tcptable *table)
 	table->closedtail = NULL;
 }
 
-/*
- * Kill the entire TCP table
- */
+static void destroy_tcp_entries(struct tcptable *table)
+{
+	struct tcptableent *ptmp = table->head;
+
+	while (ptmp != NULL) {
+		struct tcptableent *ctmp = ptmp->next_entry;
+
+		rate_destroy(&ptmp->rate);
+		free(ptmp);
+		ptmp = ctmp;
+	}
+	table->head = NULL;
+	table->tail = NULL;
+}
+
+static void destroy_hash_entries(struct tcptable *table)
+{
+	for (unsigned int i = 0; i < ENTRIES_IN_HASH_TABLE; i++) {
+		struct tcp_hashentry *ptmp = table->hash_table[i];
+		while (ptmp != NULL) {
+			struct tcp_hashentry *ctmp = ptmp->next_entry;
+
+			free(ptmp);
+			ptmp = ctmp;
+		}
+		table->hash_table[i] = NULL;
+	}
+}
+
+/* kill the entire TCP table */
 void destroytcptable(struct tcptable *table)
 {
-	struct tcptableent *ctemp;
-	struct tcptableent *c_next_entry;
-	struct tcp_hashentry *hashtemp;
-	struct tcp_hashentry *hashtemp_next;
+	/* destroy main TCP table */
+	destroy_tcp_entries(table);
 
-	unsigned int i;
-
-	/*
-	 * Destroy main TCP table
-	 */
-
-	if (table->head != NULL) {
-		ctemp = table->head;
-		c_next_entry = table->head->next_entry;
-
-		while (ctemp != NULL) {
-			rate_destroy(&ctemp->rate);
-			free(ctemp);
-			ctemp = c_next_entry;
-
-			if (c_next_entry != NULL)
-				c_next_entry = c_next_entry->next_entry;
-		}
-	}
-	/*
-	 * Destroy list of closed entries
-	 */
-
+	/* destroy list of closed entries */
 	destroy_closed_entries(table);
 
-	/*
-	 * Destroy hash table
-	 */
-
-	for (i = 0; i <= ENTRIES_IN_HASH_TABLE - 1; i++) {
-		if (table->hash_table[i] != NULL) {
-			hashtemp = table->hash_table[i];
-			hashtemp_next = table->hash_table[i]->next_entry;
-
-			while (hashtemp != NULL) {
-				free(hashtemp);
-				hashtemp = hashtemp_next;
-
-				if (hashtemp_next != NULL)
-					hashtemp_next =
-					    hashtemp_next->next_entry;
-			}
-		}
-	}
+	/* destroy hash table */
+	destroy_hash_entries(table);
 }
 
 /*
