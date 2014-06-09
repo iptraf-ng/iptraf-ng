@@ -118,46 +118,97 @@ static void scrollupperwin(struct tcptable *table, int direction)
 	wattrset(table->tcpscreen, STDATTR);
 	if (direction == SCROLLUP) {
 		if (table->lastvisible != table->tail) {
-			wscrl(table->tcpscreen, 1);
-			table->lastvisible = table->lastvisible->next_entry;
 			table->firstvisible = table->firstvisible->next_entry;
-			wmove(table->tcpscreen, table->imaxy - 1, 0);
+			table->lastvisible = table->lastvisible->next_entry;
+
+			wscrl(table->tcpscreen, 1);
 			scrollok(table->tcpscreen, 0);
+			wmove(table->tcpscreen, table->imaxy - 1, 0);
 			wprintw(table->tcpscreen, "%*c", COLS - 2, ' ');
 			scrollok(table->tcpscreen, 1);
+
 			printentry(table, table->lastvisible);
 		}
 	} else {
 		if (table->firstvisible != table->head) {
-			wscrl(table->tcpscreen, -1);
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
+
+			wscrl(table->tcpscreen, -1);
 			mvwprintw(table->tcpscreen, 0, 0, "%*c", COLS - 2, ' ');
+
 			printentry(table, table->firstvisible);
 		}
 	}
 }
 
-static void pageupperwin(struct tcptable *table, int direction)
+static void move_tcp_bar_one(struct tcptable *table, int direction)
 {
-	unsigned int i = 1;
+	switch (direction) {
+	case SCROLLUP:
+		if (table->barptr->next_entry == NULL)
+			break;
 
-	wattrset(table->tcpscreen, STDATTR);
-	if (direction == SCROLLUP) {
-		while ((i <= table->imaxy - 3)
-		       && (table->lastvisible != table->tail)) {
-			i++;
+		if (table->barptr == table->lastvisible)
+			scrollupperwin(table, SCROLLUP);
+
+		table->barptr = table->barptr->next_entry;
+		printentry(table, table->barptr->prev_entry);	/* hide bar */
+		printentry(table, table->barptr);		/* show bar */
+
+		break;
+	case SCROLLDOWN:
+		if (table->barptr->prev_entry == NULL)
+			break;
+
+		if (table->barptr == table->firstvisible)
+			scrollupperwin(table, SCROLLDOWN);
+
+		table->barptr = table->barptr->prev_entry;
+		printentry(table, table->barptr->next_entry);	/* hide bar */
+		printentry(table, table->barptr);		/* show bar */
+
+		break;
+	}
+}
+
+static void move_tcp_bar_many(struct tcptable *table, int direction, int lines)
+{
+	switch (direction) {
+	case SCROLLUP:
+		while (lines && (table->lastvisible != table->tail)) {
 			table->firstvisible = table->firstvisible->next_entry;
 			table->lastvisible = table->lastvisible->next_entry;
+			lines--;
 		}
-	} else {
-		while ((i <= table->imaxy - 3)
-		       && (table->firstvisible != table->head)) {
-			i++;
+		if (lines == 0)
+			table->barptr = table->firstvisible;
+		else
+			table->barptr = table->lastvisible;
+		break;
+	case SCROLLDOWN:
+		while (lines && (table->firstvisible != table->head)) {
 			table->firstvisible = table->firstvisible->prev_entry;
 			table->lastvisible = table->lastvisible->prev_entry;
+			lines--;
 		}
+		table->barptr = table->firstvisible;
+		break;
 	}
+	refreshtcpwin(table);
+}
+
+static void move_tcp_bar(struct tcptable *table, int direction, int lines)
+{
+	if (table->barptr == NULL)
+		return;
+	if (lines < 1)
+		return;
+	if (lines < 10)
+		while (lines--)
+			move_tcp_bar_one(table, direction);
+	else
+		move_tcp_bar_many(table, direction, lines);
 }
 
 /*
@@ -554,7 +605,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	struct tcptable table;
 	struct tcptableent *tcpentry;
-	struct tcptableent *tmptcp;
 
 	struct othptable othptbl;
 
@@ -769,37 +819,14 @@ void ipmon(time_t facilitytime, char *ifptr)
 					scrolllowerwin(&othptbl, SCROLLDOWN);
 					break;
 				}
-				if (!table.barptr
-				    || !table.barptr->prev_entry)
-					break;
-
-				tmptcp = table.barptr;
-				table.barptr = table.barptr->prev_entry;
-
-				printentry(&table, tmptcp);
-
-				if (tmptcp == table.firstvisible)
-					scrollupperwin(&table, SCROLLDOWN);
-
-				printentry(&table, table.barptr);
+				move_tcp_bar(&table, SCROLLDOWN, 1);
 				break;
 			case KEY_DOWN:
 				if (curwin) {
 					scrolllowerwin(&othptbl, SCROLLUP);
 					break;
 				}
-				if (!table.barptr
-				    || !table.barptr->next_entry)
-					break;
-
-				tmptcp = table.barptr;
-				table.barptr = table.barptr->next_entry;
-				printentry(&table, tmptcp);
-
-				if (tmptcp == table.lastvisible)
-					scrollupperwin(&table, SCROLLUP);
-
-				printentry(&table,table.barptr);
+				move_tcp_bar(&table, SCROLLUP, 1);
 				break;
 			case KEY_RIGHT:
 				if (!curwin)
@@ -826,13 +853,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 					refresh_othwindow(&othptbl);
 					break;
 				}
-
-				if (!table.barptr)
-					break;
-
-				pageupperwin(&table, SCROLLDOWN);
-				table.barptr = table.lastvisible;
-				refreshtcpwin(&table);
+				move_tcp_bar(&table, SCROLLDOWN, table.imaxy);
 				break;
 			case KEY_NPAGE:
 			case ' ':
@@ -841,13 +862,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 					refresh_othwindow(&othptbl);
 					break;
 				}
-
-				if (!table.barptr)
-					break;
-
-				pageupperwin(&table, SCROLLUP);
-				table.barptr = table.firstvisible;
-				refreshtcpwin(&table);
+				move_tcp_bar(&table, SCROLLUP, table.imaxy);
 				break;
 			case KEY_F(6):
 			case 'w':
