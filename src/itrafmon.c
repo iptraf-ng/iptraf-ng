@@ -872,6 +872,18 @@ void ipmon(time_t facilitytime, char *ifptr)
 				else
 					move_tcp_bar(&table, SCROLLUP, table.imaxy);
 				break;
+			case KEY_HOME:
+				if (curwin)
+					scroll_othp(&othptbl, SCROLLDOWN, INT_MAX);
+				else
+					move_tcp_bar(&table, SCROLLDOWN, INT_MAX);
+				break;
+			case KEY_END:
+				if (curwin)
+					scroll_othp(&othptbl, SCROLLUP, INT_MAX);
+				else
+					move_tcp_bar(&table, SCROLLUP, INT_MAX);
+				break;
 			case KEY_F(6):
 			case 'w':
 			case 'W':
