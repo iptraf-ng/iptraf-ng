@@ -92,7 +92,7 @@ static void markactive(int curwin, WINDOW * tw, WINDOW * ow)
 	whline(win2, ACS_HLINE, 8);
 }
 
-static void update_flowrate(struct tcptable *table, unsigned long msecs)
+static void update_flowrates(struct tcptable *table, unsigned long msecs)
 {
 	struct tcptableent *entry;
 	for (entry = table->head; entry != NULL; entry = entry->next_entry) {
@@ -765,7 +765,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		 */
 		unsigned long rate_msecs = timeval_diff_msec(&tv, &tv_rate);
 		if (rate_msecs > 1000) {
-			update_flowrate(&table, rate_msecs);
+			update_flowrates(&table, rate_msecs);
 			print_flowrate(&table);
 			tv_rate = tv;
 
