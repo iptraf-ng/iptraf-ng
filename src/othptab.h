@@ -49,8 +49,8 @@ struct othptabent {
 		} ospf;
 		struct {
 			unsigned short opcode;
-			char src_ip_address[4];
-			char dest_ip_address[4];
+			struct in_addr src_ip_address;
+			struct in_addr dest_ip_address;
 		} arp;
 		struct {
 			unsigned short opcode;

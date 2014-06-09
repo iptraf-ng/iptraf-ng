@@ -29,12 +29,6 @@ othptab.c - non-TCP protocol display module
 #define MSGSTRING_MAX	240
 #define SHORTSTRING_MAX	40
 
-/*
-* A trick to suppress uninitialized variable warning without generating any
-* code
-*/
-#define uninitialized_var(x) x = x
-
 static void writeothplog(int logging, FILE *fd, char *protname,
 			 char *description, char *additional, int is_ip,
 			 int withmac, struct othptabent *entry)
@@ -260,9 +254,9 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 		if (protocol == ETH_P_ARP) {
 			new_entry->un.arp.opcode =
 			    ((struct arp_hdr *) packet2)->ar_op;
-			memcpy(&(new_entry->un.arp.src_ip_address),
+			memcpy(&new_entry->un.arp.src_ip_address.s_addr,
 			       &(((struct arp_hdr *) packet2)->ar_sip), 4);
-			memcpy(&(new_entry->un.arp.dest_ip_address),
+			memcpy(&new_entry->un.arp.dest_ip_address.s_addr,
 			       &(((struct arp_hdr *) packet2)->ar_tip), 4);
 		} else if (protocol == ETH_P_RARP) {
 			new_entry->un.rarp.opcode =
@@ -369,8 +363,6 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 
 	char *packet_type;
 
-	struct in_addr uninitialized_var(saddr);
-
 	char rarp_mac_addr[18];
 
 	unsigned int unknown = 0;
@@ -388,6 +380,8 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 		table->htstat = HIND;
 	}
 	if (!(entry->is_ip)) {
+		struct in_addr *saddr = NULL;
+
 		wmove(table->othpwin, target_row, 0);
 		scrollok(table->othpwin, 0);
 		wattrset(table->othpwin, UNKNATTR);
@@ -401,17 +395,15 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 			switch (ntohs(entry->un.arp.opcode)) {
 			case ARPOP_REQUEST:
 				strcat(msgstring, "request for ");
-				memcpy(&(saddr.s_addr),
-				       entry->un.arp.dest_ip_address, 4);
+				saddr = &entry->un.arp.dest_ip_address;
 				break;
 			case ARPOP_REPLY:
 				strcat(msgstring, "reply from ");
-				memcpy(&(saddr.s_addr),
-				       entry->un.arp.src_ip_address, 4);
+				saddr = &entry->un.arp.src_ip_address;
 				break;
 			}
 
-			inet_ntop(AF_INET, &saddr, scratchpad, sizeof(scratchpad));
+			inet_ntop(AF_INET, saddr, scratchpad, sizeof(scratchpad));
 			strcat(msgstring, scratchpad);
 			wattrset(table->othpwin, ARPATTR);
 			break;
