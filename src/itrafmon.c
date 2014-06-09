@@ -781,7 +781,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			tv_rate = tv;
 
 			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 49);
+			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 40);
 		}
 
 		/*
