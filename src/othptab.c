@@ -144,7 +144,7 @@ void check_icmp_dest_unreachable(struct tcptable *table, struct pkt_hdr *pkt,
 		sockaddr_set_port(&daddr, ntohs(tcp->dest));
 
 		/* check if this tcpentry exists */
-		tcpentry = in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
+		tcpentry = in_table(table, &saddr, &daddr, ifname);
 
 		break; }
 	case IPPROTO_ICMPV6: {
@@ -167,7 +167,7 @@ void check_icmp_dest_unreachable(struct tcptable *table, struct pkt_hdr *pkt,
 		sockaddr_set_port(&daddr, ntohs(tcp->dest));
 
 		/* check if this tcpentry exists */
-		tcpentry = in_table(table, &saddr, &daddr, ifname, 0, NULL, 0);
+		tcpentry = in_table(table, &saddr, &daddr, ifname);
 
 		break; }
 	default:

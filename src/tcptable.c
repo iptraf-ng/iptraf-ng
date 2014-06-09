@@ -485,16 +485,35 @@ void write_timeout_log(int logging, FILE *logfile, struct tcptableent *tcpnode)
 	}
 }
 
+void mark_timeouted_entries(struct tcptable *table, int logging, FILE *logfile)
+{
+	if (options.timeout == 0)
+		return;
+
+	time_t now = time(NULL);
+	struct tcptableent *ptmp = table->head;
+
+	while (ptmp != NULL) {
+		if (((now - ptmp->lastupdate) / 60 > options.timeout)
+		    && !ptmp->inclosed) {
+			ptmp->timedout = 1;
+			ptmp->oth_connection->timedout = 1;
+			addtoclosedlist(table, ptmp);
+
+			if (logging)
+				write_timeout_log(logging, logfile, ptmp);
+		}
+		ptmp = ptmp->next_entry;
+	}
+}
+
 struct tcptableent *in_table(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
-			     char *ifname, int logging,
-			     FILE *logfile, time_t timeout)
+			     char *ifname)
 {
 	struct tcp_hashentry *hashptr;
 	unsigned int hp;
-
-	time_t now;
 
 	if (table->head == NULL) {
 		return 0;
@@ -512,24 +531,6 @@ struct tcptableent *in_table(struct tcptable *table,
 		    && (strcmp(hashptr->tcpnode->ifname, ifname) == 0))
 			break;
 
-		now = time(NULL);
-
-		/*
-		 * Add the timed out entries to the closed list in case we didn't
-		 * find any closed ones.
-		 */
-
-		if ((timeout > 0)
-		    && ((now - hashptr->tcpnode->lastupdate) / 60 > timeout)
-		    && (!(hashptr->tcpnode->inclosed))) {
-			hashptr->tcpnode->timedout = 1;
-			hashptr->tcpnode->oth_connection->timedout = 1;
-			addtoclosedlist(table, hashptr->tcpnode);
-
-			if (logging)
-				write_timeout_log(logging, logfile,
-						  hashptr->tcpnode);
-		}
 		hashptr = hashptr->next_entry;
 	}
 
@@ -869,7 +870,9 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 
 	wattrset(table->tcpscreen, normalattr);
 
-	if (tableentry->finsent == 1)
+	if (tableentry->timedout)
+		strcpy(stat, "TMOU");
+	else if (tableentry->finsent == 1)
 		strcpy(stat, "DONE");
 	else if (tableentry->finsent == 2)
 		strcpy(stat, "CLOS");
@@ -1001,33 +1004,16 @@ static void destroy_tcp_entry(struct tcptable *table, struct tcptableent *ptmp)
  * entries.
  */
 
-void flushclosedentries(struct tcptable *table, int logging, FILE *logfile)
+void flushclosedentries(struct tcptable *table)
 {
 	struct tcptableent *ptmp = table->head;
 	struct tcptableent *ctmp = NULL;
 	unsigned long idx = 1;
 	unsigned long screen_idx = table->firstvisible->index;
-	time_t now;
-	time_t lastupdated = 0;
 
 	while (ptmp != NULL) {
-		now = time(NULL);
-		lastupdated = (now - ptmp->lastupdate) / 60;
-
-		if ((ptmp->inclosed) || (lastupdated > options.timeout)) {
+		if (ptmp->inclosed) {
 			ctmp = ptmp;
-			/*
-			 * Mark and flush timed out TCP entries.
-			 */
-			if (lastupdated > options.timeout) {
-				if ((!(ptmp->timedout)) && (!(ptmp->inclosed))) {
-					write_timeout_log(logging, logfile,
-							  ptmp);
-					ptmp->timedout =
-					    ptmp->oth_connection->timedout = 1;
-				}
-			}
-
 			/*
 			 * Advance to next entry and destroy target entry.
 			 */

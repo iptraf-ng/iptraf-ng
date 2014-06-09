@@ -115,11 +115,12 @@ struct tcptableent *addentry(struct tcptable *table,
 			     int protocol, char *ifname,
 			     int *rev_lookup, int rvnamedon);
 
+void mark_timeouted_entries(struct tcptable *table, int logging, FILE *logfile);
+
 struct tcptableent *in_table(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
-			     char *ifname, int logging,
-			     FILE *logfile, time_t timeout);
+			     char *ifname);
 
 void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 		 struct tcptableent *tableentry, struct tcphdr *transpacket,
@@ -136,7 +137,7 @@ void refreshtcpwin(struct tcptable *table);
 
 void destroytcptable(struct tcptable *table);
 
-void flushclosedentries(struct tcptable *table, int logging, FILE *logfile);
+void flushclosedentries(struct tcptable *table);
 
 void write_timeout_log(int logging, FILE *logfile, struct tcptableent *tcpnode);
 

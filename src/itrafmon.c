@@ -391,8 +391,7 @@ static unsigned long long qt_getkey(struct tcptableent *entry, int ch)
 
 static struct tcptableent *qt_partition(struct tcptable *table,
 					struct tcptableent **low,
-					struct tcptableent **high, int ch,
-					int logging, FILE *logfile)
+					struct tcptableent **high, int ch)
 {
 	struct tcptableent *pivot = *low;
 
@@ -402,51 +401,16 @@ static struct tcptableent *qt_partition(struct tcptable *table,
 
 	unsigned long long pivot_value;
 
-	time_t now;
-
 	pivot_value = qt_getkey(pivot, ch);
-
-	now = time(NULL);
 
 	while (left->index < right->index) {
 		while ((qt_getkey(left, ch) >= pivot_value)
-		       && (left->next_entry->next_entry != NULL)) {
-
-			/*
-			 * Might as well check out timed out entries here too.
-			 */
-			if ((options.timeout > 0)
-			    && ((now - left->lastupdate) / 60 > options.timeout)
-			    && (!(left->inclosed))) {
-				left->timedout =
-				    left->oth_connection->timedout = 1;
-				addtoclosedlist(table, left);
-
-				if (logging)
-					write_timeout_log(logging, logfile,
-							  left);
-			}
+		       && (left->next_entry->next_entry != NULL))
 
 			left = left->next_entry->next_entry;
-		}
 
-		while (qt_getkey(right, ch) < pivot_value) {
-			/*
-			 * Might as well check out timed out entries here too.
-			 */
-			if ((options.timeout > 0)
-			    && ((now - right->lastupdate) / 60 > options.timeout)
-			    && (!(right->inclosed))) {
-				right->timedout =
-				    right->oth_connection->timedout = 1;
-				addtoclosedlist(table, right);
-
-				if (logging)
-					write_timeout_log(logging, logfile,
-							  right);
-			}
+		while (qt_getkey(right, ch) < pivot_value)
 			right = right->prev_entry->prev_entry;
-		}
 
 		if (left->index < right->index) {
 			swap_tcp_entries(table, left, right);
@@ -478,8 +442,7 @@ static struct tcptableent *qt_partition(struct tcptable *table,
  */
 static void quicksort_tcp_entries(struct tcptable *table,
 				  struct tcptableent *low,
-				  struct tcptableent *high, int ch,
-				  int logging, FILE *logfile)
+				  struct tcptableent *high, int ch)
 {
 	struct tcptableent *pivot;
 
@@ -488,15 +451,14 @@ static void quicksort_tcp_entries(struct tcptable *table,
 
 	if (high->index > low->index) {
 		pivot =
-		    qt_partition(table, &low, &high, ch, logging, logfile);
+		    qt_partition(table, &low, &high, ch);
 
 		if (pivot->prev_entry != NULL)
 			quicksort_tcp_entries(table, low,
-					      pivot->prev_entry->prev_entry, ch,
-					      logging, logfile);
+					      pivot->prev_entry->prev_entry, ch);
 
 		quicksort_tcp_entries(table, pivot->next_entry->next_entry,
-				      high, ch, logging, logfile);
+				      high, ch);
 	}
 }
 
@@ -505,8 +467,7 @@ static void quicksort_tcp_entries(struct tcptable *table,
  * replaced with a Quicksort algorithm.
  */
 
-static void sortipents(struct tcptable *table, int ch, int logging,
-		       FILE *logfile)
+static void sortipents(struct tcptable *table, int ch)
 {
 	if ((table->head == NULL)
 	    || (table->head->next_entry->next_entry == NULL))
@@ -517,8 +478,7 @@ static void sortipents(struct tcptable *table, int ch, int logging,
 	if ((ch != 'P') && (ch != 'B'))
 		return;
 
-	quicksort_tcp_entries(table, table->head, table->tail->prev_entry, ch,
-			      logging, logfile);
+	quicksort_tcp_entries(table, table->head, table->tail->prev_entry, ch);
 
 	table->firstvisible = table->head;
 	struct tcptableent *ptmp = table->head;
@@ -755,9 +715,11 @@ void ipmon(time_t facilitytime, char *ifptr)
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 40);
 
+			mark_timeouted_entries(&table, logging, logfile);
+
 			/* automatically clear closed/timed out entries */
 			if (now.tv_sec > check_closed) {
-				flushclosedentries(&table, logging, logfile);
+				flushclosedentries(&table);
 				refreshtcpwin(&table);
 				check_closed = now.tv_sec + options.closedint * 60;
 			}
@@ -873,7 +835,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			case 'f':
 			case 'c':
 			case 'C':
-				flushclosedentries(&table, logging, logfile);
+				flushclosedentries(&table);
 				refreshtcpwin(&table);
 				break;
 			case 's':
@@ -894,7 +856,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 			keymode = 0;
 			del_panel(sortpanel);
 			delwin(sortwin);
-			sortipents(&table, ch, logging, logfile);
+			flushclosedentries(&table);
+			sortipents(&table, ch);
 			if (table.barptr != NULL) {
 				table.barptr = table.firstvisible;
 			}
@@ -953,8 +916,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			struct tcphdr *tcp = (struct tcphdr *)ip_payload;
 			sockaddr_set_port(&saddr, sport);
 			sockaddr_set_port(&daddr, dport);
-			tcpentry = in_table(&table, &saddr, &daddr, ifname,
-					    logging, logfile, options.timeout);
+			tcpentry = in_table(&table, &saddr, &daddr, ifname);
 
 			/*
 			 * Add a new entry if it doesn't exist, and,
