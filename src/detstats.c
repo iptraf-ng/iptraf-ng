@@ -537,20 +537,24 @@ void detstats(char *iface, time_t facilitytime)
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, statwin, LINES - 3, 49);
 
+			if ((facilitytime != 0)
+			    && (((now - statbegin) / 60) >= facilitytime))
+				exitloop = 1;
+
+			if (logging) {
+				check_rotate_flag(&logfile);
+				if ((now - startlog) >= options.logspan) {
+					writedstatlog(iface, &ifcounts, &ifrates,
+						      time(NULL) - statbegin,
+						      logfile);
+
+					startlog = now;
+				}
+			}
+
 			starttime = now;
 			start_tv = tv;
 		}
-		if (logging) {
-			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options.logspan) {
-				writedstatlog(iface, &ifcounts, &ifrates,
-					      time(NULL) - statbegin,
-					      logfile);
-
-				startlog = now;
-			}
-		}
-
 		if (screen_update_needed(&tv, &updtime)) {
 			printdetails(&ifcounts, statwin);
 			update_panels();
@@ -558,10 +562,6 @@ void detstats(char *iface, time_t facilitytime)
 
 			updtime = tv;
 		}
-
-		if ((facilitytime != 0)
-		    && (((now - statbegin) / 60) >= facilitytime))
-			exitloop = 1;
 
 		if (packet_get(fd, &pkt, &ch, statwin) == -1) {
 			write_error("Packet receive failed");
