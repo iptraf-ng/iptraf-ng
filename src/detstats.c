@@ -537,33 +537,33 @@ void detstats(char *iface, time_t facilitytime)
 		}
 
 		outgoing = (pkt.from->sll_pkttype == PACKET_OUTGOING);
-		update_proto_counter(&ifcounts.total, outgoing, pkt.pkt_len);
+		proto_counter_update(&ifcounts.total, outgoing, pkt.pkt_len);
 		if (pkt.from->sll_pkttype == PACKET_BROADCAST) {
-			update_proto_counter(&ifcounts.bcast, outgoing, pkt.pkt_len);
-			update_pkt_counter(&span_bcast, pkt.pkt_len);
+			proto_counter_update(&ifcounts.bcast, outgoing, pkt.pkt_len);
+			pkt_counter_update(&span_bcast, pkt.pkt_len);
 		}
 
-		update_proto_counter(&span, outgoing, pkt.pkt_len);
+		proto_counter_update(&span, outgoing, pkt.pkt_len);
 
 		/* account network layer protocol */
 		switch(pkt.pkt_protocol) {
 		case ETH_P_IP:
 			if (pkt_result == CHECKSUM_ERROR) {
-				update_pkt_counter(&ifcounts.bad, pkt.pkt_len);
+				pkt_counter_update(&ifcounts.bad, pkt.pkt_len);
 				continue;
 			}
 
 			iplen = ntohs(pkt.iphdr->tot_len);
 
-			update_proto_counter(&ifcounts.ipv4, outgoing, iplen);
+			proto_counter_update(&ifcounts.ipv4, outgoing, iplen);
 			break;
 		case ETH_P_IPV6:
 			iplen = ntohs(pkt.ip6_hdr->ip6_plen) + 40;
 
-			update_proto_counter(&ifcounts.ipv6, outgoing, iplen);
+			proto_counter_update(&ifcounts.ipv6, outgoing, iplen);
 			break;
 		default:
-			update_proto_counter(&ifcounts.nonip, outgoing, pkt.pkt_len);
+			proto_counter_update(&ifcounts.nonip, outgoing, pkt.pkt_len);
 			continue;
 		}
 
@@ -572,17 +572,17 @@ void detstats(char *iface, time_t facilitytime)
 		/* account transport layer protocol */
 		switch (ip_protocol) {
 		case IPPROTO_TCP:
-			update_proto_counter(&ifcounts.tcp, outgoing, iplen);
+			proto_counter_update(&ifcounts.tcp, outgoing, iplen);
 			break;
 		case IPPROTO_UDP:
-			update_proto_counter(&ifcounts.udp, outgoing, iplen);
+			proto_counter_update(&ifcounts.udp, outgoing, iplen);
 			break;
 		case IPPROTO_ICMP:
 		case IPPROTO_ICMPV6:
-			update_proto_counter(&ifcounts.icmp, outgoing, iplen);
+			proto_counter_update(&ifcounts.icmp, outgoing, iplen);
 			break;
 		default:
-			update_proto_counter(&ifcounts.other, outgoing, iplen);
+			proto_counter_update(&ifcounts.other, outgoing, iplen);
 			break;
 		}
 	}

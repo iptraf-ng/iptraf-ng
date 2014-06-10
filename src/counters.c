@@ -3,7 +3,7 @@
 
 #include "counters.h"
 
-void update_pkt_counter(struct pkt_counter *count, int bytes)
+void pkt_counter_update(struct pkt_counter *count, int bytes)
 {
 	if (count) {
 		count->pc_packets++;
@@ -11,13 +11,13 @@ void update_pkt_counter(struct pkt_counter *count, int bytes)
 	}
 }
 
-void update_proto_counter(struct proto_counter *proto_counter, int outgoing, int bytes)
+void proto_counter_update(struct proto_counter *proto_counter, int outgoing, int bytes)
 {
 	if (proto_counter) {
-		update_pkt_counter(&proto_counter->proto_total, bytes);
+		pkt_counter_update(&proto_counter->proto_total, bytes);
 		if (outgoing)
-			update_pkt_counter(&proto_counter->proto_out, bytes);
+			pkt_counter_update(&proto_counter->proto_out, bytes);
 		else
-			update_pkt_counter(&proto_counter->proto_in, bytes);
+			pkt_counter_update(&proto_counter->proto_in, bytes);
 	}
 }

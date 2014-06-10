@@ -12,8 +12,8 @@ struct proto_counter {
 	struct pkt_counter proto_out;
 };
 
-void update_pkt_counter(struct pkt_counter *count, int bytes);
-void update_proto_counter(struct proto_counter *proto_counter, int outgoing,
+void pkt_counter_update(struct pkt_counter *count, int bytes);
+void proto_counter_update(struct proto_counter *proto_counter, int outgoing,
 			  int bytes);
 
 #endif	/* IPTRAF_NG_COUNTERS_H */

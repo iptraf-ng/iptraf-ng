@@ -360,8 +360,8 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 		if (sport_listent == NULL)
 			return;
 
-		update_proto_counter(&sport_listent->serv_count, PORT_OUTGOING, br);
-		update_proto_counter(&sport_listent->span, PORT_OUTGOING, br);
+		proto_counter_update(&sport_listent->serv_count, PORT_OUTGOING, br);
+		proto_counter_update(&sport_listent->span, PORT_OUTGOING, br);
 	}
 
 	if (goodport(dport, ports)) {
@@ -374,8 +374,8 @@ static void updateportent(struct portlist *list, unsigned int protocol,
 		if (dport_listent == NULL)
 			return;
 
-		update_proto_counter(&dport_listent->serv_count, PORT_INCOMING, br);
-		update_proto_counter(&dport_listent->span, PORT_INCOMING, br);
+		proto_counter_update(&dport_listent->serv_count, PORT_INCOMING, br);
+		proto_counter_update(&dport_listent->span, PORT_INCOMING, br);
 	}
 }
 
