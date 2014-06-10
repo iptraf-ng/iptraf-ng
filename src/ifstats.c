@@ -564,8 +564,15 @@ void ifstats(time_t facilitytime)
 	gettimeofday(&now, NULL);
 	struct timeval last_time = now;
 	struct timeval last_update = now;
-	time_t statbegin = now.tv_sec;
-	time_t last_log = now.tv_sec;
+
+	time_t starttime = now.tv_sec;
+	time_t endtime = INT_MAX;
+	if (facilitytime != 0)
+		endtime = now.tv_sec + facilitytime * 60;
+
+	time_t log_next = INT_MAX;
+	if (logging)
+		log_next = now.tv_sec + options.logspan;
 
 	while (!exitloop) {
 		gettimeofday(&now, NULL);
@@ -575,23 +582,18 @@ void ifstats(time_t facilitytime)
 			updaterates(&table, msecs);
 			showrates(&table);
 
-			printelapsedtime(statbegin, now.tv_sec, LINES - 3, 1, table.borderwin);
+			printelapsedtime(starttime, now.tv_sec, LINES - 3, 1, table.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
 
-			if (logging) {
+			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
-				if ((now.tv_sec - last_log) >= options.logspan) {
-					writegstatlog(&table,
-						      time(NULL) - statbegin,
-						      logfile);
-					last_log = now.tv_sec;
-				}
+				writegstatlog(&table, now.tv_sec - starttime, logfile);
+				log_next = now.tv_sec + options.logspan;
 			}
 
-			if ((facilitytime != 0)
-			    && (((now.tv_sec - statbegin) / 60) >= facilitytime))
+			if (now.tv_sec > endtime)
 				exitloop = 1;
 
 			last_time = now;
@@ -621,7 +623,7 @@ void ifstats(time_t facilitytime)
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writegstatlog(&table, time(NULL) - statbegin, logfile);
+		writegstatlog(&table, time(NULL) - starttime, logfile);
 		writelog(logging, logfile,
 			 "******** General interface statistics stopped ********");
 		fclose(logfile);
