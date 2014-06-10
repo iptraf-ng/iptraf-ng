@@ -40,6 +40,35 @@ struct ifcounts {
 	struct proto_counter udp;
 	struct proto_counter icmp;
 	struct proto_counter other;
+
+	struct proto_counter span;
+	struct pkt_counter span_bcast;
+};
+
+struct ifrates {
+	struct rate rate;
+	struct rate rate_in;
+	struct rate rate_out;
+	struct rate rate_bcast;
+	unsigned long activity;
+	unsigned long peakactivity;
+	unsigned long activity_in;
+	unsigned long peakactivity_in;
+	unsigned long activity_out;
+	unsigned long peakactivity_out;
+	unsigned long activity_bcast;
+
+	struct rate pps_rate;
+	struct rate pps_rate_in;
+	struct rate pps_rate_out;
+	struct rate pps_rate_bcast;
+	unsigned long pps;
+	unsigned long peakpps;
+	unsigned long pps_in;
+	unsigned long peakpps_in;
+	unsigned long pps_out;
+	unsigned long peakpps_out;
+	unsigned long pps_bcast;
 };
 
 /* USR1 log-rotation signal handlers */
@@ -50,11 +79,8 @@ static void rotate_dstat_log(int s __unused)
 	signal(SIGUSR1, rotate_dstat_log);
 }
 
-static void writedstatlog(char *ifname,
-		   unsigned long peakactivity, unsigned long peakpps,
-		   unsigned long peakactivity_in, unsigned long peakpps_in,
-		   unsigned long peakactivity_out, unsigned long peakpps_out,
-		   struct ifcounts *ts, unsigned long nsecs, FILE *fd)
+static void writedstatlog(char *ifname, struct ifcounts *ts,
+			  struct ifrates *ifrates, unsigned long nsecs, FILE *fd)
 {
 	char atime[TIME_TARGET_MAX];
 
@@ -146,19 +172,154 @@ static void writedstatlog(char *ifname,
 		rate_print(ts->total.proto_out.pc_bytes / nsecs, bps_string, sizeof(bps_string));
 		rate_print_pps(ts->total.proto_out.pc_packets / nsecs, pps_string, sizeof(pps_string));
 		fprintf(fd, "  Outgoing:\t%s, %s\n", bps_string, pps_string);
-		rate_print(peakactivity, bps_string, sizeof(bps_string));
-		rate_print_pps(peakpps, pps_string, sizeof(pps_string));
+		rate_print(ifrates->peakactivity, bps_string, sizeof(bps_string));
+		rate_print_pps(ifrates->peakpps, pps_string, sizeof(pps_string));
 		fprintf(fd, "\nPeak total activity: %s, %s\n", bps_string, pps_string);
-		rate_print(peakactivity_in, bps_string, sizeof(bps_string));
-		rate_print_pps(peakpps_in, pps_string, sizeof(pps_string));
+		rate_print(ifrates->peakactivity_in, bps_string, sizeof(bps_string));
+		rate_print_pps(ifrates->peakpps_in, pps_string, sizeof(pps_string));
 		fprintf(fd, "Peak incoming rate: %s, %s\n", bps_string, pps_string);
-		rate_print(peakactivity_out, bps_string, sizeof(bps_string));
-		rate_print_pps(peakpps_out, pps_string, sizeof(pps_string));
+		rate_print(ifrates->peakactivity_out, bps_string, sizeof(bps_string));
+		rate_print_pps(ifrates->peakpps_out, pps_string, sizeof(pps_string));
 		fprintf(fd, "Peak outgoing rate: %s, %s\n\n", bps_string, pps_string);
 	}
 	fprintf(fd, "IP checksum errors: %llu\n\n", ts->bad.pc_packets);
 	fprintf(fd, "Running time: %lu seconds\n", nsecs);
 	fflush(fd);
+}
+
+static void ifcounts_init(struct ifcounts *ifcounts)
+{
+	if (ifcounts == NULL)
+		return;
+
+	proto_counter_reset(&ifcounts->total);
+	pkt_counter_reset(&ifcounts->bad);
+	proto_counter_reset(&ifcounts->ipv4);
+	proto_counter_reset(&ifcounts->ipv6);
+	proto_counter_reset(&ifcounts->nonip);
+	proto_counter_reset(&ifcounts->bcast);
+
+	proto_counter_reset(&ifcounts->tcp);
+	proto_counter_reset(&ifcounts->udp);
+	proto_counter_reset(&ifcounts->icmp);
+	proto_counter_reset(&ifcounts->other);
+
+	proto_counter_reset(&ifcounts->span);
+	pkt_counter_reset(&ifcounts->span_bcast);
+}
+
+static void ifrates_init(struct ifrates *ifrates)
+{
+	if (ifrates == NULL)
+		return;
+
+	rate_alloc(&ifrates->rate, 5);
+	rate_alloc(&ifrates->rate_in, 5);
+	rate_alloc(&ifrates->rate_out, 5);
+	rate_alloc(&ifrates->rate_bcast, 5);
+
+	ifrates->activity = 0UL;
+	ifrates->peakactivity = 0UL;
+	ifrates->activity_in = 0UL;
+	ifrates->peakactivity_in = 0UL;
+	ifrates->activity_out = 0UL;
+	ifrates->peakactivity_out = 0UL;
+	ifrates->activity_bcast = 0UL;
+
+	rate_alloc(&ifrates->pps_rate, 5);
+	rate_alloc(&ifrates->pps_rate_in, 5);
+	rate_alloc(&ifrates->pps_rate_out, 5);
+	rate_alloc(&ifrates->pps_rate_bcast, 5);
+
+	ifrates->pps = 0UL;
+	ifrates->peakpps = 0UL;
+	ifrates->pps_in = 0UL;
+	ifrates->peakpps_in = 0UL;
+	ifrates->pps_out = 0UL;
+	ifrates->peakpps_out = 0UL;
+	ifrates->pps_bcast = 0UL;
+}
+
+static void ifrates_destroy(struct ifrates *ifrates)
+{
+	if (ifrates == NULL)
+		return;
+
+	rate_destroy(&ifrates->pps_rate_bcast);
+	rate_destroy(&ifrates->pps_rate_out);
+	rate_destroy(&ifrates->pps_rate_in);
+	rate_destroy(&ifrates->pps_rate);
+
+	rate_destroy(&ifrates->rate_bcast);
+	rate_destroy(&ifrates->rate_out);
+	rate_destroy(&ifrates->rate_in);
+	rate_destroy(&ifrates->rate);
+}
+
+static void ifrates_update(struct ifrates *ifrates, struct ifcounts *ifcounts,
+			   unsigned long msecs)
+{
+	rate_add_rate(&ifrates->rate, ifcounts->span.proto_total.pc_bytes, msecs);
+	ifrates->activity = rate_get_average(&ifrates->rate);
+	rate_add_rate(&ifrates->rate_in, ifcounts->span.proto_in.pc_bytes, msecs);
+	ifrates->activity_in = rate_get_average(&ifrates->rate_in);
+	rate_add_rate(&ifrates->rate_out, ifcounts->span.proto_out.pc_bytes, msecs);
+	ifrates->activity_out = rate_get_average(&ifrates->rate_out);
+	rate_add_rate(&ifrates->rate_bcast, ifcounts->span_bcast.pc_bytes, msecs);
+	ifrates->activity_bcast = rate_get_average(&ifrates->rate_bcast);
+
+	rate_add_rate(&ifrates->pps_rate, ifcounts->span.proto_total.pc_packets, msecs);
+	ifrates->pps = rate_get_average(&ifrates->pps_rate);
+	rate_add_rate(&ifrates->pps_rate_in, ifcounts->span.proto_in.pc_packets, msecs);
+	ifrates->pps_in = rate_get_average(&ifrates->pps_rate_in);
+	rate_add_rate(&ifrates->pps_rate_out, ifcounts->span.proto_out.pc_packets, msecs);
+	ifrates->pps_out = rate_get_average(&ifrates->pps_rate_out);
+	rate_add_rate(&ifrates->pps_rate_bcast, ifcounts->span_bcast.pc_packets, msecs);
+	ifrates->pps_bcast = rate_get_average(&ifrates->pps_rate_bcast);
+
+	proto_counter_reset(&ifcounts->span);
+	pkt_counter_reset(&ifcounts->span_bcast);
+
+	if (ifrates->activity > ifrates->peakactivity)
+		ifrates->peakactivity = ifrates->activity;
+
+	if (ifrates->activity_in > ifrates->peakactivity_in)
+		ifrates->peakactivity_in = ifrates->activity_in;
+
+	if (ifrates->activity_out > ifrates->peakactivity_out)
+		ifrates->peakactivity_out = ifrates->activity_out;
+
+	if (ifrates->pps > ifrates->peakpps)
+		ifrates->peakpps = ifrates->pps;
+
+	if (ifrates->pps_in > ifrates->peakpps_in)
+		ifrates->peakpps_in = ifrates->pps_in;
+
+	if (ifrates->pps_out > ifrates->peakpps_out)
+		ifrates->peakpps_out = ifrates->pps_out;
+}
+
+static void ifrates_show(struct ifrates *ifrates, WINDOW *statwin)
+{
+	char buf[64];
+
+	wattrset(statwin, HIGHATTR);
+	rate_print(ifrates->activity, buf, sizeof(buf));
+	mvwprintw(statwin, 14, 19, "%s", buf);
+	rate_print_pps(ifrates->pps, buf, sizeof(buf));
+	mvwprintw(statwin, 15, 19, "%s", buf);
+	rate_print(ifrates->activity_in, buf, sizeof(buf));
+	mvwprintw(statwin, 17, 19, "%s", buf);
+	rate_print_pps(ifrates->pps_in, buf, sizeof(buf));
+	mvwprintw(statwin, 18, 19, "%s", buf);
+	rate_print(ifrates->activity_out, buf, sizeof(buf));
+	mvwprintw(statwin, 20, 19, "%s", buf);
+	rate_print_pps(ifrates->pps_out, buf, sizeof(buf));
+	mvwprintw(statwin, 21, 19, "%s", buf);
+	rate_print(ifrates->activity_bcast, buf, sizeof(buf));
+	mvwprintw(statwin, 14, 64, "%s", buf);
+	rate_print_pps(ifrates->pps_bcast, buf, sizeof(buf));
+	mvwprintw(statwin, 15, 64, "%s", buf);
 }
 
 static void printdetlabels(WINDOW * win)
@@ -258,6 +419,7 @@ void detstats(char *iface, time_t facilitytime)
 	unsigned int iplen = 0;
 
 	struct ifcounts ifcounts;
+	struct ifrates ifrates;
 
 	int ch;
 
@@ -268,25 +430,6 @@ void detstats(char *iface, time_t facilitytime)
 	time_t now;
 	time_t statbegin;
 	time_t startlog;
-
-	struct proto_counter span;
-	struct pkt_counter span_bcast;
-
-	struct rate rate;
-	struct rate rate_in;
-	struct rate rate_out;
-	struct rate rate_bcast;
-	unsigned long peakactivity = 0;
-	unsigned long peakactivity_in = 0;
-	unsigned long peakactivity_out = 0;
-
-	struct rate pps_rate;
-	struct rate pps_rate_in;
-	struct rate pps_rate_out;
-	struct rate pps_rate_bcast;
-	unsigned long peakpps = 0;
-	unsigned long peakpps_in = 0;
-	unsigned long peakpps_out = 0;
 
 	int fd;
 
@@ -320,8 +463,6 @@ void detstats(char *iface, time_t facilitytime)
 	update_panels();
 	doupdate();
 
-	memset(&ifcounts, 0, sizeof(struct ifcounts));
-
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
 			snprintf(current_logfile, 64, "%s-%s.log", DSTATLOG,
@@ -346,22 +487,13 @@ void detstats(char *iface, time_t facilitytime)
 			 "******** Detailed interface statistics started ********");
 	}
 
+	ifcounts_init(&ifcounts);
+	ifrates_init(&ifrates);
+
 	printdetlabels(statwin);
 	printdetails(&ifcounts, statwin);
 	update_panels();
 	doupdate();
-
-	proto_counter_reset(&span);
-	pkt_counter_reset(&span_bcast);
-	rate_alloc(&rate, 5);
-	rate_alloc(&rate_in, 5);
-	rate_alloc(&rate_out, 5);
-	rate_alloc(&rate_bcast, 5);
-
-	rate_alloc(&pps_rate, 5);
-	rate_alloc(&pps_rate_in, 5);
-	rate_alloc(&pps_rate_out, 5);
-	rate_alloc(&pps_rate_bcast, 5);
 
 	gettimeofday(&tv, NULL);
 	start_tv = tv;
@@ -393,12 +525,9 @@ void detstats(char *iface, time_t facilitytime)
 		now = tv.tv_sec;
 
 		if ((now - starttime) >= 1) {
-			char buf[64];
-			unsigned long activity, activity_in, activity_out;
-			unsigned long activity_bcast;
-			unsigned long pps, pps_in, pps_out;
-			unsigned long pps_bcast;
-			unsigned long msecs;
+			unsigned long msecs = timeval_diff_msec(&tv, &start_tv);
+			ifrates_update(&ifrates, &ifcounts, msecs);
+			ifrates_show(&ifrates, statwin);
 
 			wattrset(statwin, BOXATTR);
 			printelapsedtime(statbegin, now, LINES - 3, 1, statwin);
@@ -406,76 +535,14 @@ void detstats(char *iface, time_t facilitytime)
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, statwin, LINES - 3, 49);
 
-			msecs = timeval_diff_msec(&tv, &start_tv);
-
-			rate_add_rate(&rate, span.proto_total.pc_bytes, msecs);
-			activity = rate_get_average(&rate);
-			rate_add_rate(&rate_in, span.proto_in.pc_bytes, msecs);
-			activity_in = rate_get_average(&rate_in);
-			rate_add_rate(&rate_out, span.proto_out.pc_bytes, msecs);
-			activity_out = rate_get_average(&rate_out);
-			rate_add_rate(&rate_bcast, span_bcast.pc_bytes, msecs);
-			activity_bcast = rate_get_average(&rate_bcast);
-
-			rate_add_rate(&pps_rate, span.proto_total.pc_packets, msecs);
-			pps = rate_get_average(&pps_rate);
-			rate_add_rate(&pps_rate_in, span.proto_in.pc_packets, msecs);
-			pps_in = rate_get_average(&pps_rate_in);
-			rate_add_rate(&pps_rate_out, span.proto_out.pc_packets, msecs);
-			pps_out = rate_get_average(&pps_rate_out);
-			rate_add_rate(&pps_rate_bcast, span_bcast.pc_packets, msecs);
-			pps_bcast = rate_get_average(&pps_rate_bcast);
-
-			proto_counter_reset(&span);
-			pkt_counter_reset(&span_bcast);
-
 			starttime = now;
 			start_tv = tv;
-
-			wattrset(statwin, HIGHATTR);
-			rate_print(activity, buf, sizeof(buf));
-			mvwprintw(statwin, 14, 19, "%s", buf);
-			rate_print_pps(pps, buf, sizeof(buf));
-			mvwprintw(statwin, 15, 19, "%s", buf);
-			rate_print(activity_in, buf, sizeof(buf));
-			mvwprintw(statwin, 17, 19, "%s", buf);
-			rate_print_pps(pps_in, buf, sizeof(buf));
-			mvwprintw(statwin, 18, 19, "%s", buf);
-			rate_print(activity_out, buf, sizeof(buf));
-			mvwprintw(statwin, 20, 19, "%s", buf);
-			rate_print_pps(pps_out, buf, sizeof(buf));
-			mvwprintw(statwin, 21, 19, "%s", buf);
-			rate_print(activity_bcast, buf, sizeof(buf));
-			mvwprintw(statwin, 14, 64, "%s", buf);
-			rate_print_pps(pps_bcast, buf, sizeof(buf));
-			mvwprintw(statwin, 15, 64, "%s", buf);
-
-			if (activity > peakactivity)
-				peakactivity = activity;
-
-			if (activity_in > peakactivity_in)
-				peakactivity_in = activity_in;
-
-			if (activity_out > peakactivity_out)
-				peakactivity_out = activity_out;
-
-			if (pps > peakpps)
-				peakpps = pps;
-
-			if (pps_in > peakpps_in)
-				peakpps_in = pps_in;
-
-			if (pps_out > peakpps_out)
-				peakpps_out = pps_out;
 		}
 		if (logging) {
 			check_rotate_flag(&logfile);
 			if ((now - startlog) >= options.logspan) {
-				writedstatlog(iface,
-					      peakactivity, peakpps,
-					      peakactivity_in, peakpps_in,
-					      peakactivity_out, peakpps_out,
-					      &ifcounts, time(NULL) - statbegin,
+				writedstatlog(iface, &ifcounts, &ifrates,
+					      time(NULL) - statbegin,
 					      logfile);
 
 				startlog = now;
@@ -541,10 +608,10 @@ void detstats(char *iface, time_t facilitytime)
 		proto_counter_update(&ifcounts.total, outgoing, pkt.pkt_len);
 		if (pkt.from->sll_pkttype == PACKET_BROADCAST) {
 			proto_counter_update(&ifcounts.bcast, outgoing, pkt.pkt_len);
-			pkt_counter_update(&span_bcast, pkt.pkt_len);
+			pkt_counter_update(&ifcounts.span_bcast, pkt.pkt_len);
 		}
 
-		proto_counter_update(&span, outgoing, pkt.pkt_len);
+		proto_counter_update(&ifcounts.span, outgoing, pkt.pkt_len);
 
 		/* account network layer protocol */
 		switch(pkt.pkt_protocol) {
@@ -592,15 +659,7 @@ err_close:
 	close(fd);
 
 err:
-	rate_destroy(&pps_rate_bcast);
-	rate_destroy(&pps_rate_out);
-	rate_destroy(&pps_rate_in);
-	rate_destroy(&pps_rate);
-
-	rate_destroy(&rate_bcast);
-	rate_destroy(&rate_out);
-	rate_destroy(&rate_in);
-	rate_destroy(&rate);
+	ifrates_destroy(&ifrates);
 
 	if (options.promisc) {
 		promisc_restore_list(&promisc);
@@ -609,11 +668,8 @@ err:
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writedstatlog(iface,
-			      peakactivity, peakpps, peakactivity_in,
-			      peakpps_in, peakactivity_out, peakpps_out,
-			      &ifcounts, time(NULL) - statbegin,
-			      logfile);
+		writedstatlog(iface, &ifcounts, &ifrates,
+			      time(NULL) - statbegin, logfile);
 		writelog(logging, logfile,
 			 "******** Detailed interface statistics stopped ********");
 		fclose(logfile);
