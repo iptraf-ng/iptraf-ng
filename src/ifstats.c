@@ -506,14 +506,6 @@ void ifstats(time_t facilitytime)
 
 	unsigned long dropped = 0UL;
 
-	struct timeval tv;
-	time_t starttime = 0;
-	time_t statbegin = 0;
-	time_t now = 0;
-	struct timeval start_tv;
-	time_t startlog = 0;
-	struct timeval updtime;
-
 	initiflist(&(table.head));
 	if (!table.head) {
 		no_ifaces_error();
@@ -564,51 +556,53 @@ void ifstats(time_t facilitytime)
 		goto err;
 	}
 
-	exitloop = 0;
-	gettimeofday(&tv, NULL);
-	start_tv = tv;
-	updtime = tv;
-	starttime = startlog = statbegin = tv.tv_sec;
-
 	packet_init(&pkt);
 
+	exitloop = 0;
+
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	struct timeval last_time = now;
+	struct timeval last_update = now;
+	time_t statbegin = now.tv_sec;
+	time_t last_log = now.tv_sec;
+
 	while (!exitloop) {
-		gettimeofday(&tv, NULL);
-		now = tv.tv_sec;
+		gettimeofday(&now, NULL);
 
-		if ((now - starttime) >= 1) {
-			unsigned long msecs;
-
-			msecs = timeval_diff_msec(&tv, &start_tv);
+		if (now.tv_sec > last_time.tv_sec) {
+			unsigned long msecs = timeval_diff_msec(&now, &last_time);
 			updaterates(&table, msecs);
 			showrates(&table);
-			printelapsedtime(statbegin, now, LINES - 3, 1,
-					 table.borderwin);
+
+			printelapsedtime(statbegin, now.tv_sec, LINES - 3, 1, table.borderwin);
+
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
-			starttime = now;
-			start_tv = tv;
-		}
-		if (logging) {
-			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options.logspan) {
-				writegstatlog(&table,
-					      time(NULL) - statbegin,
-					      logfile);
-				startlog = now;
+
+			if (logging) {
+				check_rotate_flag(&logfile);
+				if ((now.tv_sec - last_log) >= options.logspan) {
+					writegstatlog(&table,
+						      time(NULL) - statbegin,
+						      logfile);
+					last_log = now.tv_sec;
+				}
 			}
+
+			if ((facilitytime != 0)
+			    && (((now.tv_sec - statbegin) / 60) >= facilitytime))
+				exitloop = 1;
+
+			last_time = now;
 		}
-		if (screen_update_needed(&tv, &updtime)) {
+		if (screen_update_needed(&now, &last_update)) {
 			print_if_entries(&table);
 			update_panels();
 			doupdate();
 
-			updtime = tv;
+			last_update = now;
 		}
-
-		if ((facilitytime != 0)
-		    && (((now - statbegin) / 60) >= facilitytime))
-			exitloop = 1;
 
 		if (packet_get(fd, &pkt, &ch, table.statwin) == -1) {
 			write_error("Packet receive failed");
