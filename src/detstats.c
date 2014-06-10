@@ -208,6 +208,11 @@ static void ifcounts_init(struct ifcounts *ifcounts)
 	pkt_counter_reset(&ifcounts->span_bcast);
 }
 
+static void ifcounts_destroy(struct ifcounts *ifcounts __unused)
+{
+	/* do nothing for now */
+}
+
 static void ifrates_init(struct ifrates *ifrates)
 {
 	if (ifrates == NULL)
@@ -442,12 +447,6 @@ void detstats(char *iface, time_t facilitytime)
 		return;
 	}
 
-	LIST_HEAD(promisc);
-	if (options.promisc) {
-		promisc_init(&promisc, iface);
-		promisc_set_list(&promisc);
-	}
-
 	move(LINES - 1, 1);
 	stdexitkeyhelp();
 	statwin = newwin(LINES - 2, COLS, 1, 0);
@@ -460,8 +459,29 @@ void detstats(char *iface, time_t facilitytime)
 	wmove(statwin, 0, 1);
 	wprintw(statwin, " Statistics for %s ", iface);
 	wattrset(statwin, STDATTR);
+	leaveok(statwin, TRUE);
+
 	update_panels();
 	doupdate();
+
+	LIST_HEAD(promisc);
+	if (options.promisc) {
+		promisc_init(&promisc, iface);
+		promisc_set_list(&promisc);
+	}
+
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(dev_bind_ifname(fd, iface) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
+
+	ifcounts_init(&ifcounts);
+	ifrates_init(&ifrates);
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -487,39 +507,21 @@ void detstats(char *iface, time_t facilitytime)
 			 "******** Detailed interface statistics started ********");
 	}
 
-	ifcounts_init(&ifcounts);
-	ifrates_init(&ifrates);
-
 	printdetlabels(statwin);
 	printdetails(&ifcounts, statwin);
 	update_panels();
 	doupdate();
+
+	packet_init(&pkt);
+
+	exitloop = 0;
 
 	gettimeofday(&tv, NULL);
 	start_tv = tv;
 	updtime = tv;
 	starttime = startlog = statbegin = tv.tv_sec;
 
-	leaveok(statwin, TRUE);
-
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
-		goto err;
-	}
-	if(dev_bind_ifname(fd, iface) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
-	}
-
-	exitloop = 0;
-
-	packet_init(&pkt);
-
-	/*
-	 * Data-gathering loop
-	 */
-
+	/* data-gathering loop */
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
@@ -654,17 +656,7 @@ void detstats(char *iface, time_t facilitytime)
 			break;
 		}
 	}
-
-err_close:
-	close(fd);
-
-err:
-	ifrates_destroy(&ifrates);
-
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
+	packet_destroy(&pkt);
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
@@ -674,11 +666,21 @@ err:
 			 "******** Detailed interface statistics stopped ********");
 		fclose(logfile);
 	}
+	strcpy(current_logfile, "");
+
+	ifrates_destroy(&ifrates);
+	ifcounts_destroy(&ifcounts);
+
+err_close:
+	close(fd);
+err:
+	if (options.promisc) {
+		promisc_restore_list(&promisc);
+		promisc_destroy(&promisc);
+	}
 
 	del_panel(statpanel);
 	delwin(statwin);
-	strcpy(current_logfile, "");
-	packet_destroy(&pkt);
 	update_panels();
 	doupdate();
 }
