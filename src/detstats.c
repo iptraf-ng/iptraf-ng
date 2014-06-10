@@ -351,8 +351,8 @@ void detstats(char *iface, time_t facilitytime)
 	update_panels();
 	doupdate();
 
-	memset(&span, 0, sizeof(span));
-	memset(&span_bcast, 0, sizeof(span_bcast));
+	proto_counter_reset(&span);
+	pkt_counter_reset(&span_bcast);
 	rate_alloc(&rate, 5);
 	rate_alloc(&rate_in, 5);
 	rate_alloc(&rate_out, 5);
@@ -426,8 +426,9 @@ void detstats(char *iface, time_t facilitytime)
 			rate_add_rate(&pps_rate_bcast, span_bcast.pc_packets, msecs);
 			pps_bcast = rate_get_average(&pps_rate_bcast);
 
-			memset(&span, 0, sizeof(span));
-			memset(&span_bcast, 0, sizeof(span_bcast));
+			proto_counter_reset(&span);
+			pkt_counter_reset(&span_bcast);
+
 			starttime = now;
 			start_tv = tv;
 

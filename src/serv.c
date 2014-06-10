@@ -215,7 +215,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 
 	servlook(port, protocol, ptemp->servname, 10);
 
-	memset(&ptemp->serv_count, 0, sizeof(ptemp->serv_count));
+	proto_counter_reset(&ptemp->serv_count);
 
 	list->count++;
 	ptemp->idx = list->count;
@@ -774,7 +774,7 @@ static void update_serv_rates(struct portlist *list, unsigned long msecs)
 		rate_add_rate(&ple->rate_in, ple->span.proto_in.pc_bytes, msecs);
 		rate_add_rate(&ple->rate_out, ple->span.proto_out.pc_bytes, msecs);
 
-		memset(&ple->span, 0, sizeof(ple->span));
+		proto_counter_reset(&ple->span);
 	}
 }
 

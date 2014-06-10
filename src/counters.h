@@ -13,7 +13,10 @@ struct proto_counter {
 };
 
 void pkt_counter_update(struct pkt_counter *count, int bytes);
+void pkt_counter_reset(struct pkt_counter *count);
+
 void proto_counter_update(struct proto_counter *proto_counter, int outgoing,
 			  int bytes);
+void proto_counter_reset(struct proto_counter *proto_counter);
 
 #endif	/* IPTRAF_NG_COUNTERS_H */
