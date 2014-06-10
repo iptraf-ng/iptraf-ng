@@ -520,6 +520,12 @@ void ifstats(time_t facilitytime)
 		promisc_set_list(&promisc);
 	}
 
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
 			strcpy(current_logfile, GSTATLOG);
@@ -549,12 +555,6 @@ void ifstats(time_t facilitytime)
 
 	update_panels();
 	doupdate();
-
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
-		goto err;
-	}
 
 	packet_init(&pkt);
 
@@ -617,8 +617,18 @@ void ifstats(time_t facilitytime)
 			ifstats_process_packet(&table, &pkt);
 
 	}
-	close(fd);
+	packet_destroy(&pkt);
 
+	if (logging) {
+		signal(SIGUSR1, SIG_DFL);
+		writegstatlog(&table, time(NULL) - statbegin, logfile);
+		writelog(logging, logfile,
+			 "******** General interface statistics stopped ********");
+		fclose(logfile);
+	}
+	strcpy(current_logfile, "");
+
+	close(fd);
 err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);
@@ -632,16 +642,7 @@ err:
 	update_panels();
 	doupdate();
 
-	if (logging) {
-		signal(SIGUSR1, SIG_DFL);
-		writegstatlog(&table, time(NULL) - statbegin, logfile);
-		writelog(logging, logfile,
-			 "******** General interface statistics stopped ********");
-		fclose(logfile);
-	}
 	destroyiflist(table.head);
-	packet_destroy(&pkt);
-	strcpy(current_logfile, "");
 }
 
 void selectiface(char *ifname, int withall, int *aborted)
