@@ -428,14 +428,6 @@ void detstats(char *iface, time_t facilitytime)
 
 	int ch;
 
-	struct timeval tv;
-	struct timeval start_tv;
-	struct timeval updtime;
-	time_t starttime;
-	time_t now;
-	time_t statbegin;
-	time_t startlog;
-
 	int fd;
 
 	struct pkt_hdr pkt;
@@ -516,51 +508,54 @@ void detstats(char *iface, time_t facilitytime)
 
 	exitloop = 0;
 
-	gettimeofday(&tv, NULL);
-	start_tv = tv;
-	updtime = tv;
-	starttime = startlog = statbegin = tv.tv_sec;
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	struct timeval last_time = now;
+	struct timeval last_update = now;
+
+	time_t starttime = now.tv_sec;
+	time_t endtime = INT_MAX;
+	if (facilitytime != 0)
+		endtime = now.tv_sec + facilitytime * 60;
+
+	time_t log_next = INT_MAX;
+	if (logging)
+		log_next = now.tv_sec + options.logspan;
 
 	/* data-gathering loop */
 	while (!exitloop) {
-		gettimeofday(&tv, NULL);
-		now = tv.tv_sec;
+		gettimeofday(&now, NULL);
 
-		if ((now - starttime) >= 1) {
-			unsigned long msecs = timeval_diff_msec(&tv, &start_tv);
+		if (now.tv_sec > last_time.tv_sec) {
+			unsigned long msecs = timeval_diff_msec(&now, &last_time);
 			ifrates_update(&ifrates, &ifcounts, msecs);
 			ifrates_show(&ifrates, statwin);
 
 			wattrset(statwin, BOXATTR);
-			printelapsedtime(statbegin, now, LINES - 3, 1, statwin);
+			printelapsedtime(starttime, now.tv_sec, LINES - 3, 1, statwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, statwin, LINES - 3, 49);
 
-			if ((facilitytime != 0)
-			    && (((now - statbegin) / 60) >= facilitytime))
+			if (now.tv_sec > endtime)
 				exitloop = 1;
 
-			if (logging) {
+			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
-				if ((now - startlog) >= options.logspan) {
-					writedstatlog(iface, &ifcounts, &ifrates,
-						      time(NULL) - statbegin,
-						      logfile);
-
-					startlog = now;
-				}
+				writedstatlog(iface, &ifcounts, &ifrates,
+					      now.tv_sec - starttime,
+					      logfile);
+				log_next = now.tv_sec + options.logspan;
 			}
 
-			starttime = now;
-			start_tv = tv;
+			last_time = now;
 		}
-		if (screen_update_needed(&tv, &updtime)) {
+		if (screen_update_needed(&now, &last_update)) {
 			printdetails(&ifcounts, statwin);
 			update_panels();
 			doupdate();
 
-			updtime = tv;
+			last_update = now;
 		}
 
 		if (packet_get(fd, &pkt, &ch, statwin) == -1) {
@@ -661,7 +656,7 @@ void detstats(char *iface, time_t facilitytime)
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
 		writedstatlog(iface, &ifcounts, &ifrates,
-			      time(NULL) - statbegin, logfile);
+			      time(NULL) - starttime, logfile);
 		writelog(logging, logfile,
 			 "******** Detailed interface statistics stopped ********");
 		fclose(logfile);
