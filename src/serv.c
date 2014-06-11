@@ -240,6 +240,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 	servlook(port, protocol, ptemp->servname, 10);
 
 	proto_counter_reset(&ptemp->serv_count);
+	proto_counter_reset(&ptemp->span);
 
 	list->count++;
 	ptemp->idx = list->count;
