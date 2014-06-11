@@ -1338,17 +1338,10 @@ void removeaport(struct porttab **table)
 
 void destroyporttab(struct porttab *table)
 {
-	struct porttab *ptemp = table;
-	struct porttab *ctemp = NULL;
+	while (table != NULL) {
+		struct porttab *ptemp = table->next_entry;
 
-	if (ptemp != NULL)
-		ctemp = ptemp->next_entry;
-
-	while (ptemp != NULL) {
-		free(ptemp);
-		ptemp = ctemp;
-
-		if (ctemp != NULL)
-			ctemp = ctemp->next_entry;
+		free(table);
+		table = ptemp;
 	}
 }
