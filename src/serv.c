@@ -887,7 +887,7 @@ void servmon(char *ifname, time_t facilitytime)
 
 	struct timeval tv;
 	struct timeval tv_rate;
-	time_t starttime, startlog, timeint;
+	time_t starttime, startlog;
 	time_t now;
 	struct timeval updtime;
 
@@ -956,7 +956,7 @@ void servmon(char *ifname, time_t facilitytime)
 	gettimeofday(&tv, NULL);
 	tv_rate = tv;
 	updtime = tv;
-	starttime = startlog = timeint = tv.tv_sec;
+	starttime = startlog = tv.tv_sec;
 
 	update_panels();
 	doupdate();
@@ -977,30 +977,31 @@ void servmon(char *ifname, time_t facilitytime)
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
 
-		if (now - timeint >= 5) {
-			printelapsedtime(starttime, now, LINES - 4, 20,
-					 list.borderwin);
-			timeint = now;
-		}
-		if (logging) {
-			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options.logspan) {
-				writeutslog(list.head, now - starttime,
-					    logfile);
-				startlog = now;
-			}
-		}
-
-		unsigned long rate_msecs = timeval_diff_msec(&tv, &tv_rate);
-		if (rate_msecs >= 1000) {
+		if (now > tv_rate.tv_sec) {
+			unsigned long rate_msecs = timeval_diff_msec(&tv, &tv_rate);
 			/* update all portlistent rates ... */
 			update_serv_rates(&list, rate_msecs);
-
 			/* ... and print the current one */
 			print_serv_rates(&list);
 
+			printelapsedtime(starttime, now, LINES - 4, 20, list.borderwin);
+
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, list.borderwin, LINES - 4, 49);
+
+			if ((facilitytime != 0)
+			    && (((now - starttime) / 60) >= facilitytime))
+				exitloop = 1;
+
+			if (logging) {
+				check_rotate_flag(&logfile);
+				if ((now - startlog) >= options.logspan) {
+					writeutslog(list.head, now - starttime,
+						    logfile);
+					startlog = now;
+				}
+			}
+
 			tv_rate = tv;
 		}
 
@@ -1012,10 +1013,6 @@ void servmon(char *ifname, time_t facilitytime)
 
 			updtime = tv;
 		}
-
-		if ((facilitytime != 0)
-		    && (((now - starttime) / 60) >= facilitytime))
-			exitloop = 1;
 
 		if (packet_get(fd, &pkt, &ch, list.win) == -1) {
 			write_error("Packet receive failed");
