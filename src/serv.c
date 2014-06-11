@@ -47,7 +47,6 @@ struct portlistent {
 	struct proto_counter serv_count;
 	struct proto_counter span;
 
-	struct timeval starttime;
 	struct timeval proto_starttime;
 
 	struct rate rate;
