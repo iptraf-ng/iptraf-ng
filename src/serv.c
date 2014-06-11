@@ -910,6 +910,14 @@ void servmon(char *ifname, time_t facilitytime)
 		return;
 	}
 
+	initportlist(&list);
+	move(LINES - 1, 1);
+	scrollkeyhelp();
+	sortkeyhelp();
+	stdexitkeyhelp();
+	update_panels();
+	doupdate();
+
 	loadaddports(&ports);
 
 	LIST_HEAD(promisc);
@@ -918,15 +926,15 @@ void servmon(char *ifname, time_t facilitytime)
 		promisc_set_list(&promisc);
 	}
 
-	initportlist(&list);
-
-	move(LINES - 1, 1);
-	scrollkeyhelp();
-	sortkeyhelp();
-	stdexitkeyhelp();
-
-	if (options.servnames)
-		setservent(1);
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(dev_bind_ifname(fd, ifname) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -952,26 +960,17 @@ void servmon(char *ifname, time_t facilitytime)
 			 "******** TCP/UDP service monitor started ********");
 	}
 
+	if (options.servnames)
+		setservent(1);
+
+	packet_init(&pkt);
+
 	exitloop = 0;
+
 	gettimeofday(&tv, NULL);
 	tv_rate = tv;
 	updtime = tv;
 	starttime = startlog = tv.tv_sec;
-
-	update_panels();
-	doupdate();
-
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
-		goto err;
-	}
-	if(dev_bind_ifname(fd, ifname) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
-	}
-
-	packet_init(&pkt);
 
 	while (!exitloop) {
 		gettimeofday(&tv, NULL);
@@ -1031,10 +1030,11 @@ void servmon(char *ifname, time_t facilitytime)
 			print_serv_rates(&list);
 		}
 	}
+	packet_destroy(&pkt);
 
-err_close:
-	close(fd);
-err:
+	if (options.servnames)
+		endservent();
+
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
 		writeutslog(list.head, time(NULL) - starttime, logfile);
@@ -1042,13 +1042,17 @@ err:
 			 "******** TCP/UDP service monitor stopped ********");
 		fclose(logfile);
 	}
-	if (options.servnames)
-		endservent();
+	strcpy(current_logfile, "");
 
+err_close:
+	close(fd);
+err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);
 		promisc_destroy(&promisc);
 	}
+
+	destroyporttab(ports);
 
 	del_panel(list.panel);
 	delwin(list.win);
@@ -1059,9 +1063,6 @@ err:
 	update_panels();
 	doupdate();
 	destroyportlist(&list);
-	destroyporttab(ports);
-	packet_destroy(&pkt);
-	strcpy(current_logfile, "");
 }
 
 static void portdlg(in_port_t *port_min, in_port_t *port_max,
