@@ -64,7 +64,6 @@ struct portlist {
 	struct portlistent *lastvisible;
 	struct portlistent *barptr;
 	unsigned int count;
-	unsigned long bcount;
 
 	WINDOW *win;
 	PANEL *panel;
