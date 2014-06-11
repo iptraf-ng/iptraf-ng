@@ -183,6 +183,30 @@ static void initportlist(struct portlist *list)
 	doupdate();
 }
 
+static void print_serv_rates(struct portlist *table)
+{
+	if (table->barptr == NULL) {
+		wattrset(table->statwin, IPSTATATTR);
+		mvwprintw(table->statwin, 0, 1, "No entries");
+	} else {
+		char buf[64];
+
+		wattrset(table->statwin, IPSTATLABELATTR);
+		mvwprintw(table->statwin, 0, 1, "Protocol data rates:");
+		mvwprintw(table->statwin, 0, 36, "total");
+		mvwprintw(table->statwin, 0, 57, "in");
+		mvwprintw(table->statwin, 0, 76, "out");
+
+		wattrset(table->statwin, IPSTATATTR);
+		rate_print(rate_get_average(&table->barptr->rate), buf, sizeof(buf));
+		mvwprintw(table->statwin, 0, 21, "%s", buf);
+		rate_print(rate_get_average(&table->barptr->rate_in), buf, sizeof(buf));
+		mvwprintw(table->statwin, 0, 42, "%s", buf);
+		rate_print(rate_get_average(&table->barptr->rate_out), buf, sizeof(buf));
+		mvwprintw(table->statwin, 0, 61, "%s", buf);
+	}
+}
+
 static struct portlistent *addtoportlist(struct portlist *list,
 					 unsigned int protocol,
 					 in_port_t port)
@@ -226,6 +250,9 @@ static struct portlistent *addtoportlist(struct portlist *list,
 		list->lastvisible = ptemp;
 
 	mvwprintw(list->borderwin, LINES - 4, 1, " %u entries ", list->count);
+
+	if (list->barptr == NULL)
+		list->barptr = ptemp;
 
 	return ptemp;
 }
@@ -607,30 +634,6 @@ static void sortportents(struct portlist *list, int command)
 	while (ptmp && ((int)ptmp->idx <= getmaxy(list->win))) {
 		list->lastvisible = ptmp;
 		ptmp = ptmp->next_entry;
-	}
-}
-
-static void print_serv_rates(struct portlist *table)
-{
-	if (table->barptr == NULL) {
-		wattrset(table->statwin, IPSTATATTR);
-		mvwprintw(table->statwin, 0, 1, "No entries");
-	} else {
-		char buf[64];
-
-		wattrset(table->statwin, IPSTATLABELATTR);
-		mvwprintw(table->statwin, 0, 1, "Protocol data rates:");
-		mvwprintw(table->statwin, 0, 36, "total");
-		mvwprintw(table->statwin, 0, 57, "in");
-		mvwprintw(table->statwin, 0, 76, "out");
-
-		wattrset(table->statwin, IPSTATATTR);
-		rate_print(rate_get_average(&table->barptr->rate), buf, sizeof(buf));
-		mvwprintw(table->statwin, 0, 21, "%s", buf);
-		rate_print(rate_get_average(&table->barptr->rate_in), buf, sizeof(buf));
-		mvwprintw(table->statwin, 0, 42, "%s", buf);
-		rate_print(rate_get_average(&table->barptr->rate_out), buf, sizeof(buf));
-		mvwprintw(table->statwin, 0, 61, "%s", buf);
 	}
 }
 
@@ -1022,11 +1025,6 @@ void servmon(char *ifname, time_t facilitytime)
 
 		if (pkt.pkt_len > 0)
 			serv_process_packet(&list, &pkt, ports);
-
-		if ((list.barptr == NULL) && (list.head != NULL)) {
-			list.barptr = list.head;
-			print_serv_rates(&list);
-		}
 	}
 	packet_destroy(&pkt);
 
