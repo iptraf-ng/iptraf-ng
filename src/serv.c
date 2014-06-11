@@ -39,12 +39,6 @@ serv.c  - TCP/UDP port statistics module
 #define LEFT 0
 #define RIGHT 1
 
-struct serv_spans {
-	int spanbr_in;
-	int spanbr_out;
-	int spanbr;
-};
-
 struct portlistent {
 	in_port_t port;
 	unsigned int protocol;
