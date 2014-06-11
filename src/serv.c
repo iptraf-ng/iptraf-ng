@@ -171,6 +171,12 @@ static void initportlist(struct portlist *list)
 	wtimeout(list->win, -1);
 	wattrset(list->win, STDATTR);
 	tx_colorwin(list->win);
+
+	move(LINES - 1, 1);
+	scrollkeyhelp();
+	sortkeyhelp();
+	stdexitkeyhelp();
+
 	update_panels();
 	doupdate();
 }
@@ -353,6 +359,16 @@ static void destroyportlist(struct portlist *list)
 
 		ptmp = ctmp;
 	}
+
+	del_panel(list->panel);
+	delwin(list->win);
+	del_panel(list->borderpanel);
+	delwin(list->borderwin);
+	del_panel(list->statpanel);
+	delwin(list->statwin);
+
+	update_panels();
+	doupdate();
 }
 
 static void updateportent(struct portlist *list, unsigned int protocol,
@@ -897,13 +913,6 @@ void servmon(char *ifname, time_t facilitytime)
 	}
 
 	initportlist(&list);
-	move(LINES - 1, 1);
-	scrollkeyhelp();
-	sortkeyhelp();
-	stdexitkeyhelp();
-	update_panels();
-	doupdate();
-
 	loadaddports(&ports);
 
 	LIST_HEAD(promisc);
@@ -1038,15 +1047,6 @@ err:
 	}
 
 	destroyporttab(ports);
-
-	del_panel(list.panel);
-	delwin(list.win);
-	del_panel(list.borderpanel);
-	delwin(list.borderwin);
-	del_panel(list.statpanel);
-	delwin(list.statwin);
-	update_panels();
-	doupdate();
 	destroyportlist(&list);
 }
 
