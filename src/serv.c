@@ -344,20 +344,16 @@ static void printportent(struct portlist *list, struct portlistent *entry)
 static void destroyportlist(struct portlist *list)
 {
 	struct portlistent *ptmp = list->head;
-	struct portlistent *ctmp = NULL;
-
-	if (list->head != NULL)
-		ctmp = list->head->next_entry;
 
 	while (ptmp != NULL) {
+		struct portlistent *ctmp = ptmp->next_entry;
+
 		rate_destroy(&ptmp->rate_out);
 		rate_destroy(&ptmp->rate_in);
 		rate_destroy(&ptmp->rate);
 		free(ptmp);
-		ptmp = ctmp;
 
-		if (ctmp != NULL)
-			ctmp = ctmp->next_entry;
+		ptmp = ctmp;
 	}
 }
 
