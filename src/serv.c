@@ -885,12 +885,6 @@ void servmon(char *ifname, time_t facilitytime)
 {
 	int logging = options.logging;
 
-	struct timeval tv;
-	struct timeval tv_rate;
-	time_t starttime, startlog;
-	time_t now;
-	struct timeval updtime;
-
 	int ch;
 
 	struct portlist list;
@@ -967,50 +961,54 @@ void servmon(char *ifname, time_t facilitytime)
 
 	exitloop = 0;
 
-	gettimeofday(&tv, NULL);
-	tv_rate = tv;
-	updtime = tv;
-	starttime = startlog = tv.tv_sec;
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	struct timeval last_time = now;
+	struct timeval last_update = now;
+	time_t starttime = now.tv_sec;
+	time_t endtime = INT_MAX;
+	if (facilitytime != 0)
+		endtime = now.tv_sec + facilitytime * 60;
+
+	time_t log_next = INT_MAX;
+	if (logging)
+		log_next = now.tv_sec + options.logspan;
 
 	while (!exitloop) {
-		gettimeofday(&tv, NULL);
-		now = tv.tv_sec;
+		gettimeofday(&now, NULL);
 
-		if (now > tv_rate.tv_sec) {
-			unsigned long rate_msecs = timeval_diff_msec(&tv, &tv_rate);
+		if (now.tv_sec > last_time.tv_sec) {
+			unsigned long rate_msecs = timeval_diff_msec(&now, &last_time);
 			/* update all portlistent rates ... */
 			update_serv_rates(&list, rate_msecs);
 			/* ... and print the current one */
 			print_serv_rates(&list);
 
-			printelapsedtime(starttime, now, LINES - 4, 20, list.borderwin);
+			printelapsedtime(starttime, now.tv_sec, LINES - 4, 20, list.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, list.borderwin, LINES - 4, 49);
 
-			if ((facilitytime != 0)
-			    && (((now - starttime) / 60) >= facilitytime))
+			if (now.tv_sec > endtime)
 				exitloop = 1;
 
-			if (logging) {
+			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
-				if ((now - startlog) >= options.logspan) {
-					writeutslog(list.head, now - starttime,
-						    logfile);
-					startlog = now;
-				}
+				writeutslog(list.head, now.tv_sec - starttime,
+					    logfile);
+				log_next = now.tv_sec + options.logspan;
 			}
 
-			tv_rate = tv;
+			last_time = now;
 		}
 
-		if (screen_update_needed(&tv, &updtime)) {
+		if (screen_update_needed(&now, &last_update)) {
 			refresh_serv_screen(&list);
 
 			update_panels();
 			doupdate();
 
-			updtime = tv;
+			last_update = now;
 		}
 
 		if (packet_get(fd, &pkt, &ch, list.win) == -1) {
