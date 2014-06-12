@@ -151,6 +151,14 @@ static void writeethlog(struct ethtabent *list, unsigned long nsecs, FILE *fd)
 	fflush(fd);
 }
 
+static void hostmonhelp(void)
+{
+	move(LINES - 1, 1);
+	scrollkeyhelp();
+	sortkeyhelp();
+	stdexitkeyhelp();
+}
+
 static void initethtab(struct ethtab *table)
 {
 	table->head = table->tail = NULL;
@@ -179,9 +187,18 @@ static void initethtab(struct ethtab *table)
 	tx_colorwin(table->tabwin);
 	tx_stdwinset(table->tabwin);
 	wtimeout(table->tabwin, -1);
+	leaveok(table->tabwin, TRUE);
+
+	hostmonhelp();
 
 	update_panels();
 	doupdate();
+
+	/* Ethernet description list */
+	table->elist = load_eth_desc(ARPHRD_ETHER);
+
+	/* FDDI description list */
+	table->flist = load_eth_desc(ARPHRD_FDDI);
 }
 
 static struct ethtabent *addethnode(struct ethtab *table)
@@ -387,14 +404,18 @@ static void destroyethtab(struct ethtab *table)
 		if (cnext != NULL)
 			cnext = cnext->next_entry;
 	}
-}
 
-static void hostmonhelp(void)
-{
-	move(LINES - 1, 1);
-	scrollkeyhelp();
-	sortkeyhelp();
-	stdexitkeyhelp();
+	free_eth_desc(table->elist);
+	free_eth_desc(table->flist);
+
+	del_panel(table->tabpanel);
+	delwin(table->tabwin);
+
+	del_panel(table->borderpanel);
+	delwin(table->borderwin);
+
+	update_panels();
+	doupdate();
 }
 
 static void print_entry_rates(struct ethtab *table, struct ethtabent *entry)
@@ -913,15 +934,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 		promisc_set_list(&promisc);
 	}
 
-	hostmonhelp();
-
 	initethtab(&table);
-
-	/* Ethernet description list */
-	table.elist = load_eth_desc(ARPHRD_ETHER);
-
-	/* FDDI description list */
-	table.flist = load_eth_desc(ARPHRD_FDDI);
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -946,8 +959,6 @@ void hostmon(time_t facilitytime, char *ifptr)
 		writelog(logging, logfile,
 			 "******** LAN traffic monitor started ********");
 	}
-
-	leaveok(table.tabwin, TRUE);
 
 	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if(fd == -1) {
@@ -1030,20 +1041,9 @@ err:
 			 "******** LAN traffic monitor stopped ********");
 		fclose(logfile);
 	}
-
-
-	del_panel(table.tabpanel);
-	delwin(table.tabwin);
-	del_panel(table.borderpanel);
-	delwin(table.borderwin);
-	update_panels();
-	doupdate();
+	strcpy(current_logfile, "");
 
 	packet_destroy(&pkt);
 
-	free_eth_desc(table.elist);
-	free_eth_desc(table.flist);
 	destroyethtab(&table);
-
-	strcpy(current_logfile, "");
 }
