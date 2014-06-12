@@ -105,26 +105,16 @@ static void deldgram(struct fragent *ftmp)
 	free(ftmp);
 }
 
-
-/*
- * Destroy hole descriptor list
- */
-
+/* destroy hole descriptor list */
 static void destroyholes(struct fragent *ftmp)
 {
 	struct fragdescent *dtmp = ftmp->fragdesclist;
-	struct fragdescent *ntmp = NULL;
 
-	if (ftmp->fragdesclist != NULL) {
-		ntmp = dtmp->next_entry;
+	while (dtmp != NULL) {
+		struct fragdescent *ntmp = dtmp->next_entry;
 
-		while (dtmp != NULL) {
-			free(dtmp);
-			dtmp = ntmp;
-
-			if (ntmp != NULL)
-				ntmp = ntmp->next_entry;
-		}
+		free(dtmp);
+		dtmp = ntmp;
 	}
 }
 
