@@ -270,8 +270,14 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	struct timeval last_time = now;
 	struct timeval last_update = now;
 
-	time_t starttime, startlog;
-	starttime = startlog = now.tv_sec;
+	time_t starttime = now.tv_sec;
+	time_t endtime = INT_MAX;
+	if (facilitytime != 0)
+		endtime = now.tv_sec + facilitytime * 60;
+
+	time_t log_next = INT_MAX;
+	if (logging)
+		log_next = now.tv_sec + options.logspan;
 
 	do {
 		gettimeofday(&now, NULL);
@@ -282,17 +288,14 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, 49);
 
-			if (logging) {
+			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
-				if ((now.tv_sec - startlog) >= options.logspan) {
-					write_size_log(&table, now.tv_sec - starttime,
-						       ifname, logfile);
-					startlog = now.tv_sec;
-				}
+				write_size_log(&table, now.tv_sec - starttime,
+					       ifname, logfile);
+				log_next = now.tv_sec + options.logspan;
 			}
 
-			if ((facilitytime != 0)
-			    && (((now.tv_sec - starttime) / 60) >= facilitytime))
+			if (now.tv_sec > endtime)
 				exitloop = 1;
 
 			last_time = now;
