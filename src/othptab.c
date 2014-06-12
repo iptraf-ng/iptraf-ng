@@ -771,19 +771,12 @@ void refresh_othwindow(struct othptable *table)
 
 void destroyothptable(struct othptable *table)
 {
-	struct othptabent *ctemp;
-	struct othptabent *ctemp_next;
+	struct othptabent *ctemp = table->head;
 
-	if (table->head != NULL) {
-		ctemp = table->head;
-		ctemp_next = table->head->next_entry;
+	while (ctemp != NULL) {
+		struct othptabent *next = ctemp->next_entry;
 
-		while (ctemp != NULL) {
-			free(ctemp);
-			ctemp = ctemp_next;
-
-			if (ctemp_next != NULL)
-				ctemp_next = ctemp_next->next_entry;
-		}
+		free(ctemp);
+		ctemp = next;
 	}
 }
