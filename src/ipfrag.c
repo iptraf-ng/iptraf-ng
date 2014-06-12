@@ -36,7 +36,6 @@ struct fragent {
 	unsigned int id;
 	unsigned int protocol;
 	int firstin;
-	time_t starttime;
 	struct fragdescent *fragdesclist;
 	struct fragdescent *fragdesctail;
 	unsigned int bcount;
