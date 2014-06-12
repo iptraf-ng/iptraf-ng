@@ -985,7 +985,7 @@ void servmon(char *ifname, time_t facilitytime)
 			/* ... and print the current one */
 			print_serv_rates(&list);
 
-			printelapsedtime(starttime, now.tv_sec, LINES - 4, 20, list.borderwin);
+			printelapsedtime(now.tv_sec - starttime, 20, list.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, list.borderwin, LINES - 4, 49);

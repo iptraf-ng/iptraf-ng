@@ -582,7 +582,7 @@ void ifstats(time_t facilitytime)
 			updaterates(&table, msecs);
 			showrates(&table);
 
-			printelapsedtime(starttime, now.tv_sec, LINES - 3, 1, table.borderwin);
+			printelapsedtime(now.tv_sec - starttime, 1, table.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);

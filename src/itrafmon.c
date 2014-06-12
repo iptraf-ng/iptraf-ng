@@ -709,8 +709,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			print_flowrate(&table);
 
 			/* print timer at bottom of screen */
-			printelapsedtime(starttime, now.tv_sec, othptbl.obmaxy - 1, 15,
-					 othptbl.borderwin);
+			printelapsedtime(now.tv_sec - starttime, 15, othptbl.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 40);

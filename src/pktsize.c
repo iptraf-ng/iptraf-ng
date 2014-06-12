@@ -268,8 +268,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 			updtime = tv;
 		}
 		if (now - timeint >= 5) {
-			printelapsedtime(starttime, now, LINES - 3, 1,
-					 borderwin);
+			printelapsedtime(now - starttime, 1, borderwin);
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, borderwin, LINES - 3, 49);
 			timeint = now;

@@ -989,8 +989,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 			updateethrates(&table, msecs);
 			print_visible_rates(&table);
 
-			printelapsedtime(starttime, now.tv_sec, LINES - 3, 15,
-					 table.borderwin);
+			printelapsedtime(now.tv_sec - starttime, 15, table.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);

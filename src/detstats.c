@@ -621,7 +621,7 @@ void detstats(char *iface, time_t facilitytime)
 			ifrates_show(&ifrates, statwin);
 
 			wattrset(statwin, BOXATTR);
-			printelapsedtime(starttime, now.tv_sec, LINES - 3, 1, statwin);
+			printelapsedtime(now.tv_sec - starttime, 1, statwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, statwin, LINES - 3, 49);
