@@ -195,11 +195,6 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	int pkt_result;
 
-	struct timeval tv;
-	time_t starttime, startlog, timeint;
-	time_t now;
-	struct timeval updtime;
-
 	int logging = options.logging;
 	FILE *logfile = NULL;
 
@@ -270,40 +265,47 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	exitloop = 0;
 
-	gettimeofday(&tv, NULL);
-	updtime = tv;
-	now = starttime = startlog = timeint = tv.tv_sec;
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	struct timeval last_time = now;
+	struct timeval last_update = now;
+
+	time_t starttime, startlog;
+	starttime = startlog = now.tv_sec;
 
 	do {
-		gettimeofday(&tv, NULL);
-		now = tv.tv_sec;
+		gettimeofday(&now, NULL);
 
-		if (screen_update_needed(&tv, &updtime)) {
+		if (now.tv_sec > last_time.tv_sec) {
+			printelapsedtime(now.tv_sec - starttime, 1, table.borderwin);
+
+			dropped += packet_get_dropped(fd);
+			print_packet_drops(dropped, table.borderwin, 49);
+
+			if (logging) {
+				check_rotate_flag(&logfile);
+				if ((now.tv_sec - startlog) >= options.logspan) {
+					write_size_log(&table, now.tv_sec - starttime,
+						       ifname, logfile);
+					startlog = now.tv_sec;
+				}
+			}
+
+			if ((facilitytime != 0)
+			    && (((now.tv_sec - starttime) / 60) >= facilitytime))
+				exitloop = 1;
+
+			last_time = now;
+		}
+
+		if (screen_update_needed(&now, &last_update)) {
 			print_size_distrib(&table);
 
 			update_panels();
 			doupdate();
 
-			updtime = tv;
+			last_update = now;
 		}
-		if (now - timeint >= 5) {
-			printelapsedtime(now - starttime, 1, table.borderwin);
-			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, table.borderwin, 49);
-			timeint = now;
-		}
-		if (logging) {
-			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options.logspan) {
-				write_size_log(&table, now - starttime,
-					       ifname, logfile);
-				startlog = now;
-			}
-		}
-
-		if ((facilitytime != 0)
-		    && (((now - starttime) / 60) >= facilitytime))
-			exitloop = 1;
 
 		if (packet_get(fd, &pkt, &ch, table.win) == -1) {
 			write_error("Packet receive failed");
@@ -344,7 +346,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		write_size_log(&table, now - starttime, ifname, logfile);
+		write_size_log(&table, time(NULL) - starttime, ifname, logfile);
 		writelog(logging, logfile,
 			 "******** Packet size distribution facility stopped ********");
 		fclose(logfile);
