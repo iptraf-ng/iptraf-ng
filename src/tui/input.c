@@ -163,21 +163,18 @@ void tx_fillfields(struct FIELDLIST *list, int *aborted)
 
 void tx_destroyfields(struct FIELDLIST *list)
 {
-	struct FIELD *ptmp;
-	struct FIELD *pnext;
+	struct FIELD *ptmp = list->list;
 
-	list->list->prevfield->nextfield = NULL;
-	ptmp = list->list;
-	pnext = list->list->nextfield;
+	/* break the circular list */
+	if (ptmp != NULL)
+		ptmp->prevfield->nextfield = NULL;
 
-	do {
+	while (ptmp != NULL) {
+		struct FIELD *pnext = ptmp->nextfield;
+
 		free(ptmp);
-
 		ptmp = pnext;
-		if (pnext != NULL) {
-			pnext = pnext->nextfield;
-		}
-	} while (ptmp != NULL);
+	}
 
 	del_panel(list->fieldpanel);
 	delwin(list->fieldwin);
