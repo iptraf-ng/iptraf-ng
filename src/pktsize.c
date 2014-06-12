@@ -279,7 +279,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	if (logging)
 		log_next = now.tv_sec + options.logspan;
 
-	do {
+	while (!exitloop) {
 		gettimeofday(&now, NULL);
 
 		if (now.tv_sec > last_time.tv_sec) {
@@ -343,7 +343,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 			continue;
 
 		update_size_distrib(&table, pkt.pkt_len);
-	} while (!exitloop);
+	}
 
 	packet_destroy(&pkt);
 
