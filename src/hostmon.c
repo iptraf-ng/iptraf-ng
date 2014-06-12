@@ -388,21 +388,16 @@ static void printethent(struct ethtab *table, struct ethtabent *entry)
 static void destroyethtab(struct ethtab *table)
 {
 	struct ethtabent *ptemp = table->head;
-	struct ethtabent *cnext = NULL;
-
-	if (table->head != NULL)
-		cnext = table->head->next_entry;
 
 	while (ptemp != NULL) {
+		struct ethtabent *next = ptemp->next_entry;
+
 		if (ptemp->type == 1) {
 			rate_destroy(&ptemp->un.figs.outrate);
 			rate_destroy(&ptemp->un.figs.inrate);
 		}
 		free(ptemp);
-		ptemp = cnext;
-
-		if (cnext != NULL)
-			cnext = cnext->next_entry;
+		ptemp = next;
 	}
 
 	free_eth_desc(table->elist);
