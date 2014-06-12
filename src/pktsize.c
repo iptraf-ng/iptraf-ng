@@ -25,11 +25,7 @@ pktsize.c	- the packet size breakdown facility
 #include "logvars.h"
 #include "promisc.h"
 
-struct ifstat_brackets {
-	unsigned int floor;
-	unsigned int ceil;
-	unsigned long count;
-};
+#define SIZES 20
 
 struct psizetab {
 	WINDOW *win;
@@ -37,10 +33,13 @@ struct psizetab {
 	WINDOW *borderwin;
 	PANEL *borderpanel;
 
-	struct ifstat_brackets brackets[20];
+	unsigned long size_in[SIZES + 1];	/* +1 for oversized count */
+	unsigned long size_out[SIZES + 1];
+	unsigned int mtu;
 	unsigned int interval;
+	unsigned int maxsize_in;
+	unsigned int maxsize_out;
 
-	int mtu;
 };
 
 static void rotate_size_log(int s __unused)
@@ -60,11 +59,14 @@ static void write_size_log(struct psizetab *table, unsigned long nsecs,
 	fprintf(logfile, "*** Packet Size Distribution, generated %s\n\n",
 		atime);
 	fprintf(logfile, "Interface: %s   MTU: %u\n\n", ifname, table->mtu);
-	fprintf(logfile, "Packet Size (bytes)\tCount\n");
+	fprintf(logfile, "Packet Size (bytes)\tIn\t\tOut\n");
 
-	for (i = 0; i <= 19; i++) {
-		fprintf(logfile, "%u to %u:\t\t%lu\n", table->brackets[i].floor,
-			table->brackets[i].ceil, table->brackets[i].count);
+	for (i = 0; i < SIZES; i++) {
+		fprintf(logfile, "%u to %u:\t\t%8lu\t%8lu\n",
+				table->interval * i + 1,
+				table->interval * (i + 1),
+				table->size_in[i],
+				table->size_out[i]);
 	}
 	fprintf(logfile, "\nRunning time: %lu seconds\n", nsecs);
 	fflush(logfile);
@@ -77,7 +79,7 @@ static void psizetab_init(struct psizetab *table, char *ifname)
 
 	wattrset(table->borderwin, BOXATTR);
 	tx_box(table->borderwin, ACS_VLINE, ACS_HLINE);
-	mvwprintw(table->borderwin, 0, 1, " Packet Distribution by Size ");
+	mvwprintw(table->borderwin, 0, 1, " Packet Distribution by Size for interface %s ", ifname);
 
 	table->win = newwin(LINES - 4, COLS - 2, 2, 1);
 	table->panel = new_panel(table->win);
@@ -87,12 +89,11 @@ static void psizetab_init(struct psizetab *table, char *ifname)
 	wattrset(table->win, STDATTR);
 	tx_colorwin(table->win);
 
-	mvwprintw(table->win, 1, 1, "Packet size brackets for interface %s", ifname);
 	wattrset(table->win, BOXATTR);
-	mvwprintw(table->win, 4, 1, "Packet Size (bytes)");
-	mvwprintw(table->win, 4, 26, "Count");
-	mvwprintw(table->win, 4, 36, "Packet Size (bytes)");
-	mvwprintw(table->win, 4, 60, "Count");
+	mvwprintw(table->win, 1, 1, "Packet Size (bytes)");
+	mvwprintw(table->win, 1, 23, "In      Out");
+	mvwprintw(table->win, 1, 42, "Packet Size (bytes)");
+	mvwprintw(table->win, 1, 64, "In      Out");
 	wattrset(table->win, HIGHATTR);
 
 	move(LINES - 1, 1);
@@ -114,79 +115,85 @@ static void psizetab_destroy(struct psizetab *table)
 	doupdate();
 }
 
-static int initialize_brackets(struct psizetab *table)
+static void sizes_init(struct psizetab *table, unsigned int mtu)
 {
-	int i;
+	table->mtu = mtu;
 
-	table->interval = table->mtu / 20;	/* There are 20 packet size brackets */
+	unsigned int interval = mtu / SIZES;
 
-	for (i = 0; i <= 19; i++) {
-		table->brackets[i].floor = table->interval * i + 1;
-		table->brackets[i].ceil = table->interval * (i + 1);
-		table->brackets[i].count = 0;
-	}
-
-	table->brackets[19].ceil = table->mtu;
-
-	for (i = 0; i <= 9; i++) {
-		wattrset(table->win, STDATTR);
-		mvwprintw(table->win, i + 5, 2, "%4u to %4u:", table->brackets[i].floor,
-			table->brackets[i].ceil);
-		wattrset(table->win, HIGHATTR);
-		mvwprintw(table->win, i + 5, 23, "%8lu", 0);
-	}
-
-	for (i = 10; i <= 19; i++) {
-		wattrset(table->win, STDATTR);
-		wmove(table->win, (i - 10) + 5, 36);
-
-		if (i != 19)
-			wprintw(table->win, "%4u to %4u:", table->brackets[i].floor,
-				table->brackets[i].ceil);
-		else
-			wprintw(table->win, "%4u to %4u+:", table->brackets[i].floor,
-				table->brackets[i].ceil);
-
-		wattrset(table->win, HIGHATTR);
-		mvwprintw(table->win, (i - 10) + 5, 57, "%8lu", 0);
-	}
+	table->interval = interval;
 
 	wattrset(table->win, STDATTR);
+	for(unsigned int i = 0; i < SIZES; i++) {
+		int row, column;
+
+		table->size_in[i] = 0UL;	/* initialize counters */
+		table->size_out[i] = 0UL;
+
+		if (i < SIZES / 2) {
+			row = i + 2;
+			column = 1;
+		} else {
+			row = (i - 10) + 2;
+			column = 42;
+		}
+		mvwprintw(table->win, row, column, "%5u to %5u:",
+			  interval * i + 1, interval * (i + 1));
+	}
+
+	table->size_in[SIZES] = 0UL;	/* initialize oversized counters */
+	table->size_out[SIZES] = 0UL;
+	table->maxsize_in = 0UL;	/* initialize maxsize counters */
+	table->maxsize_out = 0UL;
+
+	mvwprintw(table->win, 12, 47, "oversized:");
+	mvwprintw(table->win, 14, 1, "max packet size in (bytes):");
+	mvwprintw(table->win, 15, 1, "max packet size out (bytes):");
+
 	mvwprintw(table->win, 17, 1,
-		  "Interface MTU is %d bytes, not counting the data-link header",
+		  "Interface MTU is %u bytes, not counting the data-link header.",
 		  table->mtu);
 	mvwprintw(table->win, 18, 1,
-		  "Maximum packet size is the MTU plus the data-link header length");
+		  "Maximum packet size is the MTU plus the data-link header length, but can be");
 	mvwprintw(table->win, 19, 1,
-		  "Packet size computations include data-link headers, if any");
-
-	return 0;
+		  "   bigger due to various offloading techniques of the interface.");
+	mvwprintw(table->win, 20, 1,
+		  "Packet size computations include data-link headers, if any.");
 }
 
-static void update_size_distrib(struct psizetab *table, unsigned int length)
+static void update_size_distrib(struct psizetab *table, struct pkt_hdr *pkt)
 {
-	unsigned int i;
+	/* -1 is to keep interval boundary lengths within the proper brackets */
+	unsigned int i = (pkt->pkt_len - 1) / table->interval;
 
-	i = (length - 1) / table->interval;	/* minus 1 to keep interval
-						   boundary lengths within the
-						   proper brackets */
+	if (i > SIZES)
+		i = SIZES;	/* last entry is for lengths > MTU */
 
-	if (i > 19)		/* This is for extras for MTU's not */
-		i = 19;		/* divisible by 20 */
-
-	table->brackets[i].count++;
+	if (pkt->from->sll_pkttype == PACKET_OUTGOING) {
+		table->size_out[i]++;
+		if (table->maxsize_out < pkt->pkt_len)
+			table->maxsize_out = pkt->pkt_len;
+	} else {
+		table->size_in[i]++;
+		if (table->maxsize_in < pkt->pkt_len)
+			table->maxsize_in = pkt->pkt_len;
+	}
 }
 
 static void print_size_distrib(struct psizetab *table)
 {
-	for (unsigned int i = 0; i <= 19; i++) {
+	wattrset(table->win, HIGHATTR);
+	for (unsigned int i = 0; i < SIZES + 1; i++) {	/* include oversized */
 		if (i < 10)
-			wmove(table->win, i + 5, 23);
+			wmove(table->win, i + 2, 17);
 		else
-			wmove(table->win, (i - 10) + 5, 57);
+			wmove(table->win, (i - 10) + 2, 58);
 
-		wprintw(table->win, "%8lu", table->brackets[i].count);
+		wprintw(table->win, "%8lu %8lu",
+			table->size_in[i], table->size_out[i]);
 	}
+	mvwprintw(table->win, 14, 33, "%5u", table->maxsize_in);
+	mvwprintw(table->win, 15, 33, "%5u", table->maxsize_out);
 }
 
 void packet_size_breakdown(char *ifname, time_t facilitytime)
@@ -229,13 +236,17 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		goto err_close;
 	}
 
-	table.mtu = dev_get_mtu(ifname);
-	if (table.mtu < 0) {
+	int mtu = dev_get_mtu(ifname);
+	if (mtu < 0) {
 		write_error("Unable to obtain interface MTU");
 		goto err_close;
 	}
 
-	initialize_brackets(&table);
+	sizes_init(&table, mtu);
+
+	print_size_distrib(&table);
+	update_panels();
+	doupdate();
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -342,7 +353,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		if (pkt_result != PACKET_OK)
 			continue;
 
-		update_size_distrib(&table, pkt.pkt_len);
+		update_size_distrib(&table, &pkt);
 	}
 
 	packet_destroy(&pkt);
