@@ -712,7 +712,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			printelapsedtime(now.tv_sec - starttime, 15, othptbl.borderwin);
 
 			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, othptbl.borderwin, othptbl.obmaxy - 1, 40);
+			print_packet_drops(dropped, othptbl.borderwin, 40);
 
 			mark_timeouted_entries(&table, logging, logfile);
 

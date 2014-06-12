@@ -270,7 +270,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		if (now - timeint >= 5) {
 			printelapsedtime(now - starttime, 1, borderwin);
 			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, borderwin, LINES - 3, 49);
+			print_packet_drops(dropped, borderwin, 49);
 			timeint = now;
 		}
 		if (logging) {

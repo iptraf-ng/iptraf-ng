@@ -988,7 +988,7 @@ void servmon(char *ifname, time_t facilitytime)
 			printelapsedtime(now.tv_sec - starttime, 20, list.borderwin);
 
 			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, list.borderwin, LINES - 4, 49);
+			print_packet_drops(dropped, list.borderwin, 49);
 
 			if (now.tv_sec > endtime)
 				exitloop = 1;

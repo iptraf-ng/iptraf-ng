@@ -585,7 +585,7 @@ void ifstats(time_t facilitytime)
 			printelapsedtime(now.tv_sec - starttime, 1, table.borderwin);
 
 			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
+			print_packet_drops(dropped, table.borderwin, 49);
 
 			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);

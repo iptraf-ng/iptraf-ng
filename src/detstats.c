@@ -624,7 +624,7 @@ void detstats(char *iface, time_t facilitytime)
 			printelapsedtime(now.tv_sec - starttime, 1, statwin);
 
 			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, statwin, LINES - 3, 49);
+			print_packet_drops(dropped, statwin, 49);
 
 			if (now.tv_sec > endtime)
 				exitloop = 1;
