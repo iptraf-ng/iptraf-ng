@@ -981,7 +981,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 	if (logging)
 		log_next = now.tv_sec + options.logspan;
 
-	do {
+	while (!exitloop) {
 		gettimeofday(&now, NULL);
 
 		if (now.tv_sec > last_time.tv_sec) {
@@ -1027,7 +1027,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 		if (pkt.pkt_len > 0)
 			hostmon_process_packet(&table, &pkt, ifptr);
 
-	} while (!exitloop);
+	}
 
 	packet_destroy(&pkt);
 
