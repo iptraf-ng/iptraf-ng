@@ -928,13 +928,23 @@ void hostmon(time_t facilitytime, char *ifptr)
 		return;
 	}
 
+	initethtab(&table);
+
 	LIST_HEAD(promisc);
 	if (options.promisc) {
 		promisc_init(&promisc, ifptr);
 		promisc_set_list(&promisc);
 	}
 
-	initethtab(&table);
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(ifptr && dev_bind_ifname(fd, ifptr) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	if (logging) {
 		if (strcmp(current_logfile, "") == 0) {
@@ -960,23 +970,13 @@ void hostmon(time_t facilitytime, char *ifptr)
 			 "******** LAN traffic monitor started ********");
 	}
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
-		goto err;
-	}
-	if(ifptr && dev_bind_ifname(fd, ifptr) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
-	}
+	packet_init(&pkt);
 
 	exitloop = 0;
 	gettimeofday(&tv, NULL);
 	tv_rate = tv;
 	updtime = tv;
 	statbegin = startlog = tv.tv_sec;
-
-	packet_init(&pkt);
 
 	do {
 		gettimeofday(&tv, NULL);
@@ -1025,14 +1025,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	} while (!exitloop);
 
-err_close:
-	close(fd);
-
-err:
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
+	packet_destroy(&pkt);
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
@@ -1043,7 +1036,13 @@ err:
 	}
 	strcpy(current_logfile, "");
 
-	packet_destroy(&pkt);
+err_close:
+	close(fd);
+err:
+	if (options.promisc) {
+		promisc_restore_list(&promisc);
+		promisc_destroy(&promisc);
+	}
 
 	destroyethtab(&table);
 }
