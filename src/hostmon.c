@@ -908,13 +908,6 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	int ch;
 
-	struct timeval tv;
-	struct timeval tv_rate;
-	time_t now = 0;
-	time_t statbegin = 0;
-	time_t startlog = 0;
-	struct timeval updtime;
-
 	FILE *logfile = NULL;
 
 	int fd;
@@ -973,47 +966,53 @@ void hostmon(time_t facilitytime, char *ifptr)
 	packet_init(&pkt);
 
 	exitloop = 0;
-	gettimeofday(&tv, NULL);
-	tv_rate = tv;
-	updtime = tv;
-	statbegin = startlog = tv.tv_sec;
+
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	struct timeval last_time = now;
+	struct timeval last_update = now;
+
+	time_t starttime = now.tv_sec;
+	time_t endtime = INT_MAX;
+	if (facilitytime != 0)
+		endtime = now.tv_sec + facilitytime * 60;
+
+	time_t log_next = INT_MAX;
+	if (logging)
+		log_next = now.tv_sec + options.logspan;
 
 	do {
-		gettimeofday(&tv, NULL);
-		now = tv.tv_sec;
+		gettimeofday(&now, NULL);
 
-		if (now > tv_rate.tv_sec) {
-			unsigned long msecs = timeval_diff_msec(&tv, &tv_rate);
+		if (now.tv_sec > last_time.tv_sec) {
+			unsigned long msecs = timeval_diff_msec(&now, &last_time);
 			updateethrates(&table, msecs);
 			print_visible_rates(&table);
 
-			printelapsedtime(statbegin, now, LINES - 3, 15,
+			printelapsedtime(starttime, now.tv_sec, LINES - 3, 15,
 					 table.borderwin);
 
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
 
-			if (logging) {
+			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
-				if ((now - startlog) >= options.logspan) {
-					writeethlog(table.head, now - statbegin,
-						    logfile);
-					startlog = now;
-				}
+				writeethlog(table.head, now.tv_sec - starttime,
+					    logfile);
+				log_next = now.tv_sec + options.logspan;
 			}
 
-			if ((facilitytime != 0)
-			    && (((now - statbegin) / 60) >= facilitytime))
+			if (now.tv_sec > endtime)
 				exitloop = 1;
 
-			tv_rate = tv;
+			last_time = now;
 		}
 
-		if (screen_update_needed(&tv, &updtime)) {
+		if (screen_update_needed(&now, &last_update)) {
 			update_panels();
 			doupdate();
 
-			updtime = tv;
+			last_update = now;
 		}
 
 		if (packet_get(fd, &pkt, &ch, table.tabwin) == -1) {
@@ -1034,7 +1033,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
-		writeethlog(table.head, time(NULL) - statbegin, logfile);
+		writeethlog(table.head, time(NULL) - starttime, logfile);
 		writelog(logging, logfile,
 			 "******** LAN traffic monitor stopped ********");
 		fclose(logfile);
