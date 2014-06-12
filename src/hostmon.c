@@ -982,34 +982,39 @@ void hostmon(time_t facilitytime, char *ifptr)
 		gettimeofday(&tv, NULL);
 		now = tv.tv_sec;
 
-		unsigned long msecs = timeval_diff_msec(&tv, &tv_rate);
-		if (msecs >= 1000) {
-			printelapsedtime(statbegin, now, LINES - 3, 15,
-					 table.borderwin);
+		if (now > tv_rate.tv_sec) {
+			unsigned long msecs = timeval_diff_msec(&tv, &tv_rate);
 			updateethrates(&table, msecs);
 			print_visible_rates(&table);
+
+			printelapsedtime(statbegin, now, LINES - 3, 15,
+					 table.borderwin);
+
 			dropped += packet_get_dropped(fd);
 			print_packet_drops(dropped, table.borderwin, LINES - 3, 49);
+
+			if (logging) {
+				check_rotate_flag(&logfile);
+				if ((now - startlog) >= options.logspan) {
+					writeethlog(table.head, now - statbegin,
+						    logfile);
+					startlog = now;
+				}
+			}
+
+			if ((facilitytime != 0)
+			    && (((now - statbegin) / 60) >= facilitytime))
+				exitloop = 1;
+
 			tv_rate = tv;
 		}
-		if (logging) {
-			check_rotate_flag(&logfile);
-			if ((now - startlog) >= options.logspan) {
-				writeethlog(table.head, now - statbegin,
-					    logfile);
-				startlog = now;
-			}
-		}
+
 		if (screen_update_needed(&tv, &updtime)) {
 			update_panels();
 			doupdate();
 
 			updtime = tv;
 		}
-
-		if ((facilitytime != 0)
-		    && (((now - statbegin) / 60) >= facilitytime))
-			exitloop = 1;
 
 		if (packet_get(fd, &pkt, &ch, table.tabwin) == -1) {
 			write_error("Packet receive failed");
