@@ -261,26 +261,21 @@ void tx_operatemenu(struct MENU *menu, int *position, int *aborted)
 	doupdate();
 }
 
-
 void tx_destroymenu(struct MENU *menu)
 {
-	struct ITEM *tnode;
-	struct ITEM *tnextnode;
+	struct ITEM *tnode = menu->itemlist;
 
-	if (menu->itemlist != NULL) {
-		tnode = menu->itemlist;
-		tnextnode = menu->itemlist->next;
-
+	/* break the circular list */
+	if (tnode != NULL)
 		tnode->prev->next = NULL;
 
-		while (tnode != NULL) {
-			free(tnode);
-			tnode = tnextnode;
+	while (tnode != NULL) {
+		struct ITEM *tnextnode = tnode->next;
 
-			if (tnextnode != NULL)
-				tnextnode = tnextnode->next;
-		}
+		free(tnode);
+		tnode = tnextnode;
 	}
+
 	del_panel(menu->menupanel);
 	delwin(menu->menuwin);
 	update_panels();
