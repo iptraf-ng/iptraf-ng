@@ -24,36 +24,18 @@ void tx_refresh_screen(void)
 	curs_set(0);
 }
 
-void tx_colorwin(WINDOW * win)
+void tx_colorwin(WINDOW *win)
 {
-	int ctr;
-	char *blankpad;
-	blankpad = (char *) xmalloc(sizeof(char) * (getmaxx(win) + 1));
-
-	strcpy(blankpad, "");
-
-	for (ctr = 0; ctr < getmaxx(win); ctr++) {
-		strcat(blankpad, " ");
-	}
-
 	scrollok(win, 0);
-	for (ctr = 0; ctr < getmaxy(win); ctr++) {
-		mvwprintw(win, ctr, 0, "%s", blankpad);
-	}
+	for (int row = 0; row < getmaxy(win); row++)
+		mvwprintw(win, row, 0, "%*c", getmaxx(win), ' ');
 	scrollok(win, 1);
-	free(blankpad);
 }
 
-void tx_wcoloreol(WINDOW * win)
+void tx_wcoloreol(WINDOW *win)
 {
-	int x, curx;
-	int y __unused;
-	int cury __unused;
-
-	getyx(win, cury, curx);
-	getmaxyx(win, y, x);
 	scrollok(win, 0);
-	wprintw(win, "%*c", x - curx - 1, ' ');
+	wprintw(win, "%*c", getmaxx(win) - getcurx(win) - 1, ' ');
 }
 
 /*
