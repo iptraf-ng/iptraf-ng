@@ -181,17 +181,11 @@ int loadfilterlist(struct ffnode **fltfile)
 
 void destroyfilterlist(struct ffnode *fltlist)
 {
-	struct ffnode *fftemp;
+	while (fltlist != NULL) {
+		struct ffnode *fftemp = fltlist->next_entry;
 
-	if (fltlist != NULL) {
-		fftemp = fltlist->next_entry;
-
-		do {
-			free(fltlist);
-			fltlist = fftemp;
-			if (fftemp != NULL)
-				fftemp = fftemp->next_entry;
-		} while (fltlist != NULL);
+		free(fltlist);
+		fltlist = fftemp;
 	}
 }
 
