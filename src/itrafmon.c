@@ -535,18 +535,134 @@ static int checkrvnamed(void)
 	return 1;
 }
 
-/*
- * The IP Traffic Monitor
- */
+static void ipmon_process_key(int ch, int curwin, struct tcptable *table, struct othptable *othptbl)
+{
+	static int keymode = 0;
+	static WINDOW *sortwin;
+	static PANEL *sortpanel;
 
+	if (keymode == 0) {
+		switch (ch) {
+		case KEY_UP:
+			if (curwin)
+				scroll_othp(othptbl, SCROLLDOWN, 1);
+			else
+				move_tcp_bar(table, SCROLLDOWN, 1);
+			break;
+		case KEY_DOWN:
+			if (curwin)
+				scroll_othp(othptbl, SCROLLUP, 1);
+			else
+				move_tcp_bar(table, SCROLLUP, 1);
+			break;
+		case KEY_RIGHT:
+			if (!curwin)
+				break;
+
+			if (othptbl->strindex != VSCRL_OFFSET)
+				othptbl->strindex = VSCRL_OFFSET;
+
+			refresh_othwindow(othptbl);
+			break;
+		case KEY_LEFT:
+			if (!curwin)
+				break;
+
+			if (othptbl->strindex != 0)
+				othptbl->strindex = 0;
+
+			refresh_othwindow(othptbl);
+			break;
+		case KEY_PPAGE:
+		case '-':
+			if (curwin)
+				scroll_othp(othptbl, SCROLLDOWN, othptbl->oimaxy);
+			else
+				move_tcp_bar(table, SCROLLDOWN, table->imaxy);
+			break;
+		case KEY_NPAGE:
+		case ' ':
+			if (curwin)
+				scroll_othp(othptbl, SCROLLUP, othptbl->oimaxy);
+			else
+				move_tcp_bar(table, SCROLLUP, table->imaxy);
+			break;
+		case KEY_HOME:
+			if (curwin)
+				scroll_othp(othptbl, SCROLLDOWN, INT_MAX);
+			else
+				move_tcp_bar(table, SCROLLDOWN, INT_MAX);
+			break;
+		case KEY_END:
+			if (curwin)
+				scroll_othp(othptbl, SCROLLUP, INT_MAX);
+			else
+				move_tcp_bar(table, SCROLLUP, INT_MAX);
+			break;
+		case KEY_F(6):
+		case 'w':
+		case 'W':
+		case 9:
+			curwin = !curwin;
+			markactive(curwin, table->borderwin,
+				   othptbl->borderwin);
+			uniq_help(curwin);
+			break;
+		case 'm':
+		case 'M':
+			if (curwin)
+				break;
+			table->mode = (table->mode + 1) % 3;
+			if ((table->mode == 1) && !options.mac)
+				table->mode = 2;
+			refreshtcpwin(table);
+			break;
+		case 12:
+		case 'l':
+		case 'L':
+			tx_refresh_screen();
+			break;
+
+		case 'F':
+		case 'f':
+		case 'c':
+		case 'C':
+			flushclosedentries(table);
+			refreshtcpwin(table);
+			break;
+		case 's':
+		case 'S':
+			keymode = 1;
+			show_tcpsort_win(&sortwin, &sortpanel);
+			break;
+		case 'Q':
+		case 'q':
+		case 'X':
+		case 'x':
+		case 24:
+		case 27:
+			exitloop = 1;
+			break;
+		}
+	} else if (keymode == 1) {
+		keymode = 0;
+		del_panel(sortpanel);
+		delwin(sortwin);
+		flushclosedentries(table);
+		sortipents(table, ch);
+		if (table->barptr != NULL) {
+			table->barptr = table->firstvisible;
+		}
+		refreshtcpwin(table);
+	}
+}
+
+/* the IP Traffic Monitor */
 void ipmon(time_t facilitytime, char *ifptr)
 {
 	int logging = options.logging;
 
 	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
-
-	WINDOW *sortwin;
-	PANEL *sortpanel;
 
 	FILE *logfile = NULL;
 
@@ -575,7 +691,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	unsigned long dropped = 0UL;
 
 	int ch;
-	int keymode = 0;
 	char msgstring[80];
 
 	int rvnfd = 0;
@@ -745,124 +860,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 			break;
 		}
 
-		if (ch == ERR)
-			goto no_key_ready;
-
-		if (keymode == 0) {
-			switch (ch) {
-			case KEY_UP:
-				if (curwin)
-					scroll_othp(&othptbl, SCROLLDOWN, 1);
-				else
-					move_tcp_bar(&table, SCROLLDOWN, 1);
-				break;
-			case KEY_DOWN:
-				if (curwin)
-					scroll_othp(&othptbl, SCROLLUP, 1);
-				else
-					move_tcp_bar(&table, SCROLLUP, 1);
-				break;
-			case KEY_RIGHT:
-				if (!curwin)
-					break;
-
-				if (othptbl.strindex != VSCRL_OFFSET)
-					othptbl.strindex = VSCRL_OFFSET;
-
-				refresh_othwindow(&othptbl);
-				break;
-			case KEY_LEFT:
-				if (!curwin)
-					break;
-
-				if (othptbl.strindex != 0)
-					othptbl.strindex = 0;
-
-				refresh_othwindow(&othptbl);
-				break;
-			case KEY_PPAGE:
-			case '-':
-				if (curwin)
-					scroll_othp(&othptbl, SCROLLDOWN, othptbl.oimaxy);
-				else
-					move_tcp_bar(&table, SCROLLDOWN, table.imaxy);
-				break;
-			case KEY_NPAGE:
-			case ' ':
-				if (curwin)
-					scroll_othp(&othptbl, SCROLLUP, othptbl.oimaxy);
-				else
-					move_tcp_bar(&table, SCROLLUP, table.imaxy);
-				break;
-			case KEY_HOME:
-				if (curwin)
-					scroll_othp(&othptbl, SCROLLDOWN, INT_MAX);
-				else
-					move_tcp_bar(&table, SCROLLDOWN, INT_MAX);
-				break;
-			case KEY_END:
-				if (curwin)
-					scroll_othp(&othptbl, SCROLLUP, INT_MAX);
-				else
-					move_tcp_bar(&table, SCROLLUP, INT_MAX);
-				break;
-			case KEY_F(6):
-			case 'w':
-			case 'W':
-			case 9:
-				curwin = !curwin;
-				markactive(curwin, table.borderwin,
-					   othptbl.borderwin);
-				uniq_help(curwin);
-				break;
-			case 'm':
-			case 'M':
-				if (curwin)
-					break;
-				table.mode = (table.mode + 1) % 3;
-				if ((table.mode == 1) && !options.mac)
-					table.mode = 2;
-				refreshtcpwin(&table);
-				break;
-			case 12:
-			case 'l':
-			case 'L':
-				tx_refresh_screen();
-				break;
-
-			case 'F':
-			case 'f':
-			case 'c':
-			case 'C':
-				flushclosedentries(&table);
-				refreshtcpwin(&table);
-				break;
-			case 's':
-			case 'S':
-				keymode = 1;
-				show_tcpsort_win(&sortwin, &sortpanel);
-				break;
-			case 'Q':
-			case 'q':
-			case 'X':
-			case 'x':
-			case 24:
-			case 27:
-				exitloop = 1;
-				break;
-			}
-		} else if (keymode == 1) {
-			keymode = 0;
-			del_panel(sortpanel);
-			delwin(sortwin);
-			flushclosedentries(&table);
-			sortipents(&table, ch);
-			if (table.barptr != NULL) {
-				table.barptr = table.firstvisible;
-			}
-			refreshtcpwin(&table);
-		}
-	no_key_ready:
+		if (ch != ERR)
+			ipmon_process_key(ch, curwin, &table, &othptbl);
 
 		if (pkt.pkt_len <= 0)
 			continue;
