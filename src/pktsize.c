@@ -196,11 +196,36 @@ static void print_size_distrib(struct psizetab *table)
 	mvwprintw(table->win, 15, 33, "%5u", table->maxsize_out);
 }
 
+static void psize_process_key(int ch)
+{
+	switch (ch) {
+	case 12:
+	case 'l':
+	case 'L':
+		tx_refresh_screen();
+		break;
+	case 'x':
+	case 'X':
+	case 'q':
+	case 'Q':
+	case 27:
+	case 24:
+		exitloop = 1;
+	}
+}
+
+static void psize_process_packet(struct psizetab *table, struct pkt_hdr *pkt)
+{
+	int pkt_result = packet_process(pkt, NULL, NULL, NULL,
+					MATCH_OPPOSITE_USECONFIG, 0);
+
+	if (pkt_result == PACKET_OK)
+		update_size_distrib(table, pkt);
+}
+
 void packet_size_breakdown(char *ifname, time_t facilitytime)
 {
 	int ch;
-
-	int pkt_result;
 
 	int logging = options.logging;
 	FILE *logfile = NULL;
@@ -327,33 +352,11 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 			break;
 		}
 
-		if (ch != ERR) {
-			switch (ch) {
-			case 12:
-			case 'l':
-			case 'L':
-				tx_refresh_screen();
-				break;
-			case 'x':
-			case 'X':
-			case 'q':
-			case 'Q':
-			case 27:
-			case 24:
-				exitloop = 1;
-			}
-		}
+		if (ch != ERR)
+			psize_process_key(ch);
 
-		if (pkt.pkt_len <= 0)
-			continue;
-
-		pkt_result = packet_process(&pkt, NULL, NULL, NULL,
-					    MATCH_OPPOSITE_USECONFIG, 0);
-
-		if (pkt_result != PACKET_OK)
-			continue;
-
-		update_size_distrib(&table, &pkt);
+		if (pkt.pkt_len > 0)
+			psize_process_packet(&table, &pkt);
 	}
 
 	packet_destroy(&pkt);
