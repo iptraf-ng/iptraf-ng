@@ -8,6 +8,7 @@
 #include "packet.h"
 #include "capt.h"
 #include "capt-recvmsg.h"
+#include "capt-recvmmsg.h"
 
 static int capt_set_recv_timeout(int fd, unsigned int msec)
 {
@@ -44,6 +45,10 @@ int capt_init(struct capt *capt, char *ifname)
 	/* set socket receive timeout */
 	if (capt_set_recv_timeout(capt->fd, 250) == -1)
 		goto out;
+
+	/* try packet recvmmsg() */
+	if (capt_setup_recvmmsg(capt) == 0)
+		return 0;
 
 	/* try packet recvmsg() */
 	if (capt_setup_recvmsg(capt) == 0)

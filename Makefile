@@ -18,7 +18,7 @@ VERSION-FILE: FORCE
 	@$(SHELL_PATH) ./GEN-VERSION-FILE
 -include VERSION-FILE
 
-CFLAGS = -g -O2 -Wall -W -std=gnu99 -Werror=format-security
+CFLAGS = -g -O2 -Wall -W -std=gnu99 -Werror=format-security -D_GNU_SOURCE
 LDFLAGS =
 ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS)
 ALL_LDFLAGS = $(LDFLAGS)
@@ -117,6 +117,7 @@ iptraf-h += src/built-in.h
 iptraf-h += src/sockaddr.h
 iptraf-h += src/capt.h
 iptraf-h += src/capt-recvmsg.h
+iptraf-h += src/capt-recvmmsg.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
@@ -161,6 +162,7 @@ iptraf-o += src/capture-pkt.o
 iptraf-o += src/sockaddr.o
 iptraf-o += src/capt.o
 iptraf-o += src/capt-recvmsg.o
+iptraf-o += src/capt-recvmmsg.o
 
 rvnamed-o += src/rvnamed.o
 rvnamed-o += src/getpath.o
