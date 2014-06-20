@@ -26,6 +26,7 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <sys/un.h>
+#include <sys/mman.h>
 
 #include <netinet/in.h>
 #include <netinet/udp.h>
