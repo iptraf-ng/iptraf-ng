@@ -657,32 +657,196 @@ static void ipmon_process_key(int ch, int curwin, struct tcptable *table, struct
 	}
 }
 
+static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
+				 struct tcptable *table,
+				 struct othptable *othptbl,
+				 int logging, FILE *logfile,
+				 int *revlook, int rvnfd)
+{
+	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
+	unsigned int br;	/* bytes read.  Differs from readlen */
+	char ifnamebuf[IFNAMSIZ];
+	struct tcptableent *tcpentry;
+
+	int pkt_result = packet_process(pkt, &br, &sport, &dport,
+					MATCH_OPPOSITE_ALWAYS,
+					options.v6inv4asv6);
+
+	if (pkt_result != PACKET_OK)
+		return;
+
+	if (!ifname) {
+		/* we're capturing on "All interfaces", */
+		/* so get the name of the interface */
+		/* of this packet */
+		int r = dev_get_ifname(pkt->from->sll_ifindex, ifnamebuf);
+		if (r != 0) {
+			write_error("Unable to get interface name");
+			return;          /* error getting interface name, get out! */
+		}
+		ifname = ifnamebuf;
+	}
+
+	struct sockaddr_storage saddr, daddr;
+	switch(pkt->pkt_protocol) {
+	case ETH_P_IP:
+		sockaddr_make_ipv4(&saddr, pkt->iphdr->saddr);
+		sockaddr_make_ipv4(&daddr, pkt->iphdr->daddr);
+		break;
+	case ETH_P_IPV6:
+		sockaddr_make_ipv6(&saddr, &pkt->ip6_hdr->ip6_src);
+		sockaddr_make_ipv6(&daddr, &pkt->ip6_hdr->ip6_dst);
+		break;
+	default:
+		add_othp_entry(othptbl, pkt, NULL, NULL,
+			       NOT_IP,
+			       pkt->pkt_protocol,
+			       pkt->pkt_payload, ifname, 0,
+			       0, logging, logfile);
+		return;
+	}
+
+	/* only when packets fragmented */
+	char *ip_payload = pkt->pkt_payload + pkt_iph_len(pkt);
+	switch (pkt_ip_protocol(pkt)) {
+	case IPPROTO_TCP: {
+		struct tcphdr *tcp = (struct tcphdr *)ip_payload;
+		sockaddr_set_port(&saddr, sport);
+		sockaddr_set_port(&daddr, dport);
+		tcpentry = in_table(table, &saddr, &daddr, ifname);
+
+		/*
+		 * Add a new entry if it doesn't exist, and,
+		 * to reduce the chances of stales, not a FIN.
+		 */
+
+		if (packet_is_first_fragment(pkt)	/* first frag only */
+		    && (tcpentry == NULL)
+		    && !tcp->fin) {
+
+			/*
+			 * Ok, so we have a packet.  Add it if this connection
+			 * is not yet closed, or if it is a SYN packet.
+			 */
+			int wasempty = (table->head == NULL);
+			tcpentry = addentry(table, &saddr, &daddr,
+					    pkt_ip_protocol(pkt),
+					    ifname, revlook, rvnfd);
+			if (tcpentry != NULL) {
+				printentry(table, tcpentry->oth_connection);
+
+				if (wasempty) {
+					table->barptr = table->firstvisible;
+				}
+			}
+		}
+		/*
+		 * If we had an addentry() success, we should have no
+		 * problem here.  Same thing if we had a table lookup
+		 * success.
+		 */
+
+		if ((tcpentry != NULL)
+		    && !(tcpentry->stat & FLAG_RST)) {
+			int p_sstat = 0, p_dstat = 0;	/* Reverse lookup statuses prior to */
+
+			/*
+			 * Don't bother updating the entry if the connection
+			 * has been previously reset.  (Does this really
+			 * happen in practice?)
+			 */
+
+			if (*revlook) {
+				p_sstat = tcpentry->s_fstat;
+				p_dstat = tcpentry->d_fstat;
+			}
+
+			if (pkt->iphdr)
+				updateentry(table, pkt, tcpentry, tcp,
+					    br,
+					    revlook, rvnfd,
+					    logging, logfile);
+			else
+				updateentry(table, pkt, tcpentry, tcp,
+					    pkt->pkt_len,
+					    revlook, rvnfd,
+					    logging, logfile);
+			/*
+			 * Log first packet of a TCP connection except if
+			 * it's a RST, which was already logged earlier in
+			 * updateentry()
+			 */
+
+			if (logging
+			    && (tcpentry->pcount == 1)
+			    && (!(tcpentry->stat & FLAG_RST))) {
+				char msgstring[80];
+				strcpy(msgstring, "first packet");
+				if (tcp->syn)
+					strcat(msgstring, " (SYN)");
+
+				writetcplog(logging, logfile, tcpentry,
+					    pkt->pkt_len, msgstring);
+			}
+
+			if (*revlook
+			    && (((p_sstat != RESOLVED)
+				 && (tcpentry->s_fstat == RESOLVED))
+				|| ((p_dstat != RESOLVED)
+				    && (tcpentry->d_fstat == RESOLVED)))) {
+				clearaddr(table, tcpentry);
+				clearaddr(table, tcpentry->oth_connection);
+			}
+			printentry(table, tcpentry);
+
+			/*
+			 * Special cases: Update other direction if it's
+			 * an ACK in response to a FIN.
+			 *
+			 *         -- or --
+			 *
+			 * Addresses were just resolved for the other
+			 * direction, so we should also do so here.
+			 */
+
+			if (((tcpentry->oth_connection->finsent == 2)
+			     &&	/* FINed and ACKed */
+			     (ntohl(tcp->seq) == tcpentry->oth_connection->finack))
+			    || (*revlook
+				&& (((p_sstat != RESOLVED)
+				     && (tcpentry->s_fstat == RESOLVED))
+				    || ((p_dstat != RESOLVED)
+					&& (tcpentry->d_fstat == RESOLVED)))))
+				printentry(table, tcpentry->oth_connection);
+		}
+		break; }
+	case IPPROTO_ICMP:
+	case IPPROTO_ICMPV6:
+		check_icmp_dest_unreachable(table, pkt, ifname);
+		/* print this ICMP(v6): fall through */
+	default:
+		add_othp_entry(othptbl, pkt, &saddr, &daddr,
+			       IS_IP, pkt_ip_protocol(pkt),
+			       ip_payload, ifname,
+			       revlook, rvnfd, logging, logfile);
+		break;
+	}
+}
+
 /* the IP Traffic Monitor */
 void ipmon(time_t facilitytime, char *ifptr)
 {
 	int logging = options.logging;
 
-	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
-
 	FILE *logfile = NULL;
 
 	int curwin = 0;
 
-	char *ifname = ifptr;
-
 	unsigned long long total_pkts = 0;
 
-	unsigned int br;	/* bytes read.  Differs from readlen */
-
 	struct tcptable table;
-	struct tcptableent *tcpentry;
 
 	struct othptable othptbl;
-
-	int p_sstat = 0, p_dstat = 0;	/* Reverse lookup statuses prior to */
-
-	/* reattempt in updateentry() */
-	int pkt_result = 0;	/* Non-IP filter ok */
 
 	int fd;
 
@@ -691,12 +855,10 @@ void ipmon(time_t facilitytime, char *ifptr)
 	unsigned long dropped = 0UL;
 
 	int ch;
-	char msgstring[80];
 
 	int rvnfd = 0;
 
 	int revlook = options.revlook;
-	int wasempty = 1;
 
 	/*
 	 * Mark this instance of the traffic monitor
@@ -803,8 +965,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 		endtime = INT_MAX;
 
 	while (!exitloop) {
-		char ifnamebuf[IFNAMSIZ];
-
 		gettimeofday(&now, NULL);
 
 		/* update screen at configured intervals. */
@@ -863,171 +1023,11 @@ void ipmon(time_t facilitytime, char *ifptr)
 		if (ch != ERR)
 			ipmon_process_key(ch, curwin, &table, &othptbl);
 
-		if (pkt.pkt_len <= 0)
-			continue;
-
-		total_pkts++;
-
-		pkt_result =
-		    packet_process(&pkt, &br, &sport, &dport,
-				  MATCH_OPPOSITE_ALWAYS,
-				  options.v6inv4asv6);
-
-		if (pkt_result != PACKET_OK)
-			continue;
-
-		if (!ifptr) {
-			/* we're capturing on "All interfaces", */
-			/* so get the name of the interface */
-			/* of this packet */
-			int r = dev_get_ifname(pkt.from->sll_ifindex, ifnamebuf);
-			if (r != 0) {
-				write_error("Unable to get interface name");
-				break;          /* error getting interface name, get out! */
-			}
-			ifname = ifnamebuf;
-		}
-
-		struct sockaddr_storage saddr, daddr;
-		switch(pkt.pkt_protocol) {
-		case ETH_P_IP:
-			sockaddr_make_ipv4(&saddr, pkt.iphdr->saddr);
-			sockaddr_make_ipv4(&daddr, pkt.iphdr->daddr);
-			break;
-		case ETH_P_IPV6:
-			sockaddr_make_ipv6(&saddr, &pkt.ip6_hdr->ip6_src);
-			sockaddr_make_ipv6(&daddr, &pkt.ip6_hdr->ip6_dst);
-			break;
-		default:
-			add_othp_entry(&othptbl, &pkt, NULL, NULL,
-				       NOT_IP,
-				       pkt.pkt_protocol,
-				       pkt.pkt_payload, ifname, 0,
-				       0, logging, logfile);
-			continue;
-		}
-
-		/* only when packets fragmented */
-		char *ip_payload = pkt.pkt_payload + pkt_iph_len(&pkt);
-		switch (pkt_ip_protocol(&pkt)) {
-		case IPPROTO_TCP: {
-			struct tcphdr *tcp = (struct tcphdr *)ip_payload;
-			sockaddr_set_port(&saddr, sport);
-			sockaddr_set_port(&daddr, dport);
-			tcpentry = in_table(&table, &saddr, &daddr, ifname);
-
-			/*
-			 * Add a new entry if it doesn't exist, and,
-			 * to reduce the chances of stales, not a FIN.
-			 */
-
-			if (packet_is_first_fragment(&pkt)	/* first frag only */
-			    && (tcpentry == NULL)
-			    && (!(tcp->fin))) {
-
-				/*
-				 * Ok, so we have a packet.  Add it if this connection
-				 * is not yet closed, or if it is a SYN packet.
-				 */
-				wasempty = (table.head == NULL);
-				tcpentry = addentry(&table, &saddr, &daddr,
-						    pkt_ip_protocol(&pkt),
-						    ifname, &revlook, rvnfd);
-				if (tcpentry != NULL) {
-					printentry(&table, tcpentry->oth_connection);
-
-					if (wasempty) {
-						table.barptr = table.firstvisible;
-					}
-				}
-			}
-			/*
-			 * If we had an addentry() success, we should have no
-			 * problem here.  Same thing if we had a table lookup
-			 * success.
-			 */
-
-			if ((tcpentry != NULL)
-			    && !(tcpentry->stat & FLAG_RST)) {
-				/*
-				 * Don't bother updating the entry if the connection
-				 * has been previously reset.  (Does this really
-				 * happen in practice?)
-				 */
-
-				if (revlook) {
-					p_sstat = tcpentry->s_fstat;
-					p_dstat = tcpentry->d_fstat;
-				}
-
-				if (pkt.iphdr)
-					updateentry(&table, &pkt, tcpentry, tcp,
-						    br,
-						    &revlook, rvnfd,
-						    logging, logfile);
-				else
-					updateentry(&table, &pkt, tcpentry, tcp,
-						    pkt.pkt_len,
-						    &revlook, rvnfd,
-						    logging, logfile);
-				/*
-				 * Log first packet of a TCP connection except if
-				 * it's a RST, which was already logged earlier in
-				 * updateentry()
-				 */
-
-				if (logging
-				    && (tcpentry->pcount == 1)
-				    && (!(tcpentry->stat & FLAG_RST))) {
-					strcpy(msgstring, "first packet");
-					if (tcp->syn)
-						strcat(msgstring, " (SYN)");
-
-					writetcplog(logging, logfile, tcpentry,
-						    pkt.pkt_len, msgstring);
-				}
-
-				if ((revlook)
-				    && (((p_sstat != RESOLVED)
-					 && (tcpentry->s_fstat == RESOLVED))
-					|| ((p_dstat != RESOLVED)
-					    && (tcpentry->d_fstat == RESOLVED)))) {
-					clearaddr(&table, tcpentry);
-					clearaddr(&table, tcpentry->oth_connection);
-				}
-				printentry(&table, tcpentry);
-
-				/*
-				 * Special cases: Update other direction if it's
-				 * an ACK in response to a FIN.
-				 *
-				 *         -- or --
-				 *
-				 * Addresses were just resolved for the other
-				 * direction, so we should also do so here.
-				 */
-
-				if (((tcpentry->oth_connection->finsent == 2)
-				     &&	/* FINed and ACKed */
-				     (ntohl(tcp->seq) == tcpentry->oth_connection->finack))
-				    || ((revlook)
-					&& (((p_sstat != RESOLVED)
-					     && (tcpentry->s_fstat == RESOLVED))
-					    || ((p_dstat != RESOLVED)
-						&& (tcpentry->d_fstat == RESOLVED)))))
-					printentry(&table, tcpentry->oth_connection);
-			}
-			break; }
-		case IPPROTO_ICMP:
-		case IPPROTO_ICMPV6:
-			check_icmp_dest_unreachable(&table, &pkt, ifname);
-			/* print this ICMP(v6): fall through */
-		default:
-			add_othp_entry(&othptbl, &pkt, &saddr, &daddr,
-				       IS_IP, pkt_ip_protocol(&pkt),
-				       ip_payload, ifname,
-				       &revlook, rvnfd, logging, logfile);
-			break;
+		if (pkt.pkt_len > 0) {
+			total_pkts++;
+			ipmon_process_packet(&pkt, ifptr, &table, &othptbl,
+					     logging, logfile,
+					     &revlook, rvnfd);
 		}
 	}
 
