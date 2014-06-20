@@ -115,6 +115,8 @@ iptraf-h += src/counters.h
 iptraf-h += src/rate.h
 iptraf-h += src/built-in.h
 iptraf-h += src/sockaddr.h
+iptraf-h += src/capt.h
+iptraf-h += src/capt-recvmsg.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
@@ -157,6 +159,8 @@ iptraf-o += src/counters.o
 iptraf-o += src/rate.o
 iptraf-o += src/capture-pkt.o
 iptraf-o += src/sockaddr.o
+iptraf-o += src/capt.o
+iptraf-o += src/capt-recvmsg.o
 
 rvnamed-o += src/rvnamed.o
 rvnamed-o += src/getpath.o

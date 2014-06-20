@@ -29,6 +29,7 @@ ifstats.c	- the interface statistics module
 #include "error.h"
 #include "ifstats.h"
 #include "rate.h"
+#include "capt.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -509,11 +510,9 @@ void ifstats(time_t facilitytime)
 
 	int ch;
 
-	int fd;
+	struct capt capt;
 
 	struct pkt_hdr pkt;
-
-	unsigned long dropped = 0UL;
 
 	initiflist(&(table.head));
 	if (!table.head) {
@@ -529,9 +528,8 @@ void ifstats(time_t facilitytime)
 		promisc_set_list(&promisc);
 	}
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
+	if (capt_init(&capt, NULL) == -1) {
+		write_error("Unable to initialize packet capture interface");
 		goto err;
 	}
 
@@ -593,8 +591,7 @@ void ifstats(time_t facilitytime)
 
 			printelapsedtime(now.tv_sec - starttime, 1, table.borderwin);
 
-			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, table.borderwin, 49);
+			print_packet_drops(capt_get_dropped(&capt), table.borderwin, 49);
 
 			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
@@ -615,7 +612,7 @@ void ifstats(time_t facilitytime)
 			last_update = now;
 		}
 
-		if (packet_get(fd, &pkt, &ch, table.statwin) == -1) {
+		if (capt_get_packet(&capt, &pkt, &ch, table.statwin) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
 			break;
@@ -624,8 +621,10 @@ void ifstats(time_t facilitytime)
 		if (ch != ERR)
 			ifstats_process_key(&table, ch);
 
-		if (pkt.pkt_len > 0)
+		if (pkt.pkt_len > 0) {
 			ifstats_process_packet(&table, &pkt);
+			capt_put_packet(&capt, &pkt);
+		}
 
 	}
 	packet_destroy(&pkt);
@@ -639,7 +638,7 @@ void ifstats(time_t facilitytime)
 	}
 	strcpy(current_logfile, "");
 
-	close(fd);
+	capt_destroy(&capt);
 err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);

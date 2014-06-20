@@ -24,6 +24,7 @@ pktsize.c	- the packet size breakdown facility
 #include "log.h"
 #include "logvars.h"
 #include "promisc.h"
+#include "capt.h"
 
 #define SIZES 20
 
@@ -232,11 +233,9 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	struct psizetab table;
 
-	int fd;
+	struct capt capt;
 
 	struct pkt_hdr pkt;
-
-	unsigned long dropped = 0UL;
 
 	if (!dev_up(ifname)) {
 		err_iface_down();
@@ -251,14 +250,9 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		promisc_set_list(&promisc);
 	}
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
+	if (capt_init(&capt, ifname) == -1) {
+		write_error("Unable to initialize packet capture interface");
 		goto err;
-	}
-	if(dev_bind_ifname(fd, ifname) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
 	}
 
 	int mtu = dev_get_mtu(ifname);
@@ -321,8 +315,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		if (now.tv_sec > last_time.tv_sec) {
 			printelapsedtime(now.tv_sec - starttime, 1, table.borderwin);
 
-			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, table.borderwin, 49);
+			print_packet_drops(capt_get_dropped(&capt), table.borderwin, 49);
 
 			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
@@ -346,7 +339,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 			last_update = now;
 		}
 
-		if (packet_get(fd, &pkt, &ch, table.win) == -1) {
+		if (capt_get_packet(&capt, &pkt, &ch, table.win) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
 			break;
@@ -355,8 +348,10 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		if (ch != ERR)
 			psize_process_key(ch);
 
-		if (pkt.pkt_len > 0)
+		if (pkt.pkt_len > 0) {
 			psize_process_packet(&table, &pkt);
+			capt_put_packet(&capt, &pkt);
+		}
 	}
 
 	packet_destroy(&pkt);
@@ -371,7 +366,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 	strcpy(current_logfile, "");
 
 err_close:
-	close(fd);
+	capt_destroy(&capt);
 err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);

@@ -27,6 +27,7 @@ detstats.c	- the interface statistics module
 #include "error.h"
 #include "detstats.h"
 #include "rate.h"
+#include "capt.h"
 
 struct ifcounts {
 	struct proto_counter total;
@@ -517,11 +518,9 @@ void detstats(char *iface, time_t facilitytime)
 
 	int ch;
 
-	int fd;
+	struct capt capt;
 
 	struct pkt_hdr pkt;
-
-	unsigned long dropped = 0UL;
 
 	if (!dev_up(iface)) {
 		err_iface_down();
@@ -551,14 +550,9 @@ void detstats(char *iface, time_t facilitytime)
 		promisc_set_list(&promisc);
 	}
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
+	if (capt_init(&capt, iface) == -1) {
+		write_error("Unable to initialize packet capture interface");
 		goto err;
-	}
-	if(dev_bind_ifname(fd, iface) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
 	}
 
 	ifcounts_init(&ifcounts);
@@ -623,8 +617,7 @@ void detstats(char *iface, time_t facilitytime)
 			wattrset(statwin, BOXATTR);
 			printelapsedtime(now.tv_sec - starttime, 1, statwin);
 
-			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, statwin, 49);
+			print_packet_drops(capt_get_dropped(&capt), statwin, 49);
 
 			if (now.tv_sec > endtime)
 				exitloop = 1;
@@ -647,7 +640,7 @@ void detstats(char *iface, time_t facilitytime)
 			last_update = now;
 		}
 
-		if (packet_get(fd, &pkt, &ch, statwin) == -1) {
+		if (capt_get_packet(&capt, &pkt, &ch, statwin) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
 			break;
@@ -656,8 +649,10 @@ void detstats(char *iface, time_t facilitytime)
 		if (ch != ERR)
 			detstats_process_key(ch);
 
-		if (pkt.pkt_len > 0)
+		if (pkt.pkt_len > 0) {
 			detstats_process_packet(&ifcounts, &pkt);
+			capt_put_packet(&capt, &pkt);
+		}
 
 	}
 	packet_destroy(&pkt);
@@ -674,9 +669,7 @@ void detstats(char *iface, time_t facilitytime)
 
 	ifrates_destroy(&ifrates);
 	ifcounts_destroy(&ifcounts);
-
-err_close:
-	close(fd);
+	capt_destroy(&capt);
 err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);

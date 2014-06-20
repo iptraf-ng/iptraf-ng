@@ -28,6 +28,7 @@ Discovers LAN hosts and displays packet statistics for them
 #include "promisc.h"
 #include "error.h"
 #include "rate.h"
+#include "capt.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -905,11 +906,9 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	FILE *logfile = NULL;
 
-	int fd;
+	struct capt capt;
 
 	struct pkt_hdr pkt;
-
-	unsigned long dropped = 0UL;
 
 	if (ifptr && !dev_up(ifptr)) {
 		err_iface_down();
@@ -924,14 +923,9 @@ void hostmon(time_t facilitytime, char *ifptr)
 		promisc_set_list(&promisc);
 	}
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
+	if (capt_init(&capt, ifptr) == -1) {
+		write_error("Unable to initialize packet capture interface");
 		goto err;
-	}
-	if(ifptr && dev_bind_ifname(fd, ifptr) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
 	}
 
 	if (logging) {
@@ -986,8 +980,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 			printelapsedtime(now.tv_sec - starttime, 15, table.borderwin);
 
-			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, table.borderwin, 49);
+			print_packet_drops(capt_get_dropped(&capt), table.borderwin, 49);
 
 			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
@@ -1009,7 +1002,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 			last_update = now;
 		}
 
-		if (packet_get(fd, &pkt, &ch, table.tabwin) == -1) {
+		if (capt_get_packet(&capt, &pkt, &ch, table.tabwin) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
 			break;
@@ -1018,8 +1011,10 @@ void hostmon(time_t facilitytime, char *ifptr)
 		if (ch != ERR)
 			hostmon_process_key(&table, ch);
 
-		if (pkt.pkt_len > 0)
+		if (pkt.pkt_len > 0) {
 			hostmon_process_packet(&table, &pkt, ifptr);
+			capt_put_packet(&capt, &pkt);
+		}
 
 	}
 
@@ -1034,8 +1029,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 	}
 	strcpy(current_logfile, "");
 
-err_close:
-	close(fd);
+	capt_destroy(&capt);
 err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);
