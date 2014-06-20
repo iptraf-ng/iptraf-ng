@@ -972,6 +972,13 @@ void destroytcptable(struct tcptable *table)
 
 	/* destroy hash table */
 	destroy_hash_entries(table);
+
+	del_panel(table->statpanel);
+	delwin(table->statwin);
+	del_panel(table->tcppanel);
+	delwin(table->tcpscreen);
+	del_panel(table->borderpanel);
+	delwin(table->borderwin);
 }
 
 /*

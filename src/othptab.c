@@ -779,4 +779,9 @@ void destroyothptable(struct othptable *table)
 		free(ctemp);
 		ctemp = next;
 	}
+
+	del_panel(table->othppanel);
+	delwin(table->othpwin);
+	del_panel(table->borderpanel);
+	delwin(table->borderwin);
 }

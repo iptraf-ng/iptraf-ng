@@ -860,10 +860,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	int revlook = options.revlook;
 
-	/*
-	 * Mark this instance of the traffic monitor
-	 */
-
 	if (ifptr && !dev_up(ifptr)) {
 		err_iface_down();
 		return;
@@ -875,12 +871,15 @@ void ipmon(time_t facilitytime, char *ifptr)
 		promisc_set_list(&promisc);
 	}
 
-	init_tcp_table(&table);
-	init_othp_table(&othptbl);
-
-	markactive(curwin, table.borderwin, othptbl.borderwin);
-	update_panels();
-	doupdate();
+	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if(fd == -1) {
+		write_error("Unable to obtain monitoring socket");
+		goto err;
+	}
+	if(ifptr && dev_bind_ifname(fd, ifptr) == -1) {
+		write_error("Unable to bind interface on the socket");
+		goto err_close;
+	}
 
 	if (revlook) {
 		if (checkrvnamed())
@@ -888,14 +887,9 @@ void ipmon(time_t facilitytime, char *ifptr)
 	} else
 		rvnfd = 0;
 
-	ipmonhelp();
-	uniq_help(0);
-
-	update_panels();
-	doupdate();
-
 	if (options.servnames)
 		setservent(1);
+	setprotoent(1);
 
 	/*
 	 * Try to open log file if logging activated.  Turn off logging
@@ -929,17 +923,14 @@ void ipmon(time_t facilitytime, char *ifptr)
 			 "******** IP traffic monitor started ********");
 	}
 
-	setprotoent(1);
+	init_tcp_table(&table);
+	init_othp_table(&othptbl);
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
-		goto err;
-	}
-	if(ifptr && dev_bind_ifname(fd, ifptr) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
-	}
+	markactive(curwin, table.borderwin, othptbl.borderwin);
+	ipmonhelp();
+	uniq_help(0);
+	update_panels();
+	doupdate();
 
 	packet_init(&pkt);
 
@@ -1030,40 +1021,12 @@ void ipmon(time_t facilitytime, char *ifptr)
 					     &revlook, rvnfd);
 		}
 	}
+	packet_destroy(&pkt);
 
-err_close:
-	close(fd);
-err:
-	killrvnamed();
-
-	if (options.servnames)
-		endservent();
-
-	endprotoent();
-	close_rvn_socket(rvnfd);
-
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
-
-	attrset(STDATTR);
-	mvprintw(0, COLS - 20, "                    ");
-	del_panel(table.tcppanel);
-	del_panel(table.borderpanel);
-	del_panel(othptbl.othppanel);
-	del_panel(othptbl.borderpanel);
-	del_panel(table.statpanel);
+	destroyothptable(&othptbl);
+	destroytcptable(&table);
 	update_panels();
 	doupdate();
-	delwin(table.tcpscreen);
-	delwin(table.borderwin);
-	delwin(othptbl.othpwin);
-	delwin(othptbl.borderwin);
-	delwin(table.statwin);
-	destroytcptable(&table);
-	destroyothptable(&othptbl);
-	packet_destroy(&pkt);
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
@@ -1071,5 +1034,20 @@ err:
 			 "******** IP traffic monitor stopped ********\n");
 		fclose(logfile);
 		strcpy(current_logfile, "");
+	}
+
+	endprotoent();
+	if (options.servnames)
+		endservent();
+
+	killrvnamed();
+	close_rvn_socket(rvnfd);
+
+err_close:
+	close(fd);
+err:
+	if (options.promisc) {
+		promisc_restore_list(&promisc);
+		promisc_destroy(&promisc);
 	}
 }
