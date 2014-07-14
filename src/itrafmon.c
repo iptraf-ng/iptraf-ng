@@ -535,7 +535,7 @@ static int checkrvnamed(void)
 	return 1;
 }
 
-static void ipmon_process_key(int ch, int curwin, struct tcptable *table, struct othptable *othptbl)
+static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struct othptable *othptbl)
 {
 	static int keymode = 0;
 	static WINDOW *sortwin;
@@ -544,19 +544,19 @@ static void ipmon_process_key(int ch, int curwin, struct tcptable *table, struct
 	if (keymode == 0) {
 		switch (ch) {
 		case KEY_UP:
-			if (curwin)
+			if (*curwin)
 				scroll_othp(othptbl, SCROLLDOWN, 1);
 			else
 				move_tcp_bar(table, SCROLLDOWN, 1);
 			break;
 		case KEY_DOWN:
-			if (curwin)
+			if (*curwin)
 				scroll_othp(othptbl, SCROLLUP, 1);
 			else
 				move_tcp_bar(table, SCROLLUP, 1);
 			break;
 		case KEY_RIGHT:
-			if (!curwin)
+			if (!*curwin)
 				break;
 
 			if (othptbl->strindex != VSCRL_OFFSET)
@@ -565,7 +565,7 @@ static void ipmon_process_key(int ch, int curwin, struct tcptable *table, struct
 			refresh_othwindow(othptbl);
 			break;
 		case KEY_LEFT:
-			if (!curwin)
+			if (!*curwin)
 				break;
 
 			if (othptbl->strindex != 0)
@@ -575,26 +575,26 @@ static void ipmon_process_key(int ch, int curwin, struct tcptable *table, struct
 			break;
 		case KEY_PPAGE:
 		case '-':
-			if (curwin)
+			if (*curwin)
 				scroll_othp(othptbl, SCROLLDOWN, othptbl->oimaxy);
 			else
 				move_tcp_bar(table, SCROLLDOWN, table->imaxy);
 			break;
 		case KEY_NPAGE:
 		case ' ':
-			if (curwin)
+			if (*curwin)
 				scroll_othp(othptbl, SCROLLUP, othptbl->oimaxy);
 			else
 				move_tcp_bar(table, SCROLLUP, table->imaxy);
 			break;
 		case KEY_HOME:
-			if (curwin)
+			if (*curwin)
 				scroll_othp(othptbl, SCROLLDOWN, INT_MAX);
 			else
 				move_tcp_bar(table, SCROLLDOWN, INT_MAX);
 			break;
 		case KEY_END:
-			if (curwin)
+			if (*curwin)
 				scroll_othp(othptbl, SCROLLUP, INT_MAX);
 			else
 				move_tcp_bar(table, SCROLLUP, INT_MAX);
@@ -603,14 +603,14 @@ static void ipmon_process_key(int ch, int curwin, struct tcptable *table, struct
 		case 'w':
 		case 'W':
 		case 9:
-			curwin = !curwin;
-			markactive(curwin, table->borderwin,
+			*curwin = !*curwin;
+			markactive(*curwin, table->borderwin,
 				   othptbl->borderwin);
-			uniq_help(curwin);
+			uniq_help(*curwin);
 			break;
 		case 'm':
 		case 'M':
-			if (curwin)
+			if (*curwin)
 				break;
 			table->mode = (table->mode + 1) % 3;
 			if ((table->mode == 1) && !options.mac)
@@ -1012,7 +1012,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		}
 
 		if (ch != ERR)
-			ipmon_process_key(ch, curwin, &table, &othptbl);
+			ipmon_process_key(ch, &curwin, &table, &othptbl);
 
 		if (pkt.pkt_len > 0) {
 			total_pkts++;
