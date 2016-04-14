@@ -134,6 +134,15 @@ static struct iflist *alloc_iflist_entry(void)
 	return tmp;
 }
 
+static void free_iflist_entry(struct iflist *ptr)
+{
+	if (!ptr)
+		return;
+
+	rate_destroy(&ptr->rate);
+	free(ptr);
+}
+
 /*
  * Initialize the list of interfaces.  This linked list is used in the
  * selection boxes as well as in the general interface statistics screen.
@@ -224,6 +233,7 @@ static struct iflist *positionptr(struct iflist *iflist, const int ifindex)
 		int r = dev_get_ifname(ifindex, itmp->ifname);
 		if (r != 0) {
 			write_error("Error getting interface name");
+			free_iflist_entry(itmp);
 			return(NULL);
 		}
 
@@ -243,8 +253,7 @@ static void destroyiflist(struct iflist *list)
 	while (ptmp != NULL) {
 		struct iflist *ctmp = ptmp->next_entry;
 
-		rate_destroy(&ptmp->rate);
-		free(ptmp);
+		free_iflist_entry(ptmp);
 		ptmp = ctmp;
 	}
 }
@@ -663,10 +672,9 @@ void selectiface(char *ifname, int withall, int *aborted)
 	}
 
 	if ((withall) && (list != NULL)) {
-		ptmp = xmalloc(sizeof(struct iflist));
+		ptmp = alloc_iflist_entry();
 		strncpy(ptmp->ifname, "All interfaces", sizeof(ptmp->ifname));
 		ptmp->ifindex = 0;
-		rate_alloc(&ptmp->rate, 5);	/* FIXME: need iflist_entry_init() */
 
 		ptmp->prev_entry = NULL;
 		list->prev_entry = ptmp;
