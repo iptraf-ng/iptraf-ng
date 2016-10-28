@@ -1,5 +1,12 @@
 CHANGES file for iptraf-ng
 
+* Philip Cameron <pcameron@redhat.com> - 1.1.5
+- Incorporate numerous cleanup changes in the code
+- Revised documentation. Previous distributions shipped the
+  original IPTraf documentation.
+- Bugfix: segfault in rate_add_rate
+- Bugfix: Fix memory leak when destroying iflist
+
 * Tue Jul 23 2013 Nikola Pajkovsky <npajkovs@redhat.com> - 1.1.4
 - locking code rewrite: only one instance is allowed now
 - promiscuous mode rewrite

@@ -1,9 +1,12 @@
 #!/bin/bash
 
 GVF=VERSION-FILE
-DEF_VER=1.1.4
+DEF_VER=1.1.5
 LF='
 '
+
+# Version used for documentation
+echo $DEF_VER > Documentation/version
 
 # First see if there is a version file (included in release tarballs),
 # then try git-describe, then default.

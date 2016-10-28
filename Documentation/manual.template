@@ -2,7 +2,7 @@
 ]>
 <book id="manual">
 <bookinfo>
-<title>IPTraf User's Manual</title>
+<title>IPTraf-ng User's Manual</title>
 
 <releaseinfo>
 Version @@version@@
@@ -13,6 +13,10 @@ Version @@version@@
 <year>2003</year>
 <holder>Gerard Paul Java</holder>
 </copyright>
+<copyright>
+<year>2016</year>
+<holder>Phil Cameron</holder>
+</copyright>
 
 <legalnotice id="legalinfo">
 <para>
@@ -21,7 +25,7 @@ Free Documentation License of March, 2000 as published by the
 Free Software Foundation, reproduced in this manual as Appendix B.
 </para>
 <para>
-IPTraf is open-source software released under the terms of the GNU General
+IPTraf-ng is open-source software released under the terms of the GNU General
 Public License version 2 or any later version as published by the Free
 Software Foundation, reproduced in the LICENSE file in the distribution's
 top-level directory.
@@ -47,10 +51,6 @@ property of their respective owners.
 Some structure declarations were based on code copyrighted by the Regents
 of the University of California.
 </para>
-<para>
-Token Ring parsing code based on the Token Ring packet construction code
-in the Linux 2.2 kernel.
-</para>
 </legalnotice>
 </bookinfo>
 <toc></toc>
@@ -58,7 +58,7 @@ in the Linux 2.2 kernel.
 <preface id="preface">
 <title>About This Document</title>
 <para>
-This document contains the instructions on how to use the IPTraf network
+This document contains the instructions on how to use the IPTraf-ng network
 monitoring software version @@major@@. This manual details the
 different statistical facilities, the user
 interface, and the important features of the software.
@@ -148,14 +148,14 @@ This information includes Notes, Tips, or Technical Notes.
 Getting Started
 </title>
 <sect1>
-<title>About IPTraf</title>
+<title>About IPTraf-ng</title>
 <para>
-IPTraf is a network monitoring utility and traffic analyzer for IP networks. It
+IPTraf-ng is a network monitoring utility and traffic analyzer for IP networks. It
 intercepts packets and returns data about captured the network traffic
 in various statistical facilities.
 </para>
 <para>
-IPTraf comes with these major features:
+IPTraf-ng includes these major features:
 </para>
 <itemizedlist spacing="compact" mark="bullet">
 <listitem><para>An IP traffic monitor that shows TCP
@@ -191,15 +191,10 @@ hardware required</para></listitem>
 <title>
   Installation
 </title>
-<para>
-  IPTraf is most readily available on the Internet, but some may receive
-  it on a diskette. Here are the instructions for both types
-  of distributions.
-</para>
 <sect2>
 <title>System Requirements</title>
 <para>
-IPTraf requires:
+IPTraf-ng requires:
 </para>
 
 <sect3>
@@ -244,7 +239,7 @@ IPTraf requires:
 <sect3>
    <title>Compilation Requirements</title>
 <para>
-The following components are required when compiling IPTraf from the
+The following components are required when compiling IPTraf-ng from the
 source code.
 </para>
 <itemizedlist spacing="compact" mark="bullet">
@@ -260,6 +255,11 @@ source code.
      ncurses development libraries 4.2 or later
 </para>
 </listitem>
+<listitem><para>
+
+     git
+</para>
+</listitem>
 </itemizedlist>
 </sect3>
 </sect2>
@@ -267,232 +267,42 @@ source code.
 <sect2>
 <title>Availability</title>
 <para>
-  IPTraf can be downloaded from the Internet from the official FTP site at
- <ulink url="ftp://iptraf.seul.org/pub/iptraf/">
-ftp://iptraf.seul.org/pub/iptraf/
-</ulink>.
+  IPTraf-ng is available in binary form
+  from many Linux Distributions including
+  Red Hat RHEL, Centos, Fedora, and Ubuntu.
 </para>
 <para>
-
-  The software is available in source form in
-  compressed
-<filename>.tar.gz</filename> files named
-<filename>iptraf-<replaceable>x.y.z</replaceable>.tar.gz</filename> where
-<filename><replaceable>x.y.z</replaceable></filename> 
-  is the version number. Precompiled ready-to-run software is available in
-  the
-<filename>iptraf-<replaceable>x.y.z.machinetype</replaceable>.bin.tar.gz</filename>
- files. (<filename><replaceable>machinetype</replaceable></filename> indicates
-  what platform the precompiled binaries run on. The official distribution
-  will only be for the Intel x86 architecture indicated as
-<filename>i386</filename>.)
+  IPTraf-ng git source repository can be cloned from from:
+</para>
+<para>
+<ulink url="https://git.fedorahosted.org/git/iptraf-ng.git">
+</ulink>
 </para>
 </sect2>
 
-<sect2>
-<title>Installing Downloaded Packages</title>
-
-<para>
-  You will need to have GNU tar and GNU zip installed. All
-  modern Linux installations already have these utilities ready.
-</para>
-<orderedlist>
-<listitem>
-<para>   
-  Decompress the <filename>.tar.gz</filename> file by entering
-</para>
-<synopsis>
-tar zxvf iptraf-<replaceable>x.y.z</replaceable>.tar.gz
-</synopsis>
-<para>
-      for the source code or
-</para>
-<synopsis>
-tar zxvf iptraf-<replaceable>x.y.z</replaceable>.i386.bin.tar.gz
-</synopsis>
-<para>
-for the precompiled x86 programs.
-</para>
-<para>
-If your tar doesn't support the z option, you can separately
-decompress the <filename>.tar.gz</filename> file
-then extract the resulting <filename>.tar</filename> archive.
-</para>
-<synopsis>
-gunzip iptraf-<replaceable>x.y.z</replaceable>.tar.gz
-tar xvf iptraf-<replaceable>x.y.z</replaceable>.tar
-</synopsis>
-<para>
-This will decompress the sources into a directory called
-<filename>iptraf-<replaceable>x.y.z</replaceable></filename> (source code)
-or
-<filename>iptraf-<replaceable>x.y.z</replaceable>.bin</filename>
-(precompiled).
-    (<replaceable>x.y.z</replaceable> here should be the IPTraf version number
-you're installing, like <filename>@@version@@</filename>).
-</para>
-</listitem>
-<listitem>
-<para>
-Change to the created top level directory.
-</para></listitem>
-<listitem><para>
-To compile and install the software, run the Setup program by entering
-</para>
-<synopsis>
-./Setup
-</synopsis>
-<para>
-    while you are logged in as root. The Setup script will recognize the
-    source distribution and compile the software before installing. It
-    will immediately install a precompiled distribution.
-</para>
-</listitem>
-</orderedlist>
-
-<para>
-    The resulting binaries will be placed in the
-<filename>/usr/local/bin</filename> directory.
-    All needed directories will also be created.
-</para>
-<para>
-  After installation, you will be asked if you want to
-  read the <filename>RELEASE-NOTES</filename> file. It is recommended that you do so at
-  that point, since the <filename>RELEASE-NOTES</filename> file
-  contains important information about the new version.
-</para>
-</sect2>
-<sect2>
-<title>Installing a Floppy Distribution</title>
-<para>
-  If you received IPTraf
-  on a diskette, the sources are already decompressed. The diskette is
-  in Second Extended filesystem format. Perform the following steps to
-  install the software. </para> <orderedlist> <listitem><para>
-Insert the floppy in the drive.
-</para></listitem>
-<listitem><para>
-Mount the floppy on an empty directory. For example, to
-mount the floppy in the first floppy drive under a directory
-called <filename>/mnt</filename>, enter
-</para>
-<synopsis>
-mount -t ext2 /dev/fd0 /mnt
-</synopsis>
-<para>
-    This assumes your floppy is in
- <filename>/dev/fd0</filename>. You can use any empty directory in place
- of <filename>/mnt</filename>. With most Linux installations, this will work fine.
-</para></listitem>
-<listitem<para>
-
-After mounting, change
-to the <filename>/mnt</filename> (or whatever) directory.
-</para></listitem>
-<listitem><para>
-Enter</para>
-<synopsis>
-./Setup
-</synopsis>
-<para>
-    while logged in as root. Setup will determine whether the diskette
-    contains a source code distribution or
-    ready-to-run precompiled software.  This will copy the binaries to
-    <filename>/usr/local/bin</filename>, and
-    create the necessary working directories.
-</para></listitem>
-<listitem>
-<para>
-Unmount the diskette by typing
-</para>
-<synopsis>
-umount /mnt
-</synopsis>
-<para>
-    (That's <emphasis>u</emphasis>mount, not <emphasis>un</emphasis>mount.)
-</para>
-<para>
-    You can then eject the diskette. Store it in a safe place.
-</para>
-<para>
-  You will also be asked if you want to view the
-<filename>RELEASE-NOTES</filename> file. It is
-  recommended that you do so at that point.
-</para>
-<para>
-  In both cases (downloaded and floppy), the installation will store the
-  program in <filename>/usr/local/bin</filename> with the binaries owned by
-  user root, readable, writable, and executable by the owner,
-  no permissions for the group, no permissions for all others. (700 octal,
-  or <computeroutput>-rwx------</computeroutput>).
-</para>
-
-<note>
-  <title>Note</title>
-<para>
-  You must be <filename>root</filename> to
-  do the installation. The old style of installation (<command>cd src;make
-  install</command>)
-  is still supported.
-</para>
-</note>
-</listitem>
-</orderedlist>
-
-<para>
-  Be sure <filename>/usr/local/bin</filename> is included in
-  your environment's <envar>PATH</envar> variable. You can
-  edit the appropriate command in your login customization
-  file (<filename>.profile</filename> for the Bourne-type shells,
-  <filename>.cshrc</filename> for the C shell and its relatives).
-</para>
-</sect2>
-</sect1>
-<sect1 id="upgrading">
-<title>
-  Upgrading from Earlier Versions
-</title>
-<para>
-IPTraf 3.0 is a major revision from IPTraf 2.7.  The
-filter subsystem has been completely redesigned and as such, is
-incompatible with previous filter formats.  Therefore old
-IPTraf filters can no longer be used.  The installation procedure for
-IPTraf 3.0 will rename the filter list files but not delete them.
-</para>
-<para>
-If you install a distribution package (e.g. RPM,
-dpkg), old filters may still appear in the filter selection
-list but the new IPTraf version will be unable to load them.
-</para>
 </sect1>
 <sect1 id="startstop">
-<title>Starting and Stopping IPTraf</title>
+<title>Starting and Stopping IPTraf-ng</title>
 <para>
-  After installation, you can start the program by simply entering
+  After installation, you can start the program, as root, by simply entering
 </para>
 <synopsis>
-iptraf
+iptraf-ng
 </synopsis>
 <para>
-  at the shell prompt. You will see a copyright notice, with
-  an instruction to press any key to get started. Just press any character
-  key, and you will be immediately taken to the main menu. All major
-  functions of the program are found there.
-</para>
-<para>
-  Entering the IPTraf command without any command-line parameters brings
+  Entering the IPTraf-ng command without any command-line parameters brings
   up the program's main menu. From there, you can select the
   facilities you want.
 </para>
 <para>
-  IPTraf determines and makes use of the maximum number
+  IPTraf-ng determines and makes use of the maximum number
   of lines and columns on the terminal.
 </para>
 
 <note>
 
   <title>Note</title><para>
-  IPTraf does not have a SIGWINCH handler; it does not
+  IPTraf-ng does not have a SIGWINCH handler; it does not
   adjust itself when an xterm or some other X terminal is resized.
 </para></note>
 
@@ -501,7 +311,7 @@ iptraf
   <title>Technical note</title>
   <para>
   
-  IPTraf needs to refer to the terminfo database
+  IPTraf-ng needs to refer to the terminfo database
 in <filename>/usr/share/terminfo</filename>.
   If the supplied executable program fails with <computeroutput>Error
 opening
@@ -540,14 +350,14 @@ ln -s /usr/lib/terminfo /usr/share/terminfo
 <sect1 id="cmdline">
 <title>Command-line Options</title>
 <para>
-  IPTraf has a few optional command-line parameters. As with most UNIX
-  commands, IPTraf command-line parameters are
+  IPTraf-ng has a few optional command-line parameters. As with most UNIX
+  commands, IPTraf-ng command-line parameters are
 case-sensitive (<computeroutput>-l</computeroutput>
   is NOT the same as <computeroutput>-L</computeroutput>).
 </para>
 <para>
   The following command-line parameters can be supplied
-to the <command>iptraf</command> command:
+  to the <command>iptraf-ng</command> command:
 </para>
 <variablelist>
 <varlistentry>
@@ -594,7 +404,7 @@ to the <command>iptraf</command> command:
 <listitem><para>
      The <computeroutput>-t</computeroutput> parameter, when used with one
      of the other parameters that specify a facility to start, tells
-     IPTraf to run the indicated facility for only timeout
+     IPTraf-ng to run the indicated facility for only timeout
      minutes, after which the facility
      exits. The <computeroutput>-t</computeroutput> parameter is ignored in menu
      mode.
@@ -639,41 +449,17 @@ mode.
 </para>
 </listitem>
 </varlistentry>
-<varlistentry>
-<term><computeroutput>-I <replaceable>interval</replaceable></computeroutput></term>
-<listitem><para>
-  Sets the logging interval (in minutes) when the <computeroutput>-L</computeroutput> parameter is
-  used. This overrides the <emphasis>Log interval...</emphasis> setting in the <emphasis>Configure...</emphasis>
-  menu.  If omitted, the configured value is used.  This parameter is ignored when the
-  <computeroutput>-L</computeroutput> parameter is omitted and logging is disabled.
-</para>
-<para>
- The value specified here will affect all facilities except for the IP traffic monitor.
-</para>
-</listitem>
-</varlistentry>
-<varlistentry>
-<term><computeroutput>-q</computeroutput></term>
-<listitem><para>
-     Previously used to suppress the warning screen when IPTraf is run
-     on kernels with IP masquerading. Since the masquerading
-     code now processes packets in a way better suited to raw capture,
-     this parameter is no longer needed and is retained only for
-     compatibility.
-</para>
-</listitem>
-</varlistentry>
 
 <varlistentry>
 <term><computeroutput>-f</computeroutput></term>
 <listitem><para>
-     Forces IPTraf to clear all lock files and reset all instance counters
-     to zero before running any facilities. IPTraf will then think
+     Forces IPTraf-ng to clear all lock files and reset all instance counters
+     to zero before running any facilities. IPTraf-ng will then think
      it's the first instance of itself.
 </para>
 <para>
      The <computeroutput>-f</computeroutput> parameter overrides the
-     existing locks and counters imposed by the IPTraf process and
+     existing locks and counters imposed by the IPTraf-ng process and
      by the various facilities, causing this instance to think it is the
      first and that there are no other facilities running. Use
      this parameter with great caution. A common use for this parameter is
@@ -686,7 +472,7 @@ mode.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term><computeroutput>iptraf -h</computeroutput></term>
+<term><computeroutput>-h</computeroutput></term>
 <listitem><para>
      displays a short help screen
 </para>
@@ -696,7 +482,7 @@ mode.
 
 <para>
   While the command-line options are case-sensitive, interactive keystroke
-  at the IPTraf full-screen interface are not.
+  at the IPTraf-ng full-screen interface are not.
 </para>
 </sect1>
 
@@ -715,14 +501,14 @@ mode.
   will immediately execute the option.
 </para>
 <figure>
-<title>The IPTraf Main Menu</title>
+<title>The IPTraf-ng Main Menu</title>
 <graphic format="png" fileref="iptraf-mmenu">
 </figure>
 </sect1>
 <sect1 id="exiting">
-<title>Exiting IPTraf</title>
+<title>Exiting IPTraf-ng</title>
 <para>
-  You can exit IPTraf with the Exit command in the main menu.
+  You can exit IPTraf-ng with the Exit command in the main menu.
 </para>
 <para>
   When started with one of the command-line options to
@@ -740,16 +526,16 @@ mode.
 </chapter>
 
 <chapter id="preparingtouse">
-<title>Preparing to Use IPTraf</title>
+<title>Preparing to Use IPTraf-ng</title>
 <para>
-This chapter provides information applicable to all of IPTraf's statistical
+This chapter provides information applicable to all of IPTraf-ng's statistical
 monitors.
 </para>
 <sect1 id="numbers">
 <title>Number Display Notations</title>
 <para>
-  IPTraf initially returns exact counts of bytes and packets. However, as they
-  grow larger, IPTraf begins displaying them in increasingly higher denominations.
+  IPTraf-ng initially returns exact counts of bytes and packets. However, as they
+  grow larger, IPTraf-ng begins displaying them in increasingly higher denominations.
 </para>
 <para>
   A number standing alone with no suffix represents an exact count. A
@@ -788,26 +574,28 @@ monitors.
 <sect1 id="instances">
 <title>Instances and Logging</title>
 <para>
-  Since version 2.4, IPTraf allows multiple instances of the
+  IPTraf-ng allows multiple instances of the
   facilities at the same time in different processes (for example, you can
-  now run two or more IP Traffic Monitors at the same time).
+  run two or more IP Traffic Monitors at the same time).
   However only one can listen on a specific interface or all interfaces
   at once. The only exception is the general interface
   statistics, which is still restricted to only one instance at a time.
 </para>
 <para>
-  Because of this relaxation, each instance now generates log files with
+  Because of this, each instance now generates log files with
   unique names for instances, depending on either their instance
   or the interface they're listening on. If the <emphasis>Logging</emphasis> option is turned
-  on (see the <link linkend="config">Configuration</link> chapter), IPTraf
+  on (see the <link linkend="config">Configuration</link> chapter), IPTraf-ng
   will prompt you for a log file name while presenting a
   default. You may accept this default or change it. Press Enter
   to accept, or Ctrl+X to cancel. Canceling will turn logging off for that
   particular session.
 </para>
 <para>
-  If you don't specify an absolute path, the log file will be placed
-  in <filename>/var/log/iptraf</filename>.
+  If you don't specify an absolute path, the log file will be placed in:
+</para>
+<para>
+<filename>/var/log/iptraf-ng</filename>.
 </para>
 <figure>
 <title>The logfile prompt dialog</title>
@@ -822,7 +610,7 @@ each statistical facility for the default log file names.
 <para>
   The default log file names will also be used
 if the <computeroutput>-B</computeroutput> parameter is used
-  to run IPTraf in the background. You can override the defaults with the
+  to run IPTraf-ng in the background. You can override the defaults with the
   <computeroutput>-L</computeroutput> parameter. See
 <link linkend="backop">Background Operation</link> in Chapter 9.
 </para>
@@ -830,10 +618,7 @@ if the <computeroutput>-B</computeroutput> parameter is used
 <sect1 id="updates">
 <title>Screen Update Delays</title>
 <para>
-  Older versions of IPTraf updated the screen as soon as a
-  packet was received. However, screen update is one
-  of the slowest operations the program performs. Since version 1.3, a
-  configuration option has been available to control screen update speed.
+  A configuration option is available to control screen update speed.
 </para>
 <para>
   See the <emphasis>Screen update interval...</emphasis> configuration option under the
@@ -843,7 +628,7 @@ if the <computeroutput>-B</computeroutput> parameter is used
 <sect1 id="ifaces">
 <title>Supported Network Interfaces</title>
 <para>
-  IPTraf currently supports the following network interface types and names.
+  IPTraf-ng currently supports the following network interface types and names.
 </para>
 <variablelist>
 <varlistentry>
@@ -868,12 +653,6 @@ if the <computeroutput>-B</computeroutput> parameter is used
 <term><filename>fddi<replaceable>n</replaceable></filename></term>
 <listitem><para>
      An FDDI interface. <replaceable>n</replaceable> starts from 0.
-</para></listitem>
-</varlistentry>
-<varlistentry>
-<term><filename>tr<replaceable>n</replaceable></filename></term>
-<listitem><para>
-     A Token Ring interface, where <replaceable>n</replaceable> starts from 0.
 </para></listitem>
 </varlistentry>
 <varlistentry>
@@ -963,7 +742,7 @@ general logical bridge interfaces
 <title>The IP Traffic Monitor</title>
 <para>
   Executing the first menu item or specifying <computeroutput>-i</computeroutput>
-  to the <command>iptraf</command> command takes you to the IP traffic monitor. The traffic
+  to the <command>iptraf-ng</command> command takes you to the IP traffic monitor. The traffic
   monitor is a real-time monitoring system that intercepts all packets
   on all detected network interfaces, decodes the IP information on all IP packets and
   displays the appropriate information, most notably the
@@ -1002,17 +781,6 @@ general logical bridge interfaces
 <listitem><para>Interface</para></listitem>
 </itemizedlist>
 
-<note> <title>Note</title>
-<para> Previous versions of IPTraf showed
-  both the source and destination addresses on each line. IPTraf 2 and
-higher show
-only the <computeroutput><replaceable>source
-host</replaceable>:<replaceable>port</replaceable></computeroutput> combination to save
-on screen real estate. TCP
-  connection endpoints are still indicated with the green
-  brackets (on color terminals) along the left edge of the screen.
-</para>
-</note>
 
 <para>
   The Up and Down cursor keys move an indicator bar between entries in the
@@ -1275,10 +1043,10 @@ targeted machines may begin denying network services.
   Technical note: IP Forwarding and Masquerading
 </title>
 <para>
-  Previous versions of IPTraf issued a warning if the kernel had
+  Previous versions of IPTraf-ng issued a warning if the kernel had
   IP masquerading enabled due to the way the
   kernel masqueraded and translated the IP addresses. The new kernels no
-  longer do it as before and IPTraf now gives output properly on
+  longer do it as before and IPTraf-ng now gives output properly on
   masquerading machines. The <computeroutput>-q</computeroutput> parameter is no
   longer required to suppress the warning screen.
 </para>
@@ -1310,7 +1078,7 @@ targeted machines may begin denying network services.
   interspersed among closed, reset, or idle entries.
 </para>
 <para>
-  IPTraf can be set to automatically remove all closed, reset, and
+  IPTraf-ng can be set to automatically remove all closed, reset, and
   idle entries with the <emphasis>TCP closed/idle
   persistence...</emphasis> configuration option. You can also press the F key to
   immediately clear them at any time.
@@ -1320,7 +1088,7 @@ targeted machines may begin denying network services.
   <title>Note</title>
 <para>
 The <emphasis>TCP timeout...</emphasis> option only tells
-IPTraf how long it should take before a connection should be considered
+IPTraf-ng how long it should take before a connection should be considered
 idle and open to replacement by new connections. This
 does not determine how long it remains on-screen. The <emphasis>TCP closed/idle
 persistence...</emphasis> parameter flushes entries that have been idle for the
@@ -1444,7 +1212,7 @@ is color-coded (only on color terminals such as the Linux console).
   use the Left and Right cursor keys to vertically scroll the lower window
   when it is marked <computeroutput>Active</computeroutput>. If your
 terminal can be resized (e.g. xterm), you may do so before starting
-IPTraf.
+IPTraf-ng.
 </para>
 <para>
   Entries for packets received on LAN interfaces also include the
@@ -1755,11 +1523,11 @@ OSPF <replaceable>type</replaceable> (a=<replaceable>area</replaceable> r=<repla
 On busy networks, the display may become cluttered with traffic you're not
 interested in.  To control the traffic monitor's output, you can apply a
 <emphasis>filter</emphasis>.  See Chapter 7, <link
-linkend="filters">Filters</link> for more information on IPTraf's filters.
+linkend="filters">Filters</link> for more information on IPTraf-ng's filters.
 </para>
 <para>
   At any time, you can press X or Q to return to the main menu (or back to
-  the shell if the monitor was started with <command>iptraf -i</command>).
+  the shell if the monitor was started with <command>iptraf-ng -i</command>).
 </para>
 </sect1>
 </chapter>
@@ -1801,7 +1569,7 @@ load information about a single selected interface.
   PgDn keys.
 </para>
 <para>
-This monitor is affected by IPTraf's <link
+This monitor is affected by IPTraf-ng's <link
 linkend="filters">filters</link> as described in Chapter 7.
 </para>
 <para>
@@ -1812,7 +1580,7 @@ option int the <link linkend="config">Configuration</link> chapter.
 </para>
 <para>
   This facility can be started directly from the command line with the
-  <command>-g</command> option to the <command>iptraf</command> command.
+  <command>-g</command> option to the <command>iptraf-ng</command> command.
   When started from the command line, the log filename and log interval can be
   specified with the <computeroutput>-L</computeroutput> and <computeroutput>-I</computeroutput>
   parameters respectively.  See the <link linkend="cmdline">Command-line Parameters</link>
@@ -1886,9 +1654,6 @@ option int the <link linkend="config">Configuration</link> chapter.
 </para>
 <para>
   This facility also displays incoming and outgoing counts and data rates.
-  The packet size breakdown in versions prior to 2.0.0 has been moved
-  to its own facility under <emphasis>Statistical breakdowns.../By packet
-  size</emphasis> as described in <link linkend="pktsize">Chapter 5</link>.
 </para>
 <para>
   An outgoing packet is one that exits your interface, regardless
@@ -1924,11 +1689,11 @@ option int the <link linkend="config">Configuration</link> chapter.
   to monitor. For example,
 </para>
 <synopsis>
-iptraf -d eth0
+iptraf-ng -d eth0
 </synopsis>
 <para>
   starts the statistics for <filename>eth0</filename>. The interface must be specified, or
-  IPTraf will not start the facility.
+  IPTraf-ng will not start the facility.
 </para>
 <para>
   When started from the command line, the log filename and log interval can be
@@ -1954,7 +1719,7 @@ iptraf -d eth0
   packet length value.
 </para>
 <para>
- This facility's output is also affected by IPTraf's <link
+ This facility's output is also affected by IPTraf-ng's <link
 linkend="filters">filters</link>.  See Chapter 7 for more information
 on filters.
 </para>
@@ -1975,12 +1740,6 @@ on filters.
 <sect1 id="pktsize">
 <title>Packet Sizes</title>
 
-<para>
-  The packet size breakdown facility used to be incorporated
-  into the detailed interface statistics. It has since been moved
-  to its own facility. It is entered
-  by selecting <emphasis>Statistical Breakdowns/By packet size</emphasis>.
-</para>
 <para>
   The packet size breakdown takes the interface's Maximum Transmission
   Unit (MTU) size and divides it into 20 brackets, each bracket
@@ -2005,7 +1764,7 @@ on filters.
   <filename>packet_size-eth0.log</filename>).
 </para>
 <para>
-IPTraf's filters do not affect this facility.
+IPTraf-ng's filters do not affect this facility.
 </para>
 <para>
   The packet size breakdown can also be invoked straight
@@ -2014,7 +1773,7 @@ IPTraf's filters do not affect this facility.
   this command runs the facility on interface <filename>eth0</filename>.
 </para>
 <synopsis>
-iptraf -z eth0
+iptraf-ng -z eth0
 </synopsis>
 <para>
   When started from the command line, the log filename and log interval can be
@@ -2030,7 +1789,7 @@ iptraf -z eth0
 <sect1 id="servmon">
 <title>TCP and UDP Traffic Statistics</title>
 <para>
-  IPTraf also includes a facility that generates statistics on TCP and UDP
+  IPTraf-ng also includes a facility that generates statistics on TCP and UDP
   traffic. This facility displays counts of all TCP and UDP packets with
   source or destination ports numbered less than 1024. Ports 1 to 1023 are
   reserved for the TCP/IP application protocols (well-known ports).
@@ -2073,7 +1832,7 @@ iptraf -z eth0
 <filename>tcp_udp_services-eth0.log</filename>).
 </para>
 <para>
-  IPTraf computes the total, incoming, outgoing, and data rates of the
+  IPTraf-ng computes the total, incoming, outgoing, and data rates of the
   protocol currently indicated by the facility's highlight bar. The data
   rates are indicated at the bottom of the screen. If logging is
   enabled, the average data rates since the start of the facility are
@@ -2112,7 +1871,7 @@ iptraf -z eth0
 <sect2>
 <title>Additional Information</title>
 <para>
-IPTraf's filters affect the output of this facility.  See Chapter 7, <link
+IPTraf-ng's filters affect the output of this facility.  See Chapter 7, <link
 linkend="filters">Filters</link> for more information about filters.
 </para>
 <para> 
@@ -2120,12 +1879,12 @@ linkend="filters">Filters</link> for more information about filters.
   use the <computeroutput>-s</computeroutput> option followed by an interface to monitor. For example,
 </para>
 <synopsis>
-iptraf -s eth0
+iptraf-ng -s eth0
 </synopsis>
 <para>
   brings up this module for traffic on
   <filename>eth0</filename>. The interface must be specified, or
-  IPTraf will drop back to the shell.
+  IPTraf-ng will drop back to the shell.
 </para>
 <para>
   When started from the command line, the log filename and log interval can be
@@ -2147,7 +1906,7 @@ iptraf -s eth0
 </para>
 <para>
   The entry above each line of statistics is the station's LAN
-  type (Ethernet, PLIP, Token Ring, or FDDI) and the hardware MAC address.
+  type (Ethernet, PLIP, or FDDI) and the hardware MAC address.
   Each statistics line consists of the following information:
 </para>
 
@@ -2174,8 +1933,8 @@ iptraf -s eth0
   mode</emphasis> configuration option.
 </para>
 <para>
-  This facility works only for Ethernet, PLIP, Token Ring, and
-  FDDI frames. Loopback. ISDN, and SLIP/PPP networks are not monitored here.
+  This facility works only for Ethernet, PLIP, and
+  FDDI frames. Loopback. SLIP/PPP networks are not monitored here.
 </para>
 <figure>
 <title>The LAN station monitor</title>
@@ -2217,7 +1976,7 @@ iptraf -s eth0
    facility was started with the <computeroutput>-l</computeroutput> command-line option).
 </para>
 <para>
-The output of this facility is affected by any applied IPTraf filter.
+The output of this facility is affected by any applied IPTraf-ng filter.
 </para>
 </sect1>
 </chapter>
@@ -2233,7 +1992,7 @@ The output of this facility is affected by any applied IPTraf filter.
 </para>
 
 <para>
-  The IPTraf filter management system is accessible through the
+  The IPTraf-ng filter management system is accessible through the
   <emphasis>Filters...</emphasis> submenu.
 </para>
 <figure>
@@ -2386,7 +2145,7 @@ To recognize all hosts with any address:
   binary).
 </para>
 <para>
-  IPTraf also accepts host names in place of the IP addresses. IPTraf will
+  IPTraf-ng also accepts host names in place of the IP addresses. IPTraf-ng will
   resolve the host name when the filter is loaded. When the filter
   is interpreted, the wildcard mask will also be applied. This can be
   useful in cases where a single host name may resolve to several IP
@@ -2401,7 +2160,7 @@ To recognize all hosts with any address:
 
 <tip><title>Tip</title>
 <para>
-IPTraf allows you to specify the wildcard mask in Classless Interdomain Routing
+IPTraf-ng allows you to specify the wildcard mask in Classless Interdomain Routing
 (CIDR) format.  This  format allows you to specify the number of 1-bits that
 mask the address.  CIDR notation is the form
 <emphasis><computeroutput>address/bits</computeroutput></emphasis> where the
@@ -2413,7 +2172,7 @@ address or host name and
 <computeroutput>255.255.255.0</computeroutput> has 24 1-bits, so instead
 of specifying <computeroutput>255.255.255.0</computeroutput> in the wildcard
 mask field, you can just enter <computeroutput>10.1.1.0/24</computeroutput>
-in the address field.  IPTraf will translate the mask bits into an
+in the address field.  IPTraf-ng will translate the mask bits into an
 appropriate wildcard mask and fill in the mask field the next time you edit
 the filter rule.
 </para>
@@ -2511,10 +2270,10 @@ with a <computeroutput>Y</computeroutput>.
 <para>
 The last field in the dialog is labeled <computeroutput>Match opposite</computeroutput>.  When set
 to <computeroutput>Y</computeroutput>, the filter will match packets flowing in the opposite direction.
-Previous versions of IPTraf used to match TCP packets flowing in either direction, so the source
+Previous versions of IPTraf-ng used to match TCP packets flowing in either direction, so the source
 and destination address/mask/port combinations were actually interchangeable.  Starting with
 IPTraf 3.0, when filters extended to more than just the IP traffic monitor, this behavior is no longer
-the default throughout IPTraf except in the IP traffic monitor's TCP window.
+the default throughout IPTraf-ng except in the IP traffic monitor's TCP window.
 </para>
 <note>
 <title>Note</title>
@@ -2803,7 +2562,7 @@ with the <computeroutput>Include/Exclude</computeroutput> field
   want to apply, and press Enter.
 </para>
 <para>
-  The applied filter stays in effect over exits and restarts of the IPTraf program until it is detached.
+  The applied filter stays in effect over exits and restarts of the IPTraf-ng program until it is detached.
 </para>
 </sect2>
 <sect2>
@@ -2886,18 +2645,18 @@ with the <computeroutput>Include/Exclude</computeroutput> field
 </sect1>
 </chapter>
 <chapter id="config">
-<title>Configuring IPTraf</title>
+<title>Configuring IPTraf-ng</title>
 
 <para>
-   IPTraf can be easily configured
+   IPTraf-ng can be easily configured
 with the <emphasis><link linkend="config">Configure...</link></emphasis> item in the
   main menu. The configuration is stored in the
-  <filename>/var/local/iptraf/iptraf.cfg</filename> file. If the file is not found, IPTraf uses
+  <filename>/var/local/iptraf-ng/iptraf.cfg</filename> file. If the file is not found, IPTraf-ng uses
   the default settings. Any changes to the configuration immediately get
   stored in the configuration file.
 </para>
 <figure>
-<title>The IPTraf configuration menu</title>
+<title>The IPTraf-ng configuration menu</title>
 <graphic format="png" fileref="iptraf-configmenu">
 </figure>
 <sect1 id="toggles">
@@ -2906,10 +2665,10 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
 <sect2> <title>Reverse DNS Lookups</title>
 <para>
   Activating reverse lookup
-  causes IPTraf to find out the name of the hosts with the addresses
-  in the IP packets. When this option is enabled, IPTraf's
+  causes IPTraf-ng to find out the name of the hosts with the addresses
+  in the IP packets. When this option is enabled, IPTraf-ng's
   IP traffic monitor starts the rvnamed DNS lookup server to help resolve
-  IP addresses in the background while allowing IPTraf to
+  IP addresses in the background while allowing IPTraf-ng to
   continue capturing packets.
 </para>
 <para>
@@ -2920,7 +2679,7 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
   <title>TCP/UDP Service Names</title>
 <para>
 
-  This option, when on, causes IPTraf to display the TCP/UDP service names
+  This option, when on, causes IPTraf-ng to display the TCP/UDP service names
   (<computeroutput>smtp</computeroutput>, <computeroutput>www</computeroutput>,
   <computeroutput>pop3</computeroutput>, etc.) instead of their numeric ports (25, 80,
   110, etc). The number-to-name mappings will depend on the systems
@@ -2962,7 +2721,7 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
 </para>
 <para>
   The setting of this option affects all LAN (
-  Ethernet, FDDI, some Token Ring) interfaces on your machine, if you have more than one.
+  Ethernet, FDDI) interfaces on your machine, if you have more than one.
 </para>
 <para>
   The interface's promiscuous flag is set only when a facility is started,
@@ -2970,7 +2729,7 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
   mode was already set when a facility was started, it remains set on exit.
 </para>
 <para>
-  If multiple instances of IPTraf are started, the promiscuous setting
+  If multiple instances of IPTraf-ng are started, the promiscuous setting
   is restored only upon exit of the last facility.
 </para>
 
@@ -2978,11 +2737,11 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
   <title>Note</title>
 <para>
    Do not use other programs that change the interface's promiscuous flag at
-  the same time you're using IPTraf. The programs can interfere with
-  each other's expected operations. While IPTraf tries to obtain the
+  the same time you're using IPTraf-ng. The programs can interfere with
+  each other's expected operations. While IPTraf-ng tries to obtain the
   initial setting of any promiscuous flags for restoration
   upon exit, other programs may not be as well-behaved, and they may
-  turn off the promiscuous flags while IPTraf is still monitoring.
+  turn off the promiscuous flags while IPTraf-ng is still monitoring.
 </para>
 </note>
 </sect2>
@@ -3000,9 +2759,9 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
 <sect2>
   <title>Logging</title>
 <para>
-  When this option is active, IPTraf will log information to a
-  disk file, which can be examined or analyzed later. Since IPTraf
-  2.4.0, IPTraf prompts you for the name of the file to which to write the
+  When this option is active, IPTraf-ng will log information to a
+  disk file, which can be examined or analyzed later. Since IPTraf-ng
+  2.4.0, IPTraf-ng prompts you for the name of the file to which to write the
   logs. It will provide a default name, which you are free to accept
   or change. The IP traffic monitor and LAN station monitor will
   generate a log file name that is based on what instance they are (first,
@@ -3061,14 +2820,14 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
 Interval...</emphasis> in this chapter.
 </para>
 <para>
-  IPTraf closes and reopens the active log file when it receives a
+  IPTraf-ng closes and reopens the active log file when it receives a
   <computeroutput>USR1</computeroutput> signal. This is useful in cases where a facility is run for
   long periods of time but the log files have to be cleared or moved.
 </para>
 <para>
-  To clear or move an active log file, rename it first. IPTraf will
+  To clear or move an active log file, rename it first. IPTraf-ng will
   continue to write to the file despite the new name. Then use the UNIX
-  kill command to send the running IPTraf process a <computeroutput>USR1</computeroutput> signal. IPTraf
+  kill command to send the running IPTraf-ng process a <computeroutput>USR1</computeroutput> signal. IPTraf-ng
   will then close the log file and open another with the
   original name. You can then safely remove or delete the renamed file.
 </para>
@@ -3122,7 +2881,7 @@ Interval...</emphasis> in this chapter.
 <sect1 id="timers">
   <title>Timers</title>
 <para>
-  The <emphasis>Timers...</emphasis> submenu allows you to IPTraf's
+  The <emphasis>Timers...</emphasis> submenu allows you to IPTraf-ng's
   interval and timeout functions.
 </para>
 <figure>
@@ -3161,7 +2920,7 @@ Interval...</emphasis> in this chapter.
   updated. The default is 0, which means the screen is updated as fast
   as possible, giving close-to-realtime reflection
   of network activity. However, this high-speed update can cause
-  incredible amounts of traffic if IPTraf is run on a remote
+  incredible amounts of traffic if IPTraf-ng is run on a remote
   terminal (e.g. a Telnet or Secure Shell session). You can set this
   to a higher value, such as 1 or 2 seconds to slow down the updates.
 </para>
@@ -3180,9 +2939,9 @@ Interval...</emphasis> in this chapter.
   <title>Note</title>
   <para>
    Updating the screen is one of the slowest operations in a
-  program. Older versions of IPTraf had a problem once network
+  program. Older versions of IPTraf-ng had a problem once network
   activity became very high. Because each packet caused a screen update,
-  IPTraf began spending more time with the screen updates, causing a loss
+  IPTraf-ng began spending more time with the screen updates, causing a loss
   of packets once network activity reached a certain point.
 </para>
 <para>
@@ -3213,7 +2972,7 @@ Interval...</emphasis> in this chapter.
   <title>Note</title>
 <para>
   The <emphasis>TCP timeout...</emphasis> option
-  only tells IPTraf how long it should take before a connection should
+  only tells IPTraf-ng how long it should take before a connection should
   be considered idle and open to replacement by new connections. This does
   not determine how long
   it remains onscreen. The <emphasis>TCP closed/idle
@@ -3229,7 +2988,7 @@ Interval...</emphasis> in this chapter.
   <title>Custom Information</title>
 <para>
   The remaining configuration items allow you to enter information which
-  IPTraf uses for its displays and logs.
+  IPTraf-ng uses for its displays and logs.
 </para>
 <sect2>
   <title>Additional ports</title>
@@ -3270,7 +3029,7 @@ Interval...</emphasis> in this chapter.
 </para>
 <para>
   Selecting the <emphasis>Ethernet/PLIP host descriptions...</emphasis> or
-  <emphasis>FDDI/Token Ring host descriptions...</emphasis> options brings
+  <emphasis>FDDI host descriptions...</emphasis> options brings
   up a submenu asking you to add, edit, or delete descriptions.
 </para>
 <para>
@@ -3317,15 +3076,15 @@ by selecting the <emphasis>Edit
 </para>
 <para>
   IPTraf 2.4 and later also recognizes the <filename>/etc/ethers</filename> file.
-  Should a hardware address be present in the IPTraf definition files and
-  in <filename>/etc/ethers</filename>, the IPTraf definition will be used.
+  Should a hardware address be present in the IPTraf-ng definition files and
+  in <filename>/etc/ethers</filename>, the IPTraf-ng definition will be used.
 </para>
 <note>
   <title>Note</title>
 <para>
   The description file for Ethernet and PLIP is
-  <filename>ethernet.desc</filename>, while the FDDI and Token Ring mappings are stored
-  in <filename>fddi.desc</filename> in the IPTraf working directory. These files are in
+  <filename>ethernet.desc</filename>, while the FDDI mappings are stored
+  in <filename>fddi.desc</filename> in the IPTraf-ng working directory. These files are in
   colon-delimited text format. Database engines or custom scripts can be
   told to append data lines to those files. Each line follows this
   simple format:
@@ -3350,25 +3109,25 @@ by selecting the <emphasis>Edit
 <title>Background Operation</title>
 
 <para>
-  IPTraf's facilities can be placed in the background solely for
+  IPTraf-ng's facilities can be placed in the background solely for
   logging. When running in the background, it doesn't display any output
   on the screen, and doesn't receive input
   from the keyboard, and drops you back to the shell.
 </para>
 <para>
   Before starting a statistical facility in the background, configure
-  IPTraf in the usual way (set filters, add TCP/UDP ports, etc).
+  IPTraf-ng in the usual way (set filters, add TCP/UDP ports, etc).
 </para>
 <para>
-  Once that's done, exit all instances of IPTraf on the system, then
-  invoke IPTraf from the command line with the parameter
+  Once that's done, exit all instances of IPTraf-ng on the system, then
+  invoke IPTraf-ng from the command line with the parameter
   to start the facility you want, the timeout (<computeroutput>-t</computeroutput>) parameter
   if you wish, and the <computeroutput>-B</computeroutput> parameter to actually daemonize the program.
    For example, to run the IP traffic monitor in the
   background for all interfaces, issue the command
 </para>
 <synopsis>
-iptraf -i all -B
+iptraf-ng -i all -B
 </synopsis>
 <para>
   To run the detailed interface statistics
@@ -3376,7 +3135,7 @@ on interface <filename>eth0</filename> for 5 minutes
   in the background:
 </para>
 <synopsis>
-iptraf -d eth0 -t 5 -B
+iptraf-ng -d eth0 -t 5 -B
 </synopsis>
 <para>
   If the timeout parameter is not specified, the facility
@@ -3387,7 +3146,7 @@ iptraf -d eth0 -t 5 -B
 ps x
 </synopsis>
 <para>
-  at the command line, and find the process id (pid) of the iptraf process
+  at the command line, and find the process id (pid) of the iptraf-ng process
   you're looking for. Then send that process a USR2 signal with the kill
   command:
 </para>
@@ -3395,9 +3154,9 @@ ps x
 kill -USR2 pid
 </synopsis>
 <para>
-  Since IPTraf cannot send error messages to the terminal, all
+  Since IPTraf-ng cannot send error messages to the terminal, all
   messages are written to the file daemon.log in the
-  IPTraf logging directory.
+  IPTraf-ng logging directory.
 </para>
 <para>
   The <computeroutput>-B</computeroutput> parameter automatically enables logging regardless of its configured
@@ -3410,7 +3169,7 @@ kill -USR2 pid
   facility will be used (see the descriptions of the
   facilities above for the default log name patterns).
   If you don't specify an path, the log file will be placed in
-  <filename>/var/log/iptraf</filename>.
+  <filename>/var/log/iptraf-ng</filename>.
 </para>
 <para>
   The logging interval for all facilities (except the IP traffic monitor) can also be overriden
@@ -3421,15 +3180,15 @@ kill -USR2 pid
 <appendix id="messages">
   <title>Messages</title>
 <para>
-IPTraf's messages are presented in two ways.  In interactive mode, messages
+IPTraf-ng's messages are presented in two ways.  In interactive mode, messages
 are displayed in a distictive message box.  In daemon (background) mode,
-appropriate messages are written to the <filename>iptraf.log</filename>
-file in the IPTraf log directory (normally
-<filename>/var/log/iptraf</filename>.
+appropriate messages are written to the <filename>iptraf-ng.log</filename>
+file in the IPTraf-ng log directory (normally
+<filename>/var/log/iptraf-ng</filename>.
 </para>
 
 <sect1 id="iptrafmessages">
-<title>IPTraf Messages</title>
+<title>IPTraf-ng Messages</title>
 <msgset>
 <simplemsgentry>
 <msgtext>
@@ -3438,10 +3197,10 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf cannot create the configuration file. The most likely cause of
+  IPTraf-ng cannot create the configuration file. The most likely cause of
   this is that you didn't properly install the
   program, and the necessary directory
-<filename>/var/local/iptraf</filename> does not
+<filename>/var/local/iptraf-ng</filename> does not
   exist. Can also be generated if you have a disk problem or if you
   have too many files open.
 </para>
@@ -3490,7 +3249,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf cannot access the list of defined TCP or UDP filters. Can also be
+  IPTraf-ng cannot access the list of defined TCP or UDP filters. Can also be
   an indicator of a bad disk.
 </para>
 </msgexplan>
@@ -3515,7 +3274,7 @@ Unable to create config file
 <msgexplan>
 <para>
 
-  IPTraf cannot read the filter data off the file. Could be caused
+  IPTraf-ng cannot read the filter data off the file. Could be caused
   by a bad disk.
 
 </para>
@@ -3527,7 +3286,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf cannot open the filter file. Could be caused by a shortage of
+  IPTraf-ng cannot open the filter file. Could be caused by a shortage of
   file descriptors or a bad disk.
 </para>
 </msgexplan>
@@ -3539,7 +3298,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf cannot add the newly defined filter to the filter list. This may
+  IPTraf-ng cannot add the newly defined filter to the filter list. This may
   be due to a bad disk.
 </para>
 </msgexplan>
@@ -3550,7 +3309,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf cannot create the filter record file. The defined filter is lost.
+  IPTraf-ng cannot create the filter record file. The defined filter is lost.
 </para>
 </msgexplan>
 </simplemsgentry>
@@ -3560,7 +3319,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf cannot save the changes you made to the filter. You probably
+  IPTraf-ng cannot save the changes you made to the filter. You probably
   have a disk error.
 </para>
 </msgexplan>
@@ -3571,7 +3330,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  The current state of the filters cannot be saved. IPTraf will be unable
+  The current state of the filters cannot be saved. IPTraf-ng will be unable
   to correctly reload the filters the next time it's started. This can
   be caused by a bad disk or improper installation.
 </para>
@@ -3583,7 +3342,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf was unable to save the flags of the network interfaces. This is
+  IPTraf-ng was unable to save the flags of the network interfaces. This is
   probably due to a bad installation or full filesystem.
 </para>
 </msgexplan>
@@ -3594,7 +3353,7 @@ Unable to create config file
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf was unable to retrieve the save interface flags.
+  IPTraf-ng was unable to retrieve the save interface flags.
   Probably again due to a bad installation or full filesystem.
 </para>
 </msgexplan>
@@ -3609,9 +3368,9 @@ Filter state file in use; try again later
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  Another IPTraf process is modifying the TCP, UDP or miscellaneous IP
+  Another IPTraf-ng process is modifying the TCP, UDP or miscellaneous IP
   filter data or the filter state file and has locked the files
-  or file. Try again once the other IPTraf process has terminated or
+  or file. Try again once the other IPTraf-ng process has terminated or
   completed its modifications and unlocked the files.
 </para>
 </msgexplan>
@@ -3639,7 +3398,7 @@ Filter state file in use; try again later
 <msgexplan>
 <para>
 
-  IPTraf cannot open the file containing the descriptions for Ethernet
+  IPTraf-ng cannot open the file containing the descriptions for Ethernet
   or FDDI addresses. Could be due to a bad disk or a hit on the file
   descriptor limit.
 
@@ -3654,7 +3413,7 @@ Filter state file in use; try again later
 <msgexplan>
 <para>
 
-  IPTraf was unable to write the description record for this Ethernet or
+  IPTraf-ng was unable to write the description record for this Ethernet or
   FDDI address. Could be due to a bad disk or corrupted filesystem.
 
 </para>
@@ -3696,9 +3455,9 @@ Filter state file in use; try again later
 <msgexplan>
 <para>
 
-  IPTraf was unable to retrieve the list of network interfaces
+  IPTraf-ng was unable to retrieve the list of network interfaces
   from the <filename>/proc</filename> filesystem. This may be due
-  to a badly configured kernel.  IPTraf needs <filename>/proc</filename>
+  to a badly configured kernel.  IPTraf-ng needs <filename>/proc</filename>
   filesystem support.
 
 </para>
@@ -3714,7 +3473,7 @@ No active interfaces. Check their status or the /proc filesystem.
 <msgexplan>
 <para>
 
-  IPTraf found no active interfaces. Either all interfaces are down or the
+  IPTraf-ng found no active interfaces. Either all interfaces are down or the
   <filename>/proc/net/dev</filename> file was empty or unavailable. Activate at least one
   interface or check the <filename>/proc/net/dev</filename> file.
 
@@ -3757,7 +3516,7 @@ No active interfaces. Check their status or the /proc filesystem.
 <msgexplan>
 <para>
 
-  IPTraf was unable to open the necessary socket for the promiscuous
+  IPTraf-ng was unable to open the necessary socket for the promiscuous
   change operation. May be due to a shortage of file descriptors.
 
 </para>
@@ -3784,7 +3543,7 @@ No active interfaces. Check their status or the /proc filesystem.
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-  IPTraf was unable to open the raw socket for packet capture. May be due
+  IPTraf-ng was unable to open the raw socket for packet capture. May be due
   to a shortage of file descriptors.
 </para>
 
@@ -3825,7 +3584,7 @@ No active interfaces. Check their status or the /proc filesystem.
   The interface specified with the <computeroutput>-i</computeroutput>,
   <computeroutput>-d</computeroutput>, <computeroutput>-s</computeroutput>, <computeroutput>-l</computeroutput>,
   or <computeroutput>-z</computeroutput> command-line parameters is not supported
-  by IPTraf.
+  by IPTraf-ng.
 </para>
 </msgexplan>
 </simplemsgentry>
@@ -3855,7 +3614,7 @@ No active interfaces. Check their status or the /proc filesystem.
 <para>
 
   May occur if you have too little memory to allocate for windows, the
-  menu system, or dialog boxes. IPTraf tries
+  menu system, or dialog boxes. IPTraf-ng tries
   to prevent further allocations if memory runs out during a
   monitor. However, this could also mean a bug if you're reasonably sure
   you're not out of memory. An instructional message
@@ -3877,7 +3636,7 @@ No active interfaces. Check their status or the /proc filesystem.
 <msgexplan>
 <para>
 
-  IPTraf normally does not allow anybody but uid 0 (root) to run it.
+  IPTraf-ng normally does not allow anybody but uid 0 (root) to run it.
   This measure is included for safety reasons. See the section
   on recompiling the program below if you want to override this.
   This feature is built in, and not part of the configuration
@@ -3912,7 +3671,7 @@ No active interfaces. Check their status or the /proc filesystem.
   Not related to the previous message. The
 <computeroutput>TERM</computeroutput> (terminate) signal
   is normally used to gracefully shut down a program. This message
-  simply indicates that the <computeroutput>TERM</computeroutput> signal was caught and IPTraf is
+  simply indicates that the <computeroutput>TERM</computeroutput> signal was caught and IPTraf-ng is
   attempting to shut down as gracefully as possible.
 </para>
 </msgexplan>
@@ -3920,7 +3679,7 @@ No active interfaces. Check their status or the /proc filesystem.
 <simplemsgentry>
 <msgtext>
 <para><computeroutput>
-  Invalid option or missing parameter, use iptraf -h for help
+  Invalid option or missing parameter, use iptraf-ng -h for help
 </computeroutput></para>
 </msgtext>
 <msgexplan>
@@ -3936,7 +3695,7 @@ or <computeroutput>-l</computeroutput>).
 </para>
 <para>
   This message also appears if an unknown option is passed
-to the <command>iptraf</command> command.
+to the <command>iptraf-ng</command> command.
 
 </para>
 </msgexplan>
@@ -3949,7 +3708,7 @@ to the <command>iptraf</command> command.
 <msgexplan>
 <para>
 
-  IPTraf normally tags itself when it runs to prevent multiple instances
+  IPTraf-ng normally tags itself when it runs to prevent multiple instances
   of the statistical facilities from running.
   This message means the program was unable to
   create the necessary tag file. This may be due to a bad or
@@ -3968,8 +3727,8 @@ to the <command>iptraf</command> command.
 <msgexplan>
 <para>
 
-  IPTraf was unable to create the tag file for the facility you
-  started. The facility will still run, but other instances of IPTraf that
+  IPTraf-ng was unable to create the tag file for the facility you
+  started. The facility will still run, but other instances of IPTraf-ng that
   may be running simultaneously will allow the same facility to run.
   This may cause both instances of the facility to malfunction. This could
   be due to a bad disk or bad installation.
@@ -3986,7 +3745,7 @@ to the <command>iptraf</command> command.
 <para>
 
   The facility you tried to start is currently running
-  on the indicated interface in another IPTraf process on the machine.
+  on the indicated interface in another IPTraf-ng process on the machine.
   This restriction is placed to prevent conflicts involving
   internal sockets or the log files.
 
@@ -4042,8 +3801,8 @@ to the <command>iptraf</command> command.
 <msgexplan>
 <para>
 
-  IPTraf cannot start the <command>rvnamed</command> daemon; probably due
-  to a bad installation. IPTraf will fall back to blocking lookups.
+  IPTraf-ng cannot start the <command>rvnamed</command> daemon; probably due
+  to a bad installation. IPTraf-ng will fall back to blocking lookups.
 
 </para>
 </msgexplan>
@@ -4056,8 +3815,8 @@ to the <command>iptraf</command> command.
 <msgexplan>
 <para>
 
-  IPTraf cannot start a new process. This may be due to memory shortage.
-  IPTraf will fall back to blocking lookups.
+  IPTraf-ng cannot start a new process. This may be due to memory shortage.
+  IPTraf-ng will fall back to blocking lookups.
 
 </para>
 </msgexplan>
@@ -4065,13 +3824,13 @@ to the <command>iptraf</command> command.
 
   <simplemsgentry>
 <msgtext>
-<para><computeroutput>Fork error, IPTraf cannot run in background
+<para><computeroutput>Fork error, IPTraf-ng cannot run in background
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
 
-  IPTraf cannot start a new process, and can go into the background.
-  This may be due to memory shortage. IPTraf aborts.
+  IPTraf-ng cannot start a new process, and can go into the background.
+  This may be due to memory shortage. IPTraf-ng aborts.
 
 </para>
 </msgexplan>
@@ -4084,7 +3843,7 @@ to the <command>iptraf</command> command.
 <msgexplan>
 <para>
 
-  IPTraf was unable to allocate memory for a new filter entry. Most likely
+  IPTraf-ng was unable to allocate memory for a new filter entry. Most likely
   due to memory shortage.
 
 </para>
@@ -4109,7 +3868,7 @@ to the <command>iptraf</command> command.
 <para>
   Any message or indicator about low memory means that your system
   does not have enough memory to handle the entries. It is
-  almost certain that sooner or later, IPTraf or other applications will
+  almost certain that sooner or later, IPTraf-ng or other applications will
   abort due to the failure of important system calls or library functions.
   Memory must be added right away.
 </para>
@@ -4141,7 +3900,7 @@ to the <command>iptraf</command> command.
 <para>
   The screen management routines cannot find the
 <filename>terminfo</filename> entry for your
-  terminal. IPTraf expects the terminfo database located
+  terminal. IPTraf-ng expects the terminfo database located
   in <filename>/usr/share/terminfo</filename>. This error could occur when your terminfo
   database is located somewhere else.
 </para>
@@ -4153,11 +3912,11 @@ to the <command>iptraf</command> command.
 
   <simplemsgentry>
 <msgtext>
-<para><computeroutput>This will end your IPTraf session
+<para><computeroutput>This will end your IPTraf-ng session
   </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-In interactive mode IPTraf asks you to confirm your exit
+In interactive mode IPTraf-ng asks you to confirm your exit
 command. Press Enter to return to the shell or any other key to cancel
 your command and return to the main menu.
 </para>
@@ -4167,12 +3926,12 @@ your command and return to the main menu.
 </sect1>
 <sect1 id="rvnamedmessages">
 <title>
-  rvnamed Messages
+  rvnamed-ng Messages
 </title>
 <para>
   As a daemon, rvnamed does not send messages to the screen. It
   writes its messages to the file <filename>rvnamed.log</filename> in the
-  IPTraf log directory.
+  IPTraf-ng log directory.
 </para>
 <msgset>
 
@@ -4201,7 +3960,7 @@ your command and return to the main menu.
 <para>
 
   rvnamed was unable to  open the communication endpoint for data exchange
-  with the IPTraf program. This is highly unusual, and should it
+  with the IPTraf-ng program. This is highly unusual, and should it
   occur, report the circumstances.
 </para>
 </msgexplan>
@@ -4234,7 +3993,7 @@ your command and return to the main menu.
 <msgexplan>
 <para>
 
-  rvnamed ran out of memory. IPTraf will resort to blocking, and may freeze.
+  rvnamed ran out of memory. IPTraf-ng will resort to blocking, and may freeze.
 
 </para>
 </msgexplan>
@@ -4251,7 +4010,7 @@ your command and return to the main menu.
 
   rvnamed had a problem spawning a copy of itself to resolve the IP
   address. rvnamed will simply return the IP address in its literal,
-  dotted-decimal notation. IPTraf will still function normally. This may
+  dotted-decimal notation. IPTraf-ng will still function normally. This may
   be due to lack of memory or a process limit hit.
 </para>
 </msgexplan>
@@ -4272,7 +4031,7 @@ your command and return to the main menu.
   from hogging your computer's resources and possibly crashing it.
 </para>
 <para>
-  Unless IPTraf is monitoring an extremely busy network without filters,
+  Unless IPTraf-ng is monitoring an extremely busy network without filters,
   this shouldn't happen, at least, not that often. If you notice
   this message, try applying filters or check your DNS server. Many times,
   this can happen when the DNS server goes down for

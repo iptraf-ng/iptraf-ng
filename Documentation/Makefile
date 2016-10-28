@@ -2,19 +2,20 @@
 # Makefile for Documentation
 #
 
+all: html pdf
+
 html: manual.sgml
 	docbook2html manual.sgml
 
-pspdf: manual.sgml
-	docbook2ps manual.sgml
-	ps2pdf manual.ps
+pdf: manual.sgml
+	docbook2pdf manual.sgml
 
-manual.sgml:	
+manual.sgml: manual.template version
 	cat manual.template | sed -e s/@@version@@/`cat version`/ \
 	-e s/@@major@@/`awk -F '.' -f version.awk  < version`/ \
 	> manual.sgml
 
 clean:
-	rm -f *~ *.html manual.sgml
+	rm -f *~ *.html manual.sgml manual.pdf
 
 
