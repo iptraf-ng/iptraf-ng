@@ -30,6 +30,7 @@ ifstats.c	- the interface statistics module
 #include "ifstats.h"
 #include "rate.h"
 #include "capt.h"
+#include "counters.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -56,6 +57,9 @@ struct iftab {
 	struct iflist *tail;
 	struct iflist *firstvisible;
 	struct iflist *lastvisible;
+	struct pkt_counter totals;
+	struct rate rate_total;
+	struct rate rate_totalpps;
 	WINDOW *borderwin;
 	PANEL *borderpanel;
 	WINDOW *statwin;
@@ -269,6 +273,9 @@ static void updaterates(struct iftab *table, unsigned long msecs)
 	struct iflist *ptmp = table->head;
 	unsigned long rate;
 
+	rate_add_rate(&table->rate_total, table->totals.pc_bytes, msecs);
+	rate_add_rate(&table->rate_totalpps, table->totals.pc_packets, msecs);
+	pkt_counter_reset(&table->totals);
 	while (ptmp != NULL) {
 		rate_add_rate(&ptmp->rate, ptmp->spanbr, msecs);
 		rate = rate_get_average(&ptmp->rate);
@@ -359,6 +366,10 @@ static void initiftab(struct iftab *table)
 {
 	table->borderwin = newwin(LINES - 2, COLS, 1, 0);
 	table->borderpanel = new_panel(table->borderwin);
+
+	rate_alloc(&table->rate_total, 5);
+	rate_alloc(&table->rate_totalpps, 5);
+	pkt_counter_reset(&table->totals);
 
 	move(LINES - 1, 1);
 	scrollkeyhelp();
@@ -473,6 +484,8 @@ static void ifstats_process_packet(struct iftab *table, struct pkt_hdr *pkt)
 	default:			/* drop others */
 		return;
 	}
+
+	pkt_counter_update(&table->totals, pkt->pkt_len);
 
 	struct iflist *ptmp = positionptr(table->head, pkt->from->sll_ifindex);
 	if (!ptmp)
@@ -591,7 +604,16 @@ void ifstats(time_t facilitytime)
 
 			printelapsedtime(now.tv_sec - starttime, 1, table.borderwin);
 
-			print_packet_drops(capt_get_dropped(&capt), table.borderwin, 49);
+			print_packet_drops(capt_get_dropped(&capt), table.borderwin, 61);
+
+			wattrset(table.borderwin, BOXATTR);
+			char buf[64];
+			rate_print(rate_get_average(&table.rate_total), buf, sizeof(buf));
+			mvwprintw(table.borderwin,
+				  getmaxy(table.borderwin) - 1, 19,
+				  " Total: %s / %9lu pps ",
+				  buf,
+				  rate_get_average(&table.rate_totalpps));
 
 			if (logging && (now.tv_sec > log_next)) {
 				check_rotate_flag(&logfile);
@@ -653,6 +675,8 @@ err:
 	doupdate();
 
 	destroyiflist(table.head);
+	rate_destroy(&table.rate_total);
+	rate_destroy(&table.rate_totalpps);
 }
 
 void selectiface(char *ifname, int withall, int *aborted)
