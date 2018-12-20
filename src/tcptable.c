@@ -516,7 +516,7 @@ struct tcptableent *in_table(struct tcptable *table,
 	unsigned int hp;
 
 	if (table->head == NULL) {
-		return 0;
+		return NULL;
 	}
 	/*
 	 * Determine hash table index for this set of addresses and ports
