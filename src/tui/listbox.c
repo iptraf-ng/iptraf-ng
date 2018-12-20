@@ -176,6 +176,7 @@ void tx_operate_listbox(struct scroll_list *list, int *aborted)
 		case 24:
 			*aborted = 1;
 			endloop = 1;
+			/* fall through */
 		case 12:
 		case 'l':
 		case 'L':
