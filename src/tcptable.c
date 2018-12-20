@@ -54,7 +54,7 @@ static unsigned int tcp_hash(struct sockaddr_storage *saddr,
 	size_t i;
 	unsigned int ifsum = 0;
 
-	for (i = 0; i <= strlen(ifname) - 1; i++)
+	for (i = 0; i < strlen(ifname); i++)
 		ifsum += ifname[i];
 
 	switch (saddr->ss_family) {
