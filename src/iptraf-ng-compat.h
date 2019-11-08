@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <poll.h>
 #include <limits.h>
+#include <locale.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -456,6 +456,7 @@ int main(int argc, char **argv)
 	sanitize_dir(LOCKDIR);
 	sanitize_dir(WORKDIR);
 
+	setlocale(LC_ALL, "");	/* needed to properly init (n)curses library */
 	initscr();
 
 	if ((LINES < 24) || (COLS < 80)) {
