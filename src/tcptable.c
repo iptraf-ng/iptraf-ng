@@ -458,7 +458,7 @@ static char *tcplog_flowrate_msg(struct tcptableent *entry, char *buf,
 	if (interval < 1)
 		interval = 1;
 
-	char rbuf[64];
+	char rbuf[32];
 	rate_print(entry->bcount / interval, rbuf, sizeof(rbuf));
 
 	snprintf(buf, bufsize - 1, "avg flow rate %s", rbuf);
