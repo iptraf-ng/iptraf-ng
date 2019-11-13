@@ -185,7 +185,8 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 				strcpy(data->s_mask, WILDCARD);
 			} else {
 				strncpy(data->s_mask,
-					cidr_get_quad_mask(maskbits), 20);
+					cidr_get_quad_mask(maskbits),
+					sizeof(data->s_mask) - 1);
 			}
 		} else
 			strcpy(data->s_mask, fieldptr->buf);
@@ -224,7 +225,8 @@ void gethostparams(struct hostparams *data, char *init_saddr, char *init_smask,
 				strcpy(data->d_mask, WILDCARD);
 			} else {
 				strncpy(data->d_mask,
-					cidr_get_quad_mask(maskbits), 20);
+					cidr_get_quad_mask(maskbits),
+					sizeof(data->d_mask) - 1);
 			}
 		} else
 			strcpy(data->d_mask, fieldptr->buf);
