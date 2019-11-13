@@ -360,7 +360,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 	char description[SHORTSTRING_MAX];
 	char additional[MSGSTRING_MAX];
 	char msgstring[MSGSTRING_MAX];
-	char scratchpad[MSGSTRING_MAX];
+	char scratchpad[2 * MSGSTRING_MAX];
 	char *startstr;
 
 	char *packet_type;
