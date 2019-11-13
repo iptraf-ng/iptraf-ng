@@ -52,7 +52,7 @@ void tx_add_list_entry(struct scroll_list *list, char *node, char *text)
 
 	ptmp = xmallocz(sizeof(struct textlisttype));
 
-	strncpy(ptmp->text, text, MAX_TEXT_LENGTH);
+	strncpy(ptmp->text, text, MAX_TEXT_LENGTH - 1);
 	ptmp->nodeptr = node;
 
 	if (list->textlist == NULL) {
