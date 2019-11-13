@@ -261,19 +261,6 @@ int dev_bind_ifname(int fd, const char * const ifname)
 	return dev_bind_ifindex(fd, ifr.ifr_ifindex);
 }
 
-char *gen_iface_msg(char *ifptr)
-{
-	static char if_msg[20];
-
-	if (ifptr == NULL)
-		strcpy(if_msg, "all interfaces");
-	else
-		strncpy(if_msg, ifptr, 20);
-
-	return if_msg;
-}
-
-
 int dev_promisc_flag(const char *dev_name)
 {
 	int flags = dev_get_flags(dev_name);
