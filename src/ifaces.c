@@ -250,15 +250,20 @@ int dev_bind_ifindex(int fd, const int ifindex)
 
 int dev_bind_ifname(int fd, const char * const ifname)
 {
-	int ir;
-	struct ifreq ifr;
+	int ifindex = 0;
 
-	strcpy(ifr.ifr_name, ifname);
-	ir = ioctl(fd, SIOCGIFINDEX, &ifr);
-	if (ir)
-		return ir;
+	if (ifname) {
+		int ir;
+		struct ifreq ifr;
 
-	return dev_bind_ifindex(fd, ifr.ifr_ifindex);
+		strcpy(ifr.ifr_name, ifname);
+		ir = ioctl(fd, SIOCGIFINDEX, &ifr);
+		if (ir)
+			return ir;
+		ifindex = ifr.ifr_ifindex;
+	}
+
+	return dev_bind_ifindex(fd, ifindex);
 }
 
 int dev_promisc_flag(const char *dev_name)
