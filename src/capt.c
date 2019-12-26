@@ -50,15 +50,15 @@ int capt_init(struct capt *capt, char *ifname)
 
 	capt->dropped = 0UL;
 
-	/* initialize socket */
-	int fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	/* initialize socket first with some default protocol;
+	 * the right protocol is then set with bind();
+	 * this overcomes the problem with getting packets
+	 * from other interfaces, because the socket was not
+	 * properly initialized yet */
+	int fd = socket(PF_PACKET, SOCK_RAW, 0);
 	if (fd == -1)
 		return fd;
 	capt->fd = fd;
-
-	/* bind socket to interface */
-	if (ifname && dev_bind_ifname(capt->fd, ifname) == -1)
-		goto out;
 
 	/* set socket receive timeout */
 	if (capt_set_recv_timeout(capt->fd, 250) == -1)
@@ -66,6 +66,11 @@ int capt_init(struct capt *capt, char *ifname)
 
 	/* try all available receive functions */
 	if (capt_setup_receive_function(capt) == -1)
+		goto out;
+
+	/* bind interface (and protocol) to socket
+	 * (interface can be NULL -> any interface) */
+	if (dev_bind_ifname(capt->fd, ifname) == -1)
 		goto out;
 
 	return 0;	/* all O.K. */
