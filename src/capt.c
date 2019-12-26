@@ -24,6 +24,23 @@ static int capt_set_recv_timeout(int fd, unsigned int msec)
 		return 0;
 }
 
+static int capt_setup_receive_function(struct capt *capt)
+{
+	/* try packet mmap() TPACKET_V2 */
+	if (capt_setup_mmap_v2(capt) == 0)
+		return 0;
+
+	/* try packet recvmmsg() */
+	if (capt_setup_recvmmsg(capt) == 0)
+		return 0;
+
+	/* try packet recvmsg() */
+	if (capt_setup_recvmsg(capt) == 0)
+		return 0;
+
+	return -1;
+}
+
 int capt_init(struct capt *capt, char *ifname)
 {
 	capt->have_packet = NULL;
@@ -47,17 +64,12 @@ int capt_init(struct capt *capt, char *ifname)
 	if (capt_set_recv_timeout(capt->fd, 250) == -1)
 		goto out;
 
-	/* try packet mmap() TPACKET_V2 */
-	if (capt_setup_mmap_v2(capt) == 0)
-		return 0;
+	/* try all available receive functions */
+	if (capt_setup_receive_function(capt) == -1)
+		goto out;
 
-	/* try packet recvmmsg() */
-	if (capt_setup_recvmmsg(capt) == 0)
-		return 0;
+	return 0;	/* all O.K. */
 
-	/* try packet recvmsg() */
-	if (capt_setup_recvmsg(capt) == 0)
-		return 0;
 out:
 	close(capt->fd);
 	capt->fd = -1;
