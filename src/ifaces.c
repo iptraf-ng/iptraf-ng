@@ -237,7 +237,7 @@ int dev_get_ifname(int ifindex, char *ifname)
 	return ir;
 }
 
-int dev_bind_ifindex(int fd, const int ifindex)
+static int dev_bind_ifindex(int fd, const int ifindex)
 {
 	struct sockaddr_ll fromaddr;
 	socklen_t addrlen = sizeof(fromaddr);
