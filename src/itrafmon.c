@@ -999,7 +999,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 			last_time = now;
 		}
 
-		capt_put_packet(&capt, &pkt);
 		if (capt_get_packet(&capt, &pkt, &ch, table.tcpscreen) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
@@ -1014,6 +1013,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			ipmon_process_packet(&pkt, ifptr, &table, &othptbl,
 					     logging, logfile,
 					     &revlook, rvnfd);
+			capt_put_packet(&capt, &pkt);
 		}
 	}
 	packet_destroy(&pkt);
