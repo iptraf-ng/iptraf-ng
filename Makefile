@@ -119,6 +119,7 @@ iptraf-h += src/capt.h
 iptraf-h += src/capt-recvmsg.h
 iptraf-h += src/capt-recvmmsg.h
 iptraf-h += src/capt-mmap-v2.h
+iptraf-h += src/capt-mmap-v3.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
@@ -165,6 +166,7 @@ iptraf-o += src/capt.o
 iptraf-o += src/capt-recvmsg.o
 iptraf-o += src/capt-recvmmsg.o
 iptraf-o += src/capt-mmap-v2.o
+iptraf-o += src/capt-mmap-v3.o
 
 rvnamed-o += src/rvnamed.o
 rvnamed-o += src/getpath.o

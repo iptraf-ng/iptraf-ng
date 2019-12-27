@@ -10,6 +10,7 @@
 #include "capt-recvmsg.h"
 #include "capt-recvmmsg.h"
 #include "capt-mmap-v2.h"
+#include "capt-mmap-v3.h"
 
 static int capt_set_recv_timeout(int fd, unsigned int msec)
 {
@@ -26,6 +27,10 @@ static int capt_set_recv_timeout(int fd, unsigned int msec)
 
 static int capt_setup_receive_function(struct capt *capt)
 {
+	/* try packet mmap() TPACKET_V3 */
+	if (capt_setup_mmap_v3(capt) == 0)
+		return 0;
+
 	/* try packet mmap() TPACKET_V2 */
 	if (capt_setup_mmap_v2(capt) == 0)
 		return 0;
