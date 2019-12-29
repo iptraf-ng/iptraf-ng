@@ -20,9 +20,15 @@ struct capt_data_mmap_v3 {
 	uint32_t			cur_pkt;	/* only for debug */
 };
 
-#define BLOCKS 32				/* 32 blocks / 256 frames in each block */
-#define FRAMES_PER_BLOCK 256
+#define BLOCKS 256		/* 256 blocks / 512 frames in each block:
+				 *   this gets room for 128k packets, which
+				 *   "should be enough for everybody" ;-) */
+
+#define FRAMES_PER_BLOCK 512	/* keep it as power-of-two (dramaticly lowers
+				 * CPU utilization) */
+
 #define FRAMES (BLOCKS * FRAMES_PER_BLOCK)	/* frames over all blocks */
+
 #define FRAME_SIZE TPACKET_ALIGN(MAX_PACKET_SIZE + TPACKET_HDRLEN)
 
 static struct tpacket_block_desc *capt_mmap_find_filled_block(struct capt_data_mmap_v3 *data)
