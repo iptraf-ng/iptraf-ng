@@ -111,6 +111,33 @@ unsigned long capt_get_dropped(struct capt *capt)
 	return capt->dropped;
 }
 
+static bool time_after(struct timeval const *a, struct timeval const *b)
+{
+	if (a->tv_sec > b->tv_sec)
+		return true;
+	if (a->tv_sec < b->tv_sec)
+		return false;
+	if(a->tv_usec > b->tv_usec)
+		return true;
+	else
+		return false;
+}
+
+static void time_add_msecs(struct timeval *time, unsigned int msecs)
+{
+	if (time != NULL) {
+		while (msecs >= 1000) {
+			time->tv_sec++;
+			msecs -= 1000;
+		}
+		time->tv_usec += msecs * 1000;
+		while (time->tv_usec >= 1000000) {
+			time->tv_sec++;
+			time->tv_usec -= 1000000;
+		}
+	}
+}
+
 int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 {
 	struct pollfd pfds[2];
@@ -120,6 +147,7 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	int ss = 0;
 	int have_packet = capt->have_packet(capt);
 	int timeout = DEFAULT_UPDATE_DELAY;
+	static struct timeval next_kbd_check = { 0 };
 
 	/* no packet ready, so poll() for it */
 	if (!have_packet) {
@@ -132,12 +160,20 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	/* check for key press */
 	/* Monitor stdin only if in interactive, not daemon mode. */
 	if (ch && !daemonized) {
-		pfds[nfds].fd = 0;
-		pfds[nfds].events = POLLIN;
-		pfd_key = nfds;
-		nfds++;
-		if (have_packet)
-			timeout = 0;
+		struct timeval now;
+
+		gettimeofday(&now, NULL);
+		if (time_after(&now, &next_kbd_check)) {
+			pfds[nfds].fd = 0;
+			pfds[nfds].events = POLLIN;
+			pfd_key = nfds;
+			nfds++;
+			if (have_packet)
+				timeout = 0;
+
+			next_kbd_check = now;
+			time_add_msecs(&next_kbd_check, 20);
+		}
 	}
 
 	if (nfds > 0)
