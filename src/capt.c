@@ -118,24 +118,25 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	int pfd_packet = -1;
 	int pfd_key = -1;
 	int ss = 0;
-	int poll_packet = !capt->have_packet(capt);
+	int have_packet = capt->have_packet(capt);
 	int timeout = DEFAULT_UPDATE_DELAY;
 
-	/* Monitor raw socket */
-	if (poll_packet) {
+	/* no packet ready, so poll() for it */
+	if (!have_packet) {
 		pfds[nfds].fd = capt->fd;
 		pfds[nfds].events = POLLIN;
 		pfd_packet = nfds;
 		nfds++;
 	}
 
+	/* check for key press */
 	/* Monitor stdin only if in interactive, not daemon mode. */
 	if (ch && !daemonized) {
 		pfds[nfds].fd = 0;
 		pfds[nfds].events = POLLIN;
 		pfd_key = nfds;
 		nfds++;
-		if (!poll_packet)
+		if (have_packet)
 			timeout = 0;
 	}
 
@@ -147,7 +148,7 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	/* no packet ready yet */
 	pkt->pkt_len = 0;
 
-	if (!poll_packet || ((pfd_packet != -1) && (ss > 0) && ((pfds[pfd_packet].revents & POLLIN) != 0))) {
+	if (have_packet || ((pfd_packet != -1) && (ss > 0) && ((pfds[pfd_packet].revents & POLLIN) != 0))) {
 		int ret = capt->get_packet(capt, pkt);
 		if (ret <= 0)
 			ss = ret;
