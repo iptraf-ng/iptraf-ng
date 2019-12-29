@@ -101,6 +101,8 @@ static void capt_cleanup_mmap_v3(struct capt *capt)
 	struct capt_data_mmap_v3 *data = capt->priv;
 
 	free(data->pbds);
+
+	munlock(data->mmap, data->mmap_size);
 	munmap(data->mmap, data->mmap_size);
 
 	memset(data, 0, sizeof(*data));
@@ -138,7 +140,11 @@ int capt_setup_mmap_v3(struct capt *capt)
 	void *map = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, capt->fd, 0);
 	if (map == MAP_FAILED)
 		return -1;
-	/* mlock() ??? */
+
+	if (mlock(map, size) != 0) {
+		munmap(map, size);
+		return -1;
+	}
 
 	struct capt_data_mmap_v3 *data = xmallocz(sizeof(struct capt_data_mmap_v3));
 
