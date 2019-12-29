@@ -148,7 +148,18 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	/* no packet ready yet */
 	pkt->pkt_len = 0;
 
-	if (have_packet || ((pfd_packet != -1) && (ss > 0) && ((pfds[pfd_packet].revents & POLLIN) != 0))) {
+	if ((pfd_packet != -1) && (ss > 0)) {
+		if (pfds[pfd_packet].revents & POLLERR) {
+			/* some error occured, don't try to get packet */
+			have_packet = false;
+			/* ... and return error */
+			ss = -1;
+		} else if (pfds[pfd_packet].revents & POLLIN) {
+			/* packet ready */
+			have_packet = true;
+		}
+	}
+	if (have_packet) {
 		int ret = capt->get_packet(capt, pkt);
 		if (ret <= 0)
 			ss = ret;
