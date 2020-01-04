@@ -67,18 +67,18 @@ void cidr_split_address(char *cidr_addr, char *addresspart,
 	char *slashptr;
 
 	char address_buffer[80];
+	memset(addresspart, 0, 80);
 
 	if (strchr(cidr_addr, '/') == NULL) {
-		strncpy(addresspart, cidr_addr, 80);
+		strncpy(addresspart, cidr_addr, 80-1);
 		*maskbits = 255;
 		return;
 	}
 
 	memset(address_buffer, 0, 80);
-	memset(addresspart, 0, 80);
 	memset(maskpart, 0, 4);
 
-	strncpy(address_buffer, cidr_addr, 80);
+	strncpy(address_buffer, cidr_addr, 80-1);
 	slashptr = strchr(address_buffer, '/');
 
 	/*
@@ -90,8 +90,8 @@ void cidr_split_address(char *cidr_addr, char *addresspart,
 	/*
 	 * Copy out the address and mask parts into their buffers.
 	 */
-	strncpy(addresspart, address_buffer, 80);
-	strncpy(maskpart, slashptr, 4);
+	strcpy(addresspart, address_buffer);
+	strcpy(maskpart, slashptr);
 
 	if (maskpart[0] != '\0') {
 		*maskbits = strtoul(maskpart, &endptr, 10);

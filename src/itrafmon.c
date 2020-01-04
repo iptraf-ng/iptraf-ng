@@ -823,7 +823,12 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 	case IPPROTO_ICMP:
 	case IPPROTO_ICMPV6:
 		check_icmp_dest_unreachable(table, pkt, ifname);
-		/* print this ICMP(v6): fall through */
+		/* print this ICMP(v6) */
+		add_othp_entry(othptbl, pkt, &saddr, &daddr,
+			       IS_IP, pkt_ip_protocol(pkt),
+			       ip_payload, ifname,
+			       revlook, rvnfd, logging, logfile);
+		break;
 	default:
 		add_othp_entry(othptbl, pkt, &saddr, &daddr,
 			       IS_IP, pkt_ip_protocol(pkt),

@@ -67,7 +67,7 @@ static void clearfiles(char *prefix, char *directory)
 {
 	DIR *dir;
 	struct dirent *dir_entry;
-	char target_name[80];
+	char target_name[80*4];
 
 	dir = opendir(directory);
 
@@ -83,7 +83,7 @@ static void clearfiles(char *prefix, char *directory)
 		if (dir_entry != NULL) {
 			if (strncmp(dir_entry->d_name, prefix, strlen(prefix))
 			    == 0) {
-				snprintf(target_name, 80, "%s/%s", directory,
+				snprintf(target_name, 80*4, "%s/%s", directory,
 					 dir_entry->d_name);
 				unlink(target_name);
 			}

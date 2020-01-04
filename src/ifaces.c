@@ -267,8 +267,10 @@ char *gen_iface_msg(char *ifptr)
 
 	if (ifptr == NULL)
 		strcpy(if_msg, "all interfaces");
-	else
-		strncpy(if_msg, ifptr, 20);
+	else {
+		strncpy(if_msg, ifptr, 20-1);
+		if_msg[20-1] = '\0';
+	}
 
 	return if_msg;
 }

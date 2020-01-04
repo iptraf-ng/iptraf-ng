@@ -56,19 +56,19 @@ void get_next_protorange(char **cptr, unsigned int *proto1,
 	memset(prototmp2, 0, 5);
 	memset(bad_token, 0, 5);
 
-	strncpy(prototmp1, get_next_token(cptr), 5);
+	memcpy(prototmp1, get_next_token(cptr), 5-1);
 	if (prototmp1[0] == '\0') {
 		*parse_result = NO_MORE_TOKENS;
 		return;
 	}
 
-	strncpy(toktmp, get_next_token(cptr), 5);
+	memcpy(toktmp, get_next_token(cptr), 5-1);
 
 	*parse_result = RANGE_OK;
 
 	switch (toktmp[0]) {
 	case '-':
-		strncpy(prototmp2, get_next_token(cptr), 5);
+		memcpy(prototmp2, get_next_token(cptr), 5-1);
 
 		/*
 		 * Check for missing right-hand token for -
@@ -85,7 +85,7 @@ void get_next_protorange(char **cptr, unsigned int *proto1,
 		 */
 		if (*cerr_ptr != '\0') {
 			*parse_result = INVALID_RANGE;
-			strncpy(bad_token, prototmp2, 5);
+			strcpy(bad_token, prototmp2);
 			*badtokenptr = bad_token;
 		} else {
 			/*
@@ -93,7 +93,7 @@ void get_next_protorange(char **cptr, unsigned int *proto1,
 			 */
 
 			if (*proto2 > 255) {
-				strncpy(bad_token, prototmp2, 5);
+				strcpy(bad_token, prototmp2);
 				*badtokenptr = bad_token;
 				*parse_result = OUT_OF_RANGE;
 			}
@@ -101,10 +101,10 @@ void get_next_protorange(char **cptr, unsigned int *proto1,
 			/*
 			 * Then check if the next token is a comma
 			 */
-			strncpy(toktmp, get_next_token(cptr), 5);
+			memcpy(toktmp, get_next_token(cptr), 5-1);
 			if (toktmp[0] != '\0' && toktmp[0] != ',') {
 				*parse_result = COMMA_EXPECTED;
-				strncpy(bad_token, toktmp, 5);
+				strcpy(bad_token, toktmp);
 				*badtokenptr = bad_token;
 			}
 		}
@@ -116,7 +116,7 @@ void get_next_protorange(char **cptr, unsigned int *proto1,
 		break;
 	default:
 		*parse_result = COMMA_EXPECTED;
-		strncpy(bad_token, toktmp, 5);
+		strcpy(bad_token, toktmp);
 		*badtokenptr = bad_token;
 		break;
 	}
@@ -127,11 +127,11 @@ void get_next_protorange(char **cptr, unsigned int *proto1,
 	*proto1 = (unsigned int) strtoul(prototmp1, &cerr_ptr, 10);
 	if (*cerr_ptr != '\0') {
 		*parse_result = INVALID_RANGE;
-		strncpy(bad_token, prototmp1, 5);
+		strcpy(bad_token, prototmp1);
 		*badtokenptr = bad_token;
 	} else if (*proto1 > 255) {
 		*parse_result = OUT_OF_RANGE;
-		strncpy(bad_token, prototmp1, 5);
+		strcpy(bad_token, prototmp1);
 		*badtokenptr = bad_token;
 	} else
 		*badtokenptr = NULL;
