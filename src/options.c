@@ -29,7 +29,7 @@ struct OPTIONS options;
 
 static void makeoptionmenu(struct MENU *menu)
 {
-	tx_initmenu(menu, 21, 40, (LINES - 20) / 2 - 1, (COLS - 40) / 16,
+	tx_initmenu(menu, 20, 40, (LINES - 19) / 2 - 1, (COLS - 40) / 16,
 		    BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
 		    DESCATTR);
 	tx_additem(menu, " ^R^everse DNS lookups",
@@ -48,8 +48,6 @@ static void makeoptionmenu(struct MENU *menu)
 		   "Toggles display of source MAC addresses in the IP Traffic Monitor");
 	tx_additem(menu, " ^S^how v6-in-v4 traffic as IPv6",
 		   "Toggled display of IPv6 tunnel in IPv4 as IPv6 traffic");
-	tx_additem(menu, " S^o^rt interfaces by...",
-		   "xyz");
 	tx_additem(menu, NULL, NULL);
 	tx_additem(menu, " ^T^imers...", "Configures timeouts and intervals");
 	tx_additem(menu, NULL, NULL);
@@ -68,7 +66,7 @@ static void makeoptionmenu(struct MENU *menu)
 
 static void maketimermenu(struct MENU *menu)
 {
-	tx_initmenu(menu, 8, 35, (LINES - 20) / 2 + 7, (COLS - 35) / 2, BOXATTR,
+	tx_initmenu(menu, 8, 35, (LINES - 19) / 2 + 7, (COLS - 35) / 2, BOXATTR,
 		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
 
 	tx_additem(menu, " TCP ^t^imeout...",
@@ -124,11 +122,8 @@ static void indicatesetting(int row, WINDOW *win)
 		break;
 	case 8:
 		printoptonoff(options.v6inv4asv6, win);
-		break;
-	case 9:
-		printoptonoff(options.sortbyifname, win);
-		break;
 	}
+
 }
 
 void saveoptions(void)
@@ -165,7 +160,6 @@ static void setdefaultopts(void)
 	options.updrate = 0;
 	options.closedint = 0;
 	options.v6inv4asv6 = 1;
-	options.sortbyifname = 0;
 }
 
 void loadoptions(void)
@@ -186,17 +180,17 @@ void loadoptions(void)
 static void updatetimes(WINDOW *win)
 {
 	wattrset(win, HIGHATTR);
-	mvwprintw(win, 11, 25, "%3u mins", options.timeout);
-	mvwprintw(win, 12, 25, "%3u mins", options.logspan / 60);
-	mvwprintw(win, 13, 25, "%3u secs", options.updrate);
-	mvwprintw(win, 14, 25, "%3u mins", options.closedint);
+	mvwprintw(win, 10, 25, "%3u mins", options.timeout);
+	mvwprintw(win, 11, 25, "%3u mins", options.logspan / 60);
+	mvwprintw(win, 12, 25, "%3u secs", options.updrate);
+	mvwprintw(win, 13, 25, "%3u mins", options.closedint);
 }
 
 static void showoptions(WINDOW *win)
 {
 	int i;
 
-	for (i = 1; i <= 9; i++)
+	for (i = 1; i <= 8; i++)
 		indicatesetting(i, win);
 
 	updatetimes(win);
@@ -270,13 +264,13 @@ void setoptions(void)
 
 	makeoptionmenu(&menu);
 
-	statwin = newwin(16, 35, (LINES - 20) / 2 - 1, (COLS - 40) / 16 + 40);
+	statwin = newwin(15, 35, (LINES - 19) / 2 - 1, (COLS - 40) / 16 + 40);
 	statpanel = new_panel(statwin);
 
 	wattrset(statwin, BOXATTR);
 	tx_colorwin(statwin);
 	tx_box(statwin, ACS_VLINE, ACS_HLINE);
-	wmove(statwin, 10, 1);
+	wmove(statwin, 9, 1);
 	whline(statwin, ACS_HLINE, 33);
 	mvwprintw(statwin, 0, 1, " Current Settings ");
 	wattrset(statwin, STDATTR);
@@ -288,11 +282,10 @@ void setoptions(void)
 	mvwprintw(statwin, 6, 2, "Activity mode:");
 	mvwprintw(statwin, 7, 2, "MAC addresses:");
 	mvwprintw(statwin, 8, 2, "v6-in-v4 as IPv6:");
-	mvwprintw(statwin, 9, 2, "Interface sorting:");
-	mvwprintw(statwin, 11, 2, "TCP timeout:");
-	mvwprintw(statwin, 12, 2, "Log interval:");
-	mvwprintw(statwin, 13, 2, "Update interval:");
-	mvwprintw(statwin, 14, 2, "Closed/idle persist:");
+	mvwprintw(statwin, 10, 2, "TCP timeout:");
+	mvwprintw(statwin, 11, 2, "Log interval:");
+	mvwprintw(statwin, 12, 2, "Update interval:");
+	mvwprintw(statwin, 13, 2, "Closed/idle persist:");
 	showoptions(statwin);
 
 	do {
@@ -324,10 +317,7 @@ void setoptions(void)
 		case 8:
 			options.v6inv4asv6 = ~options.v6inv4asv6;
 			break;
-		case 9:
-			options.sortbyifname = ~options.sortbyifname;
-			break;
-		case 11:
+		case 10:
 			maketimermenu(&timermenu);
 			trow = 1;
 			do {
@@ -372,22 +362,22 @@ void setoptions(void)
 			update_panels();
 			doupdate();
 			break;
-		case 13:
+		case 12:
 			addmoreports(&ports);
 			break;
-		case 14:
+		case 13:
 			removeaport(&ports);
 			break;
-		case 16:
+		case 15:
 			manage_eth_desc(ARPHRD_ETHER);
 			break;
-		case 17:
+		case 16:
 			manage_eth_desc(ARPHRD_FDDI);
 			break;
 		}
 
 		indicatesetting(row, statwin);
-	} while (row < 19);
+	} while (row != 18);
 
 	destroyporttab(ports);
 	tx_destroymenu(&menu);
