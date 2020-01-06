@@ -194,16 +194,9 @@ static void initiflist(struct iflist **list)
 
 		/* make the linked list sorted by ifindex */
 		struct iflist *cur = *list, *last = NULL;
-		if (options.sortbyifname) {
-			while (cur != NULL && strcmp(cur->ifname, ifname) < 0) {
-				last = cur;
-				cur = cur->next_entry;
-			}
-		} else {
-			while (cur != NULL && cur->ifindex < ifindex) {
-				last = cur;
-				cur = cur->next_entry;
-			}
+		while (cur != NULL && strcmp(cur->ifname, ifname) < 0) {
+			last = cur;
+			cur = cur->next_entry;
 		}
 		itmp->prev_entry = last;
 		itmp->next_entry = cur;
