@@ -32,6 +32,7 @@ serv.c  - TCP/UDP port statistics module
 #include "error.h"
 #include "counters.h"
 #include "rate.h"
+#include "capt.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -899,9 +900,7 @@ void servmon(char *ifname, time_t facilitytime)
 
 	FILE *logfile = NULL;
 
-	int fd;
-
-	unsigned long dropped = 0UL;
+	struct capt capt;
 
 	struct porttab *ports;
 
@@ -921,14 +920,9 @@ void servmon(char *ifname, time_t facilitytime)
 		promisc_set_list(&promisc);
 	}
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
+	if (capt_init(&capt, ifname) == -1) {
+		write_error("Unable to initialize packet capture interface");
 		goto err;
-	}
-	if(dev_bind_ifname(fd, ifname) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
 	}
 
 	if (logging) {
@@ -987,8 +981,7 @@ void servmon(char *ifname, time_t facilitytime)
 
 			printelapsedtime(now.tv_sec - starttime, 20, list.borderwin);
 
-			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, list.borderwin, 49);
+			print_packet_drops(capt_get_dropped(&capt), list.borderwin, 49);
 
 			if (now.tv_sec > endtime)
 				exitloop = 1;
@@ -1012,7 +1005,7 @@ void servmon(char *ifname, time_t facilitytime)
 			last_update = now;
 		}
 
-		if (packet_get(fd, &pkt, &ch, list.win) == -1) {
+		if (capt_get_packet(&capt, &pkt, &ch, list.win) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
 			break;
@@ -1021,8 +1014,10 @@ void servmon(char *ifname, time_t facilitytime)
 		if (ch != ERR)
 			serv_process_key(&list, ch);
 
-		if (pkt.pkt_len > 0)
+		if (pkt.pkt_len > 0) {
 			serv_process_packet(&list, &pkt, ports);
+			capt_put_packet(&capt, &pkt);
+		}
 	}
 	packet_destroy(&pkt);
 
@@ -1038,8 +1033,7 @@ void servmon(char *ifname, time_t facilitytime)
 	}
 	strcpy(current_logfile, "");
 
-err_close:
-	close(fd);
+	capt_destroy(&capt);
 err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);

@@ -295,7 +295,8 @@ int main(void)
 
 					sockaddr_copy(&hostlist[hi].addr, &rvnpacket.addr);
 				}
-				strncpy(hostlist[hi].fqdn, rvnpacket.fqdn, sizeof(hostlist[hi].fqdn) - 1);
+				strncpy(hostlist[hi].fqdn, rvnpacket.fqdn, sizeof(hostlist[hi].fqdn));
+				hostlist[hi].fqdn[sizeof(hostlist[hi].fqdn) - 1] = '\0';
 
 				hostlist[hi].ready = RESOLVED;
 			}

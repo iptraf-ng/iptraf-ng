@@ -31,6 +31,7 @@ itrafmon.c - the IP traffic monitor module
 #include "logvars.h"
 #include "itrafmon.h"
 #include "sockaddr.h"
+#include "capt.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -823,7 +824,8 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 	case IPPROTO_ICMP:
 	case IPPROTO_ICMPV6:
 		check_icmp_dest_unreachable(table, pkt, ifname);
-		/* print this ICMP(v6): fall through */
+		/* print this ICMP(v6) and ... */
+		/* fall through */
 	default:
 		add_othp_entry(othptbl, pkt, &saddr, &daddr,
 			       IS_IP, pkt_ip_protocol(pkt),
@@ -848,11 +850,9 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	struct othptable othptbl;
 
-	int fd;
+	struct capt capt;
 
 	struct pkt_hdr pkt;
-
-	unsigned long dropped = 0UL;
 
 	int ch;
 
@@ -871,14 +871,9 @@ void ipmon(time_t facilitytime, char *ifptr)
 		promisc_set_list(&promisc);
 	}
 
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if(fd == -1) {
-		write_error("Unable to obtain monitoring socket");
+	if (capt_init(&capt, ifptr) == -1) {
+		write_error("Unable to initialize packet capture interface");
 		goto err;
-	}
-	if(ifptr && dev_bind_ifname(fd, ifptr) == -1) {
-		write_error("Unable to bind interface on the socket");
-		goto err_close;
 	}
 
 	if (revlook) {
@@ -977,8 +972,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			/* print timer at bottom of screen */
 			printelapsedtime(now.tv_sec - starttime, 15, othptbl.borderwin);
 
-			dropped += packet_get_dropped(fd);
-			print_packet_drops(dropped, othptbl.borderwin, 40);
+			print_packet_drops(capt_get_dropped(&capt), othptbl.borderwin, 40);
 
 			mark_timeouted_entries(&table, logging, logfile);
 
@@ -1005,7 +999,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			last_time = now;
 		}
 
-		if (packet_get(fd, &pkt, &ch, table.tcpscreen) == -1) {
+		if (capt_get_packet(&capt, &pkt, &ch, table.tcpscreen) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
 			break;
@@ -1019,6 +1013,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			ipmon_process_packet(&pkt, ifptr, &table, &othptbl,
 					     logging, logfile,
 					     &revlook, rvnfd);
+			capt_put_packet(&capt, &pkt);
 		}
 	}
 	packet_destroy(&pkt);
@@ -1043,8 +1038,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	killrvnamed();
 	close_rvn_socket(rvnfd);
 
-err_close:
-	close(fd);
+	capt_destroy(&capt);
 err:
 	if (options.promisc) {
 		promisc_restore_list(&promisc);

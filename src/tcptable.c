@@ -54,7 +54,7 @@ static unsigned int tcp_hash(struct sockaddr_storage *saddr,
 	size_t i;
 	unsigned int ifsum = 0;
 
-	for (i = 0; i <= strlen(ifname) - 1; i++)
+	for (i = 0; i < strlen(ifname); i++)
 		ifsum += ifname[i];
 
 	switch (saddr->ss_family) {
@@ -458,7 +458,7 @@ static char *tcplog_flowrate_msg(struct tcptableent *entry, char *buf,
 	if (interval < 1)
 		interval = 1;
 
-	char rbuf[64];
+	char rbuf[32];
 	rate_print(entry->bcount / interval, rbuf, sizeof(rbuf));
 
 	snprintf(buf, bufsize - 1, "avg flow rate %s", rbuf);
@@ -516,7 +516,7 @@ struct tcptableent *in_table(struct tcptable *table,
 	unsigned int hp;
 
 	if (table->head == NULL) {
-		return 0;
+		return NULL;
 	}
 	/*
 	 * Determine hash table index for this set of addresses and ports

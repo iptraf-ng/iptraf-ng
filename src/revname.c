@@ -43,7 +43,10 @@ int rvnamedactive(void)
 	int br;
 	char unix_socket[80];
 
-	strncpy(unix_socket, get_path(T_WORKDIR, gen_unix_sockname()), 80);
+	strncpy(unix_socket,
+		get_path(T_WORKDIR, gen_unix_sockname()),
+		sizeof(unix_socket) - 1);
+	unix_socket[sizeof(unix_socket) - 1] = '\0';
 	unlink(unix_socket);
 
 	fd = socket(PF_UNIX, SOCK_DGRAM, 0);
@@ -116,7 +119,10 @@ void open_rvn_socket(int *fd)
 {
 	struct sockaddr_un su;
 
-	strncpy(revname_socket, get_path(T_WORKDIR, gen_unix_sockname()), 80);
+	strncpy(revname_socket,
+		get_path(T_WORKDIR, gen_unix_sockname()),
+		sizeof(revname_socket) - 1);
+	revname_socket[sizeof(revname_socket) - 1] = '\0';
 	unlink(revname_socket);
 
 	*fd = socket(PF_UNIX, SOCK_DGRAM, 0);

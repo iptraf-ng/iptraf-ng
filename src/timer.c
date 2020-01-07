@@ -17,5 +17,5 @@ void printelapsedtime(time_t elapsed, int x, WINDOW *win)
 
 	int y = getmaxy(win) - 1;
 
-	mvwprintw(win, y, x, " Elapsed time: %3u:%02u ", hours, mins);
+	mvwprintw(win, y, x, " Time: %3u:%02u ", hours, mins);
 }

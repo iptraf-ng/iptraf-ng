@@ -121,59 +121,6 @@ static void packet_set_l3_hdrp(struct pkt_hdr *pkt)
 	}
 }
 
-/* IPTraf input function; reads both keystrokes and network packets. */
-int packet_get(int fd, struct pkt_hdr *pkt, int *ch, WINDOW *win)
-{
-	struct pollfd pfds[2];
-	nfds_t nfds = 0;
-	int ss;
-
-	/* Monitor raw socket */
-	pfds[0].fd = fd;
-	pfds[0].events = POLLIN;
-	nfds++;
-
-	/* Monitor stdin only if in interactive, not daemon mode. */
-	if (ch && !daemonized) {
-		pfds[1].fd = 0;
-		pfds[1].events = POLLIN;
-		nfds++;
-	}
-	do {
-		ss = poll(pfds, nfds, DEFAULT_UPDATE_DELAY);
-	} while ((ss == -1) && (errno == EINTR));
-
-	/* no packet ready yet */
-	pkt->pkt_len = 0;
-
-	if ((ss > 0) && (pfds[0].revents & POLLIN) != 0) {
-
-		/* these are set upon return from recvmsg() so clean */
-		/* them beforehand */
-		pkt->msg->msg_controllen = 0;
-		pkt->msg->msg_flags = 0;
-
-		ssize_t len = recvmsg(fd, pkt->msg, MSG_TRUNC | MSG_DONTWAIT);
-		if (len > 0) {
-			pkt->pkt_len = len;
-			pkt->pkt_caplen = len;
-			if (pkt->pkt_caplen > pkt->pkt_bufsize)
-				pkt->pkt_caplen = pkt->pkt_bufsize;
-			pkt->pkt_payload = NULL;
-			pkt->pkt_protocol = ntohs(pkt->from->sll_protocol);
-		} else
-			ss = len;
-	}
-
-	if (ch) {
-		*ch = ERR;	/* signalize we have no key ready */
-		if (!daemonized && (ss > 0) && ((pfds[1].revents & POLLIN) != 0))
-			*ch = wgetch(win);
-	}
-
-	return ss;
-}
-
 int packet_process(struct pkt_hdr *pkt, unsigned int *total_br,
 		   in_port_t *sport, in_port_t *dport,
 		   int match_opposite, int v6inv4asv6)
@@ -319,8 +266,6 @@ again:
 
 int packet_init(struct pkt_hdr *pkt)
 {
-	pkt->pkt_buf		= xmallocz(MAX_PACKET_SIZE);
-	pkt->pkt_bufsize	= MAX_PACKET_SIZE;
 	pkt->pkt_payload	= NULL;
 	pkt->ethhdr		= NULL;
 	pkt->fddihdr		= NULL;
@@ -328,46 +273,15 @@ int packet_init(struct pkt_hdr *pkt)
 	pkt->ip6_hdr		= NULL;
 	pkt->pkt_len		= 0;	/* signalize we have no packet prepared */
 
-	pkt->iov.iov_len	= pkt->pkt_bufsize;
-	pkt->iov.iov_base	= pkt->pkt_buf;
-
-	pkt->from		= xmallocz(sizeof(*pkt->from));
-	pkt->msg		= xmallocz(sizeof(*pkt->msg));
-
-	pkt->msg->msg_name	= pkt->from;
-	pkt->msg->msg_namelen	= sizeof(*pkt->from);
-	pkt->msg->msg_iov	= &pkt->iov;
-	pkt->msg->msg_iovlen	= 1;
-	pkt->msg->msg_control	= NULL;
+	pkt->pkt_buf		= NULL;
+	pkt->from		= NULL;
 
 	return 0;	/* all O.K. */
 }
 
-void packet_destroy(struct pkt_hdr *pkt)
+void packet_destroy(struct pkt_hdr *pkt __unused)
 {
-	free(pkt->msg);
-	pkt->msg = NULL;
-
-	free(pkt->from);
-	pkt->from = NULL;
-
-	free(pkt->pkt_buf);
-	pkt->pkt_buf = NULL;
-
 	destroyfraglist();
-}
-
-unsigned int packet_get_dropped(int fd)
-{
-	struct tpacket_stats stats;
-	socklen_t len = sizeof(stats);
-
-	memset(&stats, 0, len);
-	int err = getsockopt(fd, SOL_PACKET, PACKET_STATISTICS, &stats, &len);
-	if (err < 0)
-		die_errno("%s(): getsockopt(PACKET_STATISTICS)", __func__);
-
-	return stats.tp_drops;
 }
 
 int packet_is_first_fragment(struct pkt_hdr *pkt)

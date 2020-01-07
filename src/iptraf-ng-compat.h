@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <poll.h>
 #include <limits.h>
+#include <locale.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -26,6 +27,7 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <sys/un.h>
+#include <sys/mman.h>
 
 #include <netinet/in.h>
 #include <netinet/udp.h>
