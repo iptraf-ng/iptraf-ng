@@ -1,26 +1,28 @@
 .TH RVNAMED 8 "rvnamed Help Page"
 .SH NAME
 rvnamed \- reverse name resolution daemon for
-.BR iptraf (8)
+.BR iptraf-ng (8)
 
 .SH DESCRIPTION
 .B rvnamed
-is a supplementary program distributed with iptraf.  This is a reverse name resolution daemon used by iptraf to resolve IP addresses to host names in the background, keeping iptraf from waiting until the lookup is completed.
+is a supplementary program distributed with iptraf-ng.  This is a reverse name resolution daemon used by iptraf-ng to resolve IP addresses to host names in the background, keeping iptraf-ng from waiting until the lookup is completed.
 .PP
 
-This program is only used by iptraf and, therefore, is useless alone.
+This program is only used by iptraf-ng and, therefore, is useless alone.
 
 .SH FILES
- /var/log/iptraf/rvnamed.log - log file
+ /var/log/iptraf-ng/rvnamed.log - log file
 
 .SH SEE ALSO
-README.rvnamed - documentation from the author
-.br
+.BR iptraf-ng (8)
+ README.rvnamed - documentation from the author
 
 .SH AUTHOR
 Gerard Paul Java (riker@mozcom.com)
 
 .SH MANUAL AUTHOR
 Frederic Peters (fpeters@debian.org), using README.rvnamed
-General manual page modifications bu Gerard Paul Java (riker@mozcom.com)
+General manual page modifications by Gerard Paul Java (riker@mozcom.com),
+Phil Cameron (pcameron@redhat.com)
+
 

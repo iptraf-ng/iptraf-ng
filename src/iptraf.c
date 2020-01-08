@@ -285,6 +285,12 @@ static struct options iptraf_ng_options[] = {
 	OPT_STRING('L', NULL, &L_opt, "logfile",
 		   "specifies an alternate log file"),
 	//    OPT_INTEGER('I', NULL, &I_opt, "the log interval for all facilities except the IP traffic monitor. Value is in minutes"),
+// PHIL  From manual:
+// Sets the logging interval (in minutes) when the -L parameter is used. This over-
+// rides the Log interval... setting in the Configure... menu. If omitted, the configured
+// value is used. This parameter is ignored when the -L parameter is omitted and
+// logging is disabled.
+// The value specified here will affect all facilities except for the IP traffic monitor.
 	OPT_END()
 };
 

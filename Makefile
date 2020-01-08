@@ -173,9 +173,6 @@ rvnamed-o += src/getpath.o
 rvnamed-o += src/sockaddr.o
 rvnamed-o += src/usage.o
 
--include config.mak.autogen
--include config.mak
-
 ifndef sysconfdir
 ifeq ($(prefix),/usr)
 sysconfdir = /etc
@@ -339,13 +336,6 @@ rvnamed-ng: $(rvnamed-o)
 	$(QUIET_LINK)$(CC) $(ALL_CFLAGS) -o $@ \
 		$(rvnamed-o) $(ALL_LDFLAGS)
 
-configure: configure.ac
-	$(QUIET_GEN)$(RM) $@ $<+ && \
-	sed -e 's/@@IPTRAF_VERSION@@/$(IPTRAF_VERSION)/g' \
-	    $< > $<+ && \
-	autoconf -o $@ $<+ && \
-	$(RM) $<+
-
 OBJECTS := $(sort $(iptraf-o) $(rvnamed-o))
 
 dep_files := $(foreach f,$(OBJECTS),$(dir $f).depend/$(notdir $f).d)
@@ -423,9 +413,9 @@ iptraf-ng.spec: iptraf-ng.spec.in
 	mv $@+ $@
 
 IPTRAF_TARNAME = iptraf-ng-$(IPTRAF_VERSION)
-dist: iptraf-ng.spec configure
+dist: iptraf-ng.spec # configure
 	@mkdir -p $(IPTRAF_TARNAME)
-	@cp iptraf-ng.spec configure $(IPTRAF_TARNAME)
+	@cp iptraf-ng.spec (IPTRAF_TARNAME)
 	@cp --parents `git ls-files` $(IPTRAF_TARNAME)
 	@echo $(IPTRAF_VERSION) > $(IPTRAF_TARNAME)/version
 	$(TAR) cf $(IPTRAF_TARNAME).tar $(IPTRAF_TARNAME)
@@ -453,7 +443,7 @@ install: all
 ### Cleaning rules
 
 distclean: clean
-	$(RM) configure
+#	$(RM) configure
 
 clean:
 	$(RM) src/*.o src/tui/*.o
@@ -462,7 +452,6 @@ clean:
 	$(RM) -r $(dep_dirs)
 	$(RM) *.spec
 	$(RM) $(IPTRAF_TARNAME).tar.gz
-	$(RM) config.log config.mak.autogen config.mak.append config.status config.cache
 	$(RM) VERSION-FILE
 
 .PHONY: gtags
