@@ -52,7 +52,7 @@ void tx_add_list_entry(struct scroll_list *list, char *node, char *text)
 
 	ptmp = xmallocz(sizeof(struct textlisttype));
 
-	strncpy(ptmp->text, text, MAX_TEXT_LENGTH);
+	strncpy(ptmp->text, text, MAX_TEXT_LENGTH - 1);
 	ptmp->nodeptr = node;
 
 	if (list->textlist == NULL) {
@@ -176,6 +176,7 @@ void tx_operate_listbox(struct scroll_list *list, int *aborted)
 		case 24:
 			*aborted = 1;
 			endloop = 1;
+			/* fall through */
 		case 12:
 		case 'l':
 		case 'L':

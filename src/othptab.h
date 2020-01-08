@@ -43,6 +43,7 @@ struct othptabent {
 			unsigned int code;
 		} icmp;
 		struct {
+			unsigned char version;
 			unsigned char type;
 			unsigned long area;
 			char routerid[16];

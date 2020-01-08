@@ -237,6 +237,8 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 					 IPPROTO_UDP, new_entry->un.udp.d_sname,
 					 10);
 			} else if (protocol == IPPROTO_OSPFIGP) {
+				new_entry->un.ospf.version =
+				    ((struct ospfhdr *) packet2)->ospf_version;
 				new_entry->un.ospf.type =
 				    ((struct ospfhdr *) packet2)->ospf_type;
 				new_entry->un.ospf.area =
@@ -358,7 +360,7 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 	char description[SHORTSTRING_MAX];
 	char additional[MSGSTRING_MAX];
 	char msgstring[MSGSTRING_MAX];
-	char scratchpad[MSGSTRING_MAX];
+	char scratchpad[2 * MSGSTRING_MAX];
 	char *startstr;
 
 	char *packet_type;
@@ -677,6 +679,14 @@ void printothpentry(struct othptable *table, struct othptabent *entry,
 				break;
 			}
 		} else if (entry->protocol == IPPROTO_OSPFIGP) {
+			switch (entry->un.ospf.version) {
+			case 2:
+				strcat(protname, "v2");
+				break;
+			case 3:
+				strcat(protname, "v3");
+				break;
+			}
 			switch (entry->un.ospf.type) {
 			case OSPF_TYPE_HELLO:
 				strcpy(description, "hlo");

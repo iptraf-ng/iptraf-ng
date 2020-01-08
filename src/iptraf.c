@@ -67,7 +67,7 @@ static void clearfiles(char *prefix, char *directory)
 {
 	DIR *dir;
 	struct dirent *dir_entry;
-	char target_name[80];
+	char target_name[PATH_MAX];
 
 	dir = opendir(directory);
 
@@ -83,8 +83,9 @@ static void clearfiles(char *prefix, char *directory)
 		if (dir_entry != NULL) {
 			if (strncmp(dir_entry->d_name, prefix, strlen(prefix))
 			    == 0) {
-				snprintf(target_name, 80, "%s/%s", directory,
-					 dir_entry->d_name);
+				snprintf(target_name, sizeof(target_name) - 1,
+					 "%s/%s", directory, dir_entry->d_name);
+				target_name[sizeof(target_name) - 1] = '\0';
 				unlink(target_name);
 			}
 		}
@@ -456,6 +457,7 @@ int main(int argc, char **argv)
 	sanitize_dir(LOCKDIR);
 	sanitize_dir(WORKDIR);
 
+	setlocale(LC_ALL, "");	/* needed to properly init (n)curses library */
 	initscr();
 
 	if ((LINES < 24) || (COLS < 80)) {

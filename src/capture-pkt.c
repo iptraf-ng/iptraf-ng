@@ -7,6 +7,7 @@
 #include "parse-options.h"
 #include "ifaces.h"
 #include "packet.h"
+#include "capt.h"
 
 static const char *const capture_usage[] = {
 	IPTRAF_NAME " capture [-c] <device>",
@@ -33,12 +34,9 @@ int cmd_capture(int argc, char **argv)
 
 	char *dev = argv[0];
 
-	int fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if (fd < 0)
-		die_errno("Unable to obtain monitoring socket");
-
-	if (dev_bind_ifname(fd, dev) < 0)
-		perror("Unable to bind device on the socket");
+	struct capt capt;
+	if (capt_init(&capt, dev) == -1)
+		die_errno("Unable to initialize packet capture interface");
 
 	FILE *fp = NULL;
 	if (ofilename) {
@@ -52,7 +50,7 @@ int cmd_capture(int argc, char **argv)
 
 	int captured = 0;
 	for (;;) {
-		if (packet_get(fd, &pkt, NULL, NULL) == -1)
+		if (capt_get_packet(&capt, &pkt, NULL, NULL) == -1)
 			die_errno("fail to get packet");
 
 		if (!pkt.pkt_len)
@@ -64,6 +62,8 @@ int cmd_capture(int argc, char **argv)
 		if (fp)
 			fwrite(&pkt, sizeof(pkt), 1, fp);
 
+		capt_put_packet(&capt, &pkt);
+
 		if (++captured == cap_nr_pkt)
 			break;
 	}
@@ -71,10 +71,10 @@ int cmd_capture(int argc, char **argv)
 
 	packet_destroy(&pkt);
 
-	close(fd);
-
 	if (fp)
 		fclose(fp);
+
+	capt_destroy(&capt);
 
 	return 0;
 }
