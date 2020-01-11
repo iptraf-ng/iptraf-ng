@@ -21,10 +21,12 @@ struct capt_data_recvmmsg {
 
 static unsigned int capt_recvmmsg_find_filled_slot(struct capt_data_recvmmsg *data)
 {
-	for (unsigned int slot = data->lastslot; slot < FRAMES; slot++)
+	for (unsigned int i = data->lastslot; i < data->lastslot + FRAMES; i++) {
+		unsigned int slot = i >= FRAMES ? i - FRAMES : i;
+
 		if (data->msgvec[slot].msg_len != 0)
 			return slot;
-
+	}
 	return FRAMES;
 }
 
