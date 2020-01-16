@@ -428,6 +428,21 @@ rpm: dist
 		--define "_binary_filedigest_algorithm md5" \
 		-ta $(IPTRAF_TARNAME).tar.gz
 
+### Documentation rules
+html: Documentation/book1.html
+pdf: Documentation/manual.pdf
+
+Documentation/book1.html: Documentation/manual.sgml
+	cd Documentation && docbook2html manual.sgml
+
+Documentation/manual.pdf: Documentation/manual.sgml
+	cd Documentation && docbook2pdf manual.sgml
+
+Documentation/manual.sgml: Documentation/manual.sgml.in VERSION-FILE
+	cat $< | sed \
+		-e s/@@version@@/`echo $(IPTRAF_VERSION) | cut -d. -f1-3`/ \
+		-e s/@@major@@/`echo $(IPTRAF_VERSION) | cut -d. -f1-2`/ \
+	> $@
 
 ## TODO: use asciidoc to generate mans
 
@@ -446,6 +461,9 @@ distclean: clean
 #	$(RM) configure
 
 clean:
+	$(RM) Documentation/manual.sgml
+	$(RM) Documentation/manual.pdf
+	$(RM) Documentation/*.html
 	$(RM) src/*.o src/tui/*.o
 	$(RM) $(ALL_PROGRAMS)
 	$(RM) -r autom4te.cache
@@ -458,5 +476,4 @@ clean:
 gtags:
 	$(QUIET_GEN) gtags
 
-.PHONY: clean distclean all install FORCE
-
+.PHONY: clean distclean all install html pdf gtags FORCE
