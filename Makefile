@@ -59,13 +59,7 @@ iptraf-o :=
 rvnamed-o :=
 rvnamed-h :=
 
-
-ALL_PROGRAMS =
-
-# Empty...
-EXTRA_PROGRAMS =
-
-ALL_PROGRAMS += iptraf-ng rvnamed-ng
+ALL_PROGRAMS := iptraf-ng rvnamed-ng
 
 ifndef SHELL_PATH
 	SHELL_PATH = /bin/sh
@@ -413,11 +407,10 @@ iptraf-ng.spec: iptraf-ng.spec.in
 	mv $@+ $@
 
 IPTRAF_TARNAME = iptraf-ng-$(IPTRAF_VERSION)
-dist: iptraf-ng.spec # configure
+dist: iptraf-ng.spec
 	@mkdir -p $(IPTRAF_TARNAME)
 	@cp iptraf-ng.spec (IPTRAF_TARNAME)
 	@cp --parents `git ls-files` $(IPTRAF_TARNAME)
-	@echo $(IPTRAF_VERSION) > $(IPTRAF_TARNAME)/version
 	$(TAR) cf $(IPTRAF_TARNAME).tar $(IPTRAF_TARNAME)
 	@$(RM) -rf $(IPTRAF_TARNAME)
 	gzip -f -9 $(IPTRAF_TARNAME).tar
@@ -428,6 +421,21 @@ rpm: dist
 		--define "_binary_filedigest_algorithm md5" \
 		-ta $(IPTRAF_TARNAME).tar.gz
 
+### Documentation rules
+html: Documentation/book1.html
+pdf: Documentation/manual.pdf
+
+Documentation/book1.html: Documentation/manual.sgml
+	cd Documentation && docbook2html manual.sgml
+
+Documentation/manual.pdf: Documentation/manual.sgml
+	cd Documentation && docbook2pdf manual.sgml
+
+Documentation/manual.sgml: Documentation/manual.sgml.in VERSION-FILE
+	cat $< | sed \
+		-e s/@@version@@/`echo $(IPTRAF_VERSION) | cut -d. -f1-3`/ \
+		-e s/@@major@@/`echo $(IPTRAF_VERSION) | cut -d. -f1-2`/ \
+	> $@
 
 ## TODO: use asciidoc to generate mans
 
@@ -443,20 +451,19 @@ install: all
 ### Cleaning rules
 
 distclean: clean
-#	$(RM) configure
 
 clean:
-	$(RM) src/*.o src/tui/*.o
+	$(RM) Documentation/manual.sgml
+	$(RM) Documentation/manual.pdf
+	$(RM) Documentation/*.html
+	$(RM) $(iptraf-o) $(rvnamed-o)
 	$(RM) $(ALL_PROGRAMS)
-	$(RM) -r autom4te.cache
 	$(RM) -r $(dep_dirs)
-	$(RM) *.spec
+	$(RM) iptraf-ng.spec
 	$(RM) $(IPTRAF_TARNAME).tar.gz
 	$(RM) VERSION-FILE
 
-.PHONY: gtags
 gtags:
 	$(QUIET_GEN) gtags
 
-.PHONY: clean distclean all install FORCE
-
+.PHONY: clean distclean all install html pdf gtags FORCE
