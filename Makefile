@@ -59,13 +59,7 @@ iptraf-o :=
 rvnamed-o :=
 rvnamed-h :=
 
-
-ALL_PROGRAMS =
-
-# Empty...
-EXTRA_PROGRAMS =
-
-ALL_PROGRAMS += iptraf-ng rvnamed-ng
+ALL_PROGRAMS := iptraf-ng rvnamed-ng
 
 ifndef SHELL_PATH
 	SHELL_PATH = /bin/sh
@@ -413,7 +407,7 @@ iptraf-ng.spec: iptraf-ng.spec.in
 	mv $@+ $@
 
 IPTRAF_TARNAME = iptraf-ng-$(IPTRAF_VERSION)
-dist: iptraf-ng.spec # configure
+dist: iptraf-ng.spec
 	@mkdir -p $(IPTRAF_TARNAME)
 	@cp iptraf-ng.spec (IPTRAF_TARNAME)
 	@cp --parents `git ls-files` $(IPTRAF_TARNAME)
@@ -457,21 +451,18 @@ install: all
 ### Cleaning rules
 
 distclean: clean
-#	$(RM) configure
 
 clean:
 	$(RM) Documentation/manual.sgml
 	$(RM) Documentation/manual.pdf
 	$(RM) Documentation/*.html
-	$(RM) src/*.o src/tui/*.o
+	$(RM) $(iptraf-o) $(rvnamed-o)
 	$(RM) $(ALL_PROGRAMS)
-	$(RM) -r autom4te.cache
 	$(RM) -r $(dep_dirs)
-	$(RM) *.spec
+	$(RM) iptraf-ng.spec
 	$(RM) $(IPTRAF_TARNAME).tar.gz
 	$(RM) VERSION-FILE
 
-.PHONY: gtags
 gtags:
 	$(QUIET_GEN) gtags
 
