@@ -417,7 +417,6 @@ dist: iptraf-ng.spec # configure
 	@mkdir -p $(IPTRAF_TARNAME)
 	@cp iptraf-ng.spec (IPTRAF_TARNAME)
 	@cp --parents `git ls-files` $(IPTRAF_TARNAME)
-	@echo $(IPTRAF_VERSION) > $(IPTRAF_TARNAME)/version
 	$(TAR) cf $(IPTRAF_TARNAME).tar $(IPTRAF_TARNAME)
 	@$(RM) -rf $(IPTRAF_TARNAME)
 	gzip -f -9 $(IPTRAF_TARNAME).tar
