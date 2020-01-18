@@ -88,8 +88,7 @@ int capt_init(struct capt *capt, char *ifname)
 	return 0;	/* all O.K. */
 
 out:
-	close(capt->fd);
-	capt->fd = -1;
+	capt_destroy(capt);
 
 	return -1;
 }
