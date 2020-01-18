@@ -77,10 +77,8 @@ int capt_init(struct capt *capt, char *ifname)
 	if (capt_setup_receive_function(capt) == -1)
 		goto out;
 
-	if (options.promisc) {
-		promisc_init(&capt->promisc, ifname);
-		promisc_set_list(capt->fd, &capt->promisc);
-	}
+	if (options.promisc)
+		promisc_enable(capt->fd, &capt->promisc, ifname);
 
 	/* bind interface (and protocol) to socket
 	 * (interface can be NULL -> any interface) */

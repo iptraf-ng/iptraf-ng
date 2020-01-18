@@ -20,19 +20,6 @@ struct promisc_list {
 	char ifname[IFNAMSIZ];
 };
 
-static void promisc_add_dev(struct list_head *promisc, const char *dev_name)
-{
-	struct promisc_list *p = xmallocz(sizeof(*p));
-	int ifindex = dev_get_ifindex(dev_name);
-	if (ifindex < 0)
-		return;
-
-	p->ifindex = ifindex;
-	strcpy(p->ifname, dev_name);
-
-	list_add_tail(&p->list, promisc);
-}
-
 static bool promisc_dev_suitable(const char *dev_name)
 {
 	int flags = dev_get_flags(dev_name);
@@ -43,29 +30,6 @@ static bool promisc_dev_suitable(const char *dev_name)
 		return true;
 	else
 		return false;
-}
-
-void promisc_init(struct list_head *promisc, const char *device_name)
-{
-	if (device_name && promisc_dev_suitable(device_name)) {
-		promisc_add_dev(promisc, device_name);
-		return;
-	}
-
-	FILE *fp = open_procnetdev();
-	if (!fp)
-		die_errno("%s: open_procnetdev", __func__);
-
-	char dev_name[IFNAMSIZ];
-	while (get_next_iface(fp, dev_name, sizeof(dev_name))) {
-		if (!strcmp(dev_name, ""))
-			continue;
-
-		if (promisc_dev_suitable(dev_name))
-			promisc_add_dev(promisc, dev_name);
-	}
-
-	fclose(fp);
 }
 
 static int sock_change_promisc(int sock, int action, int ifindex)
@@ -88,14 +52,48 @@ static int sock_disable_promisc(int sock, int ifindex)
 	return sock_change_promisc(sock, PACKET_DROP_MEMBERSHIP, ifindex);
 }
 
-void promisc_set_list(int sock, struct list_head *promisc)
+static void promisc_enable_dev(struct list_head *promisc, int sock, const char *dev)
 {
-	struct promisc_list *entry = NULL;
-	list_for_each_entry(entry, promisc, list) {
-		int r = sock_enable_promisc(sock, entry->ifindex);
-		if (r < 0)
-			write_error("Failed to set promiscuous mode on %s", entry->ifname);
+	if (!promisc_dev_suitable(dev))
+		return;
+
+	int ifindex = dev_get_ifindex(dev);
+	if (ifindex < 0)
+		return;
+
+	int r = sock_enable_promisc(sock, ifindex);
+	if (r < 0) {
+		write_error("Failed to set promiscuous mode on %s", dev);
+		return;
 	}
+
+	struct promisc_list *new = xmallocz(sizeof(*new));
+
+	new->ifindex = ifindex;
+	strcpy(new->ifname, dev);
+	list_add_tail(&new->list, promisc);
+}
+
+void promisc_enable(int sock, struct list_head *promisc, const char *device_name)
+{
+	if (device_name) {
+		promisc_enable_dev(promisc, sock, device_name);
+		return;
+	}
+
+	FILE *fp = open_procnetdev();
+	if (!fp)
+		die_errno("%s: open_procnetdev", __func__);
+
+	char dev_name[IFNAMSIZ];
+	while (get_next_iface(fp, dev_name, sizeof(dev_name))) {
+		if (!strcmp(dev_name, ""))
+			continue;
+
+		promisc_enable_dev(promisc, sock, dev_name);
+	}
+
+	fclose(fp);
 }
 
 void promisc_disable(int sock, struct list_head *promisc)
