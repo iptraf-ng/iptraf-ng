@@ -265,18 +265,3 @@ int dev_bind_ifname(int fd, const char * const ifname)
 
 	return dev_bind_ifindex(fd, ifindex);
 }
-
-int dev_promisc_flag(const char *dev_name)
-{
-	int flags = dev_get_flags(dev_name);
-	if (flags < 0) {
-		write_error("Unable to obtain interface parameters for %s",
-			    dev_name);
-		return -1;
-	}
-
-	if (flags & IFF_PROMISC)
-		return -1;
-
-	return flags;
-}

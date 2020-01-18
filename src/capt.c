@@ -79,7 +79,7 @@ int capt_init(struct capt *capt, char *ifname)
 
 	if (options.promisc) {
 		promisc_init(&capt->promisc, ifname);
-		promisc_set_list(&capt->promisc);
+		promisc_set_list(capt->fd, &capt->promisc);
 	}
 
 	/* bind interface (and protocol) to socket
@@ -98,7 +98,7 @@ out:
 
 void capt_destroy(struct capt *capt)
 {
-	promisc_restore_list(&capt->promisc);
+	promisc_restore_list(capt->fd, &capt->promisc);
 	promisc_destroy(&capt->promisc);
 
 	if (capt->cleanup)
