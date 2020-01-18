@@ -23,15 +23,22 @@ static void promisc_add_dev(struct list_head *promisc, const char *dev_name)
 	list_add_tail(&p->list, promisc);
 }
 
+static bool promisc_dev_suitable(const char *dev_name)
+{
+	int flags = dev_get_flags(dev_name);
+	if (flags < 0)
+		return false;
+
+	if ((flags & (IFF_UP | IFF_PROMISC)) == IFF_UP)
+		return true;
+	else
+		return false;
+}
+
 void promisc_init(struct list_head *promisc, const char *device_name)
 {
-	if (device_name) {
-		int flags = dev_promisc_flag(device_name);
-		if (flags < 0)
-			return;
-
+	if (device_name && promisc_dev_suitable(device_name)) {
 		promisc_add_dev(promisc, device_name);
-
 		return;
 	}
 
@@ -44,11 +51,8 @@ void promisc_init(struct list_head *promisc, const char *device_name)
 		if (!strcmp(dev_name, ""))
 			continue;
 
-		int flags = dev_promisc_flag(dev_name);
-		if (flags < 0)
-			continue;
-
-		promisc_add_dev(promisc, dev_name);
+		if (promisc_dev_suitable(dev_name))
+			promisc_add_dev(promisc, dev_name);
 	}
 
 	fclose(fp);
