@@ -98,20 +98,14 @@ void promisc_set_list(int sock, struct list_head *promisc)
 	}
 }
 
-void promisc_restore_list(int sock, struct list_head *promisc)
-{
-	struct promisc_list *entry = NULL;
-	list_for_each_entry(entry, promisc, list) {
-		int r = sock_disable_promisc(sock, entry->ifindex);
-		if (r < 0)
-			write_error("Failed to clear promiscuous mode on %s", entry->ifname);
-	}
-}
-
-void promisc_destroy(struct list_head *promisc)
+void promisc_disable(int sock, struct list_head *promisc)
 {
 	struct promisc_list *entry, *tmp;
 	list_for_each_entry_safe(entry, tmp, promisc, list) {
+		int r = sock_disable_promisc(sock, entry->ifindex);
+		if (r < 0)
+			write_error("Failed to clear promiscuous mode on %s", entry->ifname);
+
 		list_del(&entry->list);
 		free(entry);
 	}

@@ -98,8 +98,7 @@ out:
 
 void capt_destroy(struct capt *capt)
 {
-	promisc_restore_list(capt->fd, &capt->promisc);
-	promisc_destroy(&capt->promisc);
+	promisc_disable(capt->fd, &capt->promisc);
 
 	if (capt->cleanup)
 		capt->cleanup(capt);
