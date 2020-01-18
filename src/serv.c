@@ -25,7 +25,6 @@ serv.c  - TCP/UDP port statistics module
 #include "servname.h"
 #include "log.h"
 #include "timer.h"
-#include "promisc.h"
 #include "options.h"
 #include "packet.h"
 #include "logvars.h"
@@ -914,12 +913,6 @@ void servmon(char *ifname, time_t facilitytime)
 	initportlist(&list);
 	loadaddports(&ports);
 
-	LIST_HEAD(promisc);
-	if (options.promisc) {
-		promisc_init(&promisc, ifname);
-		promisc_set_list(&promisc);
-	}
-
 	if (capt_init(&capt, ifname) == -1) {
 		write_error("Unable to initialize packet capture interface");
 		goto err;
@@ -1035,11 +1028,6 @@ void servmon(char *ifname, time_t facilitytime)
 
 	capt_destroy(&capt);
 err:
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
-
 	destroyporttab(ports);
 	destroyportlist(&list);
 }

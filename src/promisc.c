@@ -14,6 +14,11 @@ promisc.c	- handles the promiscuous mode flag for the Ethernet/FDDI/
 #include "error.h"
 #include "promisc.h"
 
+struct promisc_list {
+	struct list_head list;
+	char ifname[IFNAMSIZ];
+};
+
 static void promisc_add_dev(struct list_head *promisc, const char *dev_name)
 {
 	struct promisc_list *p = xmallocz(sizeof(*p));

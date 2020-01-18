@@ -25,7 +25,6 @@ ifstats.c	- the interface statistics module
 #include "serv.h"
 #include "timer.h"
 #include "logvars.h"
-#include "promisc.h"
 #include "error.h"
 #include "ifstats.h"
 #include "rate.h"
@@ -535,12 +534,6 @@ void ifstats(time_t facilitytime)
 
 	initiftab(&table);
 
-	LIST_HEAD(promisc);
-	if (options.promisc) {
-		promisc_init(&promisc, NULL);
-		promisc_set_list(&promisc);
-	}
-
 	if (capt_init(&capt, NULL) == -1) {
 		write_error("Unable to initialize packet capture interface");
 		goto err;
@@ -662,11 +655,6 @@ void ifstats(time_t facilitytime)
 
 	capt_destroy(&capt);
 err:
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
-
 	del_panel(table.statpanel);
 	delwin(table.statwin);
 	del_panel(table.borderpanel);

@@ -3,11 +3,6 @@
 
 #include "list.h"
 
-struct promisc_list {
-	struct list_head list;
-	char ifname[IFNAMSIZ];
-};
-
 void promisc_init(struct list_head *promisc, const char *device_name);
 void promisc_destroy(struct list_head *promisc);
 

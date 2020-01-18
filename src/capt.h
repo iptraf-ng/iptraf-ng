@@ -10,9 +10,13 @@
  */
 #define MAX_PACKET_SIZE 96
 
+#include "list.h"
+
 struct capt {
 	int		fd;
 	unsigned long	dropped;
+
+	struct list_head promisc;
 
 	void		*priv;
 
