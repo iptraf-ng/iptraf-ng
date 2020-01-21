@@ -25,7 +25,6 @@ Discovers LAN hosts and displays packet statistics for them
 #include "landesc.h"
 #include "options.h"
 #include "logvars.h"
-#include "promisc.h"
 #include "error.h"
 #include "rate.h"
 #include "capt.h"
@@ -917,12 +916,6 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	initethtab(&table);
 
-	LIST_HEAD(promisc);
-	if (options.promisc) {
-		promisc_init(&promisc, ifptr);
-		promisc_set_list(&promisc);
-	}
-
 	if (capt_init(&capt, ifptr) == -1) {
 		write_error("Unable to initialize packet capture interface");
 		goto err;
@@ -1031,10 +1024,5 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	capt_destroy(&capt);
 err:
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
-
 	destroyethtab(&table);
 }

@@ -23,7 +23,6 @@ detstats.c	- the interface statistics module
 #include "serv.h"
 #include "timer.h"
 #include "logvars.h"
-#include "promisc.h"
 #include "error.h"
 #include "detstats.h"
 #include "rate.h"
@@ -544,12 +543,6 @@ void detstats(char *iface, time_t facilitytime)
 	update_panels();
 	doupdate();
 
-	LIST_HEAD(promisc);
-	if (options.promisc) {
-		promisc_init(&promisc, iface);
-		promisc_set_list(&promisc);
-	}
-
 	if (capt_init(&capt, iface) == -1) {
 		write_error("Unable to initialize packet capture interface");
 		goto err;
@@ -671,11 +664,6 @@ void detstats(char *iface, time_t facilitytime)
 	ifcounts_destroy(&ifcounts);
 	capt_destroy(&capt);
 err:
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
-
 	del_panel(statpanel);
 	delwin(statwin);
 	update_panels();

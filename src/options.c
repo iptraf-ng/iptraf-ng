@@ -19,7 +19,6 @@ options.c - implements the configuration section of the utility
 #include "deskman.h"
 #include "attrs.h"
 #include "landesc.h"
-#include "promisc.h"
 #include "dirs.h"
 
 #define ALLOW_ZERO 1

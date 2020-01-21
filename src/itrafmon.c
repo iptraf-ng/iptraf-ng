@@ -18,7 +18,6 @@ itrafmon.c - the IP traffic monitor module
 #include "fltdefs.h"
 #include "packet.h"
 #include "ifaces.h"
-#include "promisc.h"
 #include "deskman.h"
 #include "error.h"
 #include "attrs.h"
@@ -865,15 +864,9 @@ void ipmon(time_t facilitytime, char *ifptr)
 		return;
 	}
 
-	LIST_HEAD(promisc);
-	if (options.promisc) {
-		promisc_init(&promisc, ifptr);
-		promisc_set_list(&promisc);
-	}
-
 	if (capt_init(&capt, ifptr) == -1) {
 		write_error("Unable to initialize packet capture interface");
-		goto err;
+		return;
 	}
 
 	if (revlook) {
@@ -1039,9 +1032,4 @@ void ipmon(time_t facilitytime, char *ifptr)
 	close_rvn_socket(rvnfd);
 
 	capt_destroy(&capt);
-err:
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
 }

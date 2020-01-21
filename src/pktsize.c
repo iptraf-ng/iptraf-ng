@@ -23,7 +23,6 @@ pktsize.c	- the packet size breakdown facility
 #include "timer.h"
 #include "log.h"
 #include "logvars.h"
-#include "promisc.h"
 #include "capt.h"
 
 #define SIZES 20
@@ -244,12 +243,6 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	psizetab_init(&table, ifname);
 
-	LIST_HEAD(promisc);
-	if (options.promisc) {
-		promisc_init(&promisc, ifname);
-		promisc_set_list(&promisc);
-	}
-
 	if (capt_init(&capt, ifname) == -1) {
 		write_error("Unable to initialize packet capture interface");
 		goto err;
@@ -368,10 +361,5 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 err_close:
 	capt_destroy(&capt);
 err:
-	if (options.promisc) {
-		promisc_restore_list(&promisc);
-		promisc_destroy(&promisc);
-	}
-
 	psizetab_destroy(&table);
 }

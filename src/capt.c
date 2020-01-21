@@ -3,6 +3,8 @@
 
 #include "iptraf-ng-compat.h"
 
+#include "options.h"
+#include "promisc.h"
 #include "error.h"
 #include "ifaces.h"
 #include "packet.h"
@@ -55,6 +57,8 @@ int capt_init(struct capt *capt, char *ifname)
 
 	capt->dropped = 0UL;
 
+	INIT_LIST_HEAD(&capt->promisc);
+
 	/* initialize socket first with some default protocol;
 	 * the right protocol is then set with bind();
 	 * this overcomes the problem with getting packets
@@ -73,6 +77,9 @@ int capt_init(struct capt *capt, char *ifname)
 	if (capt_setup_receive_function(capt) == -1)
 		goto out;
 
+	if (options.promisc)
+		promisc_enable(capt->fd, &capt->promisc, ifname);
+
 	/* bind interface (and protocol) to socket
 	 * (interface can be NULL -> any interface) */
 	if (dev_bind_ifname(capt->fd, ifname) == -1)
@@ -81,14 +88,15 @@ int capt_init(struct capt *capt, char *ifname)
 	return 0;	/* all O.K. */
 
 out:
-	close(capt->fd);
-	capt->fd = -1;
+	capt_destroy(capt);
 
 	return -1;
 }
 
 void capt_destroy(struct capt *capt)
 {
+	promisc_disable(capt->fd, &capt->promisc);
+
 	if (capt->cleanup)
 		capt->cleanup(capt);
 
