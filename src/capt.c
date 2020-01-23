@@ -154,7 +154,7 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	int pfd_key = -1;
 	int ss = 0;
 	int have_packet = capt->have_packet(capt);
-	int timeout = DEFAULT_UPDATE_DELAY;
+	int timeout = ch ? DEFAULT_UPDATE_DELAY : -1;
 	static struct timeval next_kbd_check = { 0 };
 
 	/* no packet ready, so poll() for it */
