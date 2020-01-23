@@ -29,7 +29,7 @@ struct capt_data_mmap_v3 {
 
 #define FRAMES (BLOCKS * FRAMES_PER_BLOCK)	/* frames over all blocks */
 
-#define FRAME_SIZE TPACKET_ALIGN(MAX_PACKET_SIZE + TPACKET_HDRLEN)
+#define FRAME_SIZE TPACKET_ALIGN(MAX_PACKET_SIZE + TPACKET3_HDRLEN)
 
 static struct tpacket_block_desc *capt_mmap_find_filled_block(struct capt_data_mmap_v3 *data)
 {
