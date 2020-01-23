@@ -76,6 +76,7 @@ static int capt_get_packet_mmap_v3(struct capt *capt, struct pkt_hdr *pkt)
 	/* here should be at least one packet ready */
 	pkt->pkt_buf = (char *)data->ppd + data->ppd->tp_mac;
 	pkt->pkt_payload = NULL;
+	pkt->pkt_caplen = data->ppd->tp_snaplen;
 	pkt->pkt_len = data->ppd->tp_len;
 	pkt->from = (struct sockaddr_ll *)((uint8_t *)data->ppd + data->hdrlen);
 	pkt->pkt_protocol = ntohs(pkt->from->sll_protocol);
