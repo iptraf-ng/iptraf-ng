@@ -10,7 +10,7 @@
 #include "capt.h"
 
 static const char *const capture_usage[] = {
-	IPTRAF_NAME " capture [-c] <device>",
+	IPTRAF_NAME " capture [options] <device>",
 	NULL
 };
 
@@ -20,8 +20,8 @@ static char *ofilename;
 static struct options capture_options[] = {
 	OPT__HELP(&help_opt),
 	OPT_GROUP(""),
-	OPT_INTEGER('c', "capture", &cap_nr_pkt, "capture <n> packets"),
-	OPT_STRING('o', "output", &ofilename, "file", "save captured packet into <file>"),
+	OPT_INTEGER('c', "capture", &cap_nr_pkt, "capture <n> packets (default: 1)"),
+	OPT_STRING('o', "output", &ofilename, "file", "save captured packet into <file> (default: <stdout>)"),
 	OPT_END()
 };
 
@@ -38,40 +38,36 @@ int cmd_capture(int argc, char **argv)
 	if (capt_init(&capt, dev) == -1)
 		die_errno("Unable to initialize packet capture interface");
 
-	FILE *fp = NULL;
+	FILE *fp = stdout;
 	if (ofilename) {
 		fp = fopen(ofilename, "wb");
 		if (!fp)
-			die_errno("fopen");
+			die_errno("Unable to open file");
 	}
 
 	struct pkt_hdr pkt;
 	packet_init(&pkt);
 
 	int captured = 0;
-	for (;;) {
+	do {
 		if (capt_get_packet(&capt, &pkt, NULL, NULL) == -1)
-			die_errno("fail to get packet");
+			die_errno("Failed to get packet");
 
 		if (!pkt.pkt_len)
 			continue;
 
-		printf(".");
-		fflush(stdout);
-
-		if (fp)
-			fwrite(&pkt, sizeof(pkt), 1, fp);
-
+		packet_dump(&pkt, fp);
 		capt_put_packet(&capt, &pkt);
 
-		if (++captured == cap_nr_pkt)
-			break;
-	}
-	printf("\n");
+		captured++;
+		fprintf(stderr, "\rCaptured %d packet(s) out of %d", captured, cap_nr_pkt);
+		fflush(stderr);
+	} while (captured < cap_nr_pkt);
+	fprintf(stderr, "\n");
 
 	packet_destroy(&pkt);
 
-	if (fp)
+	if (fp && fp != stderr)
 		fclose(fp);
 
 	capt_destroy(&capt);
