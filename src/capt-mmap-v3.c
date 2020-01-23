@@ -29,7 +29,7 @@ struct capt_data_mmap_v3 {
 
 #define FRAMES (BLOCKS * FRAMES_PER_BLOCK)	/* frames over all blocks */
 
-#define FRAME_SIZE TPACKET_ALIGN(MAX_PACKET_SIZE + TPACKET_HDRLEN)
+#define FRAME_SIZE TPACKET_ALIGN(MAX_PACKET_SIZE + TPACKET3_HDRLEN)
 
 static struct tpacket_block_desc *capt_mmap_find_filled_block(struct capt_data_mmap_v3 *data)
 {
@@ -76,6 +76,7 @@ static int capt_get_packet_mmap_v3(struct capt *capt, struct pkt_hdr *pkt)
 	/* here should be at least one packet ready */
 	pkt->pkt_buf = (char *)data->ppd + data->ppd->tp_mac;
 	pkt->pkt_payload = NULL;
+	pkt->pkt_caplen = data->ppd->tp_snaplen;
 	pkt->pkt_len = data->ppd->tp_len;
 	pkt->from = (struct sockaddr_ll *)((uint8_t *)data->ppd + data->hdrlen);
 	pkt->pkt_protocol = ntohs(pkt->from->sll_protocol);

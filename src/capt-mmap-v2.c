@@ -16,7 +16,7 @@ struct capt_data_mmap_v2 {
 };
 
 #define FRAMES 512
-#define FRAME_SIZE TPACKET_ALIGN(MAX_PACKET_SIZE + TPACKET_HDRLEN)
+#define FRAME_SIZE TPACKET_ALIGN(MAX_PACKET_SIZE + TPACKET2_HDRLEN)
 
 static unsigned int capt_mmap_find_filled_slot(struct capt_data_mmap_v2 *data)
 {
