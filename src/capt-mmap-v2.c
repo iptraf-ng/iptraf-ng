@@ -90,6 +90,11 @@ static void capt_cleanup_mmap_v2(struct capt *capt)
 
 	free(capt->priv);
 	capt->priv = NULL;
+
+	capt->cleanup = NULL;
+	capt->put_packet = NULL;
+	capt->get_packet = NULL;
+	capt->have_packet = NULL;
 }
 
 int capt_setup_mmap_v2(struct capt *capt)

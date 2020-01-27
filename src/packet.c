@@ -90,6 +90,11 @@ static int packet_adjust(struct pkt_hdr *pkt)
 		pkt->pkt_payload += sizeof(struct fddihdr);
 		pkt->pkt_len -= sizeof(struct fddihdr);
 		break;
+	case ARPHRD_INFINIBAND:
+		pkt->pkt_payload = pkt->pkt_buf;
+		pkt->pkt_payload += 24;
+		pkt->pkt_len -= 24;
+		break;
 	default:
 		/* return a NULL packet to signal an unrecognized link */
 		/* protocol to the caller.  Hopefully, this switch statement */
