@@ -850,9 +850,9 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 			wprintw(table->tcpscreen, ">");
 		else
 			wprintw(table->tcpscreen, "=");
-		wprintw(table->tcpscreen, "%8u  ", tableentry->pcount);
+		printlargenum(tableentry->pcount, table->tcpscreen);
 		wmove(table->tcpscreen, target_row, 59 * COLS / 80 - 4);
-		wprintw(table->tcpscreen, "%9u  ", tableentry->bcount);
+		printlargenum(tableentry->bcount, table->tcpscreen);
 		break;
 	case 1:
 		wmove(table->tcpscreen, target_row, 50 * COLS / 80);
