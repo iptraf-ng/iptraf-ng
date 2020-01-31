@@ -465,17 +465,23 @@ static void updateethrates(struct ethtab *table, unsigned long msecs)
 	}
 }
 
-static void refresh_hostmon_screen(struct ethtab *table)
+static void print_visible_entries(struct ethtab *table)
 {
 	struct ethtabent *ptmp = table->firstvisible;
-
-	wattrset(table->tabwin, STDATTR);
-	tx_colorwin(table->tabwin);
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
 		printethent(table, ptmp);
 		ptmp = ptmp->next_entry;
 	}
+}
+
+static void refresh_hostmon_screen(struct ethtab *table)
+{
+	wattrset(table->tabwin, STDATTR);
+	tx_colorwin(table->tabwin);
+
+	print_visible_entries(table);
+	print_visible_rates(table);
 
 	update_panels();
 	doupdate();
@@ -530,7 +536,6 @@ static void scrollethwin_many(struct ethtab *table, int direction, int lines)
 		break;
 	}
 	refresh_hostmon_screen(table);
-	print_visible_rates(table);
 }
 
 static void scrollethwin(struct ethtab *table, int direction, int lines)
@@ -802,7 +807,6 @@ static void hostmon_process_key(struct ethtab *table, int ch)
 		sort_hosttab(table, ch);
 		keymode = 0;
 		refresh_hostmon_screen(table);
-		print_visible_rates(table);
 	}
 }
 
@@ -854,13 +858,8 @@ static void hostmon_process_packet(struct ethtab *table, struct pkt_hdr *pkt)
 				    pkt->from->sll_ifindex, scratch_saddr,
 				    list);
 
-	if (entry != NULL) {
+	if (entry != NULL)
 		updateethent(entry, pkt->pkt_len, is_ip, 1);
-		if (!entry->prev_entry->un.desc.printed)
-			printethent(table, entry->prev_entry);
-
-		printethent(table, entry);
-	}
 
 	/* Check destination address entry */
 	entry = in_ethtable(table, pkt->from->sll_hatype, scratch_daddr);
@@ -869,13 +868,8 @@ static void hostmon_process_packet(struct ethtab *table, struct pkt_hdr *pkt)
 				    pkt->from->sll_ifindex, scratch_daddr,
 				    list);
 
-	if (entry != NULL) {
+	if (entry != NULL)
 		updateethent(entry, pkt->pkt_len, is_ip, 0);
-		if (!entry->prev_entry->un.desc.printed)
-			printethent(table, entry->prev_entry);
-
-		printethent(table, entry);
-	}
 }
 
 /*
@@ -973,11 +967,10 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 			last_time = now;
 		}
-
 		if (screen_update_needed(&now, &last_update)) {
+			print_visible_entries(&table);
 			update_panels();
 			doupdate();
-
 			last_update = now;
 		}
 
