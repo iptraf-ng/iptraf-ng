@@ -242,7 +242,7 @@ void convmacaddr(char *addr, char *result)
 }
 
 static struct ethtabent *addethentry(struct ethtab *table,
-				     unsigned int linktype, char *ifname,
+				     unsigned int linktype, int ifindex,
 				     char *addr, struct eth_desc *list)
 {
 	struct ethtabent *ptemp;
@@ -265,7 +265,7 @@ static struct ethtabent *addethentry(struct ethtab *table,
 		if (!strcasecmp(desc->hd_mac, ptemp->un.desc.ascaddr))
 			strcpy(ptemp->un.desc.desc, desc->hd_desc);
 
-	strcpy(ptemp->un.desc.ifname, ifname);
+	dev_get_ifname(ifindex, ptemp->un.desc.ifname);
 
 	if (strcmp(ptemp->un.desc.desc, "") == 0)
 		ptemp->un.desc.withdesc = 0;
@@ -465,17 +465,23 @@ static void updateethrates(struct ethtab *table, unsigned long msecs)
 	}
 }
 
-static void refresh_hostmon_screen(struct ethtab *table)
+static void print_visible_entries(struct ethtab *table)
 {
 	struct ethtabent *ptmp = table->firstvisible;
-
-	wattrset(table->tabwin, STDATTR);
-	tx_colorwin(table->tabwin);
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
 		printethent(table, ptmp);
 		ptmp = ptmp->next_entry;
 	}
+}
+
+static void refresh_hostmon_screen(struct ethtab *table)
+{
+	wattrset(table->tabwin, STDATTR);
+	tx_colorwin(table->tabwin);
+
+	print_visible_entries(table);
+	print_visible_rates(table);
 
 	update_panels();
 	doupdate();
@@ -530,7 +536,6 @@ static void scrollethwin_many(struct ethtab *table, int direction, int lines)
 		break;
 	}
 	refresh_hostmon_screen(table);
-	print_visible_rates(table);
 }
 
 static void scrollethwin(struct ethtab *table, int direction, int lines)
@@ -802,33 +807,16 @@ static void hostmon_process_key(struct ethtab *table, int ch)
 		sort_hosttab(table, ch);
 		keymode = 0;
 		refresh_hostmon_screen(table);
-		print_visible_rates(table);
 	}
 }
 
-static void hostmon_process_packet(struct ethtab *table, struct pkt_hdr *pkt,
-				   char *ifptr)
+static void hostmon_process_packet(struct ethtab *table, struct pkt_hdr *pkt)
 {
-	char ifnamebuf[IFNAMSIZ];
-	char *ifname = ifptr;
-
 	int pkt_result = packet_process(pkt, NULL, NULL, NULL,
 					MATCH_OPPOSITE_USECONFIG, 0);
 
 	if (pkt_result != PACKET_OK)
 		return;
-
-	if (ifptr == NULL) {
-		/* we're capturing on "All interfaces", */
-		/* so get the name of the interface */
-		/* of this packet */
-		int r = dev_get_ifname(pkt->from->sll_ifindex, ifnamebuf);
-		if (r != 0) {
-			write_error("Unable to get interface name");
-			return;	/* can't get interface name, get out! */
-		}
-		ifname = ifnamebuf;
-	}
 
 	char scratch_saddr[ETH_ALEN];
 	char scratch_daddr[ETH_ALEN];
@@ -867,29 +855,21 @@ static void hostmon_process_packet(struct ethtab *table, struct pkt_hdr *pkt,
 	entry = in_ethtable(table, pkt->from->sll_hatype, scratch_saddr);
 	if (!entry)
 		entry = addethentry(table, pkt->from->sll_hatype,
-				    ifname, scratch_saddr, list);
+				    pkt->from->sll_ifindex, scratch_saddr,
+				    list);
 
-	if (entry != NULL) {
+	if (entry != NULL)
 		updateethent(entry, pkt->pkt_len, is_ip, 1);
-		if (!entry->prev_entry->un.desc.printed)
-			printethent(table, entry->prev_entry);
-
-		printethent(table, entry);
-	}
 
 	/* Check destination address entry */
 	entry = in_ethtable(table, pkt->from->sll_hatype, scratch_daddr);
 	if (!entry)
 		entry = addethentry(table, pkt->from->sll_hatype,
-				    ifname, scratch_daddr, list);
+				    pkt->from->sll_ifindex, scratch_daddr,
+				    list);
 
-	if (entry != NULL) {
+	if (entry != NULL)
 		updateethent(entry, pkt->pkt_len, is_ip, 0);
-		if (!entry->prev_entry->un.desc.printed)
-			printethent(table, entry->prev_entry);
-
-		printethent(table, entry);
-	}
 }
 
 /*
@@ -987,11 +967,10 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 			last_time = now;
 		}
-
 		if (screen_update_needed(&now, &last_update)) {
+			print_visible_entries(&table);
 			update_panels();
 			doupdate();
-
 			last_update = now;
 		}
 
@@ -1005,7 +984,7 @@ void hostmon(time_t facilitytime, char *ifptr)
 			hostmon_process_key(&table, ch);
 
 		if (pkt.pkt_len > 0) {
-			hostmon_process_packet(&table, &pkt, ifptr);
+			hostmon_process_packet(&table, &pkt);
 			capt_put_packet(&capt, &pkt);
 		}
 
