@@ -73,9 +73,6 @@
 
 #define KBITS 0
 
-#define dispmode(mode)				\
-	(((mode) == KBITS) ? "kbps": "kBps")
-
 #define __noreturn	__attribute__((noreturn))
 #define __unused	__attribute__((unused))
 #define __printf(x, y)	__attribute__((format(printf, (x), (y))))
