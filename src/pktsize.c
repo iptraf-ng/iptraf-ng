@@ -288,10 +288,10 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 
 	exitloop = 0;
 
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	struct timeval last_time = now;
-	struct timeval last_update = now;
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	struct timespec last_time = now;
+	struct timespec last_update = now;
 
 	time_t starttime = now.tv_sec;
 	time_t endtime = INT_MAX;
@@ -303,7 +303,7 @@ void packet_size_breakdown(char *ifname, time_t facilitytime)
 		log_next = now.tv_sec + options.logspan;
 
 	while (!exitloop) {
-		gettimeofday(&now, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		if (now.tv_sec > last_time.tv_sec) {
 			printelapsedtime(now.tv_sec - starttime, 1, table.borderwin);

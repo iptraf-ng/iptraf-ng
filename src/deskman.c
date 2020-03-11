@@ -196,9 +196,9 @@ void print_packet_drops(unsigned long count, WINDOW *win, int x)
 	mvwprintw(win, getmaxy(win) - 1, x, " Drops: %9lu ", count);
 }
 
-int screen_update_needed(const struct timeval *now, const struct timeval *last)
+int screen_update_needed(const struct timespec *now, const struct timespec *last)
 {
-	unsigned long msecs = timeval_diff_msec(now, last);
+	unsigned long msecs = timespec_diff_msec(now, last);
 	if (options.updrate == 0) {
 		if (msecs >= DEFAULT_UPDATE_DELAY)
 			return 1;

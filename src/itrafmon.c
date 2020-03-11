@@ -924,10 +924,10 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	exitloop = 0;
 
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	struct timeval last_time = now;
-	struct timeval updtime = now;
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	struct timespec last_time = now;
+	struct timespec updtime = now;
 	time_t starttime = now.tv_sec;
 
 	time_t check_closed;
@@ -944,7 +944,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		endtime = INT_MAX;
 
 	while (!exitloop) {
-		gettimeofday(&now, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		/* update screen at configured intervals. */
 		if (screen_update_needed(&now, &updtime)) {
@@ -956,7 +956,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		}
 
 		if (now.tv_sec > last_time.tv_sec) {
-			unsigned long msecs = timeval_diff_msec(&now, &last_time);
+			unsigned long msecs = timespec_diff_msec(&now, &last_time);
 			/* update all flowrates ... */
 			update_flowrates(&table, msecs);
 			/* ... and print the current one every second */

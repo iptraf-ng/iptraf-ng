@@ -128,21 +128,21 @@ static inline char *skip_whitespace(char *str)
 	return str;
 }
 
-static inline unsigned long timeval_diff_msec(const struct timeval *end,
-					      const struct timeval *start)
+static inline unsigned long timespec_diff_msec(const struct timespec *end,
+					       const struct timespec *start)
 {
 	if (!start || !end)
 		return 0UL;
 
 	signed long secs = end->tv_sec - start->tv_sec;
-	signed long usecs = end->tv_usec - start->tv_usec;
+	signed long nsecs = end->tv_nsec - start->tv_nsec;
 
-	if(usecs < 0) {
-		usecs = 1000000 - usecs;
+	if(nsecs < 0) {
+		nsecs = 1000000000UL - nsecs;
 		secs -= 1;
 	}
 	if(secs >= 0)
-		return secs * 1000UL + usecs / 1000UL;
+		return secs * 1000UL + nsecs / 1000000UL;
 	else
 		return 0UL;
 }
