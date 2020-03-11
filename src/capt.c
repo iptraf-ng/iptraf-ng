@@ -136,7 +136,7 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	int pfd_packet = -1;
 	int pfd_key = -1;
 	int ss = 0;
-	int have_packet = capt->have_packet(capt);
+	bool have_packet = capt->have_packet(capt);
 	int timeout = ch ? DEFAULT_UPDATE_DELAY : -1;
 	static struct timespec next_kbd_check = { 0 };
 

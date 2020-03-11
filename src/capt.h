@@ -20,7 +20,7 @@ struct capt {
 
 	void		*priv;
 
-	unsigned int	(*have_packet)(struct capt *capt);
+	bool		(*have_packet)(struct capt *capt);
 	int		(*get_packet)(struct capt *capt, struct pkt_hdr *pkt);
 	int		(*put_packet)(struct capt *capt, struct pkt_hdr *pkt);
 	unsigned long	(*get_dropped)(struct capt *capt);

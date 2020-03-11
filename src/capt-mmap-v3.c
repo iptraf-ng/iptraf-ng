@@ -44,7 +44,7 @@ static struct tpacket_block_desc *capt_mmap_find_filled_block(struct capt_data_m
 	return NULL;
 }
 
-static unsigned int capt_have_packet_mmap_v3(struct capt *capt)
+static bool capt_have_packet_mmap_v3(struct capt *capt)
 {
 	struct capt_data_mmap_v3 *data = capt->priv;
 
