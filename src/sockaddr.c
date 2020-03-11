@@ -65,8 +65,8 @@ void sockaddr_set_port(struct sockaddr_storage *sockaddr, in_port_t port)
 	}
 }
 
-int sockaddr_is_equal(struct sockaddr_storage *addr1,
-		      struct sockaddr_storage *addr2)
+bool sockaddr_is_equal(struct sockaddr_storage const *addr1,
+		       struct sockaddr_storage const *addr2)
 {
 	if (!addr1)
 		die("%s(): addr1 == NULL", __FUNCTION__);
@@ -74,7 +74,7 @@ int sockaddr_is_equal(struct sockaddr_storage *addr1,
 		die("%s(): addr2 == NULL", __FUNCTION__);
 
 	if (addr1->ss_family != addr2->ss_family)
-		return 0;
+		return false;
 
 	switch (addr1->ss_family) {
 	case AF_INET: {
@@ -83,9 +83,9 @@ int sockaddr_is_equal(struct sockaddr_storage *addr1,
 
 		if ((sa1->sin_addr.s_addr == sa2->sin_addr.s_addr)
 		    && (sa1->sin_port == sa2->sin_port))
-			return 1;
+			return true;
 		else
-			return 0;
+			return false;
 		}
 	case AF_INET6: {
 		struct sockaddr_in6 *sa1 = (struct sockaddr_in6 *)addr1;
@@ -95,9 +95,9 @@ int sockaddr_is_equal(struct sockaddr_storage *addr1,
 		    && (sa1->sin6_flowinfo == sa2->sin6_flowinfo)
 		    && (sa1->sin6_scope_id == sa2->sin6_scope_id)
 		    && (memcmp(&sa1->sin6_addr, &sa2->sin6_addr, sizeof(sa1->sin6_addr)) == 0))
-			return 1;
+			return true;
 		else
-			return 0;
+			return false;
 	       }
 	default:
 		die("%s(): Unknown address family", __FUNCTION__);

@@ -40,6 +40,8 @@ socket protocol.
 #include <string.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <stdbool.h>
+
 #include "rvnamed.h"
 #include "dirs.h"
 #include "sockaddr.h"
