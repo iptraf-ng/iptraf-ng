@@ -54,6 +54,7 @@ int capt_init(struct capt *capt, char *ifname)
 	capt->have_packet = NULL;
 	capt->get_packet = NULL;
 	capt->put_packet = NULL;
+	capt->get_dropped = NULL;
 	capt->cleanup = NULL;
 
 	capt->dropped = 0UL;
@@ -105,7 +106,7 @@ void capt_destroy(struct capt *capt)
 	capt->fd = -1;
 }
 
-unsigned long capt_get_dropped(struct capt *capt)
+static unsigned long capt_get_dropped_generic(struct capt *capt)
 {
 	struct tpacket_stats stats;
 	socklen_t len = sizeof(stats);
@@ -118,6 +119,14 @@ unsigned long capt_get_dropped(struct capt *capt)
 	capt->dropped += stats.tp_drops;
 
 	return capt->dropped;
+}
+
+unsigned long capt_get_dropped(struct capt *capt)
+{
+	if (capt->get_dropped)
+		return capt->get_dropped(capt);
+
+	return capt_get_dropped_generic(capt);
 }
 
 int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win)

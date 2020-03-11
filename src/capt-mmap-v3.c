@@ -103,6 +103,21 @@ static int capt_put_packet_mmap_v3(struct capt *capt, struct pkt_hdr *pkt __unus
 	return 0;
 }
 
+static unsigned long capt_get_dropped_mmap_v3(struct capt *capt)
+{
+	struct tpacket_stats_v3 stats;
+	socklen_t len = sizeof(stats);
+
+	memset(&stats, 0, len);
+	int err = getsockopt(capt->fd, SOL_PACKET, PACKET_STATISTICS, &stats, &len);
+	if (err < 0)
+		die_errno("%s(): getsockopt(PACKET_STATISTICS)", __func__);
+
+	capt->dropped += stats.tp_drops;
+
+	return capt->dropped;
+}
+
 static void capt_cleanup_mmap_v3(struct capt *capt)
 {
 	struct capt_data_mmap_v3 *data = capt->priv;
@@ -118,6 +133,7 @@ static void capt_cleanup_mmap_v3(struct capt *capt)
 	capt->priv = NULL;
 
 	capt->cleanup = NULL;
+	capt->get_dropped = NULL;
 	capt->put_packet = NULL;
 	capt->get_packet = NULL;
 	capt->have_packet = NULL;
@@ -173,6 +189,7 @@ int capt_setup_mmap_v3(struct capt *capt)
 	capt->have_packet	= capt_have_packet_mmap_v3;
 	capt->get_packet	= capt_get_packet_mmap_v3;
 	capt->put_packet	= capt_put_packet_mmap_v3;
+	capt->get_dropped	= capt_get_dropped_mmap_v3;
 	capt->cleanup		= capt_cleanup_mmap_v3;
 
 	return 0;	/* All O.K. */
