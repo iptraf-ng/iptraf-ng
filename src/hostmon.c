@@ -434,18 +434,6 @@ static void print_entry_rates(struct ethtab *table, struct ethtabent *entry)
 	mvwprintw(table->tabwin, target_row, 69 * COLS / 80, "%s", buf);
 }
 
-static void print_visible_rates(struct ethtab *table)
-{
-	struct ethtabent *entry = table->firstvisible;
-
-	while ((entry != NULL) && (entry->prev_entry != table->lastvisible)) {
-		print_entry_rates(table, entry);
-		entry = entry->next_entry;
-	}
-	update_panels();
-	doupdate();
-}
-
 static void updateethrates(struct ethtab *table, unsigned long msecs)
 {
 	struct ethtabent *ptmp = table->head;
@@ -471,6 +459,8 @@ static void print_visible_entries(struct ethtab *table)
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
 		printethent(table, ptmp);
+		print_entry_rates(table, ptmp);
+
 		ptmp = ptmp->next_entry;
 	}
 }
@@ -481,7 +471,6 @@ static void refresh_hostmon_screen(struct ethtab *table)
 	tx_colorwin(table->tabwin);
 
 	print_visible_entries(table);
-	print_visible_rates(table);
 
 	update_panels();
 	doupdate();
@@ -949,7 +938,6 @@ void hostmon(time_t facilitytime, char *ifptr)
 		if (now.tv_sec > last_time.tv_sec) {
 			unsigned long msecs = timespec_diff_msec(&now, &last_time);
 			updateethrates(&table, msecs);
-			print_visible_rates(&table);
 
 			printelapsedtime(now.tv_sec - starttime, 15, table.borderwin);
 
