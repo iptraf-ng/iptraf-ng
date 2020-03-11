@@ -8,6 +8,7 @@
 #include "error.h"
 #include "ifaces.h"
 #include "packet.h"
+#include "timer.h"
 #include "capt.h"
 #include "capt-recvmsg.h"
 #include "capt-recvmmsg.h"
@@ -117,33 +118,6 @@ unsigned long capt_get_dropped(struct capt *capt)
 	capt->dropped += stats.tp_drops;
 
 	return capt->dropped;
-}
-
-static bool time_after(struct timespec const *a, struct timespec const *b)
-{
-	if (a->tv_sec > b->tv_sec)
-		return true;
-	if (a->tv_sec < b->tv_sec)
-		return false;
-	if(a->tv_nsec > b->tv_nsec)
-		return true;
-	else
-		return false;
-}
-
-static void time_add_msecs(struct timespec *time, unsigned int msecs)
-{
-	if (time != NULL) {
-		while (msecs >= 1000) {
-			time->tv_sec++;
-			msecs -= 1000;
-		}
-		time->tv_nsec += msecs * 1000000;
-		while (time->tv_nsec >= 1000000000) {
-			time->tv_sec++;
-			time->tv_nsec -= 1000000000;
-		}
-	}
 }
 
 int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win)

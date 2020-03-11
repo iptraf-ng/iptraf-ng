@@ -32,6 +32,7 @@ serv.c  - TCP/UDP port statistics module
 #include "counters.h"
 #include "rate.h"
 #include "capt.h"
+#include "timer.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -952,7 +953,7 @@ void servmon(char *ifname, time_t facilitytime)
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	struct timespec last_time = now;
-	struct timespec last_update = now;
+	struct timespec next_screen_update = { 0 };
 	time_t starttime = now.tv_sec;
 	time_t endtime = INT_MAX;
 	if (facilitytime != 0)
@@ -989,13 +990,13 @@ void servmon(char *ifname, time_t facilitytime)
 			last_time = now;
 		}
 
-		if (screen_update_needed(&now, &last_update)) {
+		if (time_after(&now, &next_screen_update)) {
 			refresh_serv_screen(&list);
 
 			update_panels();
 			doupdate();
 
-			last_update = now;
+			set_next_screen_update(&next_screen_update, &now);
 		}
 
 		if (capt_get_packet(&capt, &pkt, &ch, list.win) == -1) {

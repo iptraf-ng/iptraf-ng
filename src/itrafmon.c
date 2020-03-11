@@ -927,7 +927,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	struct timespec last_time = now;
-	struct timespec updtime = now;
+	struct timespec next_screen_update = { 0 };
 	time_t starttime = now.tv_sec;
 
 	time_t check_closed;
@@ -947,12 +947,12 @@ void ipmon(time_t facilitytime, char *ifptr)
 		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		/* update screen at configured intervals. */
-		if (screen_update_needed(&now, &updtime)) {
+		if (time_after(&now, &next_screen_update)) {
 			show_stats(table.statwin, total_pkts);
 			update_panels();
 			doupdate();
 
-			updtime = now;
+			set_next_screen_update(&next_screen_update, &now);
 		}
 
 		if (now.tv_sec > last_time.tv_sec) {

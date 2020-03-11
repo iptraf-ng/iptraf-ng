@@ -576,7 +576,7 @@ void ifstats(time_t facilitytime)
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	struct timespec last_time = now;
-	struct timespec last_update = now;
+	struct timespec next_screen_update = { 0 };
 
 	time_t starttime = now.tv_sec;
 	time_t endtime = INT_MAX;
@@ -619,12 +619,12 @@ void ifstats(time_t facilitytime)
 
 			last_time = now;
 		}
-		if (screen_update_needed(&now, &last_update)) {
+		if (time_after(&now, &next_screen_update)) {
 			print_if_entries(&table);
 			update_panels();
 			doupdate();
 
-			last_update = now;
+			set_next_screen_update(&next_screen_update, &now);
 		}
 
 		if (capt_get_packet(&capt, &pkt, &ch, table.statwin) == -1) {
