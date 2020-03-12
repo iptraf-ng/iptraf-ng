@@ -728,17 +728,11 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 			 * Ok, so we have a packet.  Add it if this connection
 			 * is not yet closed, or if it is a SYN packet.
 			 */
-			int wasempty = (table->head == NULL);
 			tcpentry = addentry(table, &saddr, &daddr,
 					    pkt_ip_protocol(pkt),
 					    ifname, revlook, rvnfd);
-			if (tcpentry != NULL) {
+			if (tcpentry != NULL)
 				printentry(table, tcpentry->oth_connection);
-
-				if (wasempty) {
-					table->barptr = table->firstvisible;
-				}
-			}
 		}
 		/*
 		 * If we had an addentry() success, we should have no

@@ -266,6 +266,7 @@ struct tcptableent *addentry(struct tcptable *table,
 			table->head = new_entry;
 
 			table->firstvisible = new_entry;
+			table->barptr = new_entry;
 		}
 		if (table->tail != NULL) {
 			table->tail->next_entry = new_entry;
