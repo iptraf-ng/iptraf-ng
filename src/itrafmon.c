@@ -205,7 +205,6 @@ static void move_tcp_bar_many(struct tcptable *table, int direction, int lines)
 		table->barptr = table->firstvisible;
 		break;
 	}
-	refreshtcpwin(table);
 }
 
 static void move_tcp_bar(struct tcptable *table, int direction, int lines)
@@ -221,6 +220,7 @@ static void move_tcp_bar(struct tcptable *table, int direction, int lines)
 		move_tcp_bar_many(table, direction, lines);
 
 	print_flowrate(table);
+	refreshtcpwin(table, false);
 }
 
 /*
@@ -607,6 +607,7 @@ static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struc
 			markactive(*curwin, table->borderwin,
 				   othptbl->borderwin);
 			uniq_help(*curwin);
+			refreshtcpwin(table, false);
 			break;
 		case 'm':
 		case 'M':
@@ -615,7 +616,7 @@ static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struc
 			table->mode = (table->mode + 1) % 3;
 			if ((table->mode == 1) && !options.mac)
 				table->mode = 2;
-			refreshtcpwin(table);
+			refreshtcpwin(table, true);
 			break;
 		case 12:
 		case 'l':
@@ -628,7 +629,7 @@ static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struc
 		case 'c':
 		case 'C':
 			flushclosedentries(table);
-			refreshtcpwin(table);
+			refreshtcpwin(table, true);
 			break;
 		case 's':
 		case 'S':
@@ -653,7 +654,7 @@ static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struc
 		if (table->barptr != NULL) {
 			table->barptr = table->firstvisible;
 		}
-		refreshtcpwin(table);
+		refreshtcpwin(table, true);
 	}
 }
 
@@ -731,8 +732,6 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 			tcpentry = addentry(table, &saddr, &daddr,
 					    pkt_ip_protocol(pkt),
 					    ifname, revlook, rvnfd);
-			if (tcpentry != NULL)
-				printentry(table, tcpentry->oth_connection);
 		}
 		/*
 		 * If we had an addentry() success, we should have no
@@ -742,18 +741,12 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 
 		if ((tcpentry != NULL)
 		    && !(tcpentry->stat & FLAG_RST)) {
-			int p_sstat = 0, p_dstat = 0;	/* Reverse lookup statuses prior to */
 
 			/*
 			 * Don't bother updating the entry if the connection
 			 * has been previously reset.  (Does this really
 			 * happen in practice?)
 			 */
-
-			if (*revlook) {
-				p_sstat = tcpentry->s_fstat;
-				p_dstat = tcpentry->d_fstat;
-			}
 
 			if (pkt->iphdr)
 				updateentry(table, pkt, tcpentry, tcp,
@@ -782,36 +775,6 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 				writetcplog(logging, logfile, tcpentry,
 					    pkt->pkt_len, msgstring);
 			}
-
-			if (*revlook
-			    && (((p_sstat != RESOLVED)
-				 && (tcpentry->s_fstat == RESOLVED))
-				|| ((p_dstat != RESOLVED)
-				    && (tcpentry->d_fstat == RESOLVED)))) {
-				clearaddr(table, tcpentry);
-				clearaddr(table, tcpentry->oth_connection);
-			}
-			printentry(table, tcpentry);
-
-			/*
-			 * Special cases: Update other direction if it's
-			 * an ACK in response to a FIN.
-			 *
-			 *         -- or --
-			 *
-			 * Addresses were just resolved for the other
-			 * direction, so we should also do so here.
-			 */
-
-			if (((tcpentry->oth_connection->finsent == 2)
-			     &&	/* FINed and ACKed */
-			     (ntohl(tcp->seq) == tcpentry->oth_connection->finack))
-			    || (*revlook
-				&& (((p_sstat != RESOLVED)
-				     && (tcpentry->s_fstat == RESOLVED))
-				    || ((p_dstat != RESOLVED)
-					&& (tcpentry->d_fstat == RESOLVED)))))
-				printentry(table, tcpentry->oth_connection);
 		}
 		break; }
 	case IPPROTO_ICMP:
@@ -940,15 +903,6 @@ void ipmon(time_t facilitytime, char *ifptr)
 	while (!exitloop) {
 		clock_gettime(CLOCK_MONOTONIC, &now);
 
-		/* update screen at configured intervals. */
-		if (time_after(&now, &next_screen_update)) {
-			show_stats(table.statwin, total_pkts);
-			update_panels();
-			doupdate();
-
-			set_next_screen_update(&next_screen_update, &now);
-		}
-
 		if (now.tv_sec > last_time.tv_sec) {
 			unsigned long msecs = timespec_diff_msec(&now, &last_time);
 			/* update all flowrates ... */
@@ -966,7 +920,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			/* automatically clear closed/timed out entries */
 			if (now.tv_sec > check_closed) {
 				flushclosedentries(&table);
-				refreshtcpwin(&table);
+				refreshtcpwin(&table, true);
 				check_closed = now.tv_sec + options.closedint * 60;
 			}
 
@@ -984,6 +938,17 @@ void ipmon(time_t facilitytime, char *ifptr)
 			}
 
 			last_time = now;
+		}
+
+		/* update screen at configured intervals. */
+		if (time_after(&now, &next_screen_update)) {
+			refreshtcpwin(&table, false);
+			show_stats(table.statwin, total_pkts);
+
+			update_panels();
+			doupdate();
+
+			set_next_screen_update(&next_screen_update, &now);
 		}
 
 		if (capt_get_packet(&capt, &pkt, &ch, table.tcpscreen) == -1) {

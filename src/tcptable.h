@@ -129,11 +129,9 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 
 void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
-void clearaddr(struct tcptable *table, struct tcptableent *tableentry);
-
 void printentry(struct tcptable *table, struct tcptableent *tableentry);
 
-void refreshtcpwin(struct tcptable *table);
+void refreshtcpwin(struct tcptable *table, bool clear);
 
 void destroytcptable(struct tcptable *table);
 

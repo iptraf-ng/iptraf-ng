@@ -295,8 +295,6 @@ struct tcptableent *addentry(struct tcptable *table,
 
 		rate_alloc(&new_entry->rate, 5);
 		rate_alloc(&new_entry->oth_connection->rate, 5);
-
-		print_tcp_num_entries(table);
 	} else {
 		/*
 		 * If we reach this point, we're allocating off the list of closed
@@ -757,29 +755,6 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 }
 
 /*
- * Clears out the resolved IP addresses from the window.  This prevents
- * overlapping port numbers (in cases where the resolved DNS name is shorter
- * than its IP address), that may cause the illusion of large ports.  Plus,
- * such output, while may be interpreted by people with a little know-how,
- * is just plain wrong.
- *
- * Returns immediately if the entry is not visible in the window.
- */
-
-void clearaddr(struct tcptable *table, struct tcptableent *tableentry)
-{
-	unsigned int target_row;
-
-	if ((tableentry->index < table->firstvisible->index)
-	    || (tableentry->index > table->lastvisible->index))
-		return;
-
-	target_row = tableentry->index - table->firstvisible->index;
-
-	mvwprintw(table->tcpscreen, target_row, 1, "%44c", ' ');
-}
-
-/*
  * Display a TCP connection line.  Returns immediately if the entry is
  * not visible in the window.
  */
@@ -896,22 +871,21 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 /*
  * Redraw the TCP window
  */
-
-void refreshtcpwin(struct tcptable *table)
+void refreshtcpwin(struct tcptable *table, bool clear)
 {
 	struct tcptableent *ptmp;
 
-	setlabels(table->borderwin, table->mode);
-	wattrset(table->tcpscreen, STDATTR);
-	tx_colorwin(table->tcpscreen);
-	ptmp = table->firstvisible;
+	if (clear) {
+		setlabels(table->borderwin, table->mode);
+		wattrset(table->tcpscreen, STDATTR);
+		tx_colorwin(table->tcpscreen);
+	}
 
+	ptmp = table->firstvisible;
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
 		printentry(table, ptmp);
 		ptmp = ptmp->next_entry;
 	}
-
-	wmove(table->borderwin, table->bmaxy - 1, 1);
 
 	print_tcp_num_entries(table);
 
