@@ -83,26 +83,15 @@ static void auto_terminate(int s __unused)
 
 static void process_rvn_packet(struct rvn *rvnpacket)
 {
-	int ccfd;
+	sockaddr_gethostbyaddr(&rvnpacket->addr,
+				rvnpacket->fqdn,
+				sizeof(rvnpacket->fqdn));
+
 	struct sockaddr_un ccsa;
-
-	struct hostent *he;
-
-	ccfd = socket(PF_UNIX, SOCK_DGRAM, 0);
-
-	he = sockaddr_gethostbyaddr(&rvnpacket->addr);
-	if (he == NULL) {
-		sockaddr_ntop(&rvnpacket->addr, rvnpacket->fqdn,
-			      sizeof(rvnpacket->fqdn));
-	} else {
-		memset(rvnpacket->fqdn, 0, sizeof(rvnpacket->fqdn));
-		strncpy(rvnpacket->fqdn, he->h_name,
-			sizeof(rvnpacket->fqdn) - 1);
-	}
-
 	ccsa.sun_family = AF_UNIX;
 	strcpy(ccsa.sun_path, CHILDSOCKNAME);
 
+	int ccfd = socket(PF_UNIX, SOCK_DGRAM, 0);
 	sendto(ccfd, rvnpacket, sizeof(struct rvn), 0,
 	       (struct sockaddr *) &ccsa,
 	       sizeof(ccsa.sun_family) + strlen(ccsa.sun_path));

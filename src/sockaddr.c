@@ -104,7 +104,7 @@ bool sockaddr_is_equal(struct sockaddr_storage const *addr1,
 	}
 }
 
-void sockaddr_ntop(struct sockaddr_storage *addr, char *buf, size_t buflen)
+void sockaddr_ntop(const struct sockaddr_storage *addr, char *buf, size_t buflen)
 {
 	if(!addr)
 		die("%s(): addr == NULL", __FUNCTION__);
@@ -135,19 +135,20 @@ void sockaddr_ntop(struct sockaddr_storage *addr, char *buf, size_t buflen)
 	}
 }
 
-struct hostent *sockaddr_gethostbyaddr(struct sockaddr_storage *addr)
+void sockaddr_gethostbyaddr(const struct sockaddr_storage *addr,
+			    char *buffer, size_t buflen)
 {
-	if(!addr)
-		die("%s(): addr == NULL", __FUNCTION__);
+	char hostbuf[NI_MAXHOST];
 
-	switch (addr->ss_family) {
-	case AF_INET:
-		return gethostbyaddr(&((struct sockaddr_in *)addr)->sin_addr, sizeof(struct in_addr), AF_INET);
-	case AF_INET6:
-		return gethostbyaddr(&((struct sockaddr_in6 *)addr)->sin6_addr, sizeof(struct in6_addr), AF_INET6);
-	default:
-		die("%s(): Unknown address family", __FUNCTION__);
-	}
+	int res = getnameinfo((struct sockaddr *)addr, sizeof(*addr),
+			      hostbuf, sizeof(hostbuf),
+			      NULL, 0,
+			      0 /* flags */);
+	if (res == 0) {
+		snprintf(buffer, buflen - 1, "%s", hostbuf);
+		buffer[buflen - 1] = '\0';
+	} else
+		sockaddr_ntop(addr, buffer, buflen);
 }
 
 void sockaddr_copy(struct sockaddr_storage *dest, struct sockaddr_storage *src)
