@@ -131,6 +131,7 @@ void addtoclosedlist(struct tcptable *table, struct tcptableent *tableentry);
 
 void printentry(struct tcptable *table, struct tcptableent *tableentry);
 
+void resolve_visible_entries(struct tcptable *table, int *revlook, int rvnfd);
 void refreshtcpwin(struct tcptable *table, bool clear);
 
 void destroytcptable(struct tcptable *table);

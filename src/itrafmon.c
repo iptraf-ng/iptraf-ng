@@ -910,6 +910,8 @@ void ipmon(time_t facilitytime, char *ifptr)
 			/* ... and print the current one every second */
 			print_flowrate(&table);
 
+			resolve_visible_entries(&table, &revlook, rvnfd);
+
 			/* print timer at bottom of screen */
 			printelapsedtime(now.tv_sec - starttime, 15, othptbl.borderwin);
 
