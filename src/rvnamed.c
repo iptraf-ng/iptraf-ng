@@ -141,7 +141,7 @@ static void writervnlog(FILE * fd, char *msg)
 	fprintf(fd, "%s: %s\n", atime, msg);
 }
 
-int main(void)
+int rvnamed(void)
 {
 	int cfd;
 	int ifd;
@@ -169,22 +169,6 @@ int main(void)
 	socklen_t fromlen;
 
 	FILE *logfile;
-
-	/* Daemonization Sequence */
-
-	switch (fork()) {
-	case -1:
-		exit(1);
-	case 0:
-		break;
-	default:
-		exit(0);
-	}
-
-	setsid();
-	int i = chdir("/");
-
-	(void) i;
 
 	signal(SIGCHLD, childreap);
 

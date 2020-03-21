@@ -28,4 +28,6 @@ struct rvn {
 	char fqdn[45];
 };
 
+int rvnamed(void);
+
 #endif	/* IPTRAF_NG_RVNAMED_H */

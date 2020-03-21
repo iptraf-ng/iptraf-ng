@@ -496,43 +496,22 @@ static void sortipents(struct tcptable *table, int ch)
 
 static int checkrvnamed(void)
 {
-	pid_t cpid = 0;
-	int cstat;
-
 	indicate("Trying to communicate with reverse lookup server");
-	if (!rvnamedactive()) {
-		indicate("Starting reverse lookup server");
+	if (rvnamedactive())
+		return 1;
 
-		if ((cpid = fork()) == 0) {
-			char *args[] = {
-				"rvnamed-ng",
-				NULL
-			};
-			execvp("rvnamed-ng", args);
-			/*
-			 * execvp() never returns, so if we reach this point, we have
-			 * a problem.
-			 */
+	indicate("Starting reverse lookup server");
 
-			die("unable execvp() rvnamed-ng");
-		} else if (cpid == -1) {
-			write_error("Can't spawn new process; lookups will block");
-			return 0;
-		} else {
-			while (waitpid(cpid, &cstat, 0) < 0)
-				if (errno != EINTR)
-					break;
-
-			if (WEXITSTATUS(cstat) == 1) {
-				write_error("Can't start rvnamed; lookups will block");
-				return 0;
-			} else {
-				sleep(1);
-				return 1;
-			}
-		}
+	pid_t cpid = fork();
+	if (cpid == 0) {		/* child */
+		exit(rvnamed());
+	} else if (cpid == -1) {	/* error */
+		write_error("Can't spawn new process; lookups will block");
+		return 0;
 	}
-	return 1;
+
+	sleep(1);	/* wait a little before checking */
+	return rvnamedactive();
 }
 
 static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struct othptable *othptbl)
