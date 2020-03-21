@@ -31,7 +31,7 @@ static char *gen_unix_sockname(void)
 	return scratch;
 }
 
-int rvnamedactive(void)
+bool rvnamedactive(void)
 {
 	int fd;
 	fd_set sockset;
@@ -88,9 +88,9 @@ int rvnamedactive(void)
 	unlink(unix_socket);
 
 	if (sstat == 0)
-		return 0;
+		return false;
 	else
-		return 1;
+		return true;
 }
 
 /*

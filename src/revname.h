@@ -7,7 +7,7 @@ revname.h - public declarations related to reverse name resolution
 
 ***/
 
-int rvnamedactive(void);
+bool rvnamedactive(void);
 void killrvnamed(void);
 void open_rvn_socket(int *fd);
 void close_rvn_socket(int fd);
