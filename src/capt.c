@@ -8,6 +8,7 @@
 #include "error.h"
 #include "ifaces.h"
 #include "packet.h"
+#include "timer.h"
 #include "capt.h"
 #include "capt-recvmsg.h"
 #include "capt-recvmmsg.h"
@@ -53,6 +54,7 @@ int capt_init(struct capt *capt, char *ifname)
 	capt->have_packet = NULL;
 	capt->get_packet = NULL;
 	capt->put_packet = NULL;
+	capt->get_dropped = NULL;
 	capt->cleanup = NULL;
 
 	capt->dropped = 0UL;
@@ -104,7 +106,7 @@ void capt_destroy(struct capt *capt)
 	capt->fd = -1;
 }
 
-unsigned long capt_get_dropped(struct capt *capt)
+static unsigned long capt_get_dropped_generic(struct capt *capt)
 {
 	struct tpacket_stats stats;
 	socklen_t len = sizeof(stats);
@@ -119,31 +121,12 @@ unsigned long capt_get_dropped(struct capt *capt)
 	return capt->dropped;
 }
 
-static bool time_after(struct timeval const *a, struct timeval const *b)
+unsigned long capt_get_dropped(struct capt *capt)
 {
-	if (a->tv_sec > b->tv_sec)
-		return true;
-	if (a->tv_sec < b->tv_sec)
-		return false;
-	if(a->tv_usec > b->tv_usec)
-		return true;
-	else
-		return false;
-}
+	if (capt->get_dropped)
+		return capt->get_dropped(capt);
 
-static void time_add_msecs(struct timeval *time, unsigned int msecs)
-{
-	if (time != NULL) {
-		while (msecs >= 1000) {
-			time->tv_sec++;
-			msecs -= 1000;
-		}
-		time->tv_usec += msecs * 1000;
-		while (time->tv_usec >= 1000000) {
-			time->tv_sec++;
-			time->tv_usec -= 1000000;
-		}
-	}
+	return capt_get_dropped_generic(capt);
 }
 
 int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win)
@@ -153,9 +136,9 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	int pfd_packet = -1;
 	int pfd_key = -1;
 	int ss = 0;
-	int have_packet = capt->have_packet(capt);
+	bool have_packet = capt->have_packet(capt);
 	int timeout = ch ? DEFAULT_UPDATE_DELAY : -1;
-	static struct timeval next_kbd_check = { 0 };
+	static struct timespec next_kbd_check = { 0 };
 
 	/* no packet ready, so poll() for it */
 	if (!have_packet) {
@@ -168,9 +151,9 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 	/* check for key press */
 	/* Monitor stdin only if in interactive, not daemon mode. */
 	if (ch && !daemonized) {
-		struct timeval now;
+		struct timespec now;
 
-		gettimeofday(&now, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &now);
 		if (time_after(&now, &next_kbd_check)) {
 			pfds[nfds].fd = 0;
 			pfds[nfds].events = POLLIN;

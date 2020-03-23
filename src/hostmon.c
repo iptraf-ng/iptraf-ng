@@ -434,18 +434,6 @@ static void print_entry_rates(struct ethtab *table, struct ethtabent *entry)
 	mvwprintw(table->tabwin, target_row, 69 * COLS / 80, "%s", buf);
 }
 
-static void print_visible_rates(struct ethtab *table)
-{
-	struct ethtabent *entry = table->firstvisible;
-
-	while ((entry != NULL) && (entry->prev_entry != table->lastvisible)) {
-		print_entry_rates(table, entry);
-		entry = entry->next_entry;
-	}
-	update_panels();
-	doupdate();
-}
-
 static void updateethrates(struct ethtab *table, unsigned long msecs)
 {
 	struct ethtabent *ptmp = table->head;
@@ -471,6 +459,8 @@ static void print_visible_entries(struct ethtab *table)
 
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
 		printethent(table, ptmp);
+		print_entry_rates(table, ptmp);
+
 		ptmp = ptmp->next_entry;
 	}
 }
@@ -481,7 +471,6 @@ static void refresh_hostmon_screen(struct ethtab *table)
 	tx_colorwin(table->tabwin);
 
 	print_visible_entries(table);
-	print_visible_rates(table);
 
 	update_panels();
 	doupdate();
@@ -929,10 +918,10 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 	exitloop = 0;
 
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	struct timeval last_time = now;
-	struct timeval last_update = now;
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	struct timespec last_time = now;
+	struct timespec next_screen_update = { 0 };
 
 	time_t starttime = now.tv_sec;
 	time_t endtime = INT_MAX;
@@ -944,12 +933,11 @@ void hostmon(time_t facilitytime, char *ifptr)
 		log_next = now.tv_sec + options.logspan;
 
 	while (!exitloop) {
-		gettimeofday(&now, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		if (now.tv_sec > last_time.tv_sec) {
-			unsigned long msecs = timeval_diff_msec(&now, &last_time);
+			unsigned long msecs = timespec_diff_msec(&now, &last_time);
 			updateethrates(&table, msecs);
-			print_visible_rates(&table);
 
 			printelapsedtime(now.tv_sec - starttime, 15, table.borderwin);
 
@@ -967,11 +955,12 @@ void hostmon(time_t facilitytime, char *ifptr)
 
 			last_time = now;
 		}
-		if (screen_update_needed(&now, &last_update)) {
+		if (time_after(&now, &next_screen_update)) {
 			print_visible_entries(&table);
 			update_panels();
 			doupdate();
-			last_update = now;
+
+			set_next_screen_update(&next_screen_update, &now);
 		}
 
 		if (capt_get_packet(&capt, &pkt, &ch, table.tabwin) == -1) {

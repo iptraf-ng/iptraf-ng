@@ -15,6 +15,7 @@ deskman.c - desktop management routines
 
 #include "deskman.h"
 #include "options.h"
+#include "timer.h"
 
 /* Attribute variables */
 
@@ -196,20 +197,19 @@ void print_packet_drops(unsigned long count, WINDOW *win, int x)
 	mvwprintw(win, getmaxy(win) - 1, x, " Drops: %9lu ", count);
 }
 
-int screen_update_needed(const struct timeval *now, const struct timeval *last)
+static unsigned int get_screen_update_rate(void)
 {
-	unsigned long msecs = timeval_diff_msec(now, last);
-	if (options.updrate == 0) {
-		if (msecs >= DEFAULT_UPDATE_DELAY)
-			return 1;
-		else
-			return 0;
-	} else {
-		if (msecs >= (options.updrate * 1000UL))
-			return 1;
-		else
-			return 0;
-	}
+	if (options.updrate == 0)
+		return DEFAULT_UPDATE_DELAY;
+	else
+		return options.updrate * 1000UL;
+}
+
+void set_next_screen_update(struct timespec *next_screen_update,
+			    struct timespec *now)
+{
+	*next_screen_update = *now;
+	time_add_msecs(next_screen_update, get_screen_update_rate());
 }
 
 void standardcolors(int color)

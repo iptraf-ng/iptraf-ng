@@ -14,9 +14,9 @@ struct capt_data_recvmsg {
 	struct sockaddr_ll	*from;
 };
 
-static unsigned int capt_have_packet_recvmsg(struct capt *capt __unused)
+static bool capt_have_packet_recvmsg(struct capt *capt __unused)
 {
-	return 0;
+	return false;
 }
 
 static int capt_get_packet_recvmsg(struct capt *capt, struct pkt_hdr *pkt)

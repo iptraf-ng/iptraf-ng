@@ -32,6 +32,7 @@ serv.c  - TCP/UDP port statistics module
 #include "counters.h"
 #include "rate.h"
 #include "capt.h"
+#include "timer.h"
 
 #define SCROLLUP 0
 #define SCROLLDOWN 1
@@ -47,7 +48,7 @@ struct portlistent {
 	struct proto_counter serv_count;
 	struct proto_counter span;
 
-	struct timeval proto_starttime;
+	struct timespec proto_starttime;
 
 	struct rate rate;
 	struct rate rate_in;
@@ -88,16 +89,16 @@ static void writeutslog(struct portlistent *list, unsigned long nsecs, FILE *fd)
 {
 	char atime[TIME_TARGET_MAX];
 	struct portlistent *ptmp = list;
-	struct timeval now;
+	struct timespec now;
 
-	gettimeofday(&now, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &now);
 
 	genatime(time(NULL), atime);
 
 	fprintf(fd, "\n*** TCP/UDP traffic log, generated %s\n\n", atime);
 
 	while (ptmp != NULL) {
-		unsigned long secs = timeval_diff_msec(&now, &ptmp->proto_starttime) / 1000UL;
+		unsigned long secs = timespec_diff_msec(&now, &ptmp->proto_starttime) / 1000UL;
 		char bps_string[64];
 
 		if (ptmp->protocol == IPPROTO_TCP)
@@ -243,7 +244,7 @@ static struct portlistent *addtoportlist(struct portlist *list,
 	list->count++;
 	ptemp->idx = list->count;
 
-	gettimeofday(&ptemp->proto_starttime, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &ptemp->proto_starttime);
 
 	if (list->count <= (unsigned) LINES - 5)
 		list->lastvisible = ptemp;
@@ -949,10 +950,10 @@ void servmon(char *ifname, time_t facilitytime)
 
 	exitloop = 0;
 
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	struct timeval last_time = now;
-	struct timeval last_update = now;
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	struct timespec last_time = now;
+	struct timespec next_screen_update = { 0 };
 	time_t starttime = now.tv_sec;
 	time_t endtime = INT_MAX;
 	if (facilitytime != 0)
@@ -963,10 +964,10 @@ void servmon(char *ifname, time_t facilitytime)
 		log_next = now.tv_sec + options.logspan;
 
 	while (!exitloop) {
-		gettimeofday(&now, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		if (now.tv_sec > last_time.tv_sec) {
-			unsigned long rate_msecs = timeval_diff_msec(&now, &last_time);
+			unsigned long rate_msecs = timespec_diff_msec(&now, &last_time);
 			/* update all portlistent rates ... */
 			update_serv_rates(&list, rate_msecs);
 			/* ... and print the current one */
@@ -989,13 +990,13 @@ void servmon(char *ifname, time_t facilitytime)
 			last_time = now;
 		}
 
-		if (screen_update_needed(&now, &last_update)) {
+		if (time_after(&now, &next_screen_update)) {
 			refresh_serv_screen(&list);
 
 			update_panels();
 			doupdate();
 
-			last_update = now;
+			set_next_screen_update(&next_screen_update, &now);
 		}
 
 		if (capt_get_packet(&capt, &pkt, &ch, list.win) == -1) {

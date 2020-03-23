@@ -584,10 +584,10 @@ void detstats(char *iface, time_t facilitytime)
 
 	exitloop = 0;
 
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	struct timeval last_time = now;
-	struct timeval last_update = now;
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	struct timespec last_time = now;
+	struct timespec next_screen_update = { 0 };
 
 	time_t starttime = now.tv_sec;
 	time_t endtime = INT_MAX;
@@ -600,10 +600,10 @@ void detstats(char *iface, time_t facilitytime)
 
 	/* data-gathering loop */
 	while (!exitloop) {
-		gettimeofday(&now, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		if (now.tv_sec > last_time.tv_sec) {
-			unsigned long msecs = timeval_diff_msec(&now, &last_time);
+			unsigned long msecs = timespec_diff_msec(&now, &last_time);
 			ifrates_update(&ifrates, &ifcounts, msecs);
 			ifrates_show(&ifrates, statwin);
 
@@ -625,12 +625,12 @@ void detstats(char *iface, time_t facilitytime)
 
 			last_time = now;
 		}
-		if (screen_update_needed(&now, &last_update)) {
+		if (time_after(&now, &next_screen_update)) {
 			printdetails(&ifcounts, statwin);
 			update_panels();
 			doupdate();
 
-			last_update = now;
+			set_next_screen_update(&next_screen_update, &now);
 		}
 
 		if (capt_get_packet(&capt, &pkt, &ch, statwin) == -1) {

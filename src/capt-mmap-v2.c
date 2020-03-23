@@ -29,11 +29,14 @@ static unsigned int capt_mmap_find_filled_slot(struct capt_data_mmap_v2 *data)
 	return FRAMES;
 }
 
-static unsigned int capt_have_packet_mmap_v2(struct capt *capt)
+static bool capt_have_packet_mmap_v2(struct capt *capt)
 {
 	struct capt_data_mmap_v2 *data = capt->priv;
 
-	return capt_mmap_find_filled_slot(data) != FRAMES;
+	if (capt_mmap_find_filled_slot(data) != FRAMES)
+		return true;
+	else
+		return false;
 }
 
 static int capt_get_packet_mmap_v2(struct capt *capt, struct pkt_hdr *pkt)

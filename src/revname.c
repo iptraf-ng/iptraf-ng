@@ -196,13 +196,7 @@ int revname(int *lookup, struct sockaddr_storage *addr,
 			strncpy(target, rpkt.fqdn, target_size - 1);
 			return (rpkt.ready);
 		} else {
-			struct hostent *he = sockaddr_gethostbyaddr(addr);
-			if (he == NULL) {
-				sockaddr_ntop(addr, target, target_size);
-			} else {
-				strncpy(target, he->h_name, target_size - 1);
-			}
-
+			sockaddr_gethostbyaddr(addr, target, target_size);
 			return RESOLVED;
 		}
 	} else {

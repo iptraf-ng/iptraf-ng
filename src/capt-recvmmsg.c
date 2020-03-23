@@ -30,11 +30,14 @@ static unsigned int capt_recvmmsg_find_filled_slot(struct capt_data_recvmmsg *da
 	return FRAMES;
 }
 
-static unsigned int capt_have_packet_recvmmsg(struct capt *capt)
+static bool capt_have_packet_recvmmsg(struct capt *capt)
 {
 	struct capt_data_recvmmsg *data = capt->priv;
 
-	return capt_recvmmsg_find_filled_slot(data) != FRAMES;
+	if (capt_recvmmsg_find_filled_slot(data) != FRAMES)
+		return true;
+	else
+		return false;
 }
 
 static int capt_get_packet_recvmmsg(struct capt *capt, struct pkt_hdr *pkt)

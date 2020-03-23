@@ -238,10 +238,27 @@ static void del_tcp_hash_node(struct tcptable *table, struct tcptableent *entry)
 	free(ptmp);
 }
 
+static void resolve_entry(struct tcptableent *entry, int *revlook, int rvnfd)
+{
+	if (entry->s_fstat != RESOLVED) {
+		entry->s_fstat = revname(revlook, &entry->saddr,
+					 entry->s_fqdn, sizeof(entry->s_fqdn),
+					 rvnfd);
+		strcpy(entry->oth_connection->d_fqdn, entry->s_fqdn);
+		entry->oth_connection->d_fstat = entry->s_fstat;
+	}
+	if (entry->d_fstat != RESOLVED) {
+		entry->d_fstat = revname(revlook, &entry->daddr,
+					 entry->d_fqdn, sizeof(entry->d_fqdn),
+					 rvnfd);
+		strcpy(entry->oth_connection->s_fqdn, entry->d_fqdn);
+		entry->oth_connection->s_fstat = entry->d_fstat;
+	}
+}
+
 /*
  * Add a new entry to the TCP screen table
  */
-
 struct tcptableent *addentry(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
@@ -266,6 +283,7 @@ struct tcptableent *addentry(struct tcptable *table,
 			table->head = new_entry;
 
 			table->firstvisible = new_entry;
+			table->barptr = new_entry;
 		}
 		if (table->tail != NULL) {
 			table->tail->next_entry = new_entry;
@@ -294,8 +312,6 @@ struct tcptableent *addentry(struct tcptable *table,
 
 		rate_alloc(&new_entry->rate, 5);
 		rate_alloc(&new_entry->oth_connection->rate, 5);
-
-		print_tcp_num_entries(table);
 	} else {
 		/*
 		 * If we reach this point, we're allocating off the list of closed
@@ -366,13 +382,9 @@ struct tcptableent *addentry(struct tcptable *table,
 
 	new_entry->stat = new_entry->oth_connection->stat = 0;
 
-	new_entry->s_fstat =
-	    revname(rev_lookup, &new_entry->saddr,
-		    new_entry->s_fqdn, sizeof(new_entry->s_fqdn), rvnfd);
-
-	new_entry->d_fstat =
-	    revname(rev_lookup, &new_entry->daddr,
-		    new_entry->d_fqdn, sizeof(new_entry->d_fqdn), rvnfd);
+	new_entry->s_fstat = NOTRESOLVED;
+	new_entry->d_fstat = NOTRESOLVED;
+	resolve_entry(new_entry, rev_lookup, rvnfd);
 
 	/* set port service names (where applicable) */
 	servlook(sockaddr_get_port(saddr), IPPROTO_TCP, new_entry->s_sname, 10);
@@ -563,20 +575,8 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 	char msgstring[MSGSTRING_MAX];
 	char newmacaddr[18];
 
-	if (tableentry->s_fstat != RESOLVED) {
-		tableentry->s_fstat =
-		    revname(revlook, &tableentry->saddr, tableentry->s_fqdn,
-			    sizeof(tableentry->s_fqdn), rvnfd);
-		strcpy(tableentry->oth_connection->d_fqdn, tableentry->s_fqdn);
-		tableentry->oth_connection->d_fstat = tableentry->s_fstat;
-	}
-	if (tableentry->d_fstat != RESOLVED) {
-		tableentry->d_fstat =
-		    revname(revlook, &tableentry->daddr, tableentry->d_fqdn,
-			    sizeof(tableentry->d_fqdn), rvnfd);
-		strcpy(tableentry->oth_connection->s_fqdn, tableentry->d_fqdn);
-		tableentry->oth_connection->s_fstat = tableentry->d_fstat;
-	}
+	resolve_entry(tableentry, revlook, rvnfd);
+
 	tableentry->pcount++;
 	tableentry->bcount += bcount;
 	tableentry->psize = pkt->pkt_len;
@@ -756,29 +756,6 @@ void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 }
 
 /*
- * Clears out the resolved IP addresses from the window.  This prevents
- * overlapping port numbers (in cases where the resolved DNS name is shorter
- * than its IP address), that may cause the illusion of large ports.  Plus,
- * such output, while may be interpreted by people with a little know-how,
- * is just plain wrong.
- *
- * Returns immediately if the entry is not visible in the window.
- */
-
-void clearaddr(struct tcptable *table, struct tcptableent *tableentry)
-{
-	unsigned int target_row;
-
-	if ((tableentry->index < table->firstvisible->index)
-	    || (tableentry->index > table->lastvisible->index))
-		return;
-
-	target_row = tableentry->index - table->firstvisible->index;
-
-	mvwprintw(table->tcpscreen, target_row, 1, "%44c", ' ');
-}
-
-/*
  * Display a TCP connection line.  Returns immediately if the entry is
  * not visible in the window.
  */
@@ -892,25 +869,38 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 		tableentry->ifname);
 }
 
+void resolve_visible_entries(struct tcptable *table, int *revlook, int rvnfd)
+{
+
+	if(!*revlook)
+		return;
+
+	struct tcptableent *entry = table->firstvisible;
+	while ((entry != NULL) && (entry->prev_entry != table->lastvisible)) {
+		resolve_entry(entry, revlook, rvnfd);
+
+		entry = entry->next_entry;
+	}
+}
+
 /*
  * Redraw the TCP window
  */
-
-void refreshtcpwin(struct tcptable *table)
+void refreshtcpwin(struct tcptable *table, bool clear)
 {
 	struct tcptableent *ptmp;
 
-	setlabels(table->borderwin, table->mode);
-	wattrset(table->tcpscreen, STDATTR);
-	tx_colorwin(table->tcpscreen);
-	ptmp = table->firstvisible;
+	if (clear) {
+		setlabels(table->borderwin, table->mode);
+		wattrset(table->tcpscreen, STDATTR);
+		tx_colorwin(table->tcpscreen);
+	}
 
+	ptmp = table->firstvisible;
 	while ((ptmp != NULL) && (ptmp->prev_entry != table->lastvisible)) {
 		printentry(table, ptmp);
 		ptmp = ptmp->next_entry;
 	}
-
-	wmove(table->borderwin, table->bmaxy - 1, 1);
 
 	print_tcp_num_entries(table);
 
