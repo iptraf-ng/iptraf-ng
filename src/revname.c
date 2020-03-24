@@ -18,52 +18,19 @@ interim IP addresses in the meantime.
 #include "rvnamed.h"
 #include "sockaddr.h"
 
-char revname_socket[80];
-
-static char *gen_unix_sockname(void)
+bool rvnamedactive(int fd)
 {
-	static char scratch[80];
-
-	srandom(time(NULL));
-	snprintf(scratch, 80, "%s-%lu%d%ld", SOCKET_PREFIX, time(NULL),
-		 getpid(), random());
-
-	return scratch;
-}
-
-bool rvnamedactive(void)
-{
-	int fd;
 	fd_set sockset;
 	struct rvn rpkt;
-	struct sockaddr_un su;
 	int sstat;
 	struct timeval tv;
-	socklen_t fr;
 	int br;
-	char unix_socket[80];
-
-	strncpy(unix_socket,
-		get_path(T_WORKDIR, gen_unix_sockname()),
-		sizeof(unix_socket) - 1);
-	unix_socket[sizeof(unix_socket) - 1] = '\0';
-	unlink(unix_socket);
-
-	fd = socket(PF_UNIX, SOCK_DGRAM, 0);
-	su.sun_family = AF_UNIX;
-	strcpy(su.sun_path, unix_socket);
-	bind(fd, (struct sockaddr *) &su,
-	     sizeof(su.sun_family) + strlen(su.sun_path));
-
-	su.sun_family = AF_UNIX;
-	strcpy(su.sun_path, IPTSOCKNAME);
 
 	rpkt.type = RVN_HELLO;
 
-	sendto(fd, &rpkt, sizeof(struct rvn), 0, (struct sockaddr *) &su,
-	       sizeof(su.sun_family) + strlen(su.sun_path));
+	send(fd, &rpkt, sizeof(struct rvn), 0);
 
-	tv.tv_sec = 1;
+	tv.tv_sec = 3;
 	tv.tv_usec = 0;
 
 	FD_ZERO(&sockset);
@@ -74,18 +41,13 @@ bool rvnamedactive(void)
 	} while ((sstat < 0) && (errno != ENOMEM) && (errno == EINTR));
 
 	if (sstat == 1) {
-		fr = sizeof(su.sun_family) + strlen(su.sun_path);
 		do {
-			br = recvfrom(fd, &rpkt, sizeof(struct rvn), 0,
-				      (struct sockaddr *) &su, &fr);
+			br = recv(fd, &rpkt, sizeof(struct rvn), 0);
 		} while ((br < 0) && (errno == EINTR));
 
 		if (br < 0)
 			printipcerr();
 	}
-
-	close(fd);
-	unlink(unix_socket);
 
 	if (sstat == 0)
 		return false;
@@ -97,47 +59,18 @@ bool rvnamedactive(void)
  * Terminate rvnamed process
  */
 
-void killrvnamed(void)
+void killrvnamed(int fd)
 {
-	int fd;
-	struct sockaddr_un su;
 	struct rvn rvnpkt;
 
-	fd = socket(PF_UNIX, SOCK_DGRAM, 0);
-	su.sun_family = AF_UNIX;
-	strcpy(su.sun_path, IPTSOCKNAME);
-
 	rvnpkt.type = RVN_QUIT;
-
-	sendto(fd, &rvnpkt, sizeof(struct rvn), 0, (struct sockaddr *) &su,
-	       sizeof(su.sun_family) + strlen(su.sun_path));
-
-	close(fd);
-}
-
-void open_rvn_socket(int *fd)
-{
-	struct sockaddr_un su;
-
-	strncpy(revname_socket,
-		get_path(T_WORKDIR, gen_unix_sockname()),
-		sizeof(revname_socket) - 1);
-	revname_socket[sizeof(revname_socket) - 1] = '\0';
-	unlink(revname_socket);
-
-	*fd = socket(PF_UNIX, SOCK_DGRAM, 0);
-	su.sun_family = AF_UNIX;
-	strcpy(su.sun_path, revname_socket);
-	bind(*fd, (struct sockaddr *) &su,
-	     sizeof(su.sun_family) + strlen(su.sun_path));
+	send(fd, &rvnpkt, sizeof(struct rvn), 0);
 }
 
 void close_rvn_socket(int fd)
 {
-	if (fd > 0) {
+	if (fd > 0)
 		close(fd);
-		unlink(revname_socket);
-	}
 }
 
 int revname(int *lookup, struct sockaddr_storage *addr,
@@ -145,8 +78,6 @@ int revname(int *lookup, struct sockaddr_storage *addr,
 {
 	struct rvn rpkt;
 	int br;
-	struct sockaddr_un su;
-	socklen_t fl;
 	fd_set sockset;
 	struct timeval tv;
 	int sstat = 0;
@@ -154,17 +85,10 @@ int revname(int *lookup, struct sockaddr_storage *addr,
 	memset(target, 0, target_size);
 	if (*lookup) {
 		if (rvnfd > 0) {
-			su.sun_family = AF_UNIX;
-			strcpy(su.sun_path, IPTSOCKNAME);
-
 			rpkt.type = RVN_REQUEST;
 			sockaddr_copy(&rpkt.addr, addr);
 
-			sendto(rvnfd, &rpkt, sizeof(struct rvn), 0,
-			       (struct sockaddr *) &su,
-			       sizeof(su.sun_family) + strlen(su.sun_path));
-
-			fl = sizeof(su.sun_family) + strlen(su.sun_path);
+			send(rvnfd, &rpkt, sizeof(struct rvn), 0);
 			do {
 				tv.tv_sec = 10;
 				tv.tv_usec = 0;
@@ -179,10 +103,7 @@ int revname(int *lookup, struct sockaddr_storage *addr,
 				} while ((sstat < 0) && (errno == EINTR));
 
 				if (FD_ISSET(rvnfd, &sockset))
-					br = recvfrom(rvnfd, &rpkt,
-						      sizeof(struct rvn), 0,
-						      (struct sockaddr *) &su,
-						      &fl);
+					br = recv(rvnfd, &rpkt, sizeof(struct rvn), 0);
 				else
 					br = -1;
 			} while ((br < 0) && (errno == EINTR));

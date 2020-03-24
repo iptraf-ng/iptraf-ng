@@ -494,24 +494,40 @@ static void sortipents(struct tcptable *table, int ch)
  * to start it.
  */
 
-static int checkrvnamed(void)
+static void resolver_init(int *lookup, int *rvnfd)
 {
-	indicate("Trying to communicate with reverse lookup server");
-	if (rvnamedactive())
-		return 1;
+	int sockets[2];
+
+	*rvnfd = 0;
+	if (!*lookup)			/* don't do any lookups */
+		return;
 
 	indicate("Starting reverse lookup server");
-
-	pid_t cpid = fork();
-	if (cpid == 0) {		/* child */
-		exit(rvnamed());
-	} else if (cpid == -1) {	/* error */
-		write_error("Can't spawn new process; lookups will block");
-		return 0;
+	if (socketpair(PF_UNIX, SOCK_DGRAM, 0, sockets) == -1) {
+		write_error("Can't get communication sockets; lookups will block");
+		return;			/* do synchronous lookups */
 	}
 
-	sleep(1);	/* wait a little before checking */
-	return rvnamedactive();
+	pid_t p = fork();
+	if (p == -1) {
+		write_error("Can't spawn new process; lookups will block");
+		return;			/* do synchronous lookups */
+	} else if (p == 0) {
+		close(sockets[0]);
+		rvnamed(sockets[1]);
+		exit(0);
+	}
+
+	close(sockets[1]);
+	*rvnfd = sockets[0];
+
+	if (rvnamedactive(*rvnfd) == false) {
+		close(*rvnfd);
+		*rvnfd = 0;		/* do synchronous lookups */
+		kill(p, SIGTERM);
+	}
+
+	/* do asynchronous lookups */
 }
 
 static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struct othptable *othptbl)
@@ -791,8 +807,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	int ch;
 
-	int rvnfd = 0;
-
+	int rvnfd;
 	int revlook = options.revlook;
 
 	if (ifptr && !dev_up(ifptr)) {
@@ -805,11 +820,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		return;
 	}
 
-	if (revlook) {
-		if (checkrvnamed())
-			open_rvn_socket(&rvnfd);
-	} else
-		rvnfd = 0;
+	resolver_init(&revlook, &rvnfd);
 
 	if (options.servnames)
 		setservent(1);
@@ -968,7 +979,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	if (options.servnames)
 		endservent();
 
-	killrvnamed();
+	killrvnamed(rvnfd);
 	close_rvn_socket(rvnfd);
 
 	capt_destroy(&capt);
