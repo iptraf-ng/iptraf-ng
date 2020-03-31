@@ -65,8 +65,9 @@ void sockaddr_set_port(struct sockaddr_storage *sockaddr, in_port_t port)
 	}
 }
 
-bool sockaddr_is_equal(struct sockaddr_storage const *addr1,
-		       struct sockaddr_storage const *addr2)
+static bool _sockaddr_is_equal(struct sockaddr_storage const *addr1,
+			       struct sockaddr_storage const *addr2,
+			       bool check_address_only)
 {
 	if (!addr1)
 		die("%s(): addr1 == NULL", __FUNCTION__);
@@ -81,27 +82,49 @@ bool sockaddr_is_equal(struct sockaddr_storage const *addr1,
 		struct sockaddr_in *sa1 = (struct sockaddr_in *)addr1;
 		struct sockaddr_in *sa2 = (struct sockaddr_in *)addr2;
 
-		if ((sa1->sin_addr.s_addr == sa2->sin_addr.s_addr)
-		    && (sa1->sin_port == sa2->sin_port))
-			return true;
-		else
+		if (sa1->sin_addr.s_addr != sa2->sin_addr.s_addr)
 			return false;
+		if (check_address_only)
+			return true;
+		if (sa1->sin_port != sa2->sin_port)
+			return false;
+
+		/* all equal */
+		return true;
 		}
 	case AF_INET6: {
 		struct sockaddr_in6 *sa1 = (struct sockaddr_in6 *)addr1;
 		struct sockaddr_in6 *sa2 = (struct sockaddr_in6 *)addr2;
 
-		if ((sa1->sin6_port == sa2->sin6_port)
-		    && (sa1->sin6_flowinfo == sa2->sin6_flowinfo)
-		    && (sa1->sin6_scope_id == sa2->sin6_scope_id)
-		    && (memcmp(&sa1->sin6_addr, &sa2->sin6_addr, sizeof(sa1->sin6_addr)) == 0))
-			return true;
-		else
+		if (memcmp(&sa1->sin6_addr, &sa2->sin6_addr, sizeof(sa1->sin6_addr)) != 0)
 			return false;
+		if (check_address_only)
+			return true;
+		if (sa1->sin6_port != sa2->sin6_port)
+			return false;
+		if (sa1->sin6_flowinfo != sa2->sin6_flowinfo)
+			return false;
+		if (sa1->sin6_scope_id != sa2->sin6_scope_id)
+			return false;
+
+		/* all equal */
+		return true;
 	       }
 	default:
 		die("%s(): Unknown address family", __FUNCTION__);
 	}
+}
+
+bool sockaddr_is_equal(struct sockaddr_storage const *addr1,
+		       struct sockaddr_storage const *addr2)
+{
+	return _sockaddr_is_equal(addr1, addr2, false);
+}
+
+bool sockaddr_addr_is_equal(struct sockaddr_storage const *addr1,
+			    struct sockaddr_storage const *addr2)
+{
+	return _sockaddr_is_equal(addr1, addr2, true);
 }
 
 void sockaddr_ntop(const struct sockaddr_storage *addr, char *buf, size_t buflen)
