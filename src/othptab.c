@@ -13,12 +13,12 @@ othptab.c - non-TCP protocol display module
 
 #include "arphdr.h"
 #include "options.h"
+#include "revname.h"
 #include "tcptable.h"
 #include "othptab.h"
 #include "deskman.h"
 #include "attrs.h"
 #include "log.h"
-#include "revname.h"
 #include "rvnamed.h"
 #include "servname.h"
 #include "addproto.h"
@@ -188,7 +188,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 				  int is_ip,
 				  int protocol,
 				  char *packet2,
-				  char *ifname, int *rev_lookup, int rvnfd,
+				  char *ifname, struct resolver *res,
 				  int logging, FILE *logfile)
 {
 	struct othptabent *new_entry;
@@ -213,10 +213,10 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 		sockaddr_copy(&new_entry->saddr, saddr);
 		sockaddr_copy(&new_entry->daddr, daddr);
 
-		revname(rev_lookup, saddr, new_entry->s_fqdn,
-			sizeof(new_entry->s_fqdn), rvnfd);
-		revname(rev_lookup, daddr, new_entry->d_fqdn,
-			sizeof(new_entry->d_fqdn), rvnfd);
+		revname(res, saddr, new_entry->s_fqdn,
+			sizeof(new_entry->s_fqdn));
+		revname(res, daddr, new_entry->d_fqdn,
+			sizeof(new_entry->d_fqdn));
 
 		if (!new_entry->fragment) {
 			if (protocol == IPPROTO_ICMP) {

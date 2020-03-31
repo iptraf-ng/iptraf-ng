@@ -12,11 +12,11 @@ tcptable.c - table manipulation routines for the IP monitor
 #include "tui/winops.h"
 
 #include "options.h"
+#include "revname.h"
 #include "tcptable.h"
 #include "deskman.h"
 #include "attrs.h"
 #include "log.h"
-#include "revname.h"
 #include "rvnamed.h"
 #include "servname.h"
 #include "hostmon.h"
@@ -238,19 +238,17 @@ static void del_tcp_hash_node(struct tcptable *table, struct tcptableent *entry)
 	free(ptmp);
 }
 
-static void resolve_entry(struct tcptableent *entry, int *revlook, int rvnfd)
+static void resolve_entry(struct tcptableent *entry, struct resolver *res)
 {
 	if (entry->s_fstat != RESOLVED) {
-		entry->s_fstat = revname(revlook, &entry->saddr,
-					 entry->s_fqdn, sizeof(entry->s_fqdn),
-					 rvnfd);
+		entry->s_fstat = revname(res, &entry->saddr,
+					 entry->s_fqdn, sizeof(entry->s_fqdn));
 		strcpy(entry->oth_connection->d_fqdn, entry->s_fqdn);
 		entry->oth_connection->d_fstat = entry->s_fstat;
 	}
 	if (entry->d_fstat != RESOLVED) {
-		entry->d_fstat = revname(revlook, &entry->daddr,
-					 entry->d_fqdn, sizeof(entry->d_fqdn),
-					 rvnfd);
+		entry->d_fstat = revname(res, &entry->daddr,
+					 entry->d_fqdn, sizeof(entry->d_fqdn));
 		strcpy(entry->oth_connection->s_fqdn, entry->d_fqdn);
 		entry->oth_connection->s_fstat = entry->d_fstat;
 	}
@@ -263,7 +261,7 @@ struct tcptableent *addentry(struct tcptable *table,
 			     struct sockaddr_storage *saddr,
 			     struct sockaddr_storage *daddr,
 			     int protocol, char *ifname,
-			     int *rev_lookup, int rvnfd)
+			     struct resolver *res)
 {
 	struct tcptableent *new_entry;
 	struct closedlist *ctemp;
@@ -384,7 +382,7 @@ struct tcptableent *addentry(struct tcptable *table,
 
 	new_entry->s_fstat = NOTRESOLVED;
 	new_entry->d_fstat = NOTRESOLVED;
-	resolve_entry(new_entry, rev_lookup, rvnfd);
+	resolve_entry(new_entry, res);
 
 	/* set port service names (where applicable) */
 	servlook(sockaddr_get_port(saddr), IPPROTO_TCP, new_entry->s_sname, 10);
@@ -569,13 +567,13 @@ struct tcptableent *in_table(struct tcptable *table,
 
 void updateentry(struct tcptable *table, struct pkt_hdr *pkt,
 		 struct tcptableent *tableentry, struct tcphdr *tcp,
-		 unsigned int bcount, int *revlook, int rvnfd, int logging,
+		 unsigned int bcount, struct resolver *res, int logging,
 		 FILE *logfile)
 {
 	char msgstring[MSGSTRING_MAX];
 	char newmacaddr[18];
 
-	resolve_entry(tableentry, revlook, rvnfd);
+	resolve_entry(tableentry, res);
 
 	tableentry->pcount++;
 	tableentry->bcount += bcount;
@@ -869,15 +867,15 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 		tableentry->ifname);
 }
 
-void resolve_visible_entries(struct tcptable *table, int *revlook, int rvnfd)
+void resolve_visible_entries(struct tcptable *table, struct resolver *res)
 {
 
-	if(!*revlook)
+	if(res->lookup == false)
 		return;
 
 	struct tcptableent *entry = table->firstvisible;
 	while ((entry != NULL) && (entry->prev_entry != table->lastvisible)) {
-		resolve_entry(entry, revlook, rvnfd);
+		resolve_entry(entry, res);
 
 		entry = entry->next_entry;
 	}

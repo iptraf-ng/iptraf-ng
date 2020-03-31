@@ -163,7 +163,7 @@ int rvnamed(int ifd)
 
 	fd_set sockset;
 
-	struct sockaddr_un csa;		/* child comm socket */
+	struct sockaddr_un csa;
 	struct sockaddr_un fromaddr;
 	socklen_t fromlen;
 
@@ -204,7 +204,6 @@ int rvnamed(int ifd)
 			    "Error binding child communication socket, aborting");
 		exit(1);
 	}
-
 	while (1) {
 		FD_ZERO(&sockset);
 		FD_SET(cfd, &sockset);
@@ -265,7 +264,7 @@ int rvnamed(int ifd)
 		 */
 
 		if (FD_ISSET(ifd, &sockset)) {
-			br = recv(ifd, &rvnpacket, sizeof(rvnpacket), 0);
+			br = recv(ifd, &rvnpacket, sizeof(struct rvn), 0);
 			if (br > 0) {
 				switch (rvnpacket.type) {
 				case RVN_HELLO:
