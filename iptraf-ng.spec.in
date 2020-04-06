@@ -57,9 +57,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc CHANGES FAQ LICENSE README* RELEASE-NOTES
 %doc Documentation
 %{_sbindir}/iptraf-ng
-%{_sbindir}/rvnamed-ng
 %{_mandir}/man8/iptraf-ng.8*
-%{_mandir}/man8/rvnamed-ng.8*
 %{_localstatedir}/lock/iptraf-ng
 %{_localstatedir}/log/iptraf-ng
 %{_localstatedir}/lib/iptraf-ng

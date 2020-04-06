@@ -56,10 +56,8 @@ BASIC_LDFLAGS =
 # Guard against environment variables
 iptraf-h :=
 iptraf-o :=
-rvnamed-o :=
-rvnamed-h :=
 
-ALL_PROGRAMS := iptraf-ng rvnamed-ng
+ALL_PROGRAMS := iptraf-ng
 
 ifndef SHELL_PATH
 	SHELL_PATH = /bin/sh
@@ -161,11 +159,7 @@ iptraf-o += src/capt-recvmsg.o
 iptraf-o += src/capt-recvmmsg.o
 iptraf-o += src/capt-mmap-v2.o
 iptraf-o += src/capt-mmap-v3.o
-
-rvnamed-o += src/rvnamed.o
-rvnamed-o += src/getpath.o
-rvnamed-o += src/sockaddr.o
-rvnamed-o += src/usage.o
+iptraf-o += src/rvnamed.o
 
 ifndef sysconfdir
 ifeq ($(prefix),/usr)
@@ -326,11 +320,7 @@ src/deskman.o src/iptraf.o src/capture-pkt.o: EXTRA_CPPFLAGS = \
 	-DIPTRAF_VERSION='"$(IPTRAF_VERSION)"' \
 	-DIPTRAF_NAME='"iptraf-ng"'
 
-rvnamed-ng: $(rvnamed-o)
-	$(QUIET_LINK)$(CC) $(ALL_CFLAGS) -o $@ \
-		$(rvnamed-o) $(ALL_LDFLAGS)
-
-OBJECTS := $(sort $(iptraf-o) $(rvnamed-o))
+OBJECTS := $(sort $(iptraf-o))
 
 dep_files := $(foreach f,$(OBJECTS),$(dir $f).depend/$(notdir $f).d)
 dep_dirs := $(addsuffix .depend,$(sort $(dir $(OBJECTS))))
@@ -446,7 +436,6 @@ install: all
 	$(INSTALL) $(ALL_PROGRAMS) '$(DESTDIR_SQ)$(sbindir_SQ)'
 	$(INSTALL) -d -m 755 $(DESTDIR)$(man8dir)
 	$(INSTALL) -m 644 src/iptraf-ng.8  $(DESTDIR)$(man8dir)
-	$(INSTALL) -m 644 src/rvnamed-ng.8  $(DESTDIR)$(man8dir)
 
 ### Cleaning rules
 
@@ -456,7 +445,7 @@ clean:
 	$(RM) Documentation/manual.sgml
 	$(RM) Documentation/manual.pdf
 	$(RM) Documentation/*.html
-	$(RM) $(iptraf-o) $(rvnamed-o)
+	$(RM) $(iptraf-o)
 	$(RM) $(ALL_PROGRAMS)
 	$(RM) -r $(dep_dirs)
 	$(RM) iptraf-ng.spec

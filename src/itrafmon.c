@@ -13,6 +13,7 @@ itrafmon.c - the IP traffic monitor module
 #include "tui/winops.h"
 
 #include "options.h"
+#include "revname.h"
 #include "tcptable.h"
 #include "othptab.h"
 #include "fltdefs.h"
@@ -22,7 +23,6 @@ itrafmon.c - the IP traffic monitor module
 #include "error.h"
 #include "attrs.h"
 #include "log.h"
-#include "revname.h"
 #include "rvnamed.h"
 #include "dirs.h"
 #include "timer.h"
@@ -489,52 +489,6 @@ static void sortipents(struct tcptable *table, int ch)
 	}
 }
 
-/*
- * Attempt to communicate with rvnamed, and if it doesn't respond, try
- * to start it.
- */
-
-static int checkrvnamed(void)
-{
-	pid_t cpid = 0;
-	int cstat;
-
-	indicate("Trying to communicate with reverse lookup server");
-	if (!rvnamedactive()) {
-		indicate("Starting reverse lookup server");
-
-		if ((cpid = fork()) == 0) {
-			char *args[] = {
-				"rvnamed-ng",
-				NULL
-			};
-			execvp("rvnamed-ng", args);
-			/*
-			 * execvp() never returns, so if we reach this point, we have
-			 * a problem.
-			 */
-
-			die("unable execvp() rvnamed-ng");
-		} else if (cpid == -1) {
-			write_error("Can't spawn new process; lookups will block");
-			return 0;
-		} else {
-			while (waitpid(cpid, &cstat, 0) < 0)
-				if (errno != EINTR)
-					break;
-
-			if (WEXITSTATUS(cstat) == 1) {
-				write_error("Can't start rvnamed; lookups will block");
-				return 0;
-			} else {
-				sleep(1);
-				return 1;
-			}
-		}
-	}
-	return 1;
-}
-
 static void ipmon_process_key(int ch, int *curwin, struct tcptable *table, struct othptable *othptbl)
 {
 	static int keymode = 0;
@@ -662,7 +616,7 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 				 struct tcptable *table,
 				 struct othptable *othptbl,
 				 int logging, FILE *logfile,
-				 int *revlook, int rvnfd)
+				 struct resolver *res)
 {
 	in_port_t sport = 0, dport = 0;	/* TCP/UDP port values */
 	unsigned int br;	/* bytes read.  Differs from readlen */
@@ -702,8 +656,8 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 		add_othp_entry(othptbl, pkt, NULL, NULL,
 			       NOT_IP,
 			       pkt->pkt_protocol,
-			       pkt->pkt_payload, ifname, 0,
-			       0, logging, logfile);
+			       pkt->pkt_payload, ifname, NULL,
+			       logging, logfile);
 		return;
 	}
 
@@ -731,7 +685,7 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 			 */
 			tcpentry = addentry(table, &saddr, &daddr,
 					    pkt_ip_protocol(pkt),
-					    ifname, revlook, rvnfd);
+					    ifname, res);
 		}
 		/*
 		 * If we had an addentry() success, we should have no
@@ -751,12 +705,12 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 			if (pkt->iphdr)
 				updateentry(table, pkt, tcpentry, tcp,
 					    br,
-					    revlook, rvnfd,
+					    res,
 					    logging, logfile);
 			else
 				updateentry(table, pkt, tcpentry, tcp,
 					    pkt->pkt_len,
-					    revlook, rvnfd,
+					    res,
 					    logging, logfile);
 			/*
 			 * Log first packet of a TCP connection except if
@@ -786,7 +740,7 @@ static void ipmon_process_packet(struct pkt_hdr *pkt, char *ifname,
 		add_othp_entry(othptbl, pkt, &saddr, &daddr,
 			       IS_IP, pkt_ip_protocol(pkt),
 			       ip_payload, ifname,
-			       revlook, rvnfd, logging, logfile);
+			       res, logging, logfile);
 		break;
 	}
 }
@@ -810,11 +764,9 @@ void ipmon(time_t facilitytime, char *ifptr)
 
 	struct pkt_hdr pkt;
 
+	struct resolver res;
+
 	int ch;
-
-	int rvnfd = 0;
-
-	int revlook = options.revlook;
 
 	if (ifptr && !dev_up(ifptr)) {
 		err_iface_down();
@@ -826,11 +778,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 		return;
 	}
 
-	if (revlook) {
-		if (checkrvnamed())
-			open_rvn_socket(&rvnfd);
-	} else
-		rvnfd = 0;
+	resolver_init(&res, options.revlook);
 
 	if (options.servnames)
 		setservent(1);
@@ -910,7 +858,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			/* ... and print the current one every second */
 			print_flowrate(&table);
 
-			resolve_visible_entries(&table, &revlook, rvnfd);
+			resolve_visible_entries(&table, &res);
 
 			/* print timer at bottom of screen */
 			printelapsedtime(now.tv_sec - starttime, 15, othptbl.borderwin);
@@ -966,7 +914,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 			total_pkts++;
 			ipmon_process_packet(&pkt, ifptr, &table, &othptbl,
 					     logging, logfile,
-					     &revlook, rvnfd);
+					     &res);
 			capt_put_packet(&capt, &pkt);
 		}
 	}
@@ -989,8 +937,7 @@ void ipmon(time_t facilitytime, char *ifptr)
 	if (options.servnames)
 		endservent();
 
-	killrvnamed();
-	close_rvn_socket(rvnfd);
+	resolver_destroy(&res);
 
 	capt_destroy(&capt);
 }

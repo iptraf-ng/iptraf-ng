@@ -141,10 +141,9 @@ static void writervnlog(FILE * fd, char *msg)
 	fprintf(fd, "%s: %s\n", atime, msg);
 }
 
-int main(void)
+int rvnamed(int ifd)
 {
 	int cfd;
-	int ifd;
 
 	struct hosts hostlist[NUM_CACHE_ENTRIES];
 	char logmsg[160];
@@ -164,27 +163,11 @@ int main(void)
 
 	fd_set sockset;
 
-	struct sockaddr_un csa, isa;	/* child and iptraf comm sockets */
+	struct sockaddr_un csa;
 	struct sockaddr_un fromaddr;
 	socklen_t fromlen;
 
 	FILE *logfile;
-
-	/* Daemonization Sequence */
-
-	switch (fork()) {
-	case -1:
-		exit(1);
-	case 0:
-		break;
-	default:
-		exit(0);
-	}
-
-	setsid();
-	int i = chdir("/");
-
-	(void) i;
 
 	signal(SIGCHLD, childreap);
 
@@ -202,14 +185,10 @@ int main(void)
 	 */
 
 	unlink(CHILDSOCKNAME);
-	unlink(IPTSOCKNAME);
 
 	writervnlog(logfile, "Opening sockets");
 	csa.sun_family = AF_UNIX;
 	strcpy(csa.sun_path, CHILDSOCKNAME);
-
-	isa.sun_family = AF_UNIX;
-	strcpy(isa.sun_path, IPTSOCKNAME);
 
 	cfd = socket(PF_UNIX, SOCK_DGRAM, 0);
 
@@ -225,27 +204,14 @@ int main(void)
 			    "Error binding child communication socket, aborting");
 		exit(1);
 	}
-	ifd = socket(PF_UNIX, SOCK_DGRAM, 0);
-
-	if (ifd < 0) {
-		writervnlog(logfile,
-			    "Unable to open client communication socket, aborting");
-		exit(1);
-	}
-	if (bind
-	    (ifd, (struct sockaddr *) &isa,
-	     sizeof(isa.sun_family) + strlen(isa.sun_path)) < 0) {
-		writervnlog(logfile,
-			    "Error binding client communication socket, aborting");
-		exit(1);
-	}
 	while (1) {
 		FD_ZERO(&sockset);
 		FD_SET(cfd, &sockset);
 		FD_SET(ifd, &sockset);
+		int maxfd = cfd > ifd ? cfd : ifd;
 
 		do {
-			ss = select(ifd + 1, &sockset, NULL, NULL, NULL);
+			ss = select(maxfd + 1, &sockset, NULL, NULL, NULL);
 		} while ((ss < 0) && (errno != ENOMEM));
 
 		if (errno == ENOMEM) {
@@ -298,18 +264,11 @@ int main(void)
 		 */
 
 		if (FD_ISSET(ifd, &sockset)) {
-			fromlen = sizeof(struct sockaddr_un);
-			br = recvfrom(ifd, &rvnpacket, sizeof(struct rvn), 0,
-				      (struct sockaddr *) &fromaddr, &fromlen);
+			br = recv(ifd, &rvnpacket, sizeof(struct rvn), 0);
 			if (br > 0) {
 				switch (rvnpacket.type) {
 				case RVN_HELLO:
-					sendto(ifd, &rvnpacket,
-					       sizeof(struct rvn), 0,
-					       (struct sockaddr *)
-					       &fromaddr,
-					       sizeof(fromaddr.sun_family) +
-					       strlen(fromaddr.sun_path));
+					send(ifd, &rvnpacket, sizeof(rvnpacket), 0);
 					break;
 				case RVN_QUIT:
 					writervnlog(logfile,
@@ -319,7 +278,6 @@ int main(void)
 					close(cfd);
 					writervnlog(logfile,
 						    "Clearing socket names");
-					unlink(IPTSOCKNAME);
 					unlink(CHILDSOCKNAME);
 					sprintf(logmsg,
 						"rvnamed terminating: max processes spawned: %d",
@@ -341,16 +299,7 @@ int main(void)
 							sizeof(rvnpacket.fqdn)-1);
 						rvnpacket.ready = RESOLVED;
 
-						br = sendto(ifd, &rvnpacket,
-							    sizeof(struct rvn),
-							    0,
-							    (struct sockaddr *)
-							    &fromaddr,
-							    sizeof(fromaddr.
-								   sun_family)
-							    +
-							    strlen(fromaddr.
-								   sun_path));
+						br = send(ifd, &rvnpacket, sizeof(struct rvn), 0);
 					} else {
 
 						/*
@@ -451,17 +400,7 @@ int main(void)
 						sockaddr_ntop(&rvnpacket.addr, rvnpacket.fqdn, sizeof(rvnpacket.fqdn));
 						rvnpacket.ready = RESOLVING;
 
-						br = sendto(ifd, &rvnpacket,
-							    sizeof(struct rvn),
-							    0,
-							    (struct sockaddr *)
-							    &fromaddr,
-							    sizeof(fromaddr.
-								   sun_family)
-							    +
-							    strlen(fromaddr.
-								   sun_path));
-
+						br = send(ifd, &rvnpacket, sizeof(struct rvn), 0);
 					}
 				}
 			}
