@@ -9,6 +9,8 @@ in_port_t sockaddr_get_port(struct sockaddr_storage *sockaddr);
 void sockaddr_set_port(struct sockaddr_storage *sockaddr, in_port_t port);
 bool sockaddr_is_equal(struct sockaddr_storage const *addr1,
 		       struct sockaddr_storage const *addr2);
+bool sockaddr_addr_is_equal(struct sockaddr_storage const *addr1,
+			    struct sockaddr_storage const *addr2);
 void sockaddr_ntop(const struct sockaddr_storage *addr, char *buf, size_t buflen);
 void sockaddr_gethostbyaddr(const struct sockaddr_storage *addr,
 			    char *buffer, size_t buflen);

@@ -107,7 +107,7 @@ static int name_resolved(struct rvn *rvnpacket, struct hosts *hostlist,
 {
 	for (unsigned int i = 0; i != lastfree; i++)
 		if ((hostlist[i].ready == RESOLVED)
-		    && sockaddr_is_equal(&rvnpacket->addr, &hostlist[i].addr))
+		    && sockaddr_addr_is_equal(&rvnpacket->addr, &hostlist[i].addr))
 			return i;
 
 	return -1;
@@ -122,7 +122,7 @@ static int addrstat(struct rvn *rvnpacket, struct hosts *hostlist,
 		    unsigned int lastfree)
 {
 	for (unsigned int i = 0; i != lastfree; i++)
-		if (sockaddr_is_equal(&rvnpacket->addr, &hostlist[i].addr))
+		if (sockaddr_addr_is_equal(&rvnpacket->addr, &hostlist[i].addr))
 			return hostlist[i].ready;
 
 	return NOTRESOLVED;
@@ -237,7 +237,7 @@ int rvnamed(int ifd)
 				hi = 0;
 
 				while (hi <= lastfree) {
-					if (sockaddr_is_equal(&hostlist[hi].addr, &rvnpacket.addr))
+					if (sockaddr_addr_is_equal(&hostlist[hi].addr, &rvnpacket.addr))
 						break;
 					hi++;
 				}
