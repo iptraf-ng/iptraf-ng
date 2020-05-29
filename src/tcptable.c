@@ -759,7 +759,6 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 {
 	char stat[7] = "";
 	unsigned int target_row;
-	char sp_buf[MSGSTRING_MAX];
 	int normalattr;
 	int highattr;
 
@@ -792,11 +791,11 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 	wattrset(table->tcpscreen, normalattr);
 	mvwprintw(table->tcpscreen, target_row, 2, "%*c", COLS - 5, ' ');
 
-	sprintf(sp_buf, "%%.%ds:%%.%ds", 32 * COLS / 80, 10);
-
-	wmove(table->tcpscreen, target_row, 1);
-	wprintw(table->tcpscreen, sp_buf, tableentry->s_fqdn,
-		tableentry->s_sname);
+	mvwprintw(table->tcpscreen,
+		  target_row, 1,
+		  "%.*s:%.*s",
+		  32 * COLS / 80, tableentry->s_fqdn,
+		  10, tableentry->s_sname);
 
 	wattrset(table->tcpscreen, highattr);
 
