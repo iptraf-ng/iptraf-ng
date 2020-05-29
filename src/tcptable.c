@@ -762,6 +762,10 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 	int normalattr;
 	int highattr;
 
+	if ((tableentry->index < table->firstvisible->index)
+	    || (tableentry->index > table->lastvisible->index))
+		return;
+
 	/*
 	 * Set appropriate attributes for this entry
 	 */
@@ -773,10 +777,6 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 		normalattr = STDATTR;
 		highattr = HIGHATTR;
 	}
-
-	if ((tableentry->index < table->firstvisible->index)
-	    || (tableentry->index > table->lastvisible->index))
-		return;
 
 	target_row = tableentry->index - table->firstvisible->index;
 
