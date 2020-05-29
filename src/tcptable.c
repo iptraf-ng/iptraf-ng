@@ -780,17 +780,18 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 
 	target_row = tableentry->index - table->firstvisible->index;
 
-	/* print half of connection indicator bracket */
+	/* clear the target line */
+	wattrset(table->tcpscreen, normalattr);
+	scrollok(table->tcpscreen, 0);
+	mvwprintw(table->tcpscreen, target_row, 0, "%*c", COLS - 2, ' ');
+	scrollok(table->tcpscreen, 1);
 
+	/* print half of connection indicator bracket */
 	wattrset(table->tcpscreen, PTRATTR);
-	wmove(table->tcpscreen, target_row, 0);
-	waddch(table->tcpscreen, tableentry->half_bracket);
+	mvwaddch(table->tcpscreen, target_row, 0, tableentry->half_bracket);
 
 	/* proceed with the actual entry */
-
 	wattrset(table->tcpscreen, normalattr);
-	mvwprintw(table->tcpscreen, target_row, 2, "%*c", COLS - 5, ' ');
-
 	mvwprintw(table->tcpscreen,
 		  target_row, 1,
 		  "%.*s:%.*s",
