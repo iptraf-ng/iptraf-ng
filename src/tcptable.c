@@ -305,7 +305,6 @@ struct tcptableent *addentry(struct tcptable *table,
 			 table->firstvisible->index + (table->imaxy - 1))
 			table->lastvisible = new_entry;
 
-		new_entry->reused = new_entry->oth_connection->reused = 0;
 		table->count++;
 
 		rate_alloc(&new_entry->rate, 5);
@@ -332,8 +331,6 @@ struct tcptableent *addentry(struct tcptable *table,
 
 		if (table->closedentries == NULL)
 			table->closedtail = NULL;
-
-		new_entry->reused = new_entry->oth_connection->reused = 1;
 
 		/*
 		 * Delete the old hash entries for this reallocated node;
@@ -784,19 +781,9 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 
 	target_row = tableentry->index - table->firstvisible->index;
 
-	/* clear the data if it's a reused entry */
-
-	wattrset(table->tcpscreen, PTRATTR);
-	wmove(table->tcpscreen, target_row, 2);
-	if (tableentry->reused) {
-		scrollok(table->tcpscreen, 0);
-		wprintw(table->tcpscreen, "%*c", COLS - 4, ' ');
-		scrollok(table->tcpscreen, 1);
-		tableentry->reused = 0;
-		wmove(table->tcpscreen, target_row, 1);
-	}
 	/* print half of connection indicator bracket */
 
+	wattrset(table->tcpscreen, PTRATTR);
 	wmove(table->tcpscreen, target_row, 0);
 	waddch(table->tcpscreen, tableentry->half_bracket);
 
