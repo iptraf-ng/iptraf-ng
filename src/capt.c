@@ -154,7 +154,9 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 		struct timespec now;
 
 		clock_gettime(CLOCK_MONOTONIC, &now);
-		if (time_after(&now, &next_kbd_check)) {
+		/* if we're going to poll() for packet, check the key
+		 * press too */
+		if (!have_packet || time_after(&now, &next_kbd_check)) {
 			pfds[nfds].fd = 0;
 			pfds[nfds].events = POLLIN;
 			pfd_key = nfds;
@@ -163,7 +165,7 @@ int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win
 				timeout = 0;
 
 			next_kbd_check = now;
-			time_add_msecs(&next_kbd_check, 20);
+			time_add_msecs(&next_kbd_check, 10);
 		}
 	}
 

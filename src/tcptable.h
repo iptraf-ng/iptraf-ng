@@ -52,7 +52,6 @@ struct tcptableent {
 	int finsent;
 	char ifname[IFNAMSIZ];
 	unsigned int index;
-	int reused;
 	int timedout;
 	int inclosed;
 	int half_bracket;

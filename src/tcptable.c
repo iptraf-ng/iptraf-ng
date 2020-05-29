@@ -305,7 +305,6 @@ struct tcptableent *addentry(struct tcptable *table,
 			 table->firstvisible->index + (table->imaxy - 1))
 			table->lastvisible = new_entry;
 
-		new_entry->reused = new_entry->oth_connection->reused = 0;
 		table->count++;
 
 		rate_alloc(&new_entry->rate, 5);
@@ -332,8 +331,6 @@ struct tcptableent *addentry(struct tcptable *table,
 
 		if (table->closedentries == NULL)
 			table->closedtail = NULL;
-
-		new_entry->reused = new_entry->oth_connection->reused = 1;
 
 		/*
 		 * Delete the old hash entries for this reallocated node;
@@ -762,9 +759,12 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 {
 	char stat[7] = "";
 	unsigned int target_row;
-	char sp_buf[MSGSTRING_MAX];
 	int normalattr;
 	int highattr;
+
+	if ((tableentry->index < table->firstvisible->index)
+	    || (tableentry->index > table->lastvisible->index))
+		return;
 
 	/*
 	 * Set appropriate attributes for this entry
@@ -778,38 +778,25 @@ void printentry(struct tcptable *table, struct tcptableent *tableentry)
 		highattr = HIGHATTR;
 	}
 
-	if ((tableentry->index < table->firstvisible->index)
-	    || (tableentry->index > table->lastvisible->index))
-		return;
-
 	target_row = tableentry->index - table->firstvisible->index;
 
-	/* clear the data if it's a reused entry */
+	/* clear the target line */
+	wattrset(table->tcpscreen, normalattr);
+	scrollok(table->tcpscreen, 0);
+	mvwprintw(table->tcpscreen, target_row, 0, "%*c", COLS - 2, ' ');
+	scrollok(table->tcpscreen, 1);
 
-	wattrset(table->tcpscreen, PTRATTR);
-	wmove(table->tcpscreen, target_row, 2);
-	if (tableentry->reused) {
-		scrollok(table->tcpscreen, 0);
-		wprintw(table->tcpscreen, "%*c", COLS - 4, ' ');
-		scrollok(table->tcpscreen, 1);
-		tableentry->reused = 0;
-		wmove(table->tcpscreen, target_row, 1);
-	}
 	/* print half of connection indicator bracket */
-
-	wmove(table->tcpscreen, target_row, 0);
-	waddch(table->tcpscreen, tableentry->half_bracket);
+	wattrset(table->tcpscreen, PTRATTR);
+	mvwaddch(table->tcpscreen, target_row, 0, tableentry->half_bracket);
 
 	/* proceed with the actual entry */
-
 	wattrset(table->tcpscreen, normalattr);
-	mvwprintw(table->tcpscreen, target_row, 2, "%*c", COLS - 5, ' ');
-
-	sprintf(sp_buf, "%%.%ds:%%.%ds", 32 * COLS / 80, 10);
-
-	wmove(table->tcpscreen, target_row, 1);
-	wprintw(table->tcpscreen, sp_buf, tableentry->s_fqdn,
-		tableentry->s_sname);
+	mvwprintw(table->tcpscreen,
+		  target_row, 1,
+		  "%.*s:%.*s",
+		  32 * COLS / 80, tableentry->s_fqdn,
+		  10, tableentry->s_sname);
 
 	wattrset(table->tcpscreen, highattr);
 
