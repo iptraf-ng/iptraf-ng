@@ -163,8 +163,6 @@ static void move_tcp_bar_one(struct tcptable *table, int direction)
 			scrollupperwin(table, SCROLLUP);
 
 		table->barptr = table->barptr->next_entry;
-		printentry(table, table->barptr->prev_entry);	/* hide bar */
-		printentry(table, table->barptr);		/* show bar */
 
 		break;
 	case SCROLLDOWN:
@@ -175,8 +173,6 @@ static void move_tcp_bar_one(struct tcptable *table, int direction)
 			scrollupperwin(table, SCROLLDOWN);
 
 		table->barptr = table->barptr->prev_entry;
-		printentry(table, table->barptr->next_entry);	/* hide bar */
-		printentry(table, table->barptr);		/* show bar */
 
 		break;
 	}
