@@ -68,12 +68,12 @@ unsigned long int nametoaddr(char *ascname, int *err)
 	resolv_err = inet_aton(ascname, &inp);
 	if (resolv_err == 0) {
 		snprintf(imsg, 44, "Resolving %s", ascname);
-		indicate(imsg);
 
 		he = gethostbyname(ascname);
-		if (he != NULL)
+		if (he != NULL) {
+			indicate(imsg);
 			bcopy((he->h_addr_list)[0], &result, he->h_length);
-		else {
+		} else {
 			write_error("Unable to resolve %s", ascname);
 			*err = 1;
 			return (-1);
