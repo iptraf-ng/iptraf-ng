@@ -73,7 +73,7 @@ void tx_show_listbox(struct scroll_list *list)
 	struct textlisttype *tptr = list->textlist;
 
 	while ((i <= list->height - 3) && (tptr != NULL)) {
-		mvwprintw(list->win, i, 1, tptr->text);
+		mvwprintw(list->win, i, 1, "%s", tptr->text);
 		tptr = tptr->next_entry;
 		i++;
 	}

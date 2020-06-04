@@ -173,7 +173,7 @@ void indicate(char *message)
 {
 	attrset(STATUSBARATTR);
 	mvprintw(LINES - 1, 0, "%*c", COLS, ' ');
-	mvprintw(LINES - 1, 1, message);
+	mvprintw(LINES - 1, 1, "%s", message);
 	refresh();
 }
 
