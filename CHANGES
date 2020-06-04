@@ -1,6 +1,6 @@
 CHANGES file for iptraf-ng
 
-* <weekDay> <Month> <Day> <Year> <Name> <<email>> - x.y.z
+* Thu Jun 04 2020 Vitezslav Samel <vitezslav@samel.cz> - 1.2.0
 - ipfrag: code refactoring (Nikola Pajkovsky)
 - ifstats: sort interfaces by name (Jan Engelhardt)
 - ifstats: fix memory leak (Phil Cameron)
