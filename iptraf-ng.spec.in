@@ -54,7 +54,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc CHANGES FAQ LICENSE README* RELEASE-NOTES
+%doc CHANGES FAQ LICENSE README*
 %doc Documentation
 %{_sbindir}/iptraf-ng
 %{_mandir}/man8/iptraf-ng.8*

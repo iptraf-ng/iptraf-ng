@@ -68,11 +68,10 @@ interface, and the important features of the software.
 <title>For Additional Information</title>
 <para>
 See the included README file for summarized and late-breaking information.
-Also read the RELEASE-NOTES file for important new information about
-this new version. The CHANGES file contains a record of the changes made
-to the software since 1.0.0.  README.rvnamed contains information on the
-rvnamed reverse resolution program. See the other
-README files for support and development information.
+The CHANGES file contains a record of the changes made to the software
+since 1.0.0. README.rvnamed contains information on the rvnamed reverse
+resolution program. See the other README files for support and development
+information.
 </para>
 </sect1>
 
