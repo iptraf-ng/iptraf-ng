@@ -68,11 +68,10 @@ interface, and the important features of the software.
 <title>For Additional Information</title>
 <para>
 See the included README file for summarized and late-breaking information.
-Also read the RELEASE-NOTES file for important new information about
-this new version. The CHANGES file contains a record of the changes made
-to the software since 1.0.0.  README.rvnamed contains information on the
-rvnamed reverse resolution program. See the other
-README files for support and development information.
+The CHANGES file contains a record of the changes made to the software
+since 1.0.0. README.resolving contains information on the reverse resolution
+function. See the other README files for support and development
+information.
 </para>
 </sect1>
 
@@ -965,25 +964,23 @@ in the <emphasis><link linkend="config">Configure...</link></emphasis> menu.
 </para>
 
 <sidebar>
-<title>The rvnamed Process</title>
+<title>The Asynchronous Resolving Process</title>
 <para>
-  The IP traffic monitor starts a daemon called
-  <command>rvnamed</command> to help speed
-  up reverse lookups without sacrificing too much keyboard control and
-  accuracy of the counts. While reverse lookup is being conducted in the
-  background, IP addresses will be used until the resolution is complete.
+  The IP traffic monitor starts a process to help speed up reverse lookups
+  without sacrificing too much keyboard control and accuracy of the counts.
+  While reverse lookup is being conducted in the background, IP addresses
+  will be used until the resolution is complete.
 </para>
 <para>
-  If for some reason <command>rvnamed</command> cannot start (probably due to
-  improper installation or lack of memory), and you are
-  on the Internet, and you enable reverse lookup, your
-  keyboard control can become very slow. This is because the standard
-  lookup functions do not return until they have completed their
-  tasks, and it can take several seconds for a name resolution
-  in the foreground to complete.
+  If for some reason the resolving process cannot start, and you are on the
+  Internet, and you enable reverse lookup, your keyboard control can become
+  very slow. This is because the standard lookup functions do not return
+  until they have completed their tasks, and it can take several seconds
+  for a name resolution in the foreground to complete.
 </para>
 <para>
-  <command>rvnamed</command> will spawn up to 200 children to process reverse DNS queries.
+  The resolving process will spawn up to 200 children to process reverse
+  DNS queries.
 </para>
 </sidebar>
 
@@ -2664,12 +2661,11 @@ with the <emphasis><link linkend="config">Configure...</link></emphasis> item in
 
 <sect2> <title>Reverse DNS Lookups</title>
 <para>
-  Activating reverse lookup
-  causes IPTraf-ng to find out the name of the hosts with the addresses
-  in the IP packets. When this option is enabled, IPTraf-ng's
-  IP traffic monitor starts the rvnamed DNS lookup server to help resolve
-  IP addresses in the background while allowing IPTraf-ng to
-  continue capturing packets.
+  Activating reverse lookup causes IPTraf-ng to find out the name of the
+  hosts with the addresses in the IP packets. When this option is enabled,
+  IPTraf-ng's IP traffic monitor starts the DNS lookup server to help resolve
+  IP addresses in the background while allowing IPTraf-ng to continue
+  capturing packets.
 </para>
 <para>
   This option is off by default.
@@ -3796,13 +3792,13 @@ to the <command>iptraf-ng</command> command.
 
   <simplemsgentry>
 <msgtext>
-<para><computeroutput>Can't start rvnamed; lookups will block
+<para><computeroutput>Can't get communication sockets; lookups will block
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
 
-  IPTraf-ng cannot start the <command>rvnamed</command> daemon; probably due
-  to a bad installation. IPTraf-ng will fall back to blocking lookups.
+  IPTraf-ng cannot communicate with the resolving process. IPTraf-ng will
+  fall back to blocking lookups.
 
 </para>
 </msgexplan>
@@ -3882,11 +3878,11 @@ to the <command>iptraf-ng</command> command.
 <msgexplan>
 <para>
   This indicator appears if an error occurs receiving data
-  from the <command>rvnamed</command> program (IPC stands for Interprocess Communication).
+  from the resolving process (IPC stands for Interprocess Communication).
   This indication should not occur under normal circumstances.
   Report instances of this condition and the circumstances under which
   it happens. You may also include data from the
-<filename>rvnamed.log</filename> file.
+<filename>rvnamed-ng.log</filename> file.
 
 </para>
 </msgexplan>
@@ -3926,11 +3922,11 @@ your command and return to the main menu.
 </sect1>
 <sect1 id="rvnamedmessages">
 <title>
-  rvnamed-ng Messages
+  Resolving Process Messages
 </title>
 <para>
-  As a daemon, rvnamed does not send messages to the screen. It
-  writes its messages to the file <filename>rvnamed.log</filename> in the
+  Resolving process does not send messages to the screen. It
+  writes its messages to the file <filename>rvnamed-ng.log</filename> in the
   IPTraf-ng log directory.
 </para>
 <msgset>
@@ -3942,10 +3938,9 @@ your command and return to the main menu.
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-
-  rvnamed was unable to open the communication endpoint for data reception
-  from the children it creates. This is highly unusual, and should it
-  occur, report the circumstances.
+  Resolving process was unable to open the communication endpoint for
+  data reception from the children it creates. This is highly unusual
+  and should it occur, report the circumstances.
 </para>
 </msgexplan>
 </simplemsgentry>
@@ -3958,10 +3953,9 @@ your command and return to the main menu.
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-
-  rvnamed was unable to  open the communication endpoint for data exchange
-  with the IPTraf-ng program. This is highly unusual, and should it
-  occur, report the circumstances.
+  Resolving process was unable to open the communication endpoint for
+  data exchange with the IPTraf-ng program. This is highly unusual and
+  should it occur, report the circumstances.
 </para>
 </msgexplan>
 </simplemsgentry>
@@ -3975,11 +3969,9 @@ your command and return to the main menu.
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-
-  rvnamed was unable to assign a name
-  to the indicated communication socket. This may be due to a bad, full,
-  or corrupted filesystem.
-
+  Resolving process was unable to assign a name to the indicated
+  communication socket. This may be due to a bad, full or corrupted
+  filesystem.
 </para>
 </msgexplan>
 </simplemsgentry>
@@ -3992,9 +3984,8 @@ your command and return to the main menu.
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-
-  rvnamed ran out of memory. IPTraf-ng will resort to blocking, and may freeze.
-
+  Resolving process ran out of memory. IPTraf-ng will resort to blocking
+  and may freeze.
 </para>
 </msgexplan>
 </simplemsgentry>
@@ -4007,9 +3998,8 @@ your command and return to the main menu.
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-
-  rvnamed had a problem spawning a copy of itself to resolve the IP
-  address. rvnamed will simply return the IP address in its literal,
+  Resolving process had a problem spawning a copy of itself to resolve the IP
+  address; it will simply return the IP address in its literal,
   dotted-decimal notation. IPTraf-ng will still function normally. This may
   be due to lack of memory or a process limit hit.
 </para>
@@ -4025,17 +4015,16 @@ your command and return to the main menu.
 </computeroutput></para></msgtext>
 <msgexplan>
 <para>
-
-  rvnamed has reached its maximum number of child processes. This is
-  intended as a "brake" to prevent too many rvnamed children
-  from hogging your computer's resources and possibly crashing it.
+  Resolving process has reached its maximum number of child processes. This
+  is intended as a "brake" to prevent too many children from hogging
+  your computer's resources and possibly crashing it.
 </para>
 <para>
   Unless IPTraf-ng is monitoring an extremely busy network without filters,
   this shouldn't happen, at least, not that often. If you notice
   this message, try applying filters or check your DNS server. Many times,
-  this can happen when the DNS server goes down for
-  whatever reason, and you have rvnamed children taking too long to resolve.
+  this can happen when the DNS server goes down for whatever reason
+  and you have resolving process children taking too long to resolve.
 </para>
 </msgexplan>
 </simplemsgentry>

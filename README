@@ -1,7 +1,6 @@
 ==========================================================================
 IPTraf-ng README
 --------------------------------------------------------------------------
-See the RELEASE-NOTES for important update information.
 See the CHANGES file for the history of changes.
 See the INSTALL file for installation instructions.
 --------------------------------------------------------------------------
@@ -37,9 +36,9 @@ see README.contact for more information.
 IMPORTANT CHANGES
 -----------------
 
-Important changes are detailed in the RELEASE-NOTES and CHANGES files,
-please take some time to read it.  There are some changes in the log file
-names, and the policies on multiple instances have been somewhat relaxed.
+Important changes are detailed in the CHANGES file, please take some
+time to read it.  There are some changes in the log file names, and
+the policies on multiple instances have been somewhat relaxed.
 
 DISTRIBUTION NOTICE
 -------------------
@@ -79,5 +78,4 @@ FOR FURTHER INFORMATION
 Full information is in the manual in the Documentation directory.  See
 also the CHANGES file for a record of fixes and new features.  Updates and
 announcements are in the IPTraf-ng Web page indicated above.  Other README
-files contain some other bits of information.  The RELEASE-NOTES file
-contains important release-specific information.
+files contain some other bits of information.

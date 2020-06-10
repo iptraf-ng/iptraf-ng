@@ -392,24 +392,13 @@ endif
 
 ### Maintainer's dist rules
 
-iptraf-ng.spec: iptraf-ng.spec.in
-	sed -e 's/@@IPTRAF_VERSION@@/$(IPTRAF_VERSION)/g' < $< > $@+
-	mv $@+ $@
-
 IPTRAF_TARNAME = iptraf-ng-$(IPTRAF_VERSION)
-dist: iptraf-ng.spec
+dist:
 	@mkdir -p $(IPTRAF_TARNAME)
-	@cp iptraf-ng.spec (IPTRAF_TARNAME)
 	@cp --parents `git ls-files` $(IPTRAF_TARNAME)
 	$(TAR) cf $(IPTRAF_TARNAME).tar $(IPTRAF_TARNAME)
 	@$(RM) -rf $(IPTRAF_TARNAME)
 	gzip -f -9 $(IPTRAF_TARNAME).tar
-
-rpm: dist
-	$(RPMBUILD) \
-		--define "_source_filedigest_algorithm md5" \
-		--define "_binary_filedigest_algorithm md5" \
-		-ta $(IPTRAF_TARNAME).tar.gz
 
 ### Documentation rules
 html: Documentation/book1.html
@@ -448,7 +437,6 @@ clean:
 	$(RM) $(iptraf-o)
 	$(RM) $(ALL_PROGRAMS)
 	$(RM) -r $(dep_dirs)
-	$(RM) iptraf-ng.spec
 	$(RM) $(IPTRAF_TARNAME).tar.gz
 	$(RM) VERSION-FILE
 
