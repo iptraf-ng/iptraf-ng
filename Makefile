@@ -18,9 +18,10 @@ VERSION-FILE: FORCE
 	@$(SHELL_PATH) ./GEN-VERSION-FILE
 -include VERSION-FILE
 
-CFLAGS = -g -O2 -Wall -W -std=gnu99 -Werror=format-security -D_GNU_SOURCE
+CFLAGS = -g -O2 -Wall -W -Werror=format-security
 LDFLAGS =
-ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS)
+IPTRAF_CFLAGS := -std=gnu99 -D_GNU_SOURCE
+ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS) $(IPTRAF_CFLAGS)
 ALL_LDFLAGS = $(LDFLAGS)
 STRIP ?= strip
 
