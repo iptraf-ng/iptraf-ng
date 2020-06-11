@@ -15,6 +15,26 @@
 #include "capt-mmap-v2.h"
 #include "capt-mmap-v3.h"
 
+int capt_get_socket(struct capt *capt) {
+
+	/* initialize socket first with some default protocol;
+	 * the right protocol is then set with bind();
+	 * this overcomes the problem with getting packets
+	 * from other interfaces, because the socket was not
+	 * properly initialized yet */
+	int fd = socket(PF_PACKET, SOCK_RAW, 0);
+	if (fd == -1)
+		return -1;
+
+	capt->fd = fd;
+	return 0;
+}
+
+void capt_put_socket(struct capt *capt) {
+	close(capt->fd);
+	capt->fd = -1;
+}
+
 static int capt_set_recv_timeout(int fd, unsigned int msec)
 {
 	struct timeval timeout;
@@ -56,27 +76,18 @@ int capt_init(struct capt *capt, char *ifname)
 	capt->put_packet = NULL;
 	capt->get_dropped = NULL;
 	capt->cleanup = NULL;
+	capt->fd = -1;
 
 	capt->dropped = 0UL;
 
 	INIT_LIST_HEAD(&capt->promisc);
 
-	/* initialize socket first with some default protocol;
-	 * the right protocol is then set with bind();
-	 * this overcomes the problem with getting packets
-	 * from other interfaces, because the socket was not
-	 * properly initialized yet */
-	int fd = socket(PF_PACKET, SOCK_RAW, 0);
-	if (fd == -1)
-		return fd;
-	capt->fd = fd;
+	/* try all available receive functions */
+	if (capt_setup_receive_function(capt) == -1)
+		goto out;
 
 	/* set socket receive timeout */
 	if (capt_set_recv_timeout(capt->fd, 250) == -1)
-		goto out;
-
-	/* try all available receive functions */
-	if (capt_setup_receive_function(capt) == -1)
 		goto out;
 
 	if (options.promisc)
@@ -102,8 +113,7 @@ void capt_destroy(struct capt *capt)
 	if (capt->cleanup)
 		capt->cleanup(capt);
 
-	close(capt->fd);
-	capt->fd = -1;
+	capt_put_socket(capt);
 }
 
 static unsigned long capt_get_dropped_generic(struct capt *capt)

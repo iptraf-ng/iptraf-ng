@@ -141,14 +141,17 @@ static void capt_cleanup_mmap_v3(struct capt *capt)
 
 int capt_setup_mmap_v3(struct capt *capt)
 {
+	if (capt_get_socket(capt) == -1)
+		return -1;
+
 	int version = TPACKET_V3;
 	if (setsockopt(capt->fd, SOL_PACKET, PACKET_VERSION, &version, sizeof(version)) != 0)
-		return -1;
+		goto err;
 
 	int hdrlen = version;
 	socklen_t socklen = sizeof(hdrlen);
 	if (getsockopt(capt->fd, SOL_PACKET, PACKET_HDRLEN, &hdrlen, &socklen) != 0)
-		return -1;
+		goto err;
 
 	struct tpacket_req3 req;
 
@@ -162,16 +165,16 @@ int capt_setup_mmap_v3(struct capt *capt)
 	// req.tp_feature_req_word = TP_FT_REQ_FILL_RXHASH;
 
 	if(setsockopt(capt->fd, SOL_PACKET, PACKET_RX_RING, &req, sizeof(req)) != 0)
-		return -1;
+		goto err;
 
 	size_t size = req.tp_block_size * req.tp_block_nr;
 	void *map = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, capt->fd, 0);
 	if (map == MAP_FAILED)
-		return -1;
+		goto err;
 
 	if (mlock(map, size) != 0) {
 		munmap(map, size);
-		return -1;
+		goto err;
 	}
 
 	struct capt_data_mmap_v3 *data = xmallocz(sizeof(struct capt_data_mmap_v3));
@@ -193,4 +196,7 @@ int capt_setup_mmap_v3(struct capt *capt)
 	capt->cleanup		= capt_cleanup_mmap_v3;
 
 	return 0;	/* All O.K. */
+err:
+	capt_put_socket(capt);
+	return -1;
 }

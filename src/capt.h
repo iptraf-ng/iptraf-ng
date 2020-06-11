@@ -27,6 +27,8 @@ struct capt {
 	void		(*cleanup)(struct capt *capt);
 };
 
+int capt_get_socket(struct capt *capt);
+void capt_put_socket(struct capt *capt);
 int capt_init(struct capt *capt, char *ifname);
 void capt_destroy(struct capt *capt);
 unsigned long capt_get_dropped(struct capt *capt);

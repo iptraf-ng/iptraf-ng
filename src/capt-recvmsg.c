@@ -64,8 +64,12 @@ static void capt_cleanup_recvmsg(struct capt *capt)
 
 int capt_setup_recvmsg(struct capt *capt)
 {
-	struct capt_data_recvmsg *data = xmallocz(sizeof(struct capt_data_recvmsg));
+	struct capt_data_recvmsg *data;
 
+	if (capt_get_socket(capt) == -1)
+		return -1;
+
+	data			= xmallocz(sizeof(struct capt_data_recvmsg));
 	data->buf		= xmallocz(MAX_PACKET_SIZE);
 	data->iov.iov_len	= MAX_PACKET_SIZE;
 	data->iov.iov_base	= data->buf;

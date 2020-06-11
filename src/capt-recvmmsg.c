@@ -114,6 +114,9 @@ int capt_setup_recvmmsg(struct capt *capt)
 {
 	struct capt_data_recvmmsg *data;
 
+	if (capt_get_socket(capt) == -1)
+		return -1;
+
 	data			= xmallocz(sizeof(struct capt_data_recvmmsg));
 	data->buf		= xmallocz(FRAMES * MAX_PACKET_SIZE);
 	data->msgvec		= xmallocz(FRAMES * sizeof(*data->msgvec));
