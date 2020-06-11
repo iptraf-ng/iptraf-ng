@@ -121,7 +121,7 @@ int capt_setup_mmap_v2(struct capt *capt)
 	req.tp_frame_size = FRAME_SIZE;
 	req.tp_block_size = req.tp_frame_nr * req.tp_frame_size;
 
-	if(setsockopt(capt->fd, SOL_PACKET, PACKET_RX_RING, &req, sizeof(req)) != 0)
+	if (setsockopt(capt->fd, SOL_PACKET, PACKET_RX_RING, &req, sizeof(req)) != 0)
 		goto err;
 
 	size_t size = req.tp_block_size * req.tp_block_nr;
@@ -129,10 +129,10 @@ int capt_setup_mmap_v2(struct capt *capt)
 	if (map == MAP_FAILED)
 		goto err;
 
-	if(mlock(map, size) != 0) {
-		munmap(map, size);
-		goto err;
-	}
+	/* try to lock this memory to RAM */
+	(void)mlock(map, size);	/* no need to check return value because the mlock() is
+				 * not mandatory; if it fails packet capture just works OK
+				 * albeit suboptimally */
 
 	struct capt_data_mmap_v2 *data = xmallocz(sizeof(struct capt_data_mmap_v2));
 

@@ -172,10 +172,10 @@ int capt_setup_mmap_v3(struct capt *capt)
 	if (map == MAP_FAILED)
 		goto err;
 
-	if (mlock(map, size) != 0) {
-		munmap(map, size);
-		goto err;
-	}
+	/* try to lock this memory to RAM */
+	(void)mlock(map, size);	/* no need to check return value because the mlock() is
+				 * not mandatory; if it fails packet capture just works OK
+				 * albeit suboptimally */
 
 	struct capt_data_mmap_v3 *data = xmallocz(sizeof(struct capt_data_mmap_v3));
 
