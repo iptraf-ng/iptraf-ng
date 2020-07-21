@@ -1,5 +1,10 @@
 CHANGES file for iptraf-ng
 
+* Tue Jul 21 2020 Vitezslav Samel <vitezslav@samel.cz> - 1.2.1
+- Makefile: protect mandatory compile flags
+- packet capture: don't reuse socket for multiple receive functions
+- TPACKET_V[23]: continue even if mlock() fails
+
 * Thu Jun 04 2020 Vitezslav Samel <vitezslav@samel.cz> - 1.2.0
 - ipfrag: code refactoring (Nikola Pajkovsky)
 - ifstats: sort interfaces by name (Jan Engelhardt)
