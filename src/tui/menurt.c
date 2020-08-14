@@ -7,7 +7,7 @@ menurt.c - ncurses-based menu definition module
 
 ***/
 
-#include "iptraf-ng-compat.h"
+#include "../iptraf-ng-compat.h"
 
 #include "menurt.h"
 #include "winops.h"

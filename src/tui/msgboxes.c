@@ -5,7 +5,7 @@
  * msgboxes.c - message and error box display functions
  */
 
-#include "iptraf-ng-compat.h"
+#include "../iptraf-ng-compat.h"
 
 #include "winops.h"
 

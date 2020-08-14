@@ -6,7 +6,7 @@
  * user interface library
  */
 
-#include "iptraf-ng-compat.h"
+#include "../iptraf-ng-compat.h"
 
 #include "winops.h"
 

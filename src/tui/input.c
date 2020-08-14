@@ -7,7 +7,7 @@ input.c - a custom keyboard input module
 
 ***/
 
-#include "iptraf-ng-compat.h"
+#include "../iptraf-ng-compat.h"
 
 #include "input.h"
 
