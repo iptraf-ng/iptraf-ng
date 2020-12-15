@@ -5,7 +5,7 @@
  * listbox.c - scrollable listbox management module
  */
 
-#include "iptraf-ng-compat.h"
+#include "../iptraf-ng-compat.h"
 
 #include "winops.h"
 #include "labels.h"
