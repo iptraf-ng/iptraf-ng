@@ -25,11 +25,14 @@ char *get_path(int dirtype, char *file)
 	case T_LOCKDIR:
 		dir = LOCKDIR;
 		break;
+	case T_SHAREDIR:
+		dir = SHAREDIR;
+		break;
 	default:
 		return file;
 	}
 
-	if ((dirtype != T_LOCKDIR) && (ptr = getenv(env)) != NULL)
+	if ((dirtype != T_LOCKDIR && dirtype != T_SHAREDIR) && (ptr = getenv(env)) != NULL)
 		dir = ptr;
 
 	if (dir == NULL || *dir == '\0')

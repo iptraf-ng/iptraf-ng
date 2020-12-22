@@ -3,7 +3,7 @@
 
 struct OPTIONS {
 	unsigned int color:1, logging:1, revlook:1, servnames:1, promisc:1,
-	    actmode:1, mac:1, v6inv4asv6:1, dummy:8;
+	    actmode:1, mac:1, v6inv4asv6:1, bpf:1, dummy:7;
 	time_t timeout;
 	time_t logspan;
 	time_t updrate;

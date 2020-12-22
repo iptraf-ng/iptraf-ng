@@ -19,10 +19,11 @@ VERSION-FILE: FORCE
 -include VERSION-FILE
 
 CFLAGS = -g -O2 -Wall -W -Werror=format-security
+CPPFLAGS = -DPREFIX='"$(prefix)"'
 LDFLAGS =
 IPTRAF_CFLAGS := -std=gnu99 -D_GNU_SOURCE
 ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS) $(IPTRAF_CFLAGS)
-ALL_LDFLAGS = $(LDFLAGS)
+ALL_LDFLAGS = $(LDFLAGS) -lelf -lbpf
 STRIP ?= strip
 
 prefix = $(HOME)
@@ -58,7 +59,7 @@ BASIC_LDFLAGS =
 iptraf-h :=
 iptraf-o :=
 
-ALL_PROGRAMS := iptraf-ng
+ALL_PROGRAMS := iptraf-ng src/det_bpf.o
 
 ifndef SHELL_PATH
 	SHELL_PATH = /bin/sh
@@ -113,6 +114,7 @@ iptraf-h += src/capt-recvmsg.h
 iptraf-h += src/capt-recvmmsg.h
 iptraf-h += src/capt-mmap-v2.h
 iptraf-h += src/capt-mmap-v3.h
+iptraf-h += src/det_bpf.h
 
 iptraf-o += src/tui/input.o
 iptraf-o += src/tui/labels.o
@@ -321,6 +323,9 @@ src/deskman.o src/iptraf.o src/capture-pkt.o: EXTRA_CPPFLAGS = \
 	-DIPTRAF_VERSION='"$(IPTRAF_VERSION)"' \
 	-DIPTRAF_NAME='"iptraf-ng"'
 
+src/det_bpf.o: src/det_bpf.c src/det_bpf.h
+	clang -O2 -Wall -c $< -o - -emit-llvm | llc - -o $@ -march=bpf -filetype=obj
+
 OBJECTS := $(sort $(iptraf-o))
 
 dep_files := $(foreach f,$(OBJECTS),$(dir $f).depend/$(notdir $f).d)
@@ -426,6 +431,8 @@ install: all
 	$(INSTALL) $(ALL_PROGRAMS) '$(DESTDIR_SQ)$(sbindir_SQ)'
 	$(INSTALL) -d -m 755 $(DESTDIR)$(man8dir)
 	$(INSTALL) -m 644 src/iptraf-ng.8  $(DESTDIR)$(man8dir)
+	$(INSTALL) -d -m 755 $(DESTDIR)$(sharedir)/iptraf-ng
+	$(INSTALL) -m 644 src/det_bpf.o $(DESTDIR)$(sharedir)/iptraf-ng/
 
 ### Cleaning rules
 
