@@ -32,6 +32,7 @@ void capt_put_socket(struct capt *capt);
 int capt_init(struct capt *capt, char *ifname);
 void capt_destroy(struct capt *capt);
 unsigned long capt_get_dropped(struct capt *capt);
+int capt_get_char(WINDOW *win);
 int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win);
 int capt_put_packet(struct capt *capt, struct pkt_hdr *pkt);
 
