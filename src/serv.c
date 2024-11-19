@@ -1126,19 +1126,30 @@ static void saveportlist(struct porttab *table)
 		return;
 	}
 	while (ptmp != NULL) {
-		bw = write(fd, &ptmp->port_min, sizeof(ptmp->port_min));
-		bw = write(fd, &ptmp->port_max, sizeof(ptmp->port_max));
+		unsigned int port;	/* need to be this type to have */
+					/* backward compatibility */
+					/* FIXME: it's not portable !!! */
+					/* just use u_int16_t */
 
-		if (bw < 0) {
-			tui_error(ANYKEY_MSG,
-				  "Unable to write port/range entry");
+		port = ptmp->port_min;
+		bw = write(fd, &port, sizeof(port));
+		if (bw < 0 || bw != sizeof(port)) {
+			tui_error(ANYKEY_MSG, "Unable to write port/range entry");
 			destroyporttab(table);
-			close(fd);
-			return;
+			goto out;
 		}
+
+		port = ptmp->port_max;
+		bw = write(fd, &port, sizeof(port));
+		if (bw < 0 || bw != sizeof(port)) {
+			tui_error(ANYKEY_MSG, "Unable to write port/range entry");
+			destroyporttab(table);
+			goto out;
+		}
+
 		ptmp = ptmp->next_entry;
 	}
-
+out:
 	close(fd);
 }
 
@@ -1201,33 +1212,46 @@ void loadaddports(struct porttab **table)
 		return;
 
 	do {
-		ptemp = xmalloc(sizeof(struct porttab));
+		unsigned int port_min;	/* need to be this type to have */
+		unsigned int port_max;	/* backward compatibility */
+					/* FIXME: it's not portable !!! */
+					/* just use u_int16_t */
 
-		br = read(fd, &ptemp->port_min, sizeof(ptemp->port_min));
-		br = read(fd, &ptemp->port_max, sizeof(ptemp->port_max));
-
-		if (br < 0) {
-			tui_error(ANYKEY_MSG, "Error reading port list");
-			close(fd);
-			destroyporttab(*table);
-			return;
+		br = read(fd, &port_min, sizeof(port_min));
+		if (br == 0) {		/* EOF or no port pair --> end */
+			goto out;
 		}
-		if (br > 0) {
-			if (*table == NULL) {
-				*table = ptemp;
-				ptemp->prev_entry = NULL;
-			}
-			if (tail != NULL) {
-				tail->next_entry = ptemp;
-				ptemp->prev_entry = tail;
-			}
-			tail = ptemp;
-			ptemp->next_entry = NULL;
-		} else
-			free(ptemp);
+		if (br < 0 || br != sizeof(port_min)) {
+			tui_error(ANYKEY_MSG, "Error reading port list");
+			destroyporttab(*table);
+			goto out;
+		}
+
+		br = read(fd, &port_max, sizeof(port_max));
+		if (br <= 0 || br != sizeof(port_max)) {
+			/* if EOF --> error: need two values !!! */
+			tui_error(ANYKEY_MSG, "Error reading port list");
+			destroyporttab(*table);
+			goto out;
+		}
+
+		ptemp = xmalloc(sizeof(struct porttab));
+		ptemp->port_min = port_min;
+		ptemp->port_max = port_max;
+
+		if (*table == NULL) {
+			*table = ptemp;
+			ptemp->prev_entry = NULL;
+		}
+		if (tail != NULL) {
+			tail->next_entry = ptemp;
+			ptemp->prev_entry = tail;
+		}
+		tail = ptemp;
+		ptemp->next_entry = NULL;
 
 	} while (br > 0);
-
+out:
 	close(fd);
 }
 
