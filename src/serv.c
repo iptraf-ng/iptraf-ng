@@ -1088,7 +1088,7 @@ static void portdlg(in_port_t *port_min, in_port_t *port_max,
 			break;
 
 		ret = strtoul_ui(list.list->buf, 10, &val);
-		if (ret == -1 || val > 65535) {
+		if (ret == -1 || val < 1 || val > 65535) {
 			tui_error(ANYKEY_MSG, "Invalid port");
 			ok = 0;
 			continue;
@@ -1097,7 +1097,7 @@ static void portdlg(in_port_t *port_min, in_port_t *port_max,
 
 		if (list.list->nextfield->buf[0] != '\0') {
 			ret = strtoul_ui(list.list->nextfield->buf, 10, &val);
-			if (ret == -1 || val > 65535 || *port_min > val) {
+			if (ret == -1 || val < 1 || val > 65535 || *port_min > val) {
 				tui_error(ANYKEY_MSG, "Invalid port");
 				ok = 0;
 				continue;
@@ -1235,6 +1235,15 @@ void loadaddports(struct porttab **table)
 			goto out;
 		}
 
+		/* check for validity */
+		if (port_min < 1 || port_min > 65535 ||
+		                    port_max > 65535 ||
+		    (port_max > 0 && port_min > port_max)) {
+			tui_error(ANYKEY_MSG, "Error invalid values in port list");
+			destroyporttab(table);
+			goto out;
+		}
+
 		ptemp = xmalloc(sizeof(struct porttab));
 		ptemp->port_min = port_min;
 		ptemp->port_max = port_max;
@@ -1268,8 +1277,12 @@ static void operate_portselect(struct porttab **table, struct porttab **node,
 
 	*node = *table;
 	while (*node != NULL) {
-		snprintf(listtext, 20, "%d to %d", (*node)->port_min,
-			 (*node)->port_max);
+		if ((*node)->port_max == 0) {
+			snprintf(listtext, 20, "%d", (*node)->port_min);
+		} else {
+			snprintf(listtext, 20, "%d to %d", (*node)->port_min,
+				 (*node)->port_max);
+		}
 		tx_add_list_entry(&list, (char *) *node, listtext);
 		*node = (*node)->next_entry;
 	}
