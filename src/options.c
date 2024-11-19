@@ -378,7 +378,7 @@ void setoptions(void)
 		indicatesetting(row, statwin);
 	} while (row != 18);
 
-	destroyporttab(ports);
+	destroyporttab(&ports);
 	tx_destroymenu(&menu);
 	del_panel(statpanel);
 	delwin(statwin);

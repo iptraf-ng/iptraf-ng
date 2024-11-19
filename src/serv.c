@@ -1029,7 +1029,7 @@ void servmon(char *ifname, time_t facilitytime)
 
 	capt_destroy(&capt);
 err:
-	destroyporttab(ports);
+	destroyporttab(&ports);
 	destroyportlist(&list);
 }
 
@@ -1113,9 +1113,9 @@ static void portdlg(in_port_t *port_min, in_port_t *port_max,
 	tx_destroyfields(&list);
 }
 
-static void saveportlist(struct porttab *table)
+static void saveportlist(struct porttab **table)
 {
-	struct porttab *ptmp = table;
+	struct porttab *ptmp = *table;
 	int fd;
 	int bw;
 
@@ -1191,7 +1191,7 @@ void addmoreports(struct porttab **table)
 				(*table)->prev_entry = ptmp;
 
 			*table = ptmp;
-			saveportlist(*table);
+			saveportlist(table);
 		}
 	}
 	update_panels();
@@ -1223,7 +1223,7 @@ void loadaddports(struct porttab **table)
 		}
 		if (br < 0 || br != sizeof(port_min)) {
 			tui_error(ANYKEY_MSG, "Error reading port list");
-			destroyporttab(*table);
+			destroyporttab(table);
 			goto out;
 		}
 
@@ -1231,7 +1231,7 @@ void loadaddports(struct porttab **table)
 		if (br <= 0 || br != sizeof(port_max)) {
 			/* if EOF --> error: need two values !!! */
 			tui_error(ANYKEY_MSG, "Error reading port list");
-			destroyporttab(*table);
+			destroyporttab(table);
 			goto out;
 		}
 
@@ -1322,16 +1322,17 @@ void removeaport(struct porttab **table)
 
 	if (!aborted && ptmp) {
 		delport(table, ptmp);
-		saveportlist(*table);
+		saveportlist(table);
 	}
 }
 
-void destroyporttab(struct porttab *table)
+void destroyporttab(struct porttab **table)
 {
-	while (table != NULL) {
-		struct porttab *ptemp = table->next_entry;
+	while (*table != NULL) {
+		struct porttab *ptemp = (*table)->next_entry;
 
-		free(table);
-		table = ptemp;
+		free(*table);
+		*table = ptemp;
 	}
+	*table = NULL;
 }

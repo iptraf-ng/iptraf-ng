@@ -16,7 +16,7 @@ struct porttab {
 
 void addmoreports(struct porttab **table);
 void loadaddports(struct porttab **table);
-void destroyporttab(struct porttab *table);
+void destroyporttab(struct porttab **table);
 void removeaport(struct porttab **table);
 void servmon(char *iface, time_t facilitytime);
 
