@@ -67,7 +67,7 @@ int dev_up(char *iface)
 
 	fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-	strcpy(ifr.ifr_name, iface);
+	ifname_copy(ifr.ifr_name, iface);
 	ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
 
 	close(fd);
@@ -90,7 +90,7 @@ int dev_get_ifindex(const char *iface)
 		return fd;
 
 	struct ifreq ifr;
-	strcpy(ifr.ifr_name, iface);
+	ifname_copy(ifr.ifr_name, iface);
 	int ir = ioctl(fd, SIOCGIFINDEX, &ifr);
 
 	/* need to preserve errno across call to close() */
@@ -114,7 +114,7 @@ int dev_get_mtu(const char *iface)
 		return fd;
 
 	struct ifreq ifr;
-	strcpy(ifr.ifr_name, iface);
+	ifname_copy(ifr.ifr_name, iface);
 	int ir = ioctl(fd, SIOCGIFMTU, &ifr);
 
 	/* need to preserve errno across call to close() */
@@ -138,7 +138,7 @@ int dev_get_flags(const char *iface)
 		return fd;
 
 	struct ifreq ifr;
-	strcpy(ifr.ifr_name, iface);
+	ifname_copy(ifr.ifr_name, iface);
 	int ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
 
 	/* need to preserve errno across call to close() */
@@ -162,7 +162,7 @@ int dev_set_flags(const char *iface, int flags)
 		return fd;
 
 	struct ifreq ifr;
-	strcpy(ifr.ifr_name, iface);
+	ifname_copy(ifr.ifr_name, iface);
 	int ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (ir == -1)
 		goto err;
@@ -190,7 +190,7 @@ int dev_clear_flags(const char *iface, int flags)
 		return fd;
 
 	struct ifreq ifr;
-	strcpy(ifr.ifr_name, iface);
+	ifname_copy(ifr.ifr_name, iface);
 	int ir = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (ir == -1)
 		goto err;
@@ -233,7 +233,7 @@ int dev_get_ifname(int ifindex, char *ifname)
 		return ir;
 	}
 
-	strncpy(ifname, ifr.ifr_name, IFNAMSIZ);
+	ifname_copy(ifname, ifr.ifr_name);
 	return ir;
 }
 
@@ -256,7 +256,7 @@ int dev_bind_ifname(int fd, const char * const ifname)
 		int ir;
 		struct ifreq ifr;
 
-		strcpy(ifr.ifr_name, ifname);
+		ifname_copy(ifr.ifr_name, ifname);
 		ir = ioctl(fd, SIOCGIFINDEX, &ifr);
 		if (ir)
 			return ir;

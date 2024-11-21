@@ -78,3 +78,11 @@ int strtol_i(char const *s, int base, int *result)
 	*result = ul;
 	return 0;
 }
+
+/* it's up to the caller to ensure there is room for */
+/* at least IFNAMSIZ bytes in dst */
+void ifname_copy(char *dst, const char *src)
+{
+	strncpy(dst, src, IFNAMSIZ - 1);
+	dst[IFNAMSIZ - 1] = '\0';
+}

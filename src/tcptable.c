@@ -365,8 +365,8 @@ struct tcptableent *addentry(struct tcptable *table,
 	 * Store interface name
 	 */
 
-	strcpy(new_entry->ifname, ifname);
-	strcpy(new_entry->oth_connection->ifname, ifname);
+	ifname_copy(new_entry->ifname, ifname);
+	ifname_copy(new_entry->oth_connection->ifname, ifname);
 
 	/*
 	 * Zero out MAC address fields

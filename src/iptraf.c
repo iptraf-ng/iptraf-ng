@@ -388,6 +388,15 @@ int main(int argc, char **argv)
 	if (__builtin_popcount(command) > 1)
 		die("only one of -i|-d|-s|-z|-l|-g options must be used");
 
+	/* sanity check of passed arguments */
+	if ((i_opt && strlen(i_opt) >= IFNAMSIZ) ||
+	    (d_opt && strlen(d_opt) >= IFNAMSIZ) ||
+	    (s_opt && strlen(s_opt) >= IFNAMSIZ) ||
+	    (z_opt && strlen(z_opt) >= IFNAMSIZ) ||
+	    (l_opt && strlen(l_opt) >= IFNAMSIZ)) {
+		die("interface name is too long");
+	}
+
 	strcpy(current_logfile, "");
 
 	if (f_opt) {

@@ -194,7 +194,7 @@ static void initiflist(struct iflist **list)
 
 		struct iflist *itmp = alloc_iflist_entry();
 		itmp->ifindex = ifindex;
-		strcpy(itmp->ifname, ifname);
+		ifname_copy(itmp->ifname, ifname);
 
 		/* make the linked list sorted by ifindex */
 		struct iflist *cur = *list, *last = NULL;
@@ -714,9 +714,9 @@ void selectiface(char *ifname, int withall, int *aborted)
 	if (!(*aborted) && (list != NULL)) {
 		ptmp = (struct iflist *) scrolllist.textptr->nodeptr;
 		if ((withall) && (ptmp->prev_entry == NULL))	/* All Interfaces */
-			strcpy(ifname, "");
+			ifname_copy(ifname, "");
 		else
-			strcpy(ifname, ptmp->ifname);
+			ifname_copy(ifname, ptmp->ifname);
 	}
 
 	tx_destroy_list(&scrolllist);

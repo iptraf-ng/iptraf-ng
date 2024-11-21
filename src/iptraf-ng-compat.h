@@ -112,6 +112,7 @@ extern void *xmallocz(size_t size);
 extern char *xstrdup(const char *s);
 extern int strtoul_ui(char const *s, int base, unsigned int *result);
 extern int strtol_i(char const *s, int base, int *result);
+extern void ifname_copy(char *dst, const char *src);
 
 extern void die(const char *err, ...) __noreturn __printf(1,2);
 extern void die_errno(const char *fmt, ...) __noreturn __printf(1,2);

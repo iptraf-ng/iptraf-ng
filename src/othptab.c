@@ -271,7 +271,7 @@ struct othptabent *add_othp_entry(struct othptable *table, struct pkt_hdr *pkt,
 	}
 
 	new_entry->protocol = protocol;
-	strcpy(new_entry->iface, ifname);
+	ifname_copy(new_entry->iface, ifname);
 
 	new_entry->pkt_length = pkt->pkt_len;
 

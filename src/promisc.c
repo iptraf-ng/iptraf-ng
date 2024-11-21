@@ -70,7 +70,7 @@ static void promisc_enable_dev(struct list_head *promisc, int sock, const char *
 	struct promisc_list *new = xmallocz(sizeof(*new));
 
 	new->ifindex = ifindex;
-	strcpy(new->ifname, dev);
+	ifname_copy(new->ifname, dev);
 	list_add_tail(&new->list, promisc);
 }
 
