@@ -1,5 +1,10 @@
 CHANGES file for iptraf-ng
 
+* Tue Nov 21 2024 Vitezslav Samel <vitezslav@samel.cz> - 1.2.2
+- small cleanups: remove unused code/variable, correct format specifiers
+- serv.c: fix and validate port/ranges entering/loading/saving
+- SECURITY FIX: CVE-2024-52949: interface names: limit length to IFNAMSIZ
+
 * Tue Jul 21 2020 Vitezslav Samel <vitezslav@samel.cz> - 1.2.1
 - Makefile: protect mandatory compile flags
 - packet capture: don't reuse socket for multiple receive functions
