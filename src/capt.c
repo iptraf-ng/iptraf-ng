@@ -139,6 +139,25 @@ unsigned long capt_get_dropped(struct capt *capt)
 	return capt_get_dropped_generic(capt);
 }
 
+int capt_get_char(WINDOW *win)
+{
+	struct pollfd pfds[] = { {
+		.fd = 0,
+		.events = POLLIN,
+	} };
+	int ss;
+
+	if (daemonized)
+		return 1;
+
+	ss = poll(pfds, 1, DEFAULT_UPDATE_DELAY);
+
+	if (ss && pfds[0].revents & POLLIN)
+		return wgetch(win);
+
+	return ERR;
+}
+
 int capt_get_packet(struct capt *capt, struct pkt_hdr *pkt, int *ch, WINDOW *win)
 {
 	struct pollfd pfds[2];
