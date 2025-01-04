@@ -521,7 +521,7 @@ int main(int argc, char **argv)
 	 * hide all into tui_top_panel(char *msg)
 	 * */
 	draw_desktop();
-	attrset(STATUSBARATTR);
+	attrset(KEYBARATTR);
 	mvprintw(0, 1, "%s %s", IPTRAF_NAME, IPTRAF_VERSION);
 
 	/* simplify */

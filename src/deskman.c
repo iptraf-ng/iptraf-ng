@@ -30,7 +30,7 @@ int DLGTEXTATTR;
 int DLGBOXATTR;
 int DLGHIGHATTR;
 int DESCATTR;
-int STATUSBARATTR;
+int KEYBARATTR;
 int IPSTATLABELATTR;
 int IPSTATATTR;
 int DESKTEXTATTR;
@@ -57,7 +57,7 @@ void draw_desktop(void)
 	int row;		/* counter for desktop construction */
 
 	scrollok(stdscr, 0);
-	attrset(STATUSBARATTR);
+	attrset(KEYBARATTR);
 	move(0, 0);
 	printw("%*c", COLS, ' ');	/* these two print the top n' bottom */
 	move(LINES - 1, 0);
@@ -149,12 +149,12 @@ void stdkeyhelp(WINDOW * win)
 
 void sortkeyhelp(void)
 {
-	tx_printkeyhelp("S", "-sort  ", stdscr, HIGHATTR, STATUSBARATTR);
+	tx_printkeyhelp("S", "-sort  ", stdscr, HIGHATTR, KEYBARATTR);
 }
 
 void stdexitkeyhelp(void)
 {
-	tx_printkeyhelp("X", "-exit", stdscr, HIGHATTR, STATUSBARATTR);
+	tx_printkeyhelp("X", "-exit", stdscr, HIGHATTR, KEYBARATTR);
 	tx_coloreol();
 }
 
@@ -171,7 +171,7 @@ void tabkeyhelp(WINDOW * win)
 
 void indicate(char *message)
 {
-	attrset(STATUSBARATTR);
+	attrset(KEYBARATTR);
 	mvprintw(LINES - 1, 0, "%*c", COLS, ' ');
 	mvprintw(LINES - 1, 1, "%s", message);
 	refresh();
@@ -244,7 +244,7 @@ void standardcolors(int color)
 		DLGTEXTATTR = COLOR_PAIR(2);
 		DLGBOXATTR = COLOR_PAIR(6);
 		DLGHIGHATTR = COLOR_PAIR(12);
-		STATUSBARATTR = STDATTR;
+		KEYBARATTR = STDATTR;
 		IPSTATLABELATTR = COLOR_PAIR(2);
 		IPSTATATTR = COLOR_PAIR(12);
 		DESKTEXTATTR = COLOR_PAIR(7);
@@ -275,7 +275,7 @@ void standardcolors(int color)
 		DLGBOXATTR = A_REVERSE;
 		DLGTEXTATTR = A_REVERSE;
 		DLGHIGHATTR = A_BOLD;
-		STATUSBARATTR = A_REVERSE;
+		KEYBARATTR = A_REVERSE;
 		IPSTATLABELATTR = A_REVERSE;
 		IPSTATATTR = A_STANDOUT;
 		DESKTEXTATTR = A_NORMAL;

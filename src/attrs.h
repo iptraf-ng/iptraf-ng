@@ -14,7 +14,7 @@ extern int DLGTEXTATTR;
 extern int DLGHIGHATTR;
 extern int DLGBOXATTR;
 extern int DESCATTR;
-extern int STATUSBARATTR;
+extern int KEYBARATTR;
 extern int IPSTATATTR;
 extern int IPSTATLABELATTR;
 extern int DESKTEXTATTR;
