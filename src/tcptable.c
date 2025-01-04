@@ -991,7 +991,7 @@ void flushclosedentries(struct tcptable *table)
 	struct tcptableent *ptmp = table->head;
 	struct tcptableent *ctmp = NULL;
 	unsigned long idx = 1;
-	unsigned long screen_idx = table->firstvisible->index;
+	unsigned long screen_idx = table->firstvisible == NULL ? 0 : table->firstvisible->index;
 
 	while (ptmp != NULL) {
 		if (ptmp->inclosed) {
