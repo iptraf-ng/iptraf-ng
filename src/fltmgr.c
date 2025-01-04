@@ -231,8 +231,7 @@ void operate_select(struct ffnode *ffiles, struct ffnode **item, int *aborted)
 	pptr = ffiles;
 
 	tx_init_listbox(&list, 60, 10, (COLS - 60) / 2 - 2,
-			(LINES - 10) / 2 - 2, STDATTR, BOXATTR, BARSTDATTR,
-			HIGHATTR);
+			(LINES - 10) / 2 - 2);
 
 	tx_set_listbox_title(&list, "Select Filter", 1);
 

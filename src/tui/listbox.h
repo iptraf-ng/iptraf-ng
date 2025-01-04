@@ -28,8 +28,7 @@ struct scroll_list {
 };
 
 void tx_init_listbox(struct scroll_list *list, int width, int height,
-		     int startx, int starty, int mainattr, int borderattr,
-		     int selectattr, int keyattr);
+		     int startx, int starty);
 void tx_set_listbox_title(struct scroll_list *list, char *text, int x);
 void tx_add_list_entry(struct scroll_list *list, char *node, char *text);
 void tx_show_listbox(struct scroll_list *list);

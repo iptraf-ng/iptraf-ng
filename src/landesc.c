@@ -203,8 +203,7 @@ static struct eth_desc *select_eth_desc(const struct eth_desc *hd)
 		return NULL;
 	}
 
-	tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2, STDATTR, BOXATTR,
-			BARSTDATTR, HIGHATTR);
+	tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2);
 
 	tx_set_listbox_title(&slist, "Address", 1);
 	tx_set_listbox_title(&slist, "Description", 19);

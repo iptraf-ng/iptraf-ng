@@ -7,6 +7,7 @@
 
 #include "iptraf-ng-compat.h"
 
+#include "attrs.h"
 #include "winops.h"
 #include "labels.h"
 #include "listbox.h"
@@ -16,25 +17,24 @@
 #define SCROLLDOWN 1
 
 void tx_init_listbox(struct scroll_list *list, int width, int height,
-		     int startx, int starty, int mainattr, int borderattr,
-		     int selectattr, int keyattr)
+		     int startx, int starty)
 {
 	memset(list, 0, sizeof(struct scroll_list));
 	list->borderwin = newwin(height, width, starty, startx);
 	list->borderpanel = new_panel(list->borderwin);
-	wattrset(list->borderwin, borderattr);
+	wattrset(list->borderwin, BOXATTR);
 	tx_box(list->borderwin, ACS_VLINE, ACS_HLINE);
 
 	list->win = newwin(height - 2, width - 2, starty + 1, startx + 1);
 	list->panel = new_panel(list->win);
-	wattrset(list->win, mainattr);
+	wattrset(list->win, STDATTR);
 	tx_colorwin(list->win);
 
-	list->mainattr = mainattr;
-	list->selectattr = selectattr;
+	list->mainattr = STDATTR;
+	list->selectattr = BARSTDATTR;
 	list->height = height;
 	list->width = width;
-	list->keyattr = keyattr;
+	list->keyattr = HIGHATTR;
 	list->row = 0;
 
 	tx_stdwinset(list->win);
