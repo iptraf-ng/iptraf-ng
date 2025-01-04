@@ -18,7 +18,8 @@ struct scroll_list {
 	int width;
 	int mainattr;
 	int selectattr;
-	int keyattr;
+	int keybarattr;
+	int keyhighattr;
 	int row;
 
 	WINDOW *win;

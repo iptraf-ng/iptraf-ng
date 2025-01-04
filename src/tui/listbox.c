@@ -34,7 +34,8 @@ void tx_init_listbox(struct scroll_list *list, int width, int height,
 	list->selectattr = BARSTDATTR;
 	list->height = height;
 	list->width = width;
-	list->keyattr = HIGHATTR;
+	list->keybarattr = KEYBARATTR;
+	list->keyhighattr = KEYHIGHATTR;
 	list->row = 0;
 
 	tx_stdwinset(list->win);
@@ -141,7 +142,7 @@ void tx_operate_listbox(struct scroll_list *list, int *aborted)
 
 	list->textptr = list->textlist;
 
-	tx_listkeyhelp(list->mainattr, list->keyattr);
+	tx_listkeyhelp(list->keybarattr, list->keyhighattr);
 	update_panels();
 	doupdate();
 

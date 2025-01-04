@@ -223,7 +223,7 @@ void operate_select(struct ffnode *ffiles, struct ffnode **item, int *aborted)
 	struct ffnode *pptr;
 	struct scroll_list list;
 
-	tx_listkeyhelp(STDATTR, HIGHATTR);
+	tx_listkeyhelp(KEYBARATTR, KEYHIGHATTR);
 	update_panels();
 	doupdate();
 

@@ -42,6 +42,8 @@ struct MENU {
 	int barnormalattr;
 	int barhighattr;
 	int statusattr;
+	int keybarattr;
+	int keyhighattr;
 	char shortcuts[SHORTCUTSTRLEN_MAX];
 };
 

@@ -43,6 +43,8 @@ void tx_initmenu(struct MENU *menu, int y1, int x1, int y2, int x2)
 	menu->barnormalattr = BARSTDATTR;
 	menu->barhighattr = BARHIGHATTR;
 	menu->statusattr = STATUSBARATTR;
+	menu->keybarattr = KEYBARATTR;
+	menu->keyhighattr = KEYHIGHATTR;
 }
 
 /* add menu item */
@@ -182,7 +184,7 @@ void tx_operatemenu(struct MENU *menu, int *position, int *aborted)
 	int ch;
 	char *keyptr;
 
-	tx_menukeyhelp(menu->normalattr, menu->highattr);
+	tx_menukeyhelp(menu->keybarattr, menu->keyhighattr);
 	*aborted = 0;
 	menumoveto(menu, &itemptr, row);
 
