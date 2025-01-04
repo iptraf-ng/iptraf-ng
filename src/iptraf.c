@@ -115,8 +115,7 @@ static void term_usr2_handler(int s __unused)
 
 static void init_break_menu(struct MENU *break_menu)
 {
-	tx_initmenu(break_menu, 6, 20, (LINES - 6) / 2, COLS / 2, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, STATUSBARATTR);
+	tx_initmenu(break_menu, 6, 20, (LINES - 6) / 2, COLS / 2);
 	tx_additem(break_menu, " By packet ^s^ize",
 		   "Displays packet counts by packet size range");
 	tx_additem(break_menu, " By TCP/UDP ^p^ort",
@@ -149,8 +148,7 @@ static void program_interface(void)
 	loadfilters();
 	indicate("");
 
-	tx_initmenu(&menu, 15, 35, (LINES - 16) / 2, (COLS - 35) / 2, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, STATUSBARATTR);
+	tx_initmenu(&menu, 15, 35, (LINES - 16) / 2, (COLS - 35) / 2);
 
 	tx_additem(&menu, " IP traffic ^m^onitor",
 		   "Displays current IP traffic information");

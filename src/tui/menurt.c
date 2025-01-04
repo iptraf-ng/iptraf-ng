@@ -9,15 +9,14 @@ menurt.c - ncurses-based menu definition module
 
 #include "iptraf-ng-compat.h"
 
+#include "attrs.h"
 #include "menurt.h"
 #include "winops.h"
 #include "labels.h"
 
 /* initialize menu system */
 
-void tx_initmenu(struct MENU *menu, int y1, int x1, int y2, int x2,
-		 int borderattr, int normalattr, int highattr,
-		 int barnormalattr, int barhighattr, int statusattr)
+void tx_initmenu(struct MENU *menu, int y1, int x1, int y2, int x2)
 {
 	menu->itemlist = NULL;
 	menu->itemcount = 0;
@@ -38,12 +37,12 @@ void tx_initmenu(struct MENU *menu, int y1, int x1, int y2, int x2,
 	nonl();
 	cbreak();
 
-	menu->borderattr = borderattr;
-	menu->normalattr = normalattr;
-	menu->highattr = highattr;
-	menu->barnormalattr = barnormalattr;
-	menu->barhighattr = barhighattr;
-	menu->statusattr = statusattr;
+	menu->borderattr = BOXATTR;
+	menu->normalattr = STDATTR;
+	menu->highattr = HIGHATTR;
+	menu->barnormalattr = BARSTDATTR;
+	menu->barhighattr = BARHIGHATTR;
+	menu->statusattr = STATUSBARATTR;
 }
 
 /* add menu item */

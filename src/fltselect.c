@@ -28,8 +28,7 @@ struct filterstate ofilter;
 
 void makemainfiltermenu(struct MENU *menu)
 {
-	tx_initmenu(menu, 8, 18, (LINES - 8) / 2, (COLS - 31) / 2, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, STATUSBARATTR);
+	tx_initmenu(menu, 8, 18, (LINES - 8) / 2, (COLS - 31) / 2);
 	tx_additem(menu, " ^I^P...", "Manages IP packet filters");
 	tx_additem(menu, " ^A^RP",
 		   "Toggles Address Resolution Protocol filter");
