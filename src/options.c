@@ -30,7 +30,7 @@ static void makeoptionmenu(struct MENU *menu)
 {
 	tx_initmenu(menu, 20, 40, (LINES - 19) / 2 - 1, (COLS - 40) / 16,
 		    BOXATTR, STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR,
-		    DESCATTR);
+		    STATUSBARATTR);
 	tx_additem(menu, " ^R^everse DNS lookups",
 		   "Toggles resolution of IP addresses into host names");
 	tx_additem(menu, " TCP/UDP ^s^ervice names",
@@ -66,7 +66,7 @@ static void makeoptionmenu(struct MENU *menu)
 static void maketimermenu(struct MENU *menu)
 {
 	tx_initmenu(menu, 8, 35, (LINES - 19) / 2 + 7, (COLS - 35) / 2, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
+		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, STATUSBARATTR);
 
 	tx_additem(menu, " TCP ^t^imeout...",
 		   "Sets the length of time before inactive TCP entries are considered idle");

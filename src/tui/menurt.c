@@ -17,7 +17,7 @@ menurt.c - ncurses-based menu definition module
 
 void tx_initmenu(struct MENU *menu, int y1, int x1, int y2, int x2,
 		 int borderattr, int normalattr, int highattr,
-		 int barnormalattr, int barhighattr, int descattr)
+		 int barnormalattr, int barhighattr, int statusattr)
 {
 	menu->itemlist = NULL;
 	menu->itemcount = 0;
@@ -43,7 +43,7 @@ void tx_initmenu(struct MENU *menu, int y1, int x1, int y2, int x2,
 	menu->highattr = highattr;
 	menu->barnormalattr = barnormalattr;
 	menu->barhighattr = barhighattr;
-	menu->descriptionattr = descattr;
+	menu->statusattr = statusattr;
 }
 
 /* add menu item */
@@ -198,7 +198,7 @@ void tx_operatemenu(struct MENU *menu, int *position, int *aborted)
 		 * Print item description
 		 */
 
-		wattrset(menu->descwin, menu->descriptionattr);
+		wattrset(menu->descwin, menu->statusattr);
 		tx_colorwin(menu->descwin);
 		mvwprintw(menu->descwin, 0, 0, " %s", itemptr->desc);
 		update_panels();

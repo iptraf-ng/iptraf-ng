@@ -26,7 +26,7 @@ fltmgr.c - filter list management routines
 void makestdfiltermenu(struct MENU *menu)
 {
 	tx_initmenu(menu, 9, 31, (LINES - 8) / 2, (COLS - 31) / 2 + 15, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
+		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, STATUSBARATTR);
 	tx_additem(menu, " ^D^efine new filter...",
 		   "Defines a new set of IP filter parameters");
 	tx_additem(menu, " ^A^pply filter...", "Applies a defined filter");

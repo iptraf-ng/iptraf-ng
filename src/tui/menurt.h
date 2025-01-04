@@ -41,13 +41,13 @@ struct MENU {
 	int highattr;
 	int barnormalattr;
 	int barhighattr;
-	int descriptionattr;
+	int statusattr;
 	char shortcuts[SHORTCUTSTRLEN_MAX];
 };
 
 void tx_initmenu(struct MENU *menu, int y1, int x1, int y2, int x2,
 		 int borderattr, int normalattr, int highattr,
-		 int barnormalattr, int barhighattr, int descattr);
+		 int barnormalattr, int barhighattr, int statusattr);
 void tx_additem(struct MENU *menu, char *item, char *desc);
 void tx_showitem(struct MENU *menu, struct ITEM *itemptr, int selected);
 void tx_showmenu(struct MENU *menu);

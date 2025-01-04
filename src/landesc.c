@@ -328,7 +328,7 @@ void manage_eth_desc(unsigned linktype)
 	int aborted = 0;
 
 	tx_initmenu(&menu, 7, 31, (LINES - 6) / 2, (COLS - 31) / 2, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
+		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, STATUSBARATTR);
 	tx_additem(&menu, " ^A^dd description...",
 		   "Adds a description for a MAC address");
 	tx_additem(&menu, " ^E^dit description...",
