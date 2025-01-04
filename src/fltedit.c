@@ -222,13 +222,13 @@ void modify_host_parameters(struct filterlist *fl)
 	tx_colorwin(win);
 
 	move(LINES - 1, 1);
-	tx_printkeyhelp("Up/Down", "-move ptr ", stdscr, HIGHATTR,
+	tx_printkeyhelp("Up/Down", "-move ptr ", stdscr, KEYHIGHATTR,
 			KEYBARATTR);
-	tx_printkeyhelp("I", "-insert ", stdscr, HIGHATTR, KEYBARATTR);
-	tx_printkeyhelp("A", "-add to list ", stdscr, HIGHATTR, KEYBARATTR);
-	tx_printkeyhelp("D", "-delete ", stdscr, HIGHATTR, KEYBARATTR);
-	tx_printkeyhelp("Enter", "-edit ", stdscr, HIGHATTR, KEYBARATTR);
-	tx_printkeyhelp("X/Ctrl+X", "-exit", stdscr, HIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("I", "-insert ", stdscr, KEYHIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("A", "-add to list ", stdscr, KEYHIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("D", "-delete ", stdscr, KEYHIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("Enter", "-edit ", stdscr, KEYHIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("X/Ctrl+X", "-exit", stdscr, KEYHIGHATTR, KEYBARATTR);
 
 	update_panels();
 	doupdate();

@@ -31,6 +31,7 @@ int DLGBOXATTR;
 int DLGHIGHATTR;
 int STATUSBARATTR;
 int KEYBARATTR;
+int KEYHIGHATTR;
 int IPSTATLABELATTR;
 int IPSTATATTR;
 int DESKTEXTATTR;
@@ -149,19 +150,19 @@ void stdkeyhelp(WINDOW * win)
 
 void sortkeyhelp(void)
 {
-	tx_printkeyhelp("S", "-sort  ", stdscr, HIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("S", "-sort  ", stdscr, KEYHIGHATTR, KEYBARATTR);
 }
 
 void stdexitkeyhelp(void)
 {
-	tx_printkeyhelp("X", "-exit", stdscr, HIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("X", "-exit", stdscr, KEYHIGHATTR, KEYBARATTR);
 	tx_coloreol();
 }
 
 void scrollkeyhelp(void)
 {
 	tx_printkeyhelp("Up/Down/PgUp/PgDn", "-scroll window  ", stdscr,
-			HIGHATTR, STDATTR);
+			KEYHIGHATTR, KEYBARATTR);
 }
 
 void tabkeyhelp(WINDOW * win)
@@ -245,6 +246,7 @@ void standardcolors(int color)
 		DLGBOXATTR = COLOR_PAIR(6);
 		DLGHIGHATTR = COLOR_PAIR(12);
 		KEYBARATTR = STDATTR;
+		KEYHIGHATTR = HIGHATTR;
 		IPSTATLABELATTR = COLOR_PAIR(2);
 		IPSTATATTR = COLOR_PAIR(12);
 		DESKTEXTATTR = COLOR_PAIR(7);
@@ -274,8 +276,9 @@ void standardcolors(int color)
 		STATUSBARATTR = A_BOLD;
 		DLGBOXATTR = A_REVERSE;
 		DLGTEXTATTR = A_REVERSE;
-		DLGHIGHATTR = A_BOLD;
+		DLGHIGHATTR = A_REVERSE | A_BOLD;
 		KEYBARATTR = A_REVERSE;
+		KEYHIGHATTR = HIGHATTR;
 		IPSTATLABELATTR = A_REVERSE;
 		IPSTATATTR = A_STANDOUT;
 		DESKTEXTATTR = A_NORMAL;

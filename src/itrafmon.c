@@ -47,12 +47,12 @@ static void rotate_ipmon_log(int s __unused)
 static void ipmonhelp(void)
 {
 	move(LINES - 1, 1);
-	tx_printkeyhelp("Up/Dn/PgUp/PgDn", "-scroll  ", stdscr, HIGHATTR,
+	tx_printkeyhelp("Up/Dn/PgUp/PgDn", "-scroll  ", stdscr, KEYHIGHATTR,
 			KEYBARATTR);
 	move(LINES - 1, 43);
-	tx_printkeyhelp("W", "-chg actv win  ", stdscr, HIGHATTR,
+	tx_printkeyhelp("W", "-chg actv win  ", stdscr, KEYHIGHATTR,
 			KEYBARATTR);
-	tx_printkeyhelp("S", "-sort TCP  ", stdscr, HIGHATTR, KEYBARATTR);
+	tx_printkeyhelp("S", "-sort TCP  ", stdscr, KEYHIGHATTR, KEYBARATTR);
 	stdexitkeyhelp();
 }
 
@@ -60,10 +60,10 @@ static void uniq_help(int what)
 {
 	move(LINES - 1, 25);
 	if (!what)
-		tx_printkeyhelp("M", "-more TCP info   ", stdscr, HIGHATTR,
+		tx_printkeyhelp("M", "-more TCP info   ", stdscr, KEYHIGHATTR,
 				KEYBARATTR);
 	else
-		tx_printkeyhelp("Lft/Rt", "-vtcl scrl  ", stdscr, HIGHATTR,
+		tx_printkeyhelp("Lft/Rt", "-vtcl scrl  ", stdscr, KEYHIGHATTR,
 				KEYBARATTR);
 }
 
