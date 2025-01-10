@@ -203,8 +203,7 @@ static struct eth_desc *select_eth_desc(const struct eth_desc *hd)
 		return NULL;
 	}
 
-	tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2, STDATTR, BOXATTR,
-			BARSTDATTR, HIGHATTR);
+	tx_init_listbox(&slist, COLS, 20, 0, (LINES - 20) / 2);
 
 	tx_set_listbox_title(&slist, "Address", 1);
 	tx_set_listbox_title(&slist, "Description", 19);
@@ -327,8 +326,7 @@ void manage_eth_desc(unsigned linktype)
 	int row = 1;
 	int aborted = 0;
 
-	tx_initmenu(&menu, 7, 31, (LINES - 6) / 2, (COLS - 31) / 2, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
+	tx_initmenu(&menu, 7, 31, (LINES - 6) / 2, (COLS - 31) / 2);
 	tx_additem(&menu, " ^A^dd description...",
 		   "Adds a description for a MAC address");
 	tx_additem(&menu, " ^E^dit description...",

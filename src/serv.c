@@ -1270,8 +1270,7 @@ static void operate_portselect(struct porttab **table, struct porttab **node,
 	struct scroll_list list;
 	char listtext[20];
 
-	tx_init_listbox(&list, 25, 22, (COLS - 25) / 2, (LINES - 22) / 2,
-			STDATTR, BOXATTR, BARSTDATTR, HIGHATTR);
+	tx_init_listbox(&list, 25, 22, (COLS - 25) / 2, (LINES - 22) / 2);
 
 	tx_set_listbox_title(&list, "Select Port/Range", 1);
 

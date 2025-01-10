@@ -692,13 +692,12 @@ void selectiface(char *ifname, int withall, int *aborted)
 		ptmp->next_entry = list;
 		list = ptmp;
 	}
-	tx_listkeyhelp(STDATTR, HIGHATTR);
+	tx_listkeyhelp(KEYBARATTR, KEYHIGHATTR);
 
 	ptmp = list;
 
 	tx_init_listbox(&scrolllist, 24, 14, (COLS - 24) / 2 - 9,
-			(LINES - 14) / 2, STDATTR, BOXATTR, BARSTDATTR,
-			HIGHATTR);
+			(LINES - 14) / 2);
 
 	tx_set_listbox_title(&scrolllist, "Select Interface", 1);
 

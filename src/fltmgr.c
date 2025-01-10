@@ -25,8 +25,7 @@ fltmgr.c - filter list management routines
 
 void makestdfiltermenu(struct MENU *menu)
 {
-	tx_initmenu(menu, 9, 31, (LINES - 8) / 2, (COLS - 31) / 2 + 15, BOXATTR,
-		    STDATTR, HIGHATTR, BARSTDATTR, BARHIGHATTR, DESCATTR);
+	tx_initmenu(menu, 9, 31, (LINES - 8) / 2, (COLS - 31) / 2 + 15);
 	tx_additem(menu, " ^D^efine new filter...",
 		   "Defines a new set of IP filter parameters");
 	tx_additem(menu, " ^A^pply filter...", "Applies a defined filter");
@@ -224,15 +223,14 @@ void operate_select(struct ffnode *ffiles, struct ffnode **item, int *aborted)
 	struct ffnode *pptr;
 	struct scroll_list list;
 
-	tx_listkeyhelp(STDATTR, HIGHATTR);
+	tx_listkeyhelp(KEYBARATTR, KEYHIGHATTR);
 	update_panels();
 	doupdate();
 
 	pptr = ffiles;
 
 	tx_init_listbox(&list, 60, 10, (COLS - 60) / 2 - 2,
-			(LINES - 10) / 2 - 2, STDATTR, BOXATTR, BARSTDATTR,
-			HIGHATTR);
+			(LINES - 10) / 2 - 2);
 
 	tx_set_listbox_title(&list, "Select Filter", 1);
 

@@ -29,8 +29,9 @@ int BARPTRATTR;
 int DLGTEXTATTR;
 int DLGBOXATTR;
 int DLGHIGHATTR;
-int DESCATTR;
 int STATUSBARATTR;
+int KEYBARATTR;
+int KEYHIGHATTR;
 int IPSTATLABELATTR;
 int IPSTATATTR;
 int DESKTEXTATTR;
@@ -57,7 +58,7 @@ void draw_desktop(void)
 	int row;		/* counter for desktop construction */
 
 	scrollok(stdscr, 0);
-	attrset(STATUSBARATTR);
+	attrset(KEYBARATTR);
 	move(0, 0);
 	printw("%*c", COLS, ' ');	/* these two print the top n' bottom */
 	move(LINES - 1, 0);
@@ -149,19 +150,19 @@ void stdkeyhelp(WINDOW * win)
 
 void sortkeyhelp(void)
 {
-	tx_printkeyhelp("S", "-sort  ", stdscr, HIGHATTR, STATUSBARATTR);
+	tx_printkeyhelp("S", "-sort  ", stdscr, KEYHIGHATTR, KEYBARATTR);
 }
 
 void stdexitkeyhelp(void)
 {
-	tx_printkeyhelp("X", "-exit", stdscr, HIGHATTR, STATUSBARATTR);
+	tx_printkeyhelp("X", "-exit", stdscr, KEYHIGHATTR, KEYBARATTR);
 	tx_coloreol();
 }
 
 void scrollkeyhelp(void)
 {
 	tx_printkeyhelp("Up/Down/PgUp/PgDn", "-scroll window  ", stdscr,
-			HIGHATTR, STDATTR);
+			KEYHIGHATTR, KEYBARATTR);
 }
 
 void tabkeyhelp(WINDOW * win)
@@ -171,7 +172,7 @@ void tabkeyhelp(WINDOW * win)
 
 void indicate(char *message)
 {
-	attrset(STATUSBARATTR);
+	attrset(KEYBARATTR);
 	mvprintw(LINES - 1, 0, "%*c", COLS, ' ');
 	mvprintw(LINES - 1, 1, "%s", message);
 	refresh();
@@ -240,11 +241,12 @@ void standardcolors(int color)
 		BARSTDATTR = COLOR_PAIR(15) | A_BOLD;
 		BARHIGHATTR = COLOR_PAIR(11) | A_BOLD;
 		BARPTRATTR = COLOR_PAIR(18) | A_BOLD;
-		DESCATTR = COLOR_PAIR(2);
+		STATUSBARATTR = COLOR_PAIR(2);
 		DLGTEXTATTR = COLOR_PAIR(2);
 		DLGBOXATTR = COLOR_PAIR(6);
 		DLGHIGHATTR = COLOR_PAIR(12);
-		STATUSBARATTR = STDATTR;
+		KEYBARATTR = STDATTR;
+		KEYHIGHATTR = HIGHATTR;
 		IPSTATLABELATTR = COLOR_PAIR(2);
 		IPSTATATTR = COLOR_PAIR(12);
 		DESKTEXTATTR = COLOR_PAIR(7);
@@ -264,22 +266,23 @@ void standardcolors(int color)
 		IPV6ATTR = COLOR_PAIR(19);
 		UNKNATTR = COLOR_PAIR(4) | A_BOLD;
 	} else {
-		STDATTR = A_REVERSE;
-		HIGHATTR = A_REVERSE;
-		BOXATTR = A_REVERSE;
+		STDATTR = A_NORMAL;
+		HIGHATTR = A_BOLD;
+		BOXATTR = A_NORMAL;
 		ACTIVEATTR = A_BOLD;
-		BARSTDATTR = A_NORMAL;
-		BARHIGHATTR = A_BOLD;
+		BARSTDATTR = A_REVERSE;
+		BARHIGHATTR = A_REVERSE | A_BOLD;
 		BARPTRATTR = A_NORMAL;
-		DESCATTR = A_BOLD;
+		STATUSBARATTR = A_REVERSE;
 		DLGBOXATTR = A_REVERSE;
 		DLGTEXTATTR = A_REVERSE;
-		DLGHIGHATTR = A_BOLD;
-		STATUSBARATTR = A_REVERSE;
+		DLGHIGHATTR = A_REVERSE | A_BOLD;
+		KEYBARATTR = A_REVERSE;
+		KEYHIGHATTR = A_REVERSE | A_BOLD;
 		IPSTATLABELATTR = A_REVERSE;
 		IPSTATATTR = A_STANDOUT;
 		DESKTEXTATTR = A_NORMAL;
-		PTRATTR = A_REVERSE;
+		PTRATTR = A_BOLD;
 		FIELDATTR = A_BOLD;
 		ERRBOXATTR = A_BOLD;
 		ERRTXTATTR = A_NORMAL;
