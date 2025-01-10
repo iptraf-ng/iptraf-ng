@@ -256,7 +256,7 @@ static const char *const iptraf_ng_usage[] = {
 	NULL
 };
 
-static int help_opt, f_opt, g_opt, facilitytime, B_opt;
+static int help_opt, f_opt, g_opt, facilitytime, b_opt, B_opt;
 static char *i_opt, *d_opt, *s_opt, *z_opt, *l_opt, *L_opt;
 
 static struct options iptraf_ng_options[] = {
@@ -274,6 +274,8 @@ static struct options iptraf_ng_options[] = {
 		   "start the LAN station monitor (use '-l all' for all LAN interfaces)"),
 	OPT_BOOL('g', NULL, &g_opt, "start the general interface statistics"),
 	OPT_GROUP(""),
+	OPT_BOOL('b', NULL, &b_opt,
+		 "use XDP to gather packet statistics (only incoming traffic will work)"),
 	OPT_BOOL('B', NULL, &B_opt,
 		 "run in background (use only with one of the above parameters"),
 	OPT_BOOL('f', NULL, &f_opt,
@@ -403,6 +405,9 @@ int main(int argc, char **argv)
 		removetags();
 		remove_sockets();
 	}
+
+	if (b_opt)
+		options.bpf = 1;
 
 	if (B_opt) {
 		if (!command)

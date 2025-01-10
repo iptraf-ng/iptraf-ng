@@ -27,6 +27,10 @@
 #define LOGDIR		"/var/log/iptraf-ng"
 #endif
 
+#ifndef SHAREDIR
+#define SHAREDIR	PREFIX "/share/iptraf-ng"
+#endif
+
 /*
  * Lock directory.
  * 
@@ -87,6 +91,7 @@
 #define ITRAFMONCOUNTFILE 	get_path(T_LOCKDIR, "iptraf-itrafmoncount.dat")
 #define LANMONCOUNTFILE		get_path(T_LOCKDIR, "iptraf-lanmoncount.dat")
 #define PROMISCLISTFILE 	get_path(T_WORKDIR, "iptraf-promisclist.tmp")
+#define DETBPF_FILE		get_path(T_SHAREDIR, "det_bpf.o")
 
 #define OTHIPFLNAME	get_path(T_WORKDIR, "othipfilters.dat")
 

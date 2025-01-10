@@ -27,6 +27,11 @@ detstats.c	- the interface statistics module
 #include "detstats.h"
 #include "rate.h"
 #include "capt.h"
+#include "det_bpf.h"
+
+#include <sys/sysinfo.h>
+#include <bpf/bpf.h>
+#include <bpf/libbpf.h>
 
 struct ifcounts {
 	struct proto_counter total;
@@ -70,6 +75,8 @@ struct ifrates {
 	unsigned long peakpps_out;
 	unsigned long pps_bcast;
 };
+
+static int ifindex;
 
 /* USR1 log-rotation signal handlers */
 static void rotate_dstat_log(int s __unused)
@@ -502,6 +509,147 @@ static void detstats_process_packet(struct ifcounts *ifcounts, struct pkt_hdr *p
 	}
 }
 
+static void bpf_stats(struct ifcounts *ifcounts, int fd, bool rate)
+{
+	int nr_cpus = get_nprocs_conf();
+	struct trafdata values[nr_cpus];
+	static struct proto_counter last = { 0 }, last_bcast = { 0 };
+	unsigned key = UINT_MAX;
+	int i;
+
+	while (bpf_map_get_next_key(fd, &key, &key) != -1) {
+		struct proto_counter *proto_counter = NULL, *span = NULL, *l;
+		struct pkt_counter *span_bcast = NULL;
+		struct trafdata sum = { 0 };
+
+		bpf_map_lookup_elem(fd, &key, values);
+		for (i = 0; i < nr_cpus; i++) {
+			sum.packets += values[i].packets;
+			sum.bytes += values[i].bytes;
+		}
+		switch (key) {
+		case TOTAL:
+			proto_counter = &ifcounts->total;
+			span = &ifcounts->span;
+			l = &last;
+			break;
+		case BROADCAST:
+			proto_counter = &ifcounts->bcast;
+			span_bcast = &ifcounts->span_bcast;
+			l = &last_bcast;
+			break;
+		case IPV4:
+			proto_counter = &ifcounts->ipv4;
+			break;
+		case IPV6:
+			proto_counter = &ifcounts->ipv6;
+			break;
+		case NON_IP:
+			proto_counter = &ifcounts->nonip;
+			break;
+		case ICMP:
+			proto_counter = &ifcounts->icmp;
+			break;
+		case TCP:
+			proto_counter = &ifcounts->tcp;
+			break;
+		case UDP:
+			proto_counter = &ifcounts->udp;
+			break;
+		case OTHER_IP:
+			proto_counter = &ifcounts->other;
+			break;
+		}
+		if (proto_counter) {
+			proto_counter->proto_total.pc_packets = sum.packets;
+			proto_counter->proto_total.pc_bytes = sum.bytes;
+			proto_counter->proto_in.pc_packets = sum.packets;
+			proto_counter->proto_in.pc_bytes = sum.bytes;
+		}
+		if (rate) {
+			if (span && l) {
+				span->proto_total.pc_packets = sum.packets - l->proto_total.pc_packets;
+				span->proto_total.pc_bytes = sum.bytes - l->proto_total.pc_bytes;
+				span->proto_in.pc_packets = sum.packets - l->proto_in.pc_packets;
+				span->proto_in.pc_bytes = sum.bytes - l->proto_in.pc_bytes;
+
+				l->proto_total.pc_packets = sum.packets;
+				l->proto_total.pc_bytes = sum.bytes;
+				l->proto_in.pc_packets = sum.packets;
+				l->proto_in.pc_bytes = sum.bytes;
+			} else if (span_bcast && l) {
+				span_bcast->pc_packets = sum.packets - l->proto_total.pc_packets;
+				span_bcast->pc_bytes = sum.bytes - l->proto_total.pc_bytes;
+
+				l->proto_total.pc_packets = sum.packets;
+				l->proto_total.pc_bytes = sum.bytes;
+			}
+		}
+	}
+}
+
+static int setup_bpf(char *iface)
+{
+	struct bpf_prog_load_attr prog_load_attr = {
+		.prog_type	= BPF_PROG_TYPE_XDP,
+		.file		= DETBPF_FILE,
+	};
+	struct ifreq ifr = { 0 };
+	struct bpf_object *obj;
+	struct bpf_map *map;
+	int fd;
+
+	fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+	if (fd == -1) {
+		perror("socket");
+		return -1;
+	}
+
+	if (strlen(iface) >= IFNAMSIZ) {
+		printf("invalid ifname '%s'\n", iface);
+		return -1;
+	}
+
+	strcpy(ifr.ifr_name, iface);
+	if (ioctl(fd, SIOCGIFINDEX, &ifr) < 0) {
+		perror("SIOCGIFINDEX");
+		return -1;
+	}
+	close(fd);
+	ifindex = ifr.ifr_ifindex;
+
+	if (bpf_prog_load_xattr(&prog_load_attr, &obj, &fd))
+		return -1;
+
+	if (!fd) {
+		perror("load bpf file");
+		return -1;
+	}
+
+	if (bpf_set_link_xdp_fd(ifindex, fd, 0) < 0) {
+		printf("link set xdp fd failed\n");
+		return -1;
+	}
+	close(fd);
+
+	map = bpf_map__next(NULL, obj);
+	if (!map) {
+		perror("finding a map\n");
+		return -1;
+	}
+	return bpf_map__fd(map);
+
+/*
+	signal(SIGINT, int_exit);
+	signal(SIGTERM, int_exit);
+*/
+}
+
+static void bpf_detach(void)
+{
+	bpf_set_link_xdp_fd(ifindex, -1, 0);
+}
+
 /* detailed interface statistics function */
 void detstats(char *iface, time_t facilitytime)
 {
@@ -518,6 +666,8 @@ void detstats(char *iface, time_t facilitytime)
 	int ch;
 
 	struct capt capt;
+	int fd = -1;
+	int map_fd = -1;
 
 	struct pkt_hdr pkt;
 
@@ -546,6 +696,24 @@ void detstats(char *iface, time_t facilitytime)
 	if (capt_init(&capt, iface) == -1) {
 		write_error("Unable to initialize packet capture interface");
 		goto err;
+	}
+
+	if (options.bpf) {
+		map_fd = setup_bpf(iface);
+		if (map_fd == -1) {
+			write_error("XDP eBPF attach failed");
+			goto err;
+		}
+	} else {
+		fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+		if (fd == -1) {
+			write_error("Unable to obtain monitoring socket");
+			goto err;
+		}
+		if (dev_bind_ifname(fd, iface) == -1) {
+			write_error("Unable to bind interface on the socket");
+			goto err;
+		}
 	}
 
 	ifcounts_init(&ifcounts);
@@ -580,10 +748,12 @@ void detstats(char *iface, time_t facilitytime)
 	update_panels();
 	doupdate();
 
-	packet_init(&pkt);
+	if (!options.bpf)
+		packet_init(&pkt);
 
 	exitloop = 0;
 
+	bool rate = false;
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	struct timespec last_time = now;
@@ -603,14 +773,17 @@ void detstats(char *iface, time_t facilitytime)
 		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		if (now.tv_sec > last_time.tv_sec) {
+			rate = true;
 			unsigned long msecs = timespec_diff_msec(&now, &last_time);
+
 			ifrates_update(&ifrates, &ifcounts, msecs);
 			ifrates_show(&ifrates, statwin);
 
 			wattrset(statwin, BOXATTR);
 			printelapsedtime(now.tv_sec - starttime, 1, statwin);
 
-			print_packet_drops(capt_get_dropped(&capt), statwin, 49);
+			if (!options.bpf)
+				print_packet_drops(capt_get_dropped(&capt), statwin, 49);
 
 			if (now.tv_sec > endtime)
 				exitloop = 1;
@@ -626,6 +799,12 @@ void detstats(char *iface, time_t facilitytime)
 			last_time = now;
 		}
 		if (time_after(&now, &next_screen_update)) {
+			if (options.bpf) {
+				bpf_stats(&ifcounts, map_fd, rate);
+				if (rate)
+					rate = false;
+			}
+
 			printdetails(&ifcounts, statwin);
 			update_panels();
 			doupdate();
@@ -633,7 +812,9 @@ void detstats(char *iface, time_t facilitytime)
 			set_next_screen_update(&next_screen_update, &now);
 		}
 
-		if (capt_get_packet(&capt, &pkt, &ch, statwin) == -1) {
+		if (options.bpf) {
+			ch = capt_get_char(statwin);
+		} else if (capt_get_packet(&capt, &pkt, &ch, statwin) == -1) {
 			write_error("Packet receive failed");
 			exitloop = 1;
 			break;
@@ -642,13 +823,15 @@ void detstats(char *iface, time_t facilitytime)
 		if (ch != ERR)
 			detstats_process_key(ch);
 
-		if (pkt.pkt_len > 0) {
+		if (!options.bpf && pkt.pkt_len > 0) {
 			detstats_process_packet(&ifcounts, &pkt);
 			capt_put_packet(&capt, &pkt);
 		}
-
 	}
 	packet_destroy(&pkt);
+
+	if (options.bpf)
+		bpf_detach();
 
 	if (logging) {
 		signal(SIGUSR1, SIG_DFL);
